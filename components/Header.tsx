@@ -56,7 +56,7 @@ export default function Header() {
   const tutorNav = hasSeekerProfile
     ? [
         { href: '/favoritos', label: 'Mis favoritos' },
-        { href: '/mis-solicitudes', label: 'Mis reservas' },
+        { href: '/mis-reservas', label: 'Mis reservas' },
         { href: '/usuario/mascotas', label: 'Mis mascotas' },
       ]
     : [];

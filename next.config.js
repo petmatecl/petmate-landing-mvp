@@ -200,6 +200,12 @@ const nextConfig = {
       { source: '/visita-domicilio/:comuna', destination: '/cuidado/:comuna', permanent: true },
       { source: '/domicilio', destination: '/cuidado', permanent: true },
       { source: '/domicilio/:comuna', destination: '/cuidado/:comuna', permanent: true },
+      // Batch REMATE-1 R2b (2026-08-11) — Rename ruta /mis-solicitudes → /mis-reservas.
+      // Cierre limpio de la taxonomía RESERVA que se aplicó en heading/title/nav
+      // durante sweep #3 (2026-08-04). El 301 permanente preserva bookmarks +
+      // deep links históricos + emails ya enviados + indexación Google. La query
+      // string se preserva por default en Next.js redirects.
+      { source: '/mis-solicitudes', destination: '/mis-reservas', permanent: true },
     ]
   },
 

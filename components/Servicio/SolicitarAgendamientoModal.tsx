@@ -792,7 +792,7 @@ export default function SolicitarAgendamientoModal({
                 toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
                     action: {
                         label: 'Ver mis reservas',
-                        onClick: () => { window.location.href = '/mis-solicitudes'; },
+                        onClick: () => { window.location.href = '/mis-reservas'; },
                     },
                     duration: 8000,
                 });
@@ -972,7 +972,7 @@ export default function SolicitarAgendamientoModal({
                 toast.success('Reserva confirmada. El proveedor recibirá el aviso por email.', {
                     action: {
                         label: 'Ver mis reservas',
-                        onClick: () => { window.location.href = '/mis-solicitudes'; },
+                        onClick: () => { window.location.href = '/mis-reservas'; },
                     },
                     duration: 8000,
                 });
@@ -1214,7 +1214,7 @@ export default function SolicitarAgendamientoModal({
             toast.success('Solicitud enviada. El proveedor te responderá pronto.', {
                 action: {
                     label: 'Ver mis reservas',
-                    onClick: () => { window.location.href = '/mis-solicitudes'; },
+                    onClick: () => { window.location.href = '/mis-reservas'; },
                 },
                 duration: 8000,
             });

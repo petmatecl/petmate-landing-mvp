@@ -12,6 +12,12 @@ import { useRouter } from 'next/router';
 function isProtectedPath(path: string): boolean {
     const [pathNoQuery] = path.split('?');
     if (pathNoQuery === '/proveedor' || pathNoQuery === '/proveedor/') return true;
+    // Batch REMATE-1 R2b: preservamos AMBAS rutas por ~24-48h para que la
+    // navegación redirect 301 (/mis-solicitudes → /mis-reservas) siga
+    // reconocida como path protegido durante la transición. El redirect en
+    // next.config.js hace el trabajo de URL rewrite; este guard sigue
+    // protegiendo la sesión en tránsito.
+    if (pathNoQuery.startsWith('/mis-reservas')) return true;
     if (pathNoQuery.startsWith('/mis-solicitudes')) return true;
     if (pathNoQuery.startsWith('/usuario')) return true;
     if (pathNoQuery.startsWith('/admin')) return true;

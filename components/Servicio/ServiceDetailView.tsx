@@ -711,6 +711,21 @@ export default function ServiceDetailView({
                                     <img
                                         src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
                                         alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
+                                        /* Sprint PERF-2 Ítem R1 (2026-08-11) — width/height
+                                           intrínsecos para reservar aspect ratio ANTES del
+                                           image decode. Cierra el CLS 0.01-0.02 leve verde
+                                           observado en PERF-1 Fase E2 (baseline canónico
+                                           post-perf-1: ficha desktop CLS 0.01-0.02 vs 0.00
+                                           pre-perf-1). Ratio 3:2 típico de galería
+                                           (Unsplash sirve fotos hero en dimensiones
+                                           cercanas). object-cover del CSS mantiene el
+                                           visual: image llena el container `h-[340px]
+                                           md:h-[500px]` sin distorsión. width/height NO
+                                           afectan el layout renderizado — son señal al
+                                           browser para calcular intrinsic aspect ratio
+                                           mientras el image aún no decoded. */
+                                        width={1200}
+                                        height={800}
                                         className="w-full h-full object-cover transition-opacity duration-200"
                                         onError={() => setImgError(true)}
                                         /* Sprint PERF-1 Bucket A: fetchpriority="high"

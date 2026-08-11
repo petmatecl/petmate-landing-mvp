@@ -135,7 +135,7 @@ export const ReservaConfirmadaTutorEmail = ({
                         </Text>
 
                         <Section style={layoutStyles.buttonContainer}>
-                            <Button style={layoutStyles.button} href="https://www.pawnecta.com/mis-solicitudes">
+                            <Button style={layoutStyles.button} href="https://www.pawnecta.com/mis-reservas">
                                 Ver mi reserva
                             </Button>
                         </Section>

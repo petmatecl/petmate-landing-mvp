@@ -537,7 +537,7 @@ async function enviarRecordatorio(
     const to = esTutor ? e.tutor.email : e.proveedor.email;
     const nombreDestinatario = esTutor ? e.tutor.nombre : e.proveedor.nombre;
     const nombreOtro = esTutor ? e.proveedor.nombre : e.tutor.nombre;
-    const panelPath = esTutor ? '/mis-solicitudes' : '/proveedor?tab=solicitudes';
+    const panelPath = esTutor ? '/mis-reservas' : '/proveedor?tab=solicitudes';
     const panelUrl = `${siteUrl}${panelPath}`;
     const subject = esTutor
         ? `Mañana: tu reserva con ${nombreOtro}`

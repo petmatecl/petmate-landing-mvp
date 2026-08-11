@@ -124,14 +124,17 @@ export async function clickConfirmarReserva(page: Page): Promise<void> {
 }
 
 /**
- * Navega a /mis-solicitudes y espera a que la lista de agendamientos esté
+ * Navega a /mis-reservas y espera a que la lista de agendamientos esté
  * renderizada. Devuelve el locator del contenedor de cards.
  */
 export async function irAMisSolicitudes(page: Page) {
-    await page.goto('/mis-solicitudes');
+    await page.goto('/mis-reservas');
     await page.waitForLoadState('domcontentloaded');
     // La página muestra un heading H1 "Mis reservas" (sweep #3). La ruta
-    // sigue siendo /mis-solicitudes (rename de ruta con redirect va a backlog).
+    // Post Batch REMATE-1 R2b (2026-08-11): ruta renombrada a /mis-reservas.
+    // El redirect 301 en next.config.js hace que goto('/mis-solicitudes')
+    // funcione también (Playwright sigue el redirect). Este helper usa el
+    // path canónico nuevo directo para no sumar hops innecesarios.
     await expect(page.getByRole('heading', { name: /Mis reservas/i })).toBeVisible({ timeout: 10_000 });
     return page.locator('article'); // cada card es <article>
 }
