@@ -109,7 +109,10 @@ test.describe.serial('S7 — Cancelación fuera de ventana rechazada', () => {
         });
         expect(token).toBeTruthy();
 
-        const baseURL = page.url().split('/mis-solicitudes')[0];
+        // Batch REMATE-1 R2b (2026-08-11) — ruta canónica es /mis-reservas
+        // tras el rename. `new URL().origin` es más robusto que un split
+        // hardcoded al path: sobrevive renames futuros y query strings.
+        const baseURL = new URL(page.url()).origin;
         const resp = await request.post(`${baseURL}/api/agendamientos/cancelar`, {
             headers: {
                 'Content-Type': 'application/json',
