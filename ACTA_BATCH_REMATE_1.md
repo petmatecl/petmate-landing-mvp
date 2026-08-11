@@ -1,9 +1,10 @@
 # ACTA Batch REMATE-1 (rama `remate-1`)
 
 **Rama**: `remate-1` (forkeada de `main @ 4272715`).
-**SHAs**: `7c8859b` (código R1+R2a+R2b) → `529cb5c` (fix e2e post-P6).
+**SHAs**: `7c8859b` (código R1+R2a+R2b) → `529cb5c` (fix e2e post-P6) → `ade107c` (acta+guía) → `0ba6050` (fix editorial header + router.replace).
+**Tag prod**: `remate-1-prod-20260811` sobre `main @ 0ba6050`.
 **Fecha ejecución**: 2026-08-11.
-**Estado**: **VERDE** — R1+R2a+R2b promocionables. R3 SENTRY-1 en cola (esperando DSN).
+**Estado**: **PROMOVIDO A PROD** — R1+R2a+R2b live. R3 SENTRY-1 en cola (esperando DSN).
 
 ---
 
@@ -185,6 +186,75 @@ Rationale:
 - **Build P1 exit 0** en SHA final `529cb5c`.
 
 **Partición R3**: queda en rama `remate-1` esperando DSN. No bloquea R1+R2.
+
+---
+
+## 5.bis Ejecución de promoción a prod (Fase E4) — 2026-08-11
+
+**Verificaciones pre-merge del auditor (turno del PO)**:
+
+**A. Partición R3 (Sentry) — LIMPIA ✅**. Grep exhaustivo en `remate-1@ade107c`:
+- Sin deps `sentry` en `package.json` / `package-lock.json`.
+- Sin archivos `sentry.*.ts` ni `instrumentation.ts`.
+- Sin imports `@sentry/*`.
+- Sin env vars `SENTRY_*` en `next.config.js` / `.env.example` / `vercel.json` / `.claude/settings.json`.
+- Sin archivos Sentry en `git diff main..remate-1 --stat`.
+
+**B. Barrido links salientes — LIMPIO ✅**. Grep de `mis-solicitudes` en superficie saliente al usuario:
+- Templates de email (11 archivos en `components/Emails/`): único match es `ReservaConfirmadaTutorEmail.tsx:138` con href a `/mis-reservas` (correcto).
+- Cron recordatorios: `pages/api/cron/recordatorio-reserva.ts:540` — `panelPath = esTutor ? '/mis-reservas' : ...` (correcto).
+- Sitemap: `pages/sitemap.xml.tsx` — sin refs a mis-*.
+- Robots.txt: sin refs.
+- Canonical/metadata: sin refs.
+- Catálogo GA4 (`lib/gtag.ts` + `lib/gtag.test.ts`): sin refs.
+- Residuo cosmético (no bloqueante): `scripts/render-emails-diff.ts` (dev tool no productivo, 4 refs) + `notify-proveedor-cancel.ts:16` (comentario doc) — post-merge higiene.
+
+**Hallazgo pre-merge**: `git checkout main` bloqueado por working-tree con edits editoriales en `pages/mis-reservas.tsx` (header comment + `router.replace` para `/login?redirect=`) que **el `git mv` del commit 7c8859b no había incluido**. Fixeado con commit `0ba6050` — build P1 exit 0 tras el fix.
+
+**Merge FF ejecutado**: `main 4272715 → 0ba6050` (fast-forward limpio, 13 files changed, 345 insertions/12 deletions incluyendo el rename `pages/{mis-solicitudes.tsx => mis-reservas.tsx} (99%)`).
+
+**Deploy prod** (Vercel auto-deploy sobre push main). Verificado buildId cambió: `gve7-VUX0OrJpjgC71nHi` → `cfrpP5_4Ifvd_M0pqb57n`.
+
+**Smokes prod ejecutados** (2026-08-11):
+
+```
+=== Rutas core (patrón S1-S7) ===
+  / → 200 ✅  /explorar → 200 ✅  /faq → 200 ✅
+  /quienes-somos → 200 ✅  /login → 200 ✅  /register → 200 ✅
+  /privacidad → 200 ✅  /terminos → 200 ✅  /forgot-password → 200 ✅
+  /servicio/{uuid-real-del-sitemap} → 200 ✅
+
+=== R2b — /mis-solicitudes → 308 → /mis-reservas ===
+  HTTP/1.1 308 Permanent Redirect
+  Location: /mis-reservas
+  /mis-reservas → 200 ✅
+  Final tras -L: https://www.pawnecta.com/mis-reservas 200 ✅
+
+=== R2a — bots ===
+  /wp-content → 403 (X-Vercel-Mitigated: deny — WAF Vercel intercepta ANTES del middleware, mejor que 404: bloquea en CDN sin compute)
+  /wp-admin → 403 (idem)
+  /xmlrpc.php → 403 (idem)
+  → Vector sellado con doble cinturón (WAF + middleware). Baseline confirmatorio:
+    /ruta-inexistente-cualquiera → 404 (Next.js catch-all), demuestra que el 403
+    es específico del filtro anti-bot y no de un misconfig general.
+
+=== Cabo — landings pre-existentes ===
+  /peluqueria → 200 ✅  /cuidado → 200 ✅  /adiestramiento → 200 ✅
+  (no regresión — el middleware no capturó rutas legítimas)
+
+=== R1 — width/height en HTML de ficha prod ===
+  width=1200: 1 ✅
+  height=800: 1 ✅
+
+=== R1 — CLS medido con Chrome DevTools MCP (performance trace prod) ===
+  URL: https://www.pawnecta.com/servicio/c1000001-0000-4000-8000-000000000001
+  LCP = 2087 ms (bueno)
+  CLS = 0.00 ✅ (baseline PERF-1 Fase E2 era 0.01-0.02 leve verde → cerrado a 0.00)
+```
+
+**Nota sobre R2a en prod (403 vs 404 esperado)**: en `preview remate-1` (Deployment Protection activa) el middleware recibía los requests y respondía `404`. En `prod` (sin Deployment Protection), Vercel Attack Challenge / WAF (`X-Vercel-Mitigated: deny`) intercepta los patterns bot **antes** de que lleguen al Edge Runtime del middleware, respondiendo `403`. Ambos comportamientos sellan el vector — el 403 desde CDN es **operacionalmente superior** (no consume compute). El middleware queda como cinturón defensivo secundario que se activaría si Vercel WAF fuera desactivado.
+
+**Estado post-promoción**: `main = 0ba6050`, tag `remate-1-prod-20260811` creado y pushed. Prod estable.
 
 ---
 
