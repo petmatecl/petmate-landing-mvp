@@ -1,4 +1,5 @@
-// pages/mis-solicitudes.tsx
+// pages/mis-reservas.tsx (renombrado desde pages/mis-solicitudes.tsx en
+// Batch REMATE-1 R2b 2026-08-11 con redirect 301 en next.config.js).
 // ----------------------------------------------------------------------------
 // Sprint 4 — pagina del tutor para ver y gestionar sus solicitudes de
 // agendamiento. Standalone (no parte de un panel del tutor — ese no existe
@@ -59,7 +60,7 @@ export default function MisSolicitudesPage() {
     useEffect(() => {
         if (userLoading || !router.isReady) return;
         if (!isAuthenticated) {
-            router.replace(`/login?redirect=${encodeURIComponent('/mis-solicitudes')}`);
+            router.replace(`/login?redirect=${encodeURIComponent('/mis-reservas')}`);
         }
     }, [isAuthenticated, userLoading, router]);
 
