@@ -1,9 +1,10 @@
 # ACTA Sprint R3 SENTRY-1 (rama `sentry-1`)
 
 **Rama**: `sentry-1` (forkeada de `main @ d81cf14`).
-**SHAs**: `3b362b2` (Fase A configs + wrapper) → `1fce7b5` (Fase B endpoint smoke) → `bf96ae8` (Fase C fix sent flag + spec e2e).
+**SHAs**: `3b362b2` (Fase A configs + wrapper) → `1fce7b5` (Fase B endpoint smoke) → `bf96ae8` (Fase C fix sent flag + spec e2e) → `16691ce` (Fase D acta) → `a319649` (Fase E chore next-env.d.ts).
+**Tag prod**: `sentry-1-prod-20260811` sobre `main @ a319649`.
 **Fecha ejecución**: 2026-08-11.
-**Estado**: **VERDE EN PREVIEW** — pendiente GO del PO para promoción a `main`. Env vars Vercel pendientes de creación por Aldo.
+**Estado**: **PROMOVIDO A PROD** — R3 live. Env var `NEXT_PUBLIC_SENTRY_DSN` creada por Aldo en Vercel scope Production. `SENTRY_AUTH_TOKEN` opcional pendiente (stacktraces se ven minificados hasta agregarse).
 
 ---
 
@@ -159,6 +160,105 @@ Dashboard Sentry (https://sentry.io/organizations/pawnecta/issues/?project=<id>)
 - **Sourcemap upload en build** (`SENTRY_AUTH_TOKEN`): opcional pero recomendado. Sin él, los stacktraces en Sentry se ven minificados (`chunk-abc.js:1:12345`). Con él, líneas reales del código fuente. Setup ~5 min post-launch.
 - **Remover endpoint smoke** o dejarlo: `/api/admin/sentry-smoke` es útil para re-tests futuros del gate. Decisión operativa post-launch.
 - **Tunnel para bypass de ad-blockers**: hoy el cliente envía directo a `ingest.us.sentry.io`. Si un ad-blocker rompe eventos, habilitar `tunnelRoute: '/monitoring'` en `next.config.js` → Sentry genera un proxy en `pages/api/monitoring` que reenvía. Trade-off: consume Vercel Functions time por evento.
+
+---
+
+## 5.bis Ejecución de promoción a prod (Fase E) — 2026-08-11
+
+**Pre-merge — 2 verificaciones obligatorias del PO**:
+
+**Punto 1 — `next-env.d.ts` residual resuelto explícitamente**. Diagnóstico: el archivo committeado era de la era Next 14 (URL doc vieja). Next 15 (base `main @ d81cf14` post-tren N15) regenera con dos líneas nuevas (`reference path` a `.next/types/routes.d.ts` + URL doc actualizada). Es **estable** entre builds (segundo build no muta más). Política oficial Next.js: `commit next-env.d.ts to source control` — no va a `.gitignore` (el header interno del archivo dice literalmente "This file should not be edited"). Fix: commit `a319649` sube la versión Next 15 regenerada al repo → `git status` limpio verificable, sin excepciones tolerantes. El fantasma no reaparece.
+
+**Punto 2 — stash `.claude/settings.json` NO arrastra al merge**. Verificado: `git stash list` muestra `stash@{0}` con solo `.claude/settings.json` (5 líneas `enabledPlugins` — mi config IDE local) + `next-env.d.ts` versión pre-fix. El stash es local, no viaja al remote. El merge FF `sentry-1 → main` solo trae los 5 commits pusheados (`3b362b2` → `a319649`). El stash queda intacto para re-aplicación futura si Aldo la necesita.
+
+**Merge FF ejecutado**: `main d81cf14 → a319649` (fast-forward limpio, 11 files changed, 2177 insertions/137 deletions incluyendo los 5 configs Sentry nuevos, el spec e2e, la acta, y `next-env.d.ts`).
+
+**Deploy prod** (Vercel auto sobre push main). Verificado buildId cambió: `cjxG6zDpxDWkJB5K9RSGx` → `HrnvrkeMBAFyk1MxlFL-B`. Duración ~1min45s (Sentry sourcemap upload skipped porque `SENTRY_AUTH_TOKEN` no está seteado; build no falla).
+
+### Smokes prod ejecutados (2026-08-11)
+
+**Rutas core (patrón S1-S7)**: 10/10 → 200 ✅
+```
+  /                → 200  /explorar         → 200  /faq       → 200
+  /quienes-somos   → 200  /login            → 200  /register  → 200
+  /privacidad      → 200  /terminos         → 200
+  /forgot-password → 200  /servicio/{uuid}  → 200
+```
+
+**Regresión Batch REMATE-1 anterior — sin cambios**:
+```
+  /mis-solicitudes → 308 → /mis-reservas ✅ (R2b intacto)
+  /wp-content /wp-admin /xmlrpc.php → 403 ✅ (R2a WAF intacto)
+```
+
+**Endpoint smoke prod desplegado**:
+```
+  POST /api/admin/sentry-smoke (sin auth) → 401  (guard verifySession activo ✅)
+```
+
+**Sentry cargado en bundle prod**: string `sentry` presente en `_next/static/chunks/pages/_app-0392cf3381f5ff5a.js` (460 kB) ✅.
+
+**Gate corte inverso — verificación en preview `sentry-1` (segunda dirección)**:
+```json
+POST /api/admin/sentry-smoke con JWT admin →
+{
+  "sent": false,
+  "eventId": null,
+  "gate": {"env": "preview", "enabled": false, "dsn_configured": false},
+  "timestamp": "2026-08-13T20:48:27.919Z"
+}
+```
+Gate cierra correctamente en preview — cero eventos hacia Sentry. Cuota preservada.
+
+### Nota — smoke gate ABIERTO contra prod (spec bloqueado por guard e2e)
+
+El guard `e2e/setup/guard.ts` bloquea `PLAYWRIGHT_BASE_URL=https://www.pawnecta.com` por diseño — regla del proyecto: **los e2e usan cuentas de staging y no deben pegar prod** para no contaminar datos ni disparar emails reales. El spec `gate.spec.ts` NO puede correr contra prod desde el CI local sin desactivar el guard.
+
+**Alternativa canónica para el smoke gate abierto — Aldo desde su navegador**:
+
+1. Login como admin en https://www.pawnecta.com con `petmatecl@gmail.com` (cuenta admin prod).
+2. Abrir DevTools → Console.
+3. Pegar y ejecutar:
+   ```js
+   const t = Object.entries(localStorage).find(([k]) => k.startsWith('sb-') && k.endsWith('-auth-token'));
+   const jwt = JSON.parse(t[1]).access_token;
+   fetch('/api/admin/sentry-smoke', {
+     method: 'POST',
+     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${jwt}` }
+   }).then(r => r.json()).then(console.log);
+   ```
+4. Response esperada: `{sent: true, eventId: "<uuid-hex-32>", gate: {env: "production", enabled: true, dsn_configured: true}, timestamp: "..."}`.
+5. Verificar en Sentry dashboard (https://sentry.io/organizations/pawnecta/issues/?project=javascript-nextjs) filtrando por tag `smoke=true` — el evento debería aparecer en <30s con el mensaje "R3 SENTRY-1 smoke test @ <timestamp>".
+
+Este smoke es equivalente al spec e2e pero manual — solo se ejecuta una vez para validación de aterrizaje. Post-validación, el endpoint queda disponible para re-tests futuros.
+
+### Medición LCP/CLS home prod post-merge (Chrome DevTools MCP)
+
+**Metodología idéntica a PERF-1**: `mcp__plugin_chrome-devtools-mcp_chrome-devtools__performance_start_trace` con `reload: true`, `CPU throttling: 1x`, `Network throttling: none`. 2 mediciones consecutivas contra `https://www.pawnecta.com/`.
+
+**Resultado**:
+| Momento | LCP home | CLS | Delta vs baseline |
+|---|---:|---:|---|
+| Baseline pre-PERF-1 (2026-08-07) | 328 ms | 0.00 | — |
+| Post-PERF-1 canónica (2026-08-08) | 203 ms | 0.00 | **-38%** |
+| **Post-Sentry (hoy 2026-08-11) medición #1** | **184 ms** | 0.00 | -44% vs baseline · -9% vs PERF-1 |
+| **Post-Sentry (hoy 2026-08-11) medición #2** | **186 ms** | 0.00 | -43% vs baseline · -8% vs PERF-1 |
+
+**Interpretación**: **cero regresión — el bundle +49 kB Sentry NO consume el logro de PERF-1** (-38% LCP). Ambas mediciones post-Sentry son **~9% mejores** que la canónica post-PERF-1 (variabilidad natural + posible warm cache + Sentry se descarga fuera del critical path del LCP).
+
+**Por qué no hay regresión** (análisis técnico):
+- El LCP del home lo gana la **imagen hero** (no JavaScript execution). El critical path es HTML → preload de la imagen → paint. El bundle Sentry (+49 kB shared) se descarga en paralelo con otros chunks, sin bloquear el paint del hero.
+- `next.config.js` opciones conservadoras (`disableLogger: true`, `hideSourceMaps: true`, `widenClientFileUpload: true`) minimizan overhead.
+- `integrations: []` explícito en client.config asegura que BrowserTracing/Replay quedan como dead code (no ejecutan en runtime, no crean observers).
+- Sentry init es async y no interfiere con FCP/LCP paint del hero.
+
+**CLS preservado en 0.00** en ambas mediciones. El tesoro de la baseline sigue intacto.
+
+**Recomendación al PO**: no revertir. La regresión no es material (es negativa). Backlog de tree-shake @sentry/browser puede diferirse indefinidamente.
+
+### Estado post-promoción
+
+`main = a319649` estable. Tag `sentry-1-prod-20260811` creado y pushed. Todos los smokes verdes. Pendiente único: Aldo ejecuta el smoke gate abierto manual desde su consola con sesión admin prod para validar aterrizaje completo del evento en dashboard Sentry (equivalente al spec, bloqueado por guard e2e por diseño).
 
 ---
 
