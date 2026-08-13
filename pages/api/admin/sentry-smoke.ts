@@ -38,7 +38,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const timestamp = new Date().toISOString();
 
     // Capturar exception con tag smoke=true para poder filtrar en el dashboard.
-    const eventId = Sentry.captureException(
+    // Sentry v10 devuelve un event id UUID SIEMPRE — incluso con enabled: false
+    // el SDK construye el id sintético pero NO transmite a la red. La única
+    // forma confiable de saber si el evento fue efectivamente ENVIADO es
+    // mirar el estado del gate + dsn, no el return value de captureException.
+    const rawEventId = Sentry.captureException(
         new Error(`R3 SENTRY-1 smoke test @ ${timestamp}`),
         {
             tags: { smoke: 'true', batch: 'R3-SENTRY-1' },
@@ -46,13 +50,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     );
 
-    // Sentry devuelve un event id vacío ('') cuando enabled es false. Cuando
-    // enabled es true y el SDK aceptó el evento, devuelve un UUID.
-    const accepted = typeof eventId === 'string' && eventId.length > 0;
+    // `sent` = evento efectivamente aceptado para transmisión (gate abierto +
+    // DSN configurado). Si gateEnabled o dsnSet son falsos, Sentry es no-op.
+    const sent = gateEnabled && dsnSet;
 
     return res.status(200).json({
-        sent: accepted,
-        eventId: accepted ? eventId : null,
+        sent,
+        eventId: sent ? rawEventId : null,
         gate: {
             env,
             enabled: gateEnabled,
