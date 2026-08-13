@@ -2,23 +2,29 @@
 
 ## Estado del roadmap
 
+- **F1 (agenda horaria por slots) — EN PROD**. `/proveedor` configura agenda por categoría (5 categorías con slots), tutor reserva desde ficha con `SolicitarAgendamientoModal`.
 - **F2 (agenda de estadías por rango de noches) — EN PROD desde 2026-07-28** (tag `f2-prod-20260728` sobre `d2bee23`). Ver [ACTA_CIERRE_F2.md](ACTA_CIERRE_F2.md).
-- **Siguiente del tren Doctoralia-style**: **recordatorios de cita** (diseño en curso). Tiempos, canales y trigger pendientes de definir. Ver `BACKLOG.md > Roadmap producto (Doctoralia-style)` punto 3 para el catálogo general.
+- **Recordatorios 24h antes** — EN PROD desde 2026-07-30 (`/api/cron/recordatorio-reserva` @ 22:00 UTC diario). Mitad "24h" del tren Doctoralia-style completa. Ver [BACKLOG.md > Sprint Recordatorios](BACKLOG.md).
+- **Sentry error monitoring** — EN PROD desde 2026-08-11 (tags `sentry-1-prod-20260811`, `sentry-csp-prod-20260811`, más hotfix `sentry-flush` en curso). Gate `VERCEL_ENV==='production'`. Ver [ACTA_SENTRY_1.md](ACTA_SENTRY_1.md), [ACTA_SENTRY_CSP_HOTFIX.md](ACTA_SENTRY_CSP_HOTFIX.md).
+- **Siguiente**: recordatorio "1h antes" (habilitado por upgrade Vercel Pro) + admin notifs solicitudes pendientes (pedido PO 2026-08-11). Priorización en cancha del PO — ver `BACKLOG.md > PEDIDOS DIRECTOS DEL PO`.
 
 ## Qué es este proyecto
 
-Pawnecta es un directorio/catálogo de servicios para mascotas en Chile. Conecta tutores con proveedores de servicios. NO gestiona pagos, reservas ni calendarización — el contacto es directo (chat interno, WhatsApp, teléfono).
+Pawnecta es un marketplace de servicios para mascotas en Chile. Conecta tutores con proveedores de servicios. **Gestiona el ciclo completo de reserva** — agenda F1 (slots horarios) + F2 (estadías multi-noche), estados derivados REALIZADA/VENCIDA, cancelación bilateral con ventana configurable, recordatorios cron 24h antes. Contacto directo (chat interno, WhatsApp, teléfono) sigue disponible para coordinación post-reserva. **NO gestiona pagos** (transacciones son fuera de la plataforma; contacto post-reserva las coordina) ni monetización a proveedores (plan destacado futuro).
 
 - URL producción: https://www.pawnecta.com
 - GitHub: petmatecl/petmate-landing-mvp
-- Deploy: Vercel (auto-deploy en push a main)
-- Base de datos: Supabase (proyecto: ouezpeeiwjwawauidrqq)
-- Framework: Next.js 14 con Pages Router
+- Deploy: Vercel (auto-deploy en push a main, Pro plan)
+- Base de datos: Supabase (proyecto prod: `ouezpeeiwjwawauidrqq`, staging: `jmtadvdkicyylcwjcmcl`)
+- Framework: **Next.js 15.5.22** con Pages Router (tren N15 en prod desde `next15-prod-20260804`)
 - Lenguaje: TypeScript
 - Estilos: Tailwind CSS
 - Iconos: Lucide React (NO emojis — el usuario los detesta)
 - Auth: Supabase Auth
 - Storage: Supabase Storage (buckets: avatars, servicios-fotos, documents)
+- Observabilidad: Sentry (error monitoring, gate a prod, sin tracing/replay)
+- Emails: Resend (`send.pawnecta.com` subdomain) + Zoho Mail para casillas `@pawnecta.com` (contacto/soporte)
+- PWA: `@ducanh2912/next-pwa@10.2.9` (fork mantenido de next-pwa, N3 tren N15)
 
 ## Roles de usuario
 
@@ -33,7 +39,7 @@ Pawnecta es un directorio/catálogo de servicios para mascotas en Chile. Conecta
 - `proveedores` — perfil del proveedor (nombre, apellido_p, apellido_m, nombre_publico, rut, foto_perfil, foto_carnet, foto_carnet_dorso, bio, comuna, tipo_entidad, genero, ocupacion, fecha_nacimiento, galeria[], estado, verificacion_estado, etc.)
 - `usuarios_buscadores` — perfil del tutor (nombre, email, rut). NO tiene apellido_p ni foto_perfil.
 - `servicios_publicados` — servicios del proveedor (titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos[], detalles jsonb, comunas_cobertura text[], disponibilidad, activo)
-- `categorias_servicio` — categorías (hospedaje, guarderia, paseos, domicilio, peluqueria, adiestramiento, veterinario, traslado)
+- `categorias_servicio` — 10 categorías activas (verificado MCP staging 2026-08-11): `adiestramiento, cuidado ("Cuidado y Hospedaje" — reemplazó al slug viejo `domicilio` y fusionó `hospedaje`), etologia, fotografia, guarderia, paseos, peluqueria, retratos, traslado, veterinario`. Slug `hospedaje` deprecado (fusionado en `cuidado`). Cambios recientes: `retratos` (sprint dedicado), `etologia`, `fotografia` (nuevas categorías post-launch).
 - `evaluaciones` — reviews (servicio_id, proveedor_id, usuario_id→auth.users.id, rating, comentario, estado, respuesta_proveedor)
 - `conversations` / `messages` — chat interno
 - `contactos` — tracking de contactos (canal: mensaje/whatsapp/llamada/email_copiado)
@@ -47,30 +53,49 @@ Pawnecta es un directorio/catálogo de servicios para mascotas en Chile. Conecta
 ## Estructura de archivos clave
 
 ```
+middleware.ts        — Edge Runtime, bloquea patterns bots (wp-*, xmlrpc, *.php) → 404. Batch REMATE-1 R2a.
+sentry.client.config.ts / sentry.server.config.ts / sentry.edge.config.ts — Init Sentry v10 en las 3 runtimes. R3.
+
 pages/
   index.tsx          — Landing/home
   explorar.tsx       — Catálogo con filtros
   login.tsx          — Login (redirige a /proveedor o /explorar según rol)
   register.tsx       — Registro wizard multi-step
   admin.tsx          — Panel admin con sidebar
-  servicio/[id].tsx  — Ficha de servicio
-  proveedor/index.tsx — Dashboard del proveedor
+  mis-reservas.tsx   — Panel tutor: pestañas Próximas/Pendientes/Historial + estados derivados. Batch REMATE-1 R2b (renombrado desde mis-solicitudes; redirect 308 en next.config.js).
+  servicio/[id].tsx  — Ficha de servicio + CTA "Reservar" F1/F2
+  proveedor/index.tsx — Dashboard proveedor + agenda F1/F2 + solicitudes
   proveedor/[id].tsx  — Perfil público del proveedor
+  [categoria]/index.tsx — Landing SEO por categoría (peluqueria, cuidado, etc)
   api/auth/signup.ts  — API de registro (rate-limited, rollback on failure)
-  api/contactos/track.ts — Tracking de contactos
+  api/auth/welcome.ts — Email bienvenida (server-to-server, verifyInternalSecret)
+  api/agendamientos/notify-proveedor.ts / notify-tutor.ts / notify-tutor-reserva-confirmada.ts / notify-proveedor-cancel.ts / cancelar.ts — Sprint 3 agendamiento
+  api/cron/recordatorio-reserva.ts — Cron 24h antes @ 22:00 UTC daily (Vercel Pro)
+  api/cron/recordatorio-onboarding.ts / recordatorio-mensajes.ts / invitacion-resenas.ts / reset-visitas-mes.ts / cleanup-visitas-tracking.ts — Otros crons
+  api/admin/sentry-smoke.ts — Endpoint smoke gated a admin para validar Sentry gate + flush. R3.
+  api/contactos/track.ts — Tracking de contactos (mensaje/whatsapp/llamada/email_copiado)
 components/
   Explore/ServiceCard.tsx — Card de servicio (con trust badges)
   Explore/SidebarFiltros.tsx — Filtros laterales
-  Proveedor/ServiceFormModal.tsx — Crear/editar servicio
-  Service/ReviewList.tsx — Lista de evaluaciones
-  Service/ReviewForm.tsx — Formulario de evaluación
+  Proveedor/ServiceFormModal.tsx — Crear/editar servicio + agenda F1/F2 + bloqueos
+  Servicio/ServiceDetailView.tsx — Ficha con hero + campos dinámicos (renderCampoCard). Batch REMATE-1 R1 CLS fix.
+  Servicio/SolicitarAgendamientoModal.tsx — Modal reserva tutor (F1 slots / F2 rango de noches)
+  Service/ReviewList.tsx / ReviewForm.tsx / ReviewModal.tsx — Evaluaciones
+  Emails/ — 11 templates React Email (Agendamiento*, Reserva*, Recordatorio*, Aprobacion*, Rechazo*, Welcome, InvitacionResena, NewMessage, NewEvaluation)
   Shared/ConfirmDialog.tsx — Modal de confirmación estilizado (compartido admin + proveedor)
   Home/SearchBar.tsx — Buscador del hero (dropdown custom, no select nativo)
 contexts/
-  UserContext.tsx — Auth state global (5s timeout, anti-race condition)
+  UserContext.tsx — Auth state global. Sin Promise.race ni timeout (canal 1 sincrónico + canal 2 event-driven). Anti-race condition documentado inline.
 lib/
   supabaseClient.ts — Cliente Supabase
   serviceMapper.ts — Mapeo RPC → ServiceResult
+  camposPorCategoria.ts — Definición campos dinámicos por categoría (9 categorías)
+  estadoDerivado.ts — REALIZADA/VENCIDA en render-time (PD1 sprint PRODUCTO-2)
+  puedeCancelarPorVentana.ts — Ventana cancelación (F1/F2)
+  emails/resolvers.ts — Resolvers fecha/donde compartidos entre templates + cron (ZB3)
+  apiAuth.ts — verifySession (Bearer) + isAdmin + verifyInternalSecret
+  sentryScrub.ts — beforeSend hook scrub PII (JWT/emails/RUT/cookies). R3.
+  sentryServer.ts — flushSentryEvents helper para drenar cola antes de res.json(). Sprint sentry-flush.
   comunas.ts — Lista de comunas de Chile
 ```
 
@@ -97,7 +122,7 @@ lib/
 - Precios siempre dicen "Desde" antes del monto
 - `getProxyImageUrl()` para URLs de Supabase Storage (bypass AdBlock)
 - Autonomía total: no pedir permiso para editar, commitear o pushear
-- Commits incluyen `Co-Authored-By: Claude Opus 4.6 (1M context) <noreply@anthropic.com>`
+- Commits incluyen `Co-Authored-By: Claude Opus 4.7 <noreply@anthropic.com>`
 
 ## Bugs conocidos / precauciones
 
@@ -106,14 +131,18 @@ lib/
 - `buscar_servicios` RPC: p_comuna debe aceptar NULL (no solo string vacío)
 - El header tiene banner "EXCLUSIVO LANZAMIENTO" que agrega altura variable — no hardcodear px para sidebars
 - **Admin verificación de carnet — imagen rota en prod**. [components/Admin/ProveedorApprovalList.tsx:376,384](components/Admin/ProveedorApprovalList.tsx#L376-L384) renderiza `<img src={prov.foto_carnet}>` con URLs `/storage/v1/object/public/documents/...` guardadas en BD. El bucket `documents` es **privado** (verificado por probe: el endpoint `/object/public/` retorna 400 "Bucket not found" para buckets privados, incluso con cookie de admin — el endpoint no acepta auth). El upload en [pages/proveedor/index.tsx:771-789](pages/proveedor/index.tsx#L771-L789) usa `getPublicUrl()` que genera URLs cosméticamente "públicas" pero inválidas para bucket privado. Fix post-launch: cambiar el upload a guardar el `path` (no la URL); en el render del admin, `await supabase.storage.from('documents').createSignedUrl(path, 60)`. No es un riesgo de seguridad (los carnets NO se descargan sin auth), es un bug funcional del flujo de verificación.
-- **Known-flaky: `e2e/specs/f2-2b/s1-editor-visible.spec.ts` — "editor de bloqueos hints correctos y estado vacío"** (observado 2026-07-24 en la corrida de aceptación de sweep #3). Falló primer intento con timeout buscando `getByText(/Sin bloqueos.*Pucón/i)` (10s), retry verde. Probable race condition del load del ServiceFormModal al abrir el editor — el texto vive en un empty state que se renderiza tras el fetch de blackouts del servicio. Sin bloqueo pre-merge (retry consistentemente verde). **Si reaparece en la corrida de Fase 0 del checklist de merge**, investigar (candidatos: agregar `waitForLoadState` explícito antes del assert, o esperar a que el editor termine de hidratar via un anchor específico). Si NO reaparece en 3 corridas post-merge, cerrar como known-flaky histórico.
+- ~~Known-flaky s1-editor-visible.spec.ts~~ **CERRADO 2026-08-11** — no reapareció en 6 merges a prod (`f2-prod-20260728` → `next15-prod-20260804` → `remate-1-prod-20260811` → `sentry-1-prod-20260811` → `sentry-csp-prod-20260811` + intermedios). Condición de cierre cumplida.
 
 ## Lo que NO hace Pawnecta — no implementar sin confirmación
 
-- Procesamiento de pagos
-- Calendarización o reservas
-- Sistema de booking/transacciones
-- Monetización (será post-lanzamiento: plan destacado para proveedores)
+**F1/F2 (agenda + reservas) YA es el core del producto**, en prod desde 2026-07 — no listar acá como no-goal.
+
+Lo que sigue fuera de scope hasta confirmación explícita:
+
+- **Procesamiento de pagos in-platform** (pasarela integrada, cobros propios, split de comisión). Las transacciones hoy se coordinan por chat/WhatsApp/teléfono post-reserva.
+- **Monetización a proveedores** (plan destacado, ranking premium, subscripción). Post-lanzamiento.
+- **Sistema de disputas / arbitraje / refunds automatizados**. Depende de pagos in-platform.
+- **Verificación de identidad automatizada** (KYC via SDK externo). Hoy es revisión manual admin del carnet frontal + dorso.
 
 ## PWA / Service Worker
 
@@ -419,6 +448,10 @@ SELECT column_name, data_type, is_nullable
 Incidente que originó esta regla: PR1 sprint PRODUCTO-1 (2026-07-31). La migration `20260731_buscar_servicios_agenda_activa.sql` referenció `s.duracion_min` en el RPC `buscar_servicios` — nombre inexistente en `servicios_publicados` (real: `duracion_slot_min`). PL/pgSQL NO valida columnas al CREATE — el DROP+CREATE aplicó ok (V1 pasó), pero cualquier ejecución del RPC reventó con `ERROR 42703 column s.duracion_min does not exist`. Explorer de staging/previews caído en su path RPC hasta el fix (`20260731_buscar_servicios_agenda_activa_fix.sql`). Bug secundario detectado en el mismo diagnóstico: `min_noches` es NOT NULL en el schema, así que `IS NOT NULL` era siempre-true — semáforo redundante. Los dos bugs se hubieran evitado con una query de 5 segundos contra `information_schema` antes de escribir el SQL.
 
 **Verificar fecha contra evidencia antes de gatillar ventanas temporales — REGLA PERMANENTE (P7)**: cuando una decisión depende de que una ventana temporal se haya cumplido (monitor 48h, deadline programado, "esperar N horas desde X"), verificar la fecha REAL contra evidencia CONCRETA antes de declarar la ventana cumplida — no inferir del contexto operativo ni asumir el día de la semana. Evidencia válida: (a) día explícito confirmado por el PO en el turno vigente, (b) timestamps de git (`git log --format=%ci -1 <sha>`), (c) captura de dashboard con timeline visible, (d) el `system-reminder` de fecha del entorno si está presente. Cuando la fecha del sistema da solo `YYYY-MM-DD` (sin día de la semana), **calcular explícitamente** con un comando en vez de asumir. Incidentes que originaron esta regla: (i) 2026-07-25 tren F2, reporté "ventana 24h cumplida" un turno antes del cierre real; (ii) 2026-08-04 monitor N15 Fase 8, reporté "hoy jueves 6-ago" cuando era martes 4-ago noche — la ventana 48h estaba a ~44h de cerrar. Ambas prevenibles con un `date` command o consulta explícita al PO antes de gatillar el flujo dependiente. Costo del error: falso arranque de flow crítico que exige rollback mental del PO.
+
+**Smoke debe ejercitar el camino del usuario Y verificar el efecto observable, no la señal del emisor — REGLA PERMANENTE (P8)**: cuando una funcionalidad tiene más de un camino de ejecución (cliente / servidor / edge) o el envío de un side-effect atraviesa un sistema externo (Sentry ingest, Resend delivery, Supabase RPC, webhook downstream), el smoke debe (a) ejercitar el camino que los usuarios finales ejercen en producción, no una ruta interna alternativa por ser fácil de instrumentar; y (b) verificar el efecto en el sistema observado (evento en dashboard, email en Delivered, fila en BD, response del downstream), no la señal que devuelve la propia librería que estás probando. Un smoke que falla ambas — o cualquiera — produce **falsa confianza**: es peor que no tener smoke porque cierra la investigación cuando el sistema falla silente en el path real. Pregunta de diseño canónica antes de escribir cada assertion: **"si esta assertion pasa, ¿qué es exactamente lo que quedó probado?"** — si la respuesta es "que la librería aceptó la llamada" o "que la función interna no tiró", no alcanza; la assertion debe ser sobre un efecto que un usuario o un operador podría auditar independientemente. Incidentes que originaron la regla (ambos R3 SENTRY-1, 2026-08-11): **Falla A (camino)** — el smoke `/api/admin/sentry-smoke` corría server-side (Node.js sin CSP) y reportaba `sent:true` correctamente; los eventos client-side estaban 100% bloqueados por CSP durante ~30 min hasta que el PO abrió DevTools en /admin y detectó "Refused to connect". El SDK server nunca pasa por CSP, así que el smoke era ciego al path que importaba. Fix: 3 tests en `e2e/specs/sentry/gate.spec.ts` cubren `bundle → CSP → network → gate` (`sentry-csp @ ccee68c`). **Falla B (señal)** — post-fix CSP, el fetch pegable devolvía `{sent:true, eventId:"<uuid>"}` pero el evento no aparecía en el dashboard Sentry. `Sentry.captureException()` es síncrona y devuelve un eventId sintético inmediato — el envío HTTP al ingest es async y buffered. Sin `await Sentry.flush(timeoutMs)` antes de `res.json()`, la Vercel function termina con la cola sin drenar y el envelope se pierde sin error. El smoke medía "la librería devolvió eventId" (señal del emisor) en vez de "el evento aparece en el dashboard" (efecto observable). Fix: `await Sentry.flush(2000)` en el handler via `lib/sentryServer.ts:flushSentryEvents()` (helper compartido) + assertion smoke sobre `flushed:true` en response + verificación end-to-end del evento real en dashboard.
+
+**Una sola respuesta final por tarea — CONVENCIÓN OPERATIVA (no P-numerada)**: cuando el PO delega una tarea, entregar **una sola respuesta al terminar**, no estados parciales mientras se ejecuta. Nada de "voy avanzando", "esperando el preview", "reporte parcial mientras compila". Trabajar hasta terminar todo el alcance y entregar el resultado en un solo bloque ≤10 líneas. Excepción legítima: si algo bloquea de verdad y requiere una decisión del PO para continuar, decirlo en una línea y detenerse — eso sí es válido. Los avances intermedios generan ruido, se cortan a media frase (una respuesta puede morir en un dato sin completar), y obligan al PO a hacer de cartero entre la ventana del auditor y su propio siguiente turno. Origen de la convención: turno del 2026-08-11 durante el sprint sentry-flush, donde varios reportes intermedios ("D8 verificado contra git log real:") murieron a media frase y el PO tuvo que pedir explícitamente que se completara. Aplica también dentro de tareas encadenadas: si el PO dice "haz A, B, C en orden", el reporte va al final con las 3 partes, no una respuesta por cada A/B/C.
 
 **Longitud de nombres de rama — CONVENCIÓN OPERATIVA (no P-numerada)**: los hostnames de preview de Vercel se construyen como `<project>-git-<branch>-<team>-projects.vercel.app`. Con proyecto = `pawnecta-landing-mvp` (20 chars) + `-git-` (5) + `-petmatecls-projects` (20) = **45 chars fijos** consumidos antes de contar la rama. El límite DNS de un label es **63 chars** (RFC 1035 §2.3.4) → **presupuesto real para el nombre de rama = 18 chars**. Ramas más largas producen un hostname > 63 → el DNS del preview **no resuelve** (`nslookup` retorna `Unspecified error`, `curl` da HTTP 000 sin error obvio). Vercel deploya la build igual (visible en dashboard) pero el hostname público nunca se emite — la banda de "preview URL" queda inaccesible sin trazo obvio del por qué.
 
