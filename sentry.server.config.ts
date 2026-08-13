@@ -17,8 +17,13 @@ Sentry.init({
 
     tracesSampleRate: 0,
 
-    // Server no tiene replay — omitir sample rates de replay.
-    integrations: [],
+    // Sprint sentry-flush (2026-08-11) — mismo criterio que client.config:
+    // omitir `integrations: []` para conservar defaults core (unhandled-
+    // Rejection auto-capture, Http/NodeFetch context enrichment, dedupe,
+    // linkedErrors, contextLines de source). Node defaults NO incluyen
+    // performance integrations (getAutoPerformanceIntegrations) cuando
+    // tracesSampleRate: 0 — ver `hasSpansEnabled` gate en
+    // node_modules/@sentry/node/build/esm/sdk/index.js.
 
     sendDefaultPii: false,
     beforeSend: scrubSentryEvent,

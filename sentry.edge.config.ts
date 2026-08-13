@@ -17,7 +17,10 @@ Sentry.init({
     enabled: IS_PROD,
 
     tracesSampleRate: 0,
-    integrations: [],
+
+    // Sprint sentry-flush (2026-08-11) — misma razón que client/server:
+    // omitir `integrations: []` para conservar defaults core.
+
     sendDefaultPii: false,
     beforeSend: scrubSentryEvent,
 

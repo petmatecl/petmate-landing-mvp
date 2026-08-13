@@ -24,6 +24,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as Sentry from '@sentry/nextjs';
 import { verifySession, isAdmin } from '../../../lib/apiAuth';
+import { flushSentryEvents } from '../../../lib/sentryServer';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -54,8 +55,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // DSN configurado). Si gateEnabled o dsnSet son falsos, Sentry es no-op.
     const sent = gateEnabled && dsnSet;
 
+    // Sprint sentry-flush (2026-08-11) — drenar cola ANTES del res.json.
+    // Sin esto, la Vercel Function termina con el envelope en la cola async
+    // del transport y el evento se pierde sin error visible. `flushed` es
+    // observable: true = cola drenó (evento debería llegar al dashboard),
+    // false = timeout (evento posiblemente perdido). Ver P8 en CLAUDE.md.
+    let flushed = false;
+    if (sent) {
+        flushed = await flushSentryEvents(2000);
+    }
+
     return res.status(200).json({
         sent,
+        flushed,
         eventId: sent ? rawEventId : null,
         gate: {
             env,
