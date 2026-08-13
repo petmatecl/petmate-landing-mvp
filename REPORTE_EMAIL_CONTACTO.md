@@ -1,8 +1,11 @@
-# REPORTE EMAIL DE CONTACTO — Diagnóstico + Fix propuesto
+# REPORTE EMAIL DE CONTACTO — Diagnóstico + Fix propuesto + Ejecución real
 
-**Fecha**: viernes 2026-08-07 tarde (post-desfile + Sweep #1).
+**Fecha diagnóstico**: viernes 2026-08-07 tarde (post-desfile + Sweep #1).
+**Fecha ejecución en prod**: martes 2026-08-11.
 **Origen**: pedido del PO 2026-08-07 tras aclaración del ITEM 4 de la Fase 8 monitor N15 (el canal real es `petmatecl@gmail.com`; las casillas `@pawnecta.com` referenciadas en el código NO existen aún).
-**Alcance**: (a) diagnóstico exhaustivo de qué email ve el usuario dónde y qué le pasa cuando lo usa hoy; (b) fix propuesto + paso a paso Cloudflare/registrar para que Aldo lo ejecute.
+**Alcance**: (a) diagnóstico exhaustivo de qué email ve el usuario dónde y qué le pasa cuando lo usa hoy; (b) fix propuesto + paso a paso Cloudflare/registrar para que Aldo lo ejecute; (c) **Sección 8 — ejecución real 2026-08-11** con el estado final: se resolvió con **Zoho Mail sobre DNS de GoDaddy sin migrar nameservers**, NO con Cloudflare.
+
+> ⚠ **Nota histórica**: las secciones 1-7 documentan el diagnóstico y la propuesta del 2026-08-07 con Cloudflare Email Routing como opción recomendada. **Esa opción NO se ejecutó** — Aldo optó por Zoho Mail. El estado real de la zona DNS y el cierre operativo están en la **Sección 8** al final. Las secciones 1-7 se preservan como testimonio histórico (P5: docs inmutables) y como referencia de las alternativas evaluadas.
 
 ---
 
@@ -165,3 +168,75 @@ Fuera del scope del launch inmediato. Anotar como deuda para post-monitor.
 - **Paso a paso ejecutable por Aldo** — no requiere código de mi parte.
 - **Cero cambios de código** — todo es infra DNS/routing.
 - **Ejecución**: pelota en cancha de Aldo. Al confirmar setup + tests → ítem se cierra en `BACKLOG.md > PEDIDOS DIRECTOS DEL PO`.
+
+---
+
+## 8. Ejecución real — CIERRE EN PROD (2026-08-11)
+
+**Camino elegido**: Zoho Mail (no Cloudflare) sobre DNS de **GoDaddy** (no se migraron nameservers). El dominio `pawnecta.com` está en GoDaddy — registrar y DNS —, nameservers `ns59.domaincontrol.com` / `ns60.domaincontrol.com`. Cero migración de infraestructura.
+
+**Motivo por el que no se usó Cloudflare**: la Opción A del diagnóstico asumía que valdría la pena migrar nameservers a Cloudflare para habilitar Email Routing gratis. Aldo prefirió resolver sin tocar nameservers — Zoho ofrecía casilla real (no solo forward), configuración vía TXT/MX en el mismo panel GoDaddy, y evitaba la ventana de propagación de 24-48h.
+
+### 8.1 Estado final de la zona DNS de `pawnecta.com` (post-ejecución)
+
+| Nombre | Tipo | Valor | Propósito | Origen |
+|---|---|---|---|---|
+| `@` | A | Vercel | Web app pawnecta.com | Intacto (pre-existente) |
+| `www` | CNAME | Vercel | Alias www → web app | Intacto (pre-existente) |
+| `send` | MX + TXT | Amazon SES (`v=spf1 include:amazonses.com ~all`) | Resend transaccional aislado en subdominio `send` | **Intacto** (Resend) |
+| `resend._domainkey` | TXT | DKIM Resend | Firma DKIM de Resend en el subdominio | **Intacto** (Resend) |
+| `@` | MX (10) | `mx.zoho.com` | Zoho primario | **Nuevo — Zoho** |
+| `@` | MX (20) | `mx2.zoho.com` | Zoho secundario | **Nuevo — Zoho** |
+| `@` | MX (50) | `mx3.zoho.com` | Zoho terciario | **Nuevo — Zoho** |
+| `@` | TXT | `v=spf1 include:zoho.com ~all` | SPF de Zoho para casillas del dominio raíz | **Nuevo — Zoho** |
+| `zmail._domainkey` | TXT | DKIM Zoho 1024 bits | Firma DKIM Zoho, **VERIFICADO** y activo | **Nuevo — Zoho** |
+| `@` | TXT | `zoho-verification=...` | Verificación de propiedad del dominio ante Zoho | **Nuevo — Zoho** |
+| `_dmarc` | TXT | `v=DMARC1; p=quarantine; adkim=r; aspf=r; rua=mailto:dmarc_rua@onsecureserver.net;` | Política DMARC del dominio (relajada) | Intacto (pre-existente) |
+
+### 8.2 Por qué no hubo colisión SPF Resend ↔ Zoho
+
+**El aislamiento por subdominio es lo que hace posible la convivencia**. Resend firma y envía como `<algo>@send.pawnecta.com` — el SPF de Resend vive en el TXT del subdominio `send`, NO en el TXT raíz. Zoho recibe/envía como `<algo>@pawnecta.com` — su SPF vive en el TXT del dominio raíz. Los dos SPF nunca comparten registro → cero colisión.
+
+**El DMARC del dominio raíz** aplica a ambos flujos gracias a la alineación **relajada** (`adkim=r`, `aspf=r`), que reconoce como alineado cualquier subdominio del `From:`. Un email transaccional con `From: hola@pawnecta.com` firmado en `send.pawnecta.com` alinea bajo `adkim=r`. Un email desde Zoho con `From: contacto@pawnecta.com` firmado en `zmail._domainkey.pawnecta.com` también alinea. Ambos pasan DMARC — ambos aterrizan en la bandeja del destinatario sin quarantine.
+
+### 8.3 Smoke de regresión ejecutado (2026-08-11)
+
+**Test**: reserva real en prod (después del deploy de Batch REMATE-1).
+
+**Resultado**: **2 emails Resend entregados con status "Delivered"** en el dashboard Resend:
+1. Aviso a proveedor (`Nueva solicitud de reserva ...`).
+2. Confirmación a tutor (`Reserva confirmada ...`).
+
+**Conclusión**: agregar Zoho al dominio raíz **no afectó** el flujo transaccional Resend. Los MX raíz de Zoho gobiernan las casillas `contacto@` / `soporte@` / etc. Los emails que **envía** la app (via Resend con `From:` que resuelve al subdominio `send`) siguen su propio camino DKIM/SPF sin interferencia.
+
+### 8.4 Estado de las casillas del diagnóstico (sección 2 del reporte) — post-ejecución
+
+| Casilla | Antes (2026-08-07) | Ahora (2026-08-11) | Cómo |
+|---|---|---|---|
+| `contacto@pawnecta.com` | ❌ NO existe → bounce | ✅ Casilla real en Zoho | Zoho Mail |
+| `soporte@pawnecta.com` | ❓ desconocido | ✅ Casilla real en Zoho | Zoho Mail |
+| `notificaciones@pawnecta.com` | ❓ desconocido | ✅ Casilla real en Zoho | Zoho Mail (si Aldo la creó — verificar) |
+| `hola@pawnecta.com` | ❓ desconocido | ✅ Casilla real en Zoho | Zoho Mail (si Aldo la creó — verificar) |
+| `petmatecl@gmail.com` | ✅ canal real | ✅ sigue funcionando | Sin cambio |
+| `<algo>@send.pawnecta.com` | (subdominio Resend, no user-facing) | Sigue funcionando | Resend intacto |
+
+### 8.5 Diferencia clave respecto al Opción A del diagnóstico
+
+| Aspecto | Opción A (Cloudflare — no ejecutada) | Ejecución real (Zoho + GoDaddy) |
+|---|---|---|
+| Casillas | Forward-only → `petmatecl@gmail.com` | Casillas reales con inbox propio |
+| Send-as | Requería SMTP relay adicional (deuda futura) | Nativo desde el inicio (Zoho SMTP) |
+| Costo | $0 (Cloudflare Email Routing) | $0 (Zoho Free — 1 mailbox real; adicionales tienen fee) |
+| Cambio de nameservers | Sí (24-48h propagación) | **No** — todo por TXT/MX en GoDaddy |
+| Ventana de riesgo | Ventana de propagación | Instantáneo (los MX propagan en minutos, no requieren cambio de NS) |
+| Interacción con Resend | Requería asegurarse que MX de Cloudflare no reemplazaba MX transaccional | No aplica — Resend aislado en `send.` |
+
+### 8.6 Deuda residual / candidatos post-launch
+
+- **DMARC `rua`**: apunta a `dmarc_rua@onsecureserver.net` (default de GoDaddy). Anotado en `BACKLOG.md > PEDIDOS DIRECTOS DEL PO` como candidato menor — cambiar por una dirección propia (`dmarc@pawnecta.com` en Zoho, o servicio dedicado como Postmark DMARC / dmarcian) para leer los reportes agregados semanales.
+- **Send-as desde Gmail** (si Aldo quiere responder desde `petmatecl@gmail.com` con `From: contacto@pawnecta.com`): configurar Gmail "Send mail as" apuntando al SMTP de Zoho — ~10 min, deuda light.
+- **Verificar valor real de `EMAIL_FROM` en Vercel Environment Variables** (mencionado en Sección 1.4). Confirmar cuál casilla usa el remitente de los emails Resend — si es `hola@pawnecta.com` u otra, alinear con las casillas Zoho creadas.
+
+### 8.7 Cierre del ítem
+
+**Ítem "email de contacto" cerrado en prod** — canal funcional para el launch. Sin cambios de código. Reporte actualizado como evidencia P5. El ítem se mueve de `PEDIDOS DIRECTOS DEL PO > abierto` a `cerrado 2026-08-11`.
