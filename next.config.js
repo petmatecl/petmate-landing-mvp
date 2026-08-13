@@ -123,6 +123,17 @@ const nextConfig = {
                 // Fuentes (preventivo — si el SW cachea via fetch())
                 "https://fonts.gstatic.com",
                 "https://fonts.googleapis.com",
+                // Sentry ingest — R3 SENTRY-1 hotfix CSP (2026-08-11). El SDK
+                // client envia envelope POST a
+                // https://o<orgId>.ingest.us.sentry.io/api/<projectId>/envelope
+                // via fetch() desde el main thread del navegador (Sentry v10 NO
+                // usa Web Workers para el envio; por eso worker-src no requiere
+                // cambio). Wildcard *.ingest.us.sentry.io acotado a la region
+                // US (nuestra org es US, decidido en el setup R3 por consistencia
+                // con Vercel/Supabase/Resend). Sin este entry, TODOS los errores
+                // client-side eran cortados por CSP antes de salir — sintoma
+                // observado en /admin post-merge sentry-1-prod-20260811.
+                "https://*.ingest.us.sentry.io",
               ].join(' '),
               "media-src 'self'",
               "worker-src 'self'",
