@@ -219,4 +219,40 @@ const nextConfig = {
   },
 };
 
-module.exports = withPWA(nextConfig);
+// Sprint R3 SENTRY-1 (2026-08-11) — wrapper Sentry alrededor de PWA.
+//
+// Orden importa: PWA envuelve nextConfig primero, Sentry envuelve todo por
+// fuera. Así Sentry ve el config resuelto post-PWA y puede inyectar sus
+// hooks de webpack para instrumentación + upload de sourcemaps sin
+// interferir con la generación del service worker por next-pwa.
+//
+// Opciones del wrapper — todas conservadoras:
+//   - silent: true   → no ensuciar los logs del build local con mensajes
+//                      Sentry (los errores reales de config sí se muestran).
+//   - authToken      → solo si está seteado en el env. Sin él, el upload de
+//                      sourcemaps se skippea silente (stacktraces se ven
+//                      minificados en Sentry pero el build no falla).
+//   - hideSourceMaps → true evita que los .map se sirvan al público desde
+//                      /_next/static/*.js.map (privacidad — evita que un
+//                      atacante lea el source completo de la app).
+//   - disableLogger  → true para que el bundle no incluya el logger console
+//                      de Sentry (~2 kB menos + no polluir DevTools de users).
+//   - widenClientFileUpload → true para asegurar que el server bundle
+//                      también suba sourcemaps (necesario para stacktraces
+//                      server-side legibles).
+const { withSentryConfig } = require('@sentry/nextjs');
+
+module.exports = withSentryConfig(withPWA(nextConfig), {
+  org: 'pawnecta',
+  project: 'javascript-nextjs',
+
+  silent: true,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  hideSourceMaps: true,
+  disableLogger: true,
+  widenClientFileUpload: true,
+
+  // Tunnel deshabilitado — usar el endpoint directo de Sentry. Si en el
+  // futuro un ad-blocker rompe los eventos client-side, habilitar `tunnelRoute`
+  // como '/monitoring' y Sentry generará un proxy en pages/api/monitoring.
+});
