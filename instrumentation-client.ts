@@ -1,8 +1,17 @@
-// sentry.client.config.ts
+// instrumentation-client.ts
 // ----------------------------------------------------------------------------
-// Sprint R3 SENTRY-1 — inicialización del cliente browser (Sentry v10).
+// Sprint sentry-init (2026-08-11) — renombrado desde sentry.client.config.ts.
+// Next 15 + Sentry v10 marcaron sentry.client.config.ts como DEPRECATED (con
+// Turbopack deja de funcionar). instrumentation-client.ts es el nombre
+// canónico del punto de entrada cliente, cargado automáticamente por Next 15
+// al hidratar el navegador. Ver deprecation warning en
+// node_modules/@sentry/nextjs/build/cjs/config/webpack.js:213.
 //
-// Reglas del alcance (aprobadas por PO 2026-08-11):
+// Contenido y semántica idénticos al sentry.client.config.ts previo — solo
+// cambio de nombre + renavegación de captura. Los Sentry.init() de server
+// y edge ahora se cargan vía instrumentation.ts:register() en la raíz.
+//
+// Reglas del alcance (aprobadas por PO 2026-08-11 en R3):
 //   - Solo error monitoring. Session replay, tracing/performance, logging OFF.
 //   - Gate a producción: VERCEL_ENV === 'production'. Cero eventos desde
 //     staging, preview o local dev.
@@ -66,3 +75,16 @@ Sentry.init({
     // higiene y para futuras habilitaciones en preview con sample bajo).
     environment: process.env.NEXT_PUBLIC_VERCEL_ENV || 'unknown',
 });
+
+// Sprint sentry-init (2026-08-11) — hook requerido por Sentry v10 para
+// instrumentar navegaciones client-side (Next.js App Router transitions).
+// Sin este export, el SDK emite:
+//   `[@sentry/nextjs] ACTION REQUIRED: To instrument navigations, the Sentry
+//    SDK requires you to export an onRouterTransitionStart hook from your
+//    instrumentation-client.(js|ts) file.`
+// (fuente: build output tras crear instrumentation.ts).
+// Con este export, cada Link/router.push que dispare una navegación cliente
+// crea un span Sentry — permite trackear latencia y errores por ruta SPA.
+// Con tracesSampleRate: 0 los spans no se envían, pero el hook igual debe
+// existir para no emitir el warning de config incompleta.
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;

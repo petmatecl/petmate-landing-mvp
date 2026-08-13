@@ -260,7 +260,13 @@ module.exports = withSentryConfig(withPWA(nextConfig), {
   silent: true,
   authToken: process.env.SENTRY_AUTH_TOKEN,
   hideSourceMaps: true,
-  disableLogger: true,
+  // Sprint sentry-init (2026-08-11) — disableLogger deprecado en v10,
+  // migrado al equivalente treeshaking oficial. Cierra el warning
+  // `[@sentry/nextjs] DEPRECATION WARNING: disableLogger is deprecated
+  // and will be removed in a future version. Use webpack.treeshake.
+  // removeDebugLogging instead.` (fuente: build output leyendo COMPLETO
+  // vs solo tail — ver enmienda P1 en CLAUDE.md).
+  webpack: { treeshake: { removeDebugLogging: true } },
   widenClientFileUpload: true,
 
   // Tunnel deshabilitado — usar el endpoint directo de Sentry. Si en el

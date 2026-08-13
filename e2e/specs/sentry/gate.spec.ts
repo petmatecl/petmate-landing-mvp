@@ -129,28 +129,41 @@ test.describe('R3 SENTRY-1 — CSP + gate', () => {
         expect(body).toHaveProperty('flushed');
         expect(body.gate).toHaveProperty('env');
         expect(body.gate).toHaveProperty('enabled');
-        expect(body.gate).toHaveProperty('dsn_configured');
+        expect(body.gate).toHaveProperty('dsn_env_var_set');
+        expect(body.gate).toHaveProperty('dsn_configured_in_client');
+        expect(body.gate).toHaveProperty('sdk_initialized');
+        expect(body.gate).toHaveProperty('client_enabled');
+
+        // Sprint sentry-init (P9 aplicado): la señal MÁS IMPORTANTE es
+        // sdk_initialized. Si es false, instrumentation.ts no está cargando
+        // sentry.server.config.ts en runtime — bug estructural que 3
+        // iteraciones anteriores no detectaron. Debe ser true en TODOS los
+        // entornos (init corre en cualquier VERCEL_ENV; el gate solo controla
+        // si envía eventos, no si el SDK arranca).
+        expect(body.gate.sdk_initialized, 'SDK server DEBE inicializarse en runtime — si false, instrumentation.ts no está cargando el config').toBe(true);
 
         // Adaptativo — mismo spec en 3 escenarios (DSN missing, gate cerrado,
         // gate abierto).
-        if (!body.gate.dsn_configured) {
+        if (!body.gate.dsn_env_var_set) {
             expect(body.sent).toBe(false);
             expect(body.eventId).toBeNull();
             expect(body.flushed).toBe(false);
         } else if (body.gate.env === 'production') {
             expect(body.gate.enabled).toBe(true);
+            expect(body.gate.client_enabled).toBe(true);
+            expect(body.gate.dsn_configured_in_client).toBe(true);
             expect(body.sent).toBe(true);
             expect(body.eventId).toMatch(/^[a-f0-9]{32}$/);
             // Sprint sentry-flush (P8 aplicado): flushed:true es la señal
             // observable de que la cola async del transport drenó ANTES
-            // del res.json — sin esto, en Vercel Function la cola muere
-            // con el process y el envelope se pierde silente. Aún así el
-            // check final canónico es "evento aparece en dashboard Sentry"
-            // (verificable manual con tag smoke=true) — flushed:true no
-            // garantiza que el ingest lo aceptó, solo que salió por la red.
+            // del res.json. Aún así el check final canónico es "evento
+            // aparece en dashboard Sentry" (verificable manual con tag
+            // smoke=true) — flushed:true no garantiza que el ingest lo
+            // aceptó, solo que salió por la red.
             expect(body.flushed).toBe(true);
         } else {
             expect(body.gate.enabled).toBe(false);
+            expect(body.gate.client_enabled).toBe(false);
             expect(body.sent).toBe(false);
             expect(body.eventId).toBeNull();
             expect(body.flushed).toBe(false);

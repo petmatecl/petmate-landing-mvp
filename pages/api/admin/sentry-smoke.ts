@@ -1,21 +1,27 @@
 // pages/api/admin/sentry-smoke.ts
 // ----------------------------------------------------------------------------
-// Sprint R3 SENTRY-1 — endpoint temporal de smoke.
+// Sprint sentry-init (2026-08-11) — endpoint smoke con introspección REAL
+// del SDK. La versión previa reportaba `dsn_configured: true` con solo
+// verificar `!!process.env.NEXT_PUBLIC_SENTRY_DSN` — un proxy que en 3
+// iteraciones no detectó que `Sentry.init()` server-side NUNCA corría por
+// falta de `instrumentation.ts`. Fix: introspectar el estado real del SDK
+// via `Sentry.getClient()` (retorna el Client si init corrió, undefined si
+// no).
 //
-// Dispara un evento controlado a Sentry con tag `smoke=true` + timestamp
-// para poder identificarlo en el dashboard. Rechaza si no hay sesión admin
-// (patrón id-only del proyecto). Retorna el estado del gate — útil para
-// validar en preview que Sentry.captureException devuelve un event id vacío
-// (porque `enabled: false` cuando VERCEL_ENV !== 'production').
+// Rechaza si no hay sesión admin (patrón id-only del proyecto). Retorna
+// el estado REAL del SDK server-side + gate + flush observable.
 //
 // Uso operativo:
 //   1) Deploy a preview → llamar el endpoint con sesión admin → verificar
-//      response {sent: false, ...}. En Sentry dashboard: cero eventos.
+//      response {sdk_initialized: true|false, sent: false, ...}. En preview
+//      con gate cerrado esperamos sent:false, pero sdk_initialized SÍ debe
+//      ser true (el SDK init corre en todos los envs; solo el envío está
+//      gated por `enabled`).
 //   2) Deploy a prod → llamar el endpoint con sesión admin → verificar
-//      response {sent: true, eventId: "<uuid>"}. En Sentry dashboard:
-//      aparece el evento en <30s.
-//   3) Post-verificación: dejar el endpoint (útil para futuros re-tests)
-//      o remover con un revert. Decisión operativa post-launch.
+//      response {sdk_initialized: true, sent: true, flushed: true,
+//      eventId: "<uuid>"}. En Sentry dashboard: evento aparece <30s.
+//   3) Post-verificación end-to-end: dejar el endpoint (útil para
+//      re-tests futuros) o remover con un revert.
 //
 // El error tirado NO contiene PII — solo el mensaje "R3 SENTRY-1 smoke
 // test" + timestamp + tag smoke. El scrub de lib/sentryScrub.ts se aplica
@@ -35,14 +41,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const env = process.env.VERCEL_ENV || 'unknown';
     const gateEnabled = env === 'production';
-    const dsnSet = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
+    const dsnEnvVarSet = !!process.env.NEXT_PUBLIC_SENTRY_DSN;
     const timestamp = new Date().toISOString();
 
-    // Capturar exception con tag smoke=true para poder filtrar en el dashboard.
-    // Sentry v10 devuelve un event id UUID SIEMPRE — incluso con enabled: false
-    // el SDK construye el id sintético pero NO transmite a la red. La única
-    // forma confiable de saber si el evento fue efectivamente ENVIADO es
-    // mirar el estado del gate + dsn, no el return value de captureException.
+    // Sprint sentry-init: introspección REAL del estado del SDK.
+    // Sentry.getClient() retorna el BaseClient si init() corrió y el hub
+    // tiene un client bindeado. Retorna `undefined` si init NO corrió — que
+    // es exactamente el bug estructural detectado post-sentry-flush: sin
+    // instrumentation.ts, sentry.server.config.ts no se carga en runtime y
+    // getClient() devuelve undefined. dsn_from_client lee el DSN efectivo
+    // que el SDK está usando (no solo la env var).
+    const client = Sentry.getClient();
+    const sdkInitialized = client !== undefined;
+    const dsnFromClient = client?.getOptions()?.dsn as string | undefined;
+    const clientEnabled = client?.getOptions()?.enabled === true;
+
+    // Capturar exception con tag smoke=true para filtrar en dashboard.
+    // Nota: si sdkInitialized es false, captureException devuelve un event
+    // id sintético placebo — el SDK degrada silenciosamente. Por eso la
+    // fuente de verdad para `sent` NO es el return de captureException, es
+    // sdkInitialized && clientEnabled.
     const rawEventId = Sentry.captureException(
         new Error(`R3 SENTRY-1 smoke test @ ${timestamp}`),
         {
@@ -51,15 +69,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
     );
 
-    // `sent` = evento efectivamente aceptado para transmisión (gate abierto +
-    // DSN configurado). Si gateEnabled o dsnSet son falsos, Sentry es no-op.
-    const sent = gateEnabled && dsnSet;
+    // `sent` verdadero solo si TODAS estas condiciones se cumplen:
+    //   1) SDK realmente inicializado (getClient() no undefined) — captura
+    //      el bug de instrumentation.ts faltante.
+    //   2) Client tiene enabled: true — captura el gate por VERCEL_ENV.
+    //   3) DSN efectivamente cargado en el client — captura si el init
+    //      recibió el DSN correctamente.
+    //   4) Gate abierto (redundante con #2 si init corrió, pero mantiene
+    //      la señal separada para diagnóstico).
+    const sent = sdkInitialized && clientEnabled && !!dsnFromClient && gateEnabled;
 
-    // Sprint sentry-flush (2026-08-11) — drenar cola ANTES del res.json.
-    // Sin esto, la Vercel Function termina con el envelope en la cola async
-    // del transport y el evento se pierde sin error visible. `flushed` es
-    // observable: true = cola drenó (evento debería llegar al dashboard),
-    // false = timeout (evento posiblemente perdido). Ver P8 en CLAUDE.md.
+    // Drenar cola ANTES del res.json. Solo si sent — si el SDK está caído,
+    // flush() de todas formas devuelve false porque no hay transporte que
+    // drenar (el bug que motivó este sprint).
     let flushed = false;
     if (sent) {
         flushed = await flushSentryEvents(2000);
@@ -72,7 +94,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         gate: {
             env,
             enabled: gateEnabled,
-            dsn_configured: dsnSet,
+            // dsn_env_var_set: si la env var existe en process.env (proxy débil).
+            // dsn_configured_in_client: si el SDK server tiene DSN cargado (fuente
+            //   de verdad — false si init nunca corrió).
+            dsn_env_var_set: dsnEnvVarSet,
+            dsn_configured_in_client: !!dsnFromClient,
+            // sdk_initialized: getClient() !== undefined. Es la señal más
+            // importante — expone el bug de instrumentation.ts faltante.
+            sdk_initialized: sdkInitialized,
+            client_enabled: clientEnabled,
         },
         timestamp,
     });
