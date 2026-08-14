@@ -1,4 +1,23 @@
 -- ========================================================================
+-- ⚠️ ARCHIVO HISTÓRICO — NO-OP COMPLETO (2026-08-14)
+--
+-- Post-aplicación verificado: esta migration NO creó ninguna constraint.
+-- Las 10 FKs que intenta agregar YA EXISTÍAN en prod y staging con esos
+-- nombres exactos. El bloque `DO $$ IF NOT EXISTS` (que valida por
+-- nombre) matcheó las 10 → skipeó todos los ALTER TABLE.
+--
+-- La premisa "12 tablas sin FKs" que motivó el sprint fue FALSA — la
+-- causa técnica era el rol MCP `supabase_read_only_user` sin
+-- REFERENCES privilege, y `information_schema.table_constraints`
+-- filtrando por permisos. Ver MIGRATION_FKS_HABILITANTES.md §8 post-
+-- mortem completo y el corolario P8 en CLAUDE.md.
+--
+-- Archivo se mantiene en el repo por trazabilidad histórica del proceso
+-- (auditoría del ciclo de decisión). NO re-ejecutar — la correctiva
+-- necesaria es 20260814b_fks_agendamientos_correctiva.sql que cambia
+-- 3 CASCADE preexistentes → RESTRICT (única deuda real).
+-- ========================================================================
+--
 -- Migration: FKs habilitantes pre-Ola 2 (sprint bug1-fks 2026-08-14)
 --
 -- Alcance: 10 constraints FOREIGN KEY sobre las relaciones críticas

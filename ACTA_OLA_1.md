@@ -118,6 +118,14 @@ ORDER BY a.created_at DESC;
 
 ---
 
+### ⚠️ CORRECCIÓN 2026-08-14 (POST-MORTEM MCP) — diagnóstico C1 original era erróneo
+
+Ver `BACKLOG.md > FKs ausentes CANCELADO` para el contexto completo. Resumen:
+- El diagnóstico original decía "conversations sin FKs → PostgREST rechaza embed → 400". **Falso**. Verificado con `pg_constraint`: `conversations` tiene 5 FKs.
+- **Causa real del 400**: la query original hacía `.select('proveedor:proveedores!sitter_id(comuna)')`, pero `conversations.sitter_id` tiene FK a `auth.users`, NO a `proveedores`. PostgREST rechaza el embed hint por FK mismatch → 400.
+- **Fix cliente-side (lookup sin embed) funciona pero por razón distinta a la argumentada**. Alternativa "correcta" hubiera sido cambiar `!sitter_id` por `!servicio_id → servicios_publicados → proveedor_id → proveedores` (join en 2 saltos) o `!client_id` → resolver via `auth.users → proveedores.auth_user_id`. Ambas equivalentes en resultado; mi fix es más simple.
+- **OfertaMetrics NO se ve afectado por esta corrección** — el componente usa lookup cliente-side desde el inicio y funciona por su propio diseño.
+
 ### C1 — 400 en /admin pestaña Conversión + OfertaMetrics nuevo
 
 **Causa raíz del 400** (verificado MCP staging read-only):

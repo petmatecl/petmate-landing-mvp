@@ -253,6 +253,20 @@ Aldo verificó post-aplicación en prod y descubrió que 3 de las 10 FKs quedaro
 
 La migration original terminaba con un `SELECT` que mostraba las 10 constraints con sus `delete_rule`. Aldo pegó el output. La divergencia estaba visible en el output pero **nadie la comparó contra la tabla aprobada** — la validación fue "el query devolvió 10 rows" en vez de "cada delete_rule matchea el esperado". Es exactamente el patrón P8 aplicado al ciclo de migrations: **la verificación corrió y dio output, pero nadie validó el output contra el criterio**. Precedente del día: 3 iteraciones de GA4 persiguiendo el log equivocado de una extensión.
 
+## 8. Post-mortem 2 (2026-08-14 tarde) — la premisa completa del sprint era falsa
+
+Tras aplicar la correctiva, PO ejecutó `SELECT COUNT(*) FROM information_schema.table_constraints WHERE constraint_type='FOREIGN KEY' AND table_schema='public'` desde el SQL Editor de Supabase → **41 FKs** en ambos ambientes. Contradice la premisa original de "cero FKs" que motivó el sprint entero.
+
+**Causa técnica**: el rol MCP `supabase_read_only_user` tiene SELECT + BYPASSRLS pero **no REFERENCES**. `information_schema.table_constraints` en PostgreSQL **filtra por privileges del rol consultante** (docs 34.29: "contains all constraints belonging to tables that the current user owns or has some privilege other than SELECT on"). Sin REFERENCES, las FKs quedan invisibles en `information_schema` para el rol MCP, aunque `pg_constraint` (catálogo de sistema sin ese filtro) las expone.
+
+**Verificado en la sesión con `pg_constraint`**: las 10 FKs del sprint YA existían con esos nombres exactos y los delete_rules que Aldo verificó post-aplicación. La migration original fue **NO-OP completo** (todas skipeadas por IF NOT EXISTS que matcheaba por nombre).
+
+**Consecuencia**: la única deuda real del sprint FKs es la correctiva `20260814b` (3 CASCADE preexistentes → RESTRICT), no la existencia de FKs. Todos los demás argumentos (SEVERIDAD ALTA sistémico, embeds bloqueados en toda la app, huérfanas posibles, cascada A2 requiere FKs) eran falsos.
+
+**Aprendizaje codificado en CLAUDE.md** — corolario P8 nuevo: "para constraints/indexes/triggers/permisos, usar `pg_catalog` en vez de `information_schema` — el MCP read-only tiene sesgo por privileges. Si una consulta MCP fundamenta una conclusión de severidad alta, contrastarla por una segunda vía antes de reportarla".
+
+## 9. Fix operativo P8 → migrations
+
 **Fix operativo permanente** — la migration correctiva incluye un bloque `DO $$` al final que:
 1. Declara un array `esperado` con las 10 (constraint_name, delete_rule).
 2. Query el estado real de cada una.
