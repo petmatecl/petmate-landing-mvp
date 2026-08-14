@@ -84,60 +84,96 @@ ALTER TABLE agendamientos
 -- Si alguna fila no matchea el delete_rule esperado, RAISE EXCEPTION
 -- fuerza ROLLBACK. Aprendizaje P8: la verificación debe fallar loud si
 -- el estado real no coincide con el declarado, no solo mostrar un dump.
+--
+-- ⚠️ v2 2026-08-14 tarde — reescrita tras bug en prod:
+-- La versión previa usaba `text[][] + FOREACH ... SLICE 1` para iterar
+-- un array 2D. Aplicó OK en staging pero en prod falló con
+-- "ERROR 42P01: relation 'actual_rule' does not exist" — el parser
+-- interpretó el `SELECT ... INTO actual_rule` como CTAS (CREATE TABLE
+-- AS SELECT) fuera del contexto PL/pgSQL. Causa exacta indeterminada
+-- (diferencia entre corridas staging vs prod inexplicable con el mismo
+-- SQL — hipótesis: Supabase Studio SQL Editor puede tratar el
+-- delimiter `$$` inconsistente entre sesiones, o Aldo copió-pegó con
+-- diferencia sutil de whitespace/encoding). En cualquier caso, este
+-- patrón (`FOREACH SLICE` sobre `text[][]`) es frágil.
+--
+-- Reescrita con `FOR r IN VALUES` (rowset explícito): más idiomático
+-- PL/pgSQL, sin dependencia de arrays multidim, sin ambigüedad sobre
+-- el contexto de ejecución. Variable renombrada a `v_actual_rule`
+-- para eliminar cualquier colisión posible con parser edge cases.
 -- ========================================================================
 DO $$
 DECLARE
-    esperado CONSTANT text[][] := ARRAY[
-        ['agendamientos_servicio_id_fkey',    'RESTRICT'],
-        ['agendamientos_proveedor_id_fkey',   'RESTRICT'],
-        ['agendamientos_tutor_id_fkey',       'RESTRICT'],
-        ['agendamientos_mascota_id_fkey',     'SET NULL'],
-        ['servicios_publicados_proveedor_id_fkey',  'CASCADE'],
-        ['servicios_publicados_categoria_id_fkey',  'NO ACTION'],  -- equivalente a RESTRICT en PG
-        ['evaluaciones_servicio_id_fkey',     'CASCADE'],
-        ['evaluaciones_proveedor_id_fkey',    'CASCADE'],
-        ['contactos_servicio_id_fkey',        'CASCADE'],
-        ['contactos_proveedor_id_fkey',       'CASCADE']
-    ];
-    fila text[];
-    actual_rule text;
-    fallos int := 0;
-    fail_msg text := '';
+    v_actual_rule text;
+    v_fallos int := 0;
+    v_fail_msg text := '';
+    r RECORD;
 BEGIN
-    FOREACH fila SLICE 1 IN ARRAY esperado
+    FOR r IN
+        SELECT * FROM (VALUES
+            ('agendamientos_servicio_id_fkey',            'RESTRICT'),
+            ('agendamientos_proveedor_id_fkey',           'RESTRICT'),
+            ('agendamientos_tutor_id_fkey',               'RESTRICT'),
+            ('agendamientos_mascota_id_fkey',             'SET NULL'),
+            ('servicios_publicados_proveedor_id_fkey',    'CASCADE'),
+            ('servicios_publicados_categoria_id_fkey',    'NO ACTION'),
+            ('evaluaciones_servicio_id_fkey',             'CASCADE'),
+            ('evaluaciones_proveedor_id_fkey',            'CASCADE'),
+            ('contactos_servicio_id_fkey',                'CASCADE'),
+            ('contactos_proveedor_id_fkey',               'CASCADE')
+        ) AS t(nombre, esperado)
     LOOP
-        SELECT rc.delete_rule INTO actual_rule
-        FROM information_schema.table_constraints tc
-        JOIN information_schema.referential_constraints rc
-            ON tc.constraint_name = rc.constraint_name
-        WHERE tc.constraint_schema='public'
-          AND tc.constraint_name = fila[1];
+        -- Consultamos via pg_constraint (catálogo de sistema sin filtro
+        -- por privileges), no via information_schema — evita el sesgo
+        -- documentado en CLAUDE.md > COROLARIO P8 MCP read-only.
+        SELECT CASE c.confdeltype
+                   WHEN 'a' THEN 'NO ACTION'
+                   WHEN 'r' THEN 'RESTRICT'
+                   WHEN 'c' THEN 'CASCADE'
+                   WHEN 'n' THEN 'SET NULL'
+                   WHEN 'd' THEN 'SET DEFAULT'
+               END
+          INTO v_actual_rule
+          FROM pg_constraint c
+          JOIN pg_namespace n ON c.connamespace = n.oid
+         WHERE c.contype = 'f'
+           AND n.nspname = 'public'
+           AND c.conname = r.nombre;
 
-        IF actual_rule IS NULL THEN
-            fallos := fallos + 1;
-            fail_msg := fail_msg || format(E'\n  MISSING: %s (esperado %s)', fila[1], fila[2]);
-        ELSIF actual_rule <> fila[2] THEN
-            fallos := fallos + 1;
-            fail_msg := fail_msg || format(E'\n  MISMATCH: %s → aplicado=%s, esperado=%s', fila[1], actual_rule, fila[2]);
+        IF v_actual_rule IS NULL THEN
+            v_fallos := v_fallos + 1;
+            v_fail_msg := v_fail_msg || format(E'\n  MISSING: %s (esperado %s)', r.nombre, r.esperado);
+        ELSIF v_actual_rule <> r.esperado THEN
+            v_fallos := v_fallos + 1;
+            v_fail_msg := v_fail_msg || format(E'\n  MISMATCH: %s -> aplicado=%s, esperado=%s', r.nombre, v_actual_rule, r.esperado);
         END IF;
     END LOOP;
 
-    IF fallos > 0 THEN
-        RAISE EXCEPTION E'Verificación FKs falló (% divergencia(s) vs esperado):%\n\nMigration NO se commiteó.', fallos, fail_msg;
+    IF v_fallos > 0 THEN
+        RAISE EXCEPTION E'Verificacion FKs fallo (% divergencia(s) vs esperado):%\n\nMigration NO se commiteo.', v_fallos, v_fail_msg;
     ELSE
-        RAISE NOTICE E'✅ Verificación FKs OK — las 10 constraints matchean la tabla aprobada.';
+        RAISE NOTICE E'OK - las 10 constraints matchean la tabla aprobada.';
     END IF;
 END $$;
 
 -- Verificación final visual (redundante con el DO $$ arriba, pero útil
--- para leer el estado con ojos humanos también):
-SELECT tc.table_name, tc.constraint_name, rc.delete_rule
-FROM information_schema.table_constraints tc
-JOIN information_schema.referential_constraints rc
-    ON tc.constraint_name = rc.constraint_name
-WHERE tc.constraint_schema='public'
-  AND tc.constraint_type='FOREIGN KEY'
-  AND tc.constraint_name IN (
+-- para leer el estado con ojos humanos también). Usamos pg_constraint
+-- por el mismo motivo que el bloque de assertion — evita el sesgo del
+-- MCP read-only sobre information_schema (ver CLAUDE.md > COROLARIO P8).
+SELECT t.relname as tabla, c.conname as constraint_name,
+       CASE c.confdeltype
+           WHEN 'a' THEN 'NO ACTION'
+           WHEN 'r' THEN 'RESTRICT'
+           WHEN 'c' THEN 'CASCADE'
+           WHEN 'n' THEN 'SET NULL'
+           WHEN 'd' THEN 'SET DEFAULT'
+       END as on_delete
+FROM pg_constraint c
+JOIN pg_class t ON c.conrelid = t.oid
+JOIN pg_namespace n ON t.relnamespace = n.oid
+WHERE c.contype = 'f'
+  AND n.nspname = 'public'
+  AND c.conname IN (
     'agendamientos_servicio_id_fkey',
     'agendamientos_proveedor_id_fkey',
     'agendamientos_tutor_id_fkey',
@@ -149,7 +185,7 @@ WHERE tc.constraint_schema='public'
     'contactos_servicio_id_fkey',
     'contactos_proveedor_id_fkey'
   )
-ORDER BY tc.table_name, tc.constraint_name;
+ORDER BY t.relname, c.conname;
 
 COMMIT;
 
