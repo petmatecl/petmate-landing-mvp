@@ -94,7 +94,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
-    if (!apiLimiter(req, res)) return;
+    if (!(await apiLimiter(req, res))) return;
 
     // Auth — usa el helper compartido (mismo patron que el sweep 1bc1897).
     const callerId = await verifySession(req);

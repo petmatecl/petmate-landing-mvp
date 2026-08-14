@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
     }
-    if (!apiLimiter(req, res)) return;
+    if (!(await apiLimiter(req, res))) return;
 
     const parsed = waitlistSchema.safeParse(req.body);
     if (!parsed.success) {

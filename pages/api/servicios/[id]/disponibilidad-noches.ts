@@ -74,7 +74,7 @@ function diasEntreFechas(desde: string, hasta: string): number {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
-    if (!apiLimiter(req, res)) return;
+    if (!(await apiLimiter(req, res))) return;
 
     const { id, desde, hasta } = req.query;
     if (typeof id !== 'string' || !UUID_RE.test(id)) {

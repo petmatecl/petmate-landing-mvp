@@ -24,6 +24,8 @@
     "@sentry/nextjs": "^10.70.0",
     "@supabase/supabase-js": "^2.84.0",
     "@types/web-push": "^3.6.4",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.38.2",
     "browser-image-compression": "^2.0.2",
     "date-fns": "^2.30.0",
     "leaflet": "^1.9.4",

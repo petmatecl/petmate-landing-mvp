@@ -23,7 +23,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
     if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
-    if (!apiLimiter(req, res)) return;
+    if (!(await apiLimiter(req, res))) return;
 
     try {
         const parsed = pushSendSchema.safeParse(req.body);

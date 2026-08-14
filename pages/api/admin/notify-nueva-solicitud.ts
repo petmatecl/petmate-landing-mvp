@@ -27,7 +27,7 @@ const ADMIN_INBOX = process.env.ADMIN_INBOX || 'contacto@pawnecta.com';
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
-    if (!emailLimiter(req, res)) return;
+    if (!(await emailLimiter(req, res))) return;
 
     const { proveedorId } = req.body as { proveedorId?: string };
     if (!proveedorId || typeof proveedorId !== 'string') {

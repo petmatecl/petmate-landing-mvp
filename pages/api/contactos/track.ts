@@ -8,7 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     // Sweep #2 mini-fix [72]: apiLimiter estandar. Antes el endpoint no
     // tenia rate-limit — vector de spam + inflacion de vercel invocations.
-    if (!apiLimiter(req, res)) return;
+    if (!(await apiLimiter(req, res))) return;
 
     const userId = await verifySession(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });

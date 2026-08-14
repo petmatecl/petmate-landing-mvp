@@ -77,7 +77,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
-    if (!emailLimiter(req, res)) return;
+    if (!(await emailLimiter(req, res))) return;
 
     // Validate via internal secret to prevent external abuse
     const internalSecret = req.headers['x-internal-secret'];

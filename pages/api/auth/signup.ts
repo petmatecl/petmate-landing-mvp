@@ -30,7 +30,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   }
 
   // Rate limit: 5 signups per minute per IP
-  if (!authLimiter(req, res)) return;
+  if (!(await authLimiter(req, res))) return;
 
   const parsed = signupSchema.safeParse(req.body);
   if (!parsed.success) {
