@@ -26,6 +26,14 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Esfuerzo grueso estimado**: **2-3 horas** — (i) template `NuevoProveedorPendienteEmail.tsx` con link deep a `/admin?tab=aprobaciones` (~30 min), (ii) endpoint `pages/api/admin/notify-nueva-solicitud.ts` con verifyInternalSecret o inline en signup (~45 min), (iii) hook desde signup.ts fire-and-forget (~15 min), (iv) smoke: signup de proveedor en staging → verificar email a `contacto@pawnecta.com` (~30 min), (v) opcional variante verificación ID (~1 hora extra).
   - **Decisión**: pre-launch, prioriza Aldo contra el resto del roadmap.
 
+- **[abierto — decisión pendiente, DATO NUEVO 2026-08-14] Fotografía vs Retratos — coexistencia o consolidación** — pedido de PO **2026-08-11** (Ola 1 B5). Ambas categorías existen en BD como distintas técnicamente (`fotografia`="Fotografía de Mascotas" = sesión de fotos, `retratos`="Retratos de Mascotas" = pintura/dibujo artístico). Duda de UX: un tutor buscando "fotos para mi mascota" puede ver 2 categorías y confundirse. **Actualización 2026-08-14**: con `ficha_vista` marcado como key event en GA4 (sprint ga4-revert / ANALYTICS-1 cerrado), en 1-2 semanas de tráfico real vamos a poder ver **cuántas ficha_vista recibe cada categoría por separado**. La decisión de consolidar vs mantener se resuelve con dato empírico:
+  - Si `fotografia` >> `retratos` en visitas → mantener ambas, `retratos` es nicho.
+  - Si `retratos` >> `fotografia` → mantener ambas, invertir el énfasis marketing.
+  - Si ambas similar (~50/50) → indica confusión de tutores, consolidar en 1 sola con sub-tipo.
+  - Si ambas ~0 → problema es de oferta, no categoría; deferir la decisión.
+  - **Trigger**: revisar métrica GA4 después de 1-2 semanas post-launch tutores. Antes de eso, mantener ambas por default.
+  - **Cambio del plan Ola 2**: B5 pasa de "decidir en el sprint" a "diferir con criterio explícito de datos". Cero riesgo — ambas coexisten hoy sin bug, decisión con dato es mejor que con criterio.
+
 - **[abierto] Homologar look-and-feel de toasts/popups/dialogs** — pedido de PO **2026-08-11** (walkthrough post-batch REMATE-1). Contexto detectado por PO: el toast de "Reserva confirmada" en la ficha de servicio tiene un estilo que no calza con el resto de los avisos (posiblemente los `richColors` default de sonner vs paleta Pawnecta). **Inventario del auditor 2026-08-11**:
   - **Lib global**: `sonner` con `<Toaster position="top-center" richColors />` en [pages/_app.tsx:48](pages/_app.tsx#L48). **154 invocaciones `toast()`** distribuidas en toda la app (8 componentes importan explícitamente `toast` de sonner; el resto consume vía el provider global).
   - **Toaster duplicado (bug menor a limpiar)**: [components/Proveedor/ServiceFormModal.tsx:2578](components/Proveedor/ServiceFormModal.tsx#L2578) monta un `<Toaster />` propio con la misma config que el global — redundante, se puede eliminar.

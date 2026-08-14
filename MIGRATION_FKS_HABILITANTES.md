@@ -106,6 +106,14 @@ Ver `migrations/20260814_fks_habilitantes.sql`. Idempotente vía `ADD CONSTRAINT
 
 Con las FKs aplicadas, el batch delete A2 (borrar los proveedores ejemplo) se simplifica técnicamente a `DELETE FROM proveedores WHERE es_ejemplo = true` con cascada automática. **PERO** ese DELETE es irreversible y cascadea 4 tablas (`servicios_publicados`, `evaluaciones`, `contactos`, + RESTRICT sobre `agendamientos`). **Tres pasos obligatorios antes del DELETE**:
 
+### 4.0 — Alcance ampliado A2 (ajuste PO 2026-08-14)
+
+Además de los proveedores marcados `es_ejemplo=true`, la limpieza pre-launch de A2 incluye:
+
+- **Cuentas de proveedor creadas durante rituales de prueba en prod hoy** — Aldo probablemente creó 1-2 cuentas en las verificaciones GA4/A1/A3 del 2026-08-14. Estas cuentas están con `es_ejemplo=false` (creadas via el flow real de signup) pero son data de prueba que contamina el conteo de OfertaMetrics y las 8 solicitudes pendientes reales. Query para identificarlas junto con los ejemplo (§4.1 abajo la incluye vía `id_pattern` + `email_auth`).
+- **Eventos `diag_test`, `test_manual_v2`, `test_con_bypass`, `test_no_sw`, `test_manual_aldo`, `diag_1` en GA4** — se van solos (GA4 default retention aplica, no requieren cleanup). Contaminación mínima post-launch, cero acción.
+- **Registro `NuevoProveedorPendienteEmail` a `contacto@pawnecta.com`** disparado por las cuentas de prueba creadas hoy — Aldo los revisa manualmente y descarta.
+
 ### 4.1 Verificar `es_ejemplo` confiable en prod — REVISIÓN NOMBRE POR NOMBRE
 
 Hoy mismo asumimos que 8 solicitudes eran seed y resultó que eran personas reales. Si algún proveedor **real quedó marcado como ejemplo por error** (ej. bug de flag mal seteado, testing manual olvidado), el DELETE se lleva su catálogo entero — irrecuperable.
@@ -113,7 +121,7 @@ Hoy mismo asumimos que 8 solicitudes eran seed y resultó que eran personas real
 **Aldo lee esta query y confirma nombre por nombre que TODOS los listados son efectivamente proveedores de prueba** que él/dev crearon a propósito:
 
 ```sql
--- Los es_ejemplo=true en prod, con toda la info que permite juzgar
+-- (a) Los es_ejemplo=true en prod, con toda la info que permite juzgar
 SELECT p.id, p.nombre, p.apellido_p, p.rut, p.comuna,
        p.telefono, p.whatsapp, p.email_publico,
        u.email as email_auth,
@@ -127,6 +135,19 @@ FROM proveedores p
 LEFT JOIN auth.users u ON u.id = p.auth_user_id
 WHERE p.es_ejemplo = true
 ORDER BY p.created_at;
+
+-- (b) Cuentas de proveedor CREADAS HOY 2026-08-14 (rituales de prueba
+-- ga4/A1/A3). Estas están con es_ejemplo=false pero son data de prueba
+-- que también hay que limpiar. Aldo revisa cada una y decide.
+SELECT p.id, p.nombre, p.apellido_p, p.rut, p.comuna,
+       u.email as email_auth,
+       p.verificacion_estado,
+       p.created_at
+FROM proveedores p
+LEFT JOIN auth.users u ON u.id = p.auth_user_id
+WHERE p.created_at::date = '2026-08-14'
+  AND p.es_ejemplo = false
+ORDER BY p.created_at DESC;
 ```
 
 **Criterio decisión**:
@@ -135,19 +156,26 @@ ORDER BY p.created_at;
 
 ### 4.2 Dry-run — impacto exacto ANTES del DELETE
 
-Contar EXACTAMENTE cuántas filas cascadearán por cada proveedor ejemplo. Ejecutar y leer:
+Contar EXACTAMENTE cuántas filas cascadearán por cada proveedor a borrar. Query cubre AMBOS grupos (es_ejemplo=true + cuentas de prueba del 2026-08-14) via UNION.
 
 ```sql
--- Dry-run: por cada proveedor es_ejemplo, cuántas filas cuelgan de él
+-- Dry-run: filas que cascadean por cada proveedor a borrar
+WITH candidatos AS (
+  SELECT id, nombre, apellido_p, 'es_ejemplo' as motivo
+  FROM proveedores WHERE es_ejemplo = true
+  UNION ALL
+  SELECT id, nombre, apellido_p, 'prueba_2026-08-14' as motivo
+  FROM proveedores
+  WHERE created_at::date = '2026-08-14' AND es_ejemplo = false
+)
 SELECT
-  p.id, p.nombre, p.apellido_p,
-  (SELECT COUNT(*) FROM servicios_publicados WHERE proveedor_id = p.id) as servicios,
-  (SELECT COUNT(*) FROM evaluaciones WHERE proveedor_id = p.id) as evaluaciones,
-  (SELECT COUNT(*) FROM contactos WHERE proveedor_id = p.id) as contactos,
-  (SELECT COUNT(*) FROM agendamientos WHERE proveedor_id = p.id) as agendamientos_bloquea_delete
-FROM proveedores p
-WHERE p.es_ejemplo = true
-ORDER BY p.nombre;
+  c.motivo, c.id, c.nombre, c.apellido_p,
+  (SELECT COUNT(*) FROM servicios_publicados WHERE proveedor_id = c.id) as servicios,
+  (SELECT COUNT(*) FROM evaluaciones WHERE proveedor_id = c.id) as evaluaciones,
+  (SELECT COUNT(*) FROM contactos WHERE proveedor_id = c.id) as contactos,
+  (SELECT COUNT(*) FROM agendamientos WHERE proveedor_id = c.id) as agendamientos_bloquea_delete
+FROM candidatos c
+ORDER BY c.motivo, c.nombre;
 ```
 
 **Interpretación**:
@@ -167,9 +195,18 @@ BEGIN;
 --   evaluaciones de esos proveedores/servicios → CASCADE
 --   contactos de esos proveedores/servicios → CASCADE
 --   agendamientos → RESTRICT (bloquea si hay; si aparece, hacer ROLLBACK)
+
+-- Grupo (a) proveedores marcados es_ejemplo=true
 DELETE FROM proveedores WHERE es_ejemplo = true RETURNING id, nombre;
--- Aldo lee el RETURNING antes de commit — verifica que la lista de IDs
--- borrados coincide con lo esperado del dry-run (4.2).
+
+-- Grupo (b) cuentas de prueba creadas hoy 2026-08-14 durante rituales GA4/A1/A3
+-- Aldo verifica IDs específicos con el resultado de §4.1 (b) y los borra por id
+-- (no confiar en `created_at::date` en DELETE — proveedores REALES pueden haberse
+-- registrado hoy también post-launch; usar IDs explícitos).
+-- DELETE FROM proveedores WHERE id IN ('<id_1>', '<id_2>', ...) RETURNING id, nombre;
+
+-- Aldo lee ambos RETURNING antes de commit — verifica que las listas de IDs
+-- borrados coinciden con lo esperado del dry-run (4.2).
 COMMIT;
 -- (O ROLLBACK; si algo se ve raro).
 ```
