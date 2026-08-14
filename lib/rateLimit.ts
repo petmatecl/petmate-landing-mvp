@@ -30,12 +30,25 @@
 //   servicio Upstash es 99.99% SLA en free tier, (c) el evento aparece en
 //   Sentry Issues para detección rápida.
 //
-// FALLBACK IN-MEMORY (solo dev / preview sin env vars):
-//   Si UPSTASH_REDIS_REST_URL no está seteado, se usa el limiter in-memory
-//   del código anterior. Solo útil en `npm run dev` local. En cualquier
-//   entorno Vercel con env vars, se usa Upstash. Nunca se mezcla: si REST_URL
-//   existe pero falla, es fail-open + Sentry, NO fallback a in-memory (eso
-//   ocultaría la degradación en prod).
+// FALLBACK IN-MEMORY — silencioso solo en dev, RUIDOSO en prod/preview:
+//   Si UPSTASH_REDIS_REST_URL no está seteado:
+//   - En `npm run dev` local (VERCEL_ENV undefined | 'development'): fallback
+//     in-memory silencioso. Es el diseño esperado.
+//   - En VERCEL_ENV=production|preview: fallback in-memory ADEMÁS de emitir
+//     Sentry.captureMessage con level=error, tags:{subsystem:'rate-limit',
+//     reason:'missing-credentials'} en el primer uso. Motivo (fix PO
+//     2026-08-14 sobre versión inicial del sprint A4): un limiter que "hace
+//     algo" pero sin persistencia entre invocaciones aparenta protección
+//     y no la da. Es exactamente el 6º patrón "output correcto, efecto
+//     ausente" del CLAUDE.md corolario P8 — el silencio previo era el bug.
+//     Mejor gritar y que el operador vea la alerta que ocultar la
+//     degradación tras un fallback fantasma.
+//
+//   Cuando Redis SÍ está inicializado pero una request específica falla
+//   (timeout, quota), es fail-open + Sentry con reason:'upstash-error'. Nunca
+//   se mezcla: en ese caso no cae al fallback in-memory (eso ocultaría la
+//   degradación del propio Redis, y con Redis vivo en el resto de las
+//   requests, mezclar sería peor).
 //
 // FIRMA ASYNC:
 //   La superficie pública cambia de `(req, res) => boolean` a
@@ -90,18 +103,62 @@ function memoryCheck(
 // ---------------------------------------------------------------------------
 let redisSingleton: Redis | null = null;
 let redisInitAttempted = false;
+let missingCredsReported = false; // solo reporta 1 vez por lifetime del contenedor
+
+// Detectar si estamos en un entorno "productivo" (prod real o preview de
+// Vercel — ambos deberían tener credenciales reales). Mismo espíritu que
+// `IS_PROD` de next.config.js / lib/cronGuard.ts / lib/resend.ts, pero
+// ampliado a preview también porque el fallback silente en preview
+// también fue causa histórica del anti-patrón "componente que aparenta
+// funcionar y no lo hace" (P8 6ª instancia — sesión 2026-08-14).
+//
+// La regla: si el entorno tiene VERCEL_ENV seteado (production|preview),
+// asumimos que las env vars deben estar. Si no están, es config error
+// operacional y debe gritar. Solo `undefined` (npm run dev local) o
+// `development` se toman como "dev" y usan fallback silente.
+function isServerlessEnv(): boolean {
+  const env = process.env.VERCEL_ENV;
+  return env === 'production' || env === 'preview';
+}
 
 function getRedis(): Redis | null {
   if (redisInitAttempted) return redisSingleton;
   redisInitAttempted = true;
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
   if (!url || !token) {
-    // Dev local sin env vars — usar fallback in-memory silente.
-    // En preview/prod, si las env vars faltan queremos que Sentry lo grite,
-    // pero no hay signal server-only para distinguir sin env específicas.
-    // La detección de "env vars faltantes en prod" se hace en el smoke,
-    // no acá (el limiter debe ser silencioso si no puede iniciar).
+    // En prod/preview esto es un config error operacional. El silence del
+    // limiter es peor que no tener limiter, porque nadie lo revisa y el
+    // sistema aparenta protección. Reportamos a Sentry con severity=error
+    // en el primer uso post-init para que aparezca en Issues rápido.
+    // El fallback in-memory igual actúa (para no tumbar signup por config
+    // error), pero Sentry alerta que en este contenedor el rate limit
+    // NO está protegido por Redis compartido.
+    //
+    // Dev local (VERCEL_ENV undefined | 'development'): silencioso — es
+    // lo esperado, ese caso es diseño del fallback.
+    if (isServerlessEnv() && !missingCredsReported) {
+      missingCredsReported = true;
+      Sentry.captureMessage(
+        `[rate-limit] UPSTASH credentials missing in VERCEL_ENV=${process.env.VERCEL_ENV}. Falling back to in-memory limiter (NO cross-invocation persistence). Rate limit is effectively no-op in serverless.`,
+        {
+          level: 'error',
+          tags: {
+            subsystem: 'rate-limit',
+            reason: 'missing-credentials',
+            vercel_env: process.env.VERCEL_ENV || 'unknown',
+          },
+        }
+      );
+      // No await flush acá — la primera request no debe pagar el costo del
+      // flush ni bloquear. La cola drena en el próximo await de Sentry
+      // (los endpoints que ya usan flushSentryEvents lo harán). Peor caso:
+      // el mensaje se pierde en el primer container si termina antes de
+      // drenar. En el segundo container (post cold-start) missingCredsReported
+      // se resetea a false → vuelve a intentar → eventual visibilidad
+      // garantizada.
+    }
     return null;
   }
   try {
