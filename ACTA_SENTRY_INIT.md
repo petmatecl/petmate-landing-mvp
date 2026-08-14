@@ -4,7 +4,7 @@
 **SHAs**: `4bf684b` (rename client) → `b77c02e` (archivos adicionales por commit parcial) → `b1cc840` (P1.1 en CLAUDE.md).
 **Tag prod**: `sentry-init-prod-20260814` sobre `main @ b1cc840`.
 **Fecha ejecución**: 2026-08-11 (código) → 2026-08-14 (promoción a prod).
-**Estado**: **PROMOVIDO A PROD** — pendiente única verificación end-to-end del PO con dashboard Sentry. Si el evento aparece con tag `smoke=true`, R3 SENTRY-1 cierra tras **4 iteraciones**.
+**Estado**: **R3 SENTRY-1 CERRADO CANÓNICAMENTE** (2026-08-14). Cuatro iteraciones. Ambos caminos (servidor + cliente) verificados con efecto observable en dashboard Sentry — issues `JAVASCRIPT-NEXTJS-1` (smoke server) y `JAVASCRIPT-NEXTJS-2` (auto-capture cliente `Unhandled ReferenceError`). Ver §4.4 para evidencia y método de verificación reproducible. Próximo movimiento: PO ordena pre-lanzamiento con 7 semanas hasta viaje. **No arrancar sprint técnico nuevo sin instrucción explícita.**
 
 ---
 
@@ -135,7 +135,78 @@ ok 5 [chromium] 4) defaults integrations activos en el cliente (827ms)
 
 **Endpoint prod desplegado**: `POST /api/admin/sentry-smoke` sin auth → 401 (guard OK).
 
-### 4.4 Verificación end-to-end pendiente en cancha del PO
+### 4.4 Verificación end-to-end del PO (2026-08-14) — R3 SENTRY-1 CERRADO CANÓNICAMENTE
+
+Guard e2e bloquea Playwright contra prod por diseño. El PO ejecutó ambos caminos manualmente contra `main @ 0ca5ae9` en prod post-merge. **Ambos caminos verificados con evidencia observable en el dashboard Sentry — cierre canónico R3 según P8 (efecto observable, no señal del emisor)**.
+
+#### Camino servidor (fetch pegable con 6/6 señales verdes)
+
+Fetch pegable ejecutado desde consola prod con sesión admin. Respuesta: 6/6 señales verdes (`sent:true, flushed:true, sdk_initialized:true, client_enabled:true, dsn_configured_in_client:true, env:'production'`).
+
+**Evidencia dashboard Sentry**:
+- Título: `R3 SENTRY-1 smoke test @ 2026-08-14T13:25:05.286Z`
+- Issue: `JAVASCRIPT-NEXTJS-1`
+- Ruta: `POST /api/admin/sentry-smoke`
+- eventId: `cf1456fecc4a418ca4bd9b7fba13aaae`
+- Tag: `smoke=true`
+- Latencia: <30s desde el fetch al evento visible en dashboard.
+
+Este camino valida:
+- CSP fix (`sentry-csp @ ccee68c`) — el envelope client sale sin block (verificado indirectamente porque un smoke server no ejerce CSP; ver camino cliente para la validación directa del CSP).
+- Flush + integrations fix (`sentry-flush @ 5526c02`) — el flush drena la cola antes del `res.json`.
+- Instrumentation fix (`sentry-init @ b1cc840`) — `Sentry.init()` server-side corre en runtime real, el transport existe y drena.
+
+#### Camino cliente — auto-capture end-to-end (evidencia NUEVA)
+
+Este camino era el bug original del CSP y el más difícil de verificar sin promover a prod. **El PO forzó un error no manejado desde el event loop de la página en prod y confirmó que el auto-capture del SDK (via `globalHandlersIntegration()`) lo tomó sin ningún `captureException` manual**.
+
+**Método de verificación reproducible** (importante — anotar para futuros re-tests):
+
+1. Navegar a una página pública en prod (usada: `/explorar`).
+2. Abrir DevTools → Console.
+3. Ejecutar:
+   ```js
+   setTimeout(() => { undefinedFunction(); }, 100);
+   ```
+4. Esperar <30s. Verificar dashboard Sentry.
+
+**Evidencia dashboard Sentry**:
+- Título: `ReferenceError: undefinedFunction is not defined`
+- Issue: `JAVASCRIPT-NEXTJS-2`
+- Marca: **Unhandled** — el error NO fue capturado por ningún `captureException` manual, lo tomó el auto-capture del SDK.
+- Ruta: `/explorar`
+- Latencia: capturado en <30s.
+
+Este camino valida:
+- CSP fix — el envelope llegó al ingest sin CSP block (validación directa client-side).
+- Restauración de defaults integrations (`sentry-flush @ 5526c02`) — `globalHandlersIntegration()` está registrado en runtime y captura errores no manejados automáticamente. **Este es el mecanismo por el que Sentry existe, y estaba apagado en las 3 iteraciones anteriores por el `integrations: []`**.
+- Instrumentation client (`sentry-init @ b1cc840`) — el archivo `instrumentation-client.ts` se carga correctamente por Next 15 al hidratar el navegador.
+
+**Detalle metodológico crítico — no reproducir con `undefinedFunction()` directo en consola**:
+
+Escribir `undefinedFunction()` directo en la consola de DevTools **NO genera evento en Sentry**. El navegador trata los errores tipeados en DevTools como contexto aislado — no pasan por `window.onerror` ni por `unhandledrejection`, así que `globalHandlersIntegration()` no los ve. El error existe (la consola lo muestra en rojo) pero es "invisible" al event loop de la página.
+
+Se necesita el `setTimeout` (o equivalente que dispare desde el event loop de la página: `Promise.reject()`, `queueMicrotask`, `requestAnimationFrame`, `addEventListener` con handler que throw, etc.) para que el error se origine desde la página y pase por los handlers globales que el SDK registró.
+
+**Si alguien repite esta verificación a futuro y usa el método directo, va a concluir erróneamente que el camino cliente está roto** — cuando el bug es en la metodología del smoke, no en el SDK. Este párrafo queda en el acta para prevenir esa conclusión falsa. Es exactamente el tipo de falla de smoke que P8 previene: la assertion aparente ("tipeé el error, no llegó a Sentry") no prueba lo que uno cree que prueba.
+
+#### R3 SENTRY-1 canónicamente cerrado
+
+Cuatro iteraciones. Ambos caminos verificados con efecto observable en dashboard. Los aprendizajes codificados (P8, P9, P1.1, convención comm, anti-voseo output, longitud nombre rama) quedan como memoria institucional para futuros sprints. **El próximo movimiento es del PO — ordenar el pre-lanzamiento con 7 semanas hasta su viaje. No arrancar ningún sprint técnico nuevo sin instrucción explícita.**
+
+### 4.5 Test 4 e2e para auto-capture client-side — evaluación honesta
+
+Se evaluó agregar un test 5 a `e2e/specs/sentry/gate.spec.ts` que dispare un error client-side desde el event loop de la página en preview + verifique auto-capture. **Descartado como limitación conocida** por incompatibilidad estructural con el gate del sprint:
+
+- El gate cierra el SDK cliente en preview con `enabled: process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'`. Cuando `enabled` es false, `Sentry.init()` inicializa el SDK y `globalHandlersIntegration()` registra los listeners **PERO** el client tiene `enabled: false`, así que **cualquier error capturado se dropea silenciosamente antes de enviar al ingest**.
+- En preview no hay dashboard Sentry al cual pegar (`dsn_env_var_set: false` — la env var no está en scope preview) — cualquier assertion sobre "el evento apareció en Sentry" sería imposible.
+- Un test que se limitara a verificar que `window.onerror` está registrado (via existencia del handler o de `window.__SENTRY__.hub.getClient()._integrations`) verifica **setup**, no **efecto** — es exactamente el tipo de proxy que P8 prohíbe: "el SDK registró el listener" NO equivale a "un error cliente llega al dashboard". Un test así daría verde con las 3 iteraciones fallidas anteriores del sprint (todas tenían el SDK cargado, solo faltaba una capa u otra para que el efecto ocurriera).
+
+**Limitación conocida documentada aquí**: la validación auto-capture client-side end-to-end **solo es posible en prod con dashboard Sentry** (donde el gate está abierto y hay ingest al cual pegar). El Test 4 actual del spec verifica que `window.__SENTRY__` existe (SDK cargado) — es setup check, no smoke de efecto. Para re-validar el auto-capture cliente en el futuro, seguir el método del punto 4.4 (setTimeout desde página en prod + dashboard). No promover el método directo en consola — genera falso negativo.
+
+Deuda light opcional post-launch: si se quisiera cubrir auto-capture cliente en CI, la única forma real sería un preview con `NEXT_PUBLIC_SENTRY_DSN` habilitado + gate abierto + proyecto Sentry dedicado para pruebas (separado del proyecto prod para no contaminar métricas). Setup significativo, valor marginal — el smoke manual anual del PO cubre lo mismo con 30 segundos de esfuerzo.
+
+### 4.6 Fetch pegable original — histórico
 
 Guard e2e bloquea Playwright contra prod por diseño. El PO ejecuta desde su consola con sesión admin prod. **Fetch pegable actualizado con el shape nuevo de 6 señales**:
 
