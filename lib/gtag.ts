@@ -112,26 +112,25 @@ export function trackEvent(
     // cookies o script tardó). En ese caso también no-op silencioso.
     if (!window.gtag) return;
 
-    // Sprint ga4-fix (2026-08-14) — assertion ruidosa contra el bug
-    // "Sending event to undefined". Post-init, `window.google_tag_manager`
-    // debe existir y tener una key === GA_TRACKING_ID cuando el config
-    // quedó registrado correctamente. Si no, el evento se descartará
-    // silente en el envío (P8: la librería acepta la llamada pero el
-    // efecto no ocurre — mismo patrón que causó las 4 iteraciones de
-    // Sentry). Con este check el bug reaparece LOUD y detectable.
+    // Sprint ga4-revert (2026-08-14) — REMOVIDA la assertion ruidosa del
+    // sprint ga4-fix. Aquella assertion verificaba
+    // `window.google_tag_manager[GA_TRACKING_ID]` como proxy de "config
+    // registrado" y quería detectar el bug "Sending event to undefined".
+    // Realidad descubierta post-diagnóstico:
+    //   1) La assertion NUNCA disparó en ningún escenario, ni cuando
+    //      creíamos que había fallo (el tagManager[ID] sí existía; el
+    //      `undefined` que reportaba la extensión GA Debugger era el
+    //      `destinationId` interno del objeto, distinto de la key del
+    //      registry — no era la señal correcta).
+    //   2) GA4 nunca estuvo roto. Verificado via Realtime dashboard:
+    //      5 hits de registro_proveedor_iniciado en 24h post-deploy.
+    //   3) La assertion validaba una condición que no era la real y su
+    //      log ruidoso hubiera confundido al próximo diagnóstico con un
+    //      hint incorrecto ("race entre <Script>" que no existía).
     //
-    // Solo warning (no throw) — no queremos romper el flow del usuario
-    // por un bug de observabilidad. El log es filtrable en Sentry y da
-    // el hint exacto para diagnóstico.
-    const tagManager = (window as unknown as { google_tag_manager?: Record<string, unknown> }).google_tag_manager;
-    if (tagManager && !tagManager[GA_TRACKING_ID]) {
-        console.error(
-            `[gtag] ⚠️ El destino GA "${GA_TRACKING_ID}" no está registrado en window.google_tag_manager. ` +
-            `Evento "${nombre}" se enviará a undefined (descartado silente en el envío). ` +
-            `Root cause típica: race entre <Script> de gtag/js y el snippet inline de gtag('config',...) — ` +
-            `revisar components/ConsentScripts.tsx.`
-        );
-    }
+    // Es exactamente el tipo de "smoke que valida el camino equivocado"
+    // que P8 prohíbe. Removerla es mejor que mantenerla — una assertion
+    // muerta que da hint erróneo es peor que no tener assertion.
 
     window.gtag('event', nombre, params ?? {});
 }
