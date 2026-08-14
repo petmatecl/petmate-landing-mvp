@@ -44,7 +44,9 @@
 **Los 9 proveedores marcados `es_ejemplo=true`** (todos con IDs `b1000001-...`, creados 2026-05-05):
 - Sebastián Castro, Carolina Méndez, Matías Fernández, Daniela Rojas, Felipe Navarro, Tomás Pizarro, Andrea Navarro, Patricia Soto (Retratos), Javiera Espinoza.
 
-**Nota crítica**: prod probablemente tiene también las **8 solicitudes pendientes** que el PO detectó 2026-08-11 (staging solo muestra proveedores con `verificacion_estado='aprobado'`). En prod estas 8 tienen `verificacion_estado='pendiente'` — NO son ejemplo, son proveedores reales esperando aprobación.
+**Nota crítica** (⚠️ CORRECCIÓN DE PREMISA POST-MERGE 2026-08-14): prod tiene también las **8 solicitudes pendientes** que el PO detectó 2026-08-11 (staging solo muestra proveedores con `verificacion_estado='aprobado'`). En prod estas 8 tienen `verificacion_estado='pendiente'` — **NO son ejemplo, son proveedores REALES esperando aprobación desde el 28-jun**.
+
+**Impacto de la corrección**: en la Ola 1 planeada, A3 (notif admin) se justificó por "prevenir futuros pendientes acumulados". Con esta corrección, el valor real es más urgente — **hay gente real esperando 6+ semanas HOY**. Con A1 + A3 en prod, Aldo puede procesar las 8 pendientes acumuladas de inmediato (el email A3 no cubre retroactivo, pero A1 arregla el flow de aprobación que estaba visualmente roto). Retrospectivamente, esa premisa equivocada bajó la percepción de urgencia de A3 durante el planning — anotable como error de calibración: **el inventario staging NO refleja el estado pendiente de prod porque los seeds están todos como `aprobado`; para pending real, siempre consultar prod directamente**.
 
 **Queries prod-ready para que Aldo corra en SQL Editor** (staging las validó, no las corro contra prod):
 
