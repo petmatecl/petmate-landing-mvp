@@ -60,8 +60,31 @@ END $$;
 -- ------------------------------------------------------------------------
 -- 3. agendamientos.tutor_id → usuarios_buscadores.id ON DELETE RESTRICT
 --    Tutor con reservas no puede borrar cuenta silente. RESTRICT fuerza
---    handling explícito (post-launch: evolucionar a SET NULL con flow
---    formal de eliminación de cuenta).
+--    handling explícito.
+--
+--    ⚠️ DISPARADOR LEGAL — Ley 21.719 de Protección de Datos Personales
+--    de Chile entra en vigencia diciembre 2026 (Pawnecta va a estar
+--    operando para entonces). Incorpora derecho de supresión —
+--    RESTRICT actual IMPIDE que un tutor pueda eliminar su cuenta si
+--    tiene reservas históricas.
+--
+--    Ruta correcta cuando se construya el flow de eliminación de cuenta:
+--    NO cambiar RESTRICT por CASCADE (borrar cuenta = borrar historial
+--    del proveedor, doble violación de derechos + pérdida de evidencia
+--    de facturación). Alternativas válidas:
+--      (a) Anonimización in-place: mantener la fila usuarios_buscadores
+--          con datos personales removidos (nombre='(usuario eliminado)',
+--          email='', rut=NULL). tutor_id sigue apuntando pero sin PII.
+--          Ver ítem BACKLOG.md > 'Flow eliminación cuenta tutor (Ley
+--          21.719)'.
+--      (b) Migrar a SET NULL con tutor_nombre_snapshot al INSERT del
+--          agendamiento (nombre del tutor congelado como texto en la
+--          fila del agendamiento, tutor_id nullable). Cambio schema
+--          adicional pero decouple total.
+--
+--    Trigger para revisar esta FK: diciembre 2026 (vigencia Ley 21.719)
+--    o cuando se implemente flow formal de eliminación de cuenta.
+--    Cualquiera venga primero.
 -- ------------------------------------------------------------------------
 DO $$ BEGIN
     IF NOT EXISTS (

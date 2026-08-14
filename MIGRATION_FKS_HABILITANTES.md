@@ -102,34 +102,79 @@ Ver `migrations/20260814_fks_habilitantes.sql`. Idempotente vía `ADD CONSTRAINT
 
 ---
 
-## 4. Smoke A2 post-migration
+## 4. A2 batch delete post-migration — 3 pasos OBLIGATORIOS antes del DELETE
 
-Con las FKs aplicadas, el batch delete A2 (borrar los 9 proveedores ejemplo) se simplifica a:
+Con las FKs aplicadas, el batch delete A2 (borrar los proveedores ejemplo) se simplifica técnicamente a `DELETE FROM proveedores WHERE es_ejemplo = true` con cascada automática. **PERO** ese DELETE es irreversible y cascadea 4 tablas (`servicios_publicados`, `evaluaciones`, `contactos`, + RESTRICT sobre `agendamientos`). **Tres pasos obligatorios antes del DELETE**:
+
+### 4.1 Verificar `es_ejemplo` confiable en prod — REVISIÓN NOMBRE POR NOMBRE
+
+Hoy mismo asumimos que 8 solicitudes eran seed y resultó que eran personas reales. Si algún proveedor **real quedó marcado como ejemplo por error** (ej. bug de flag mal seteado, testing manual olvidado), el DELETE se lleva su catálogo entero — irrecuperable.
+
+**Aldo lee esta query y confirma nombre por nombre que TODOS los listados son efectivamente proveedores de prueba** que él/dev crearon a propósito:
 
 ```sql
--- ANTES de FKs: DELETE en cascada manual sobre 5 tablas EN ORDEN
--- DESPUÉS de FKs: 1 solo DELETE con cascada automática via FK CASCADE
-BEGIN;
--- Verificar que los ejemplo NO tienen agendamientos con clientes reales
--- (RESTRICT bloquearía el DELETE del proveedor si los tienen).
-SELECT p.id, p.nombre, COUNT(a.id) as agendamientos
-FROM proveedores p LEFT JOIN agendamientos a ON a.proveedor_id = p.id
+-- Los es_ejemplo=true en prod, con toda la info que permite juzgar
+SELECT p.id, p.nombre, p.apellido_p, p.rut, p.comuna,
+       p.telefono, p.whatsapp, p.email_publico,
+       u.email as email_auth,
+       p.estado, p.verificacion_estado,
+       p.created_at::date as created,
+       CASE
+         WHEN p.id::text ~ '^b100000[12]-' THEN 'seed_pattern_uuid'
+         ELSE 'random_uuid_sospechoso'
+       END as id_check
+FROM proveedores p
+LEFT JOIN auth.users u ON u.id = p.auth_user_id
 WHERE p.es_ejemplo = true
-GROUP BY p.id, p.nombre;
+ORDER BY p.created_at;
+```
 
--- Si algún proveedor ejemplo tiene agendamientos reales → decidir caso a caso
--- (borrar agendamientos manualmente primero, o preservar el proveedor).
+**Criterio decisión**:
+- Si TODOS los 9-10 son nombres claramente de test (nombres del set staging: Sebastián Castro / Carolina Méndez / Matías Fernández / Daniela Rojas / Felipe Navarro / Tomás Pizarro / Andrea Navarro / Patricia Soto / Javiera Espinoza) + `id_check='seed_pattern_uuid'` (patrón `b1000001-...`) → **CONFIABLE, seguir a 4.2**.
+- Si aparece cualquier proveedor con nombre real desconocido, con `id_check='random_uuid_sospechoso'`, o con email_auth de dominio real usado (@gmail, @hotmail, @outlook) → **STOP, sospecha de mismarking**. Revisar caso a caso: puede haber sido real que se marcó ejemplo por error. Antes de borrar, `UPDATE proveedores SET es_ejemplo=false WHERE id='<sospechoso>'` para desmarcar + investigar historia (git log de migrations, contactar al mismo proveedor si hay email).
 
--- Si cero conflictos: batch delete
-DELETE FROM proveedores WHERE es_ejemplo = true;
+### 4.2 Dry-run — impacto exacto ANTES del DELETE
+
+Contar EXACTAMENTE cuántas filas cascadearán por cada proveedor ejemplo. Ejecutar y leer:
+
+```sql
+-- Dry-run: por cada proveedor es_ejemplo, cuántas filas cuelgan de él
+SELECT
+  p.id, p.nombre, p.apellido_p,
+  (SELECT COUNT(*) FROM servicios_publicados WHERE proveedor_id = p.id) as servicios,
+  (SELECT COUNT(*) FROM evaluaciones WHERE proveedor_id = p.id) as evaluaciones,
+  (SELECT COUNT(*) FROM contactos WHERE proveedor_id = p.id) as contactos,
+  (SELECT COUNT(*) FROM agendamientos WHERE proveedor_id = p.id) as agendamientos_bloquea_delete
+FROM proveedores p
+WHERE p.es_ejemplo = true
+ORDER BY p.nombre;
+```
+
+**Interpretación**:
+- `agendamientos_bloquea_delete > 0` en cualquier fila → RESTRICT bloqueará el DELETE del proveedor. Decidir por caso: (a) si el agendamiento es tutor real de prueba interno (ej. Aldo probó reservar contra un ejemplo), borrar el agendamiento primero (`DELETE FROM agendamientos WHERE proveedor_id = '<id>'` — verifica tutor no sea uno importante), o (b) si el agendamiento es de un tutor REAL que reservó con un servicio ejemplo, **NO borrar el proveedor** (preservar servicio + agendamiento, evaluar caso legal).
+- `servicios + evaluaciones + contactos` — es lo que se pierde. Aldo lee la suma y decide si el costo es asumible. Normalmente sí porque son data de prueba.
+
+**Total esperado en prod** (extrapolando del inventario staging Ola 1 A2): ~10 servicios, ~1 evaluación, X contactos, 0-1 agendamientos por proveedor ejemplo. Cifras chicas.
+
+### 4.3 Ejecutar batch delete con transacción explícita
+
+Con 4.1 confirmado + 4.2 revisado + agendamientos_bloquea_delete resuelto:
+
+```sql
+BEGIN;
 -- Cascada automática por FKs:
 --   servicios_publicados de esos proveedores → CASCADE
 --   evaluaciones de esos proveedores/servicios → CASCADE
 --   contactos de esos proveedores/servicios → CASCADE
+--   agendamientos → RESTRICT (bloquea si hay; si aparece, hacer ROLLBACK)
+DELETE FROM proveedores WHERE es_ejemplo = true RETURNING id, nombre;
+-- Aldo lee el RETURNING antes de commit — verifica que la lista de IDs
+-- borrados coincide con lo esperado del dry-run (4.2).
 COMMIT;
+-- (O ROLLBACK; si algo se ve raro).
 ```
 
-**Sin FKs**: hay que hacer DELETE manual en orden inverso (agendamientos → contactos → evaluaciones → servicios_publicados → proveedores) rezando por no dejar huérfanos.
+**Sin FKs**: hay que hacer DELETE manual en orden inverso (agendamientos → contactos → evaluaciones → servicios_publicados → proveedores) rezando por no dejar huérfanos. **Con FKs**: 1 solo DELETE + `RETURNING` para auditar antes de commit + posibilidad de ROLLBACK dentro de la transacción si algo se ve raro.
 
 ---
 
