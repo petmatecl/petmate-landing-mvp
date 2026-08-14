@@ -35,10 +35,11 @@ const COMUNAS_SECTOR_ORIENTE = [
 const UMBRAL_CONCENTRACION_ORIENTE_PCT = 50;
 
 interface OfertaStats {
-    totalServiciosActivos: number;
+    totalServiciosActivos: number;             // servicios de proveedor aprobado + verificado + NO ejemplo
+    totalServiciosPublicadosBrutos: number;    // servicios activos brutos (sin filtro por estado/verif) — para diff visible en UI
     porCategoria: Array<{ nombre: string; slug: string; count: number }>;
     porComuna: Array<{ comuna: string; count: number }>;
-    servicios_oriente: number;
+    servicios_oriente: number;                 // servicios ÚNICOS con al menos una comuna en sector oriente
 }
 
 export default function OfertaMetrics() {
@@ -108,7 +109,12 @@ export default function OfertaMetrics() {
                 })
                 .sort((a, b) => b.count - a.count);
 
-            // Por comuna — combina comunas_cobertura del servicio + comuna del proveedor
+            // Por comuna — cuenta "servicios que cubren esta comuna" (un servicio con
+            // 3 comunas de cobertura suma 1 a cada una de esas 3 filas). El total del
+            // desglose SUMA MÁS que totalServiciosActivos por diseño (cada servicio
+            // aparece en N filas si cubre N comunas). Interpretación correcta de
+            // cada fila: "N servicios cubren esta comuna", NO "N servicios están
+            // basados aquí".
             const comunaCount: Record<string, number> = {};
             serviciosReales.forEach((s) => {
                 // Preferir cobertura declarada del servicio; fallback a comuna del proveedor.
@@ -123,13 +129,23 @@ export default function OfertaMetrics() {
                 .map(([comuna, count]) => ({ comuna, count }))
                 .sort((a, b) => b.count - a.count);
 
-            // Concentración sector oriente
-            const servicios_oriente = porComuna
-                .filter(c => COMUNAS_SECTOR_ORIENTE.includes(c.comuna))
-                .reduce((sum, c) => sum + c.count, 0);
+            // Concentración sector oriente — servicios ÚNICOS con al menos una comuna
+            // del sector en su cobertura. NO sumamos filas de `porComuna` porque un
+            // servicio que cubre 4 comunas oriente contaría 4×, inflando el %
+            // hasta pasar 100% (bug histórico PO 2026-08-14: mostraba "433%").
+            const serviciosOrienteSet = new Set<string>();
+            serviciosReales.forEach((s) => {
+                const comunas = (s.comunas_cobertura && s.comunas_cobertura.length > 0)
+                    ? s.comunas_cobertura
+                    : (s.proveedor_id && provMap[s.proveedor_id]?.comuna ? [provMap[s.proveedor_id]!.comuna as string] : []);
+                const tieneOriente = (comunas || []).some((c: string) => c && COMUNAS_SECTOR_ORIENTE.includes(c));
+                if (tieneOriente) serviciosOrienteSet.add(s.id);
+            });
+            const servicios_oriente = serviciosOrienteSet.size;
 
             setStats({
                 totalServiciosActivos,
+                totalServiciosPublicadosBrutos: (servicios || []).length,
                 porCategoria,
                 porComuna,
                 servicios_oriente,
@@ -195,6 +211,13 @@ export default function OfertaMetrics() {
                         <div className="w-full h-2 bg-slate-100 rounded-full mt-3 overflow-hidden">
                             <div className={`h-full ${alcanzaTotal ? 'bg-green-500' : 'bg-sky-400'}`} style={{ width: `${Math.min(totalPct, 100)}%` }} />
                         </div>
+                        {stats.totalServiciosPublicadosBrutos > stats.totalServiciosActivos && (
+                            <p className="text-xs text-slate-500 mt-2">
+                                Hay <span className="font-semibold text-slate-700">{stats.totalServiciosPublicadosBrutos - stats.totalServiciosActivos}</span> servicio(s) activo(s) adicional(es) publicado(s) que el panel no cuenta
+                                (proveedor pendiente de aprobación o verificación, o servicio de ejemplo).
+                                Total bruto: {stats.totalServiciosPublicadosBrutos}.
+                            </p>
+                        )}
                     </div>
                 </div>
             </div>
@@ -256,9 +279,14 @@ export default function OfertaMetrics() {
                             })}
                         </tbody>
                     </table>
-                    <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-600">
-                        Umbral concentración sector oriente: ≥{UMBRAL_CONCENTRACION_ORIENTE_PCT}%
-                        · Comunas del sector: {COMUNAS_SECTOR_ORIENTE.slice(0, 5).join(', ')}, ...
+                    <div className="px-5 py-3 bg-slate-50 border-t border-slate-100 text-xs text-slate-600 space-y-1">
+                        <p>
+                            Cada fila = servicios que <em>cubren</em> esa comuna. Un servicio con cobertura múltiple aparece en varias filas, por eso el desglose suma más que el total.
+                        </p>
+                        <p>
+                            <span className="font-semibold text-slate-700">{concentracionOrientePct}%</span> sector oriente = {stats.servicios_oriente} de {stats.totalServiciosActivos} servicios únicos con al menos una comuna del sector.
+                            Umbral: ≥{UMBRAL_CONCENTRACION_ORIENTE_PCT}%. Sector: {COMUNAS_SECTOR_ORIENTE.slice(0, 5).join(', ')}, ...
+                        </p>
                     </div>
                 </div>
             </div>
