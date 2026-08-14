@@ -143,9 +143,22 @@ export default function ProveedorApprovalList() {
     const fetchVerificaciones = async () => {
         setLoadingVerif(true);
         try {
+            // Sprint bug1-fks (2026-08-14) — BUG-1 fix. El SELECT previo
+            // NO traía email_publico, telefono, whatsapp. El render usaba
+            // esos campos con fallback 'No proveído', dando la falsa
+            // apariencia de que los proveedores no habían dado contacto.
+            // Aldo casi rechaza 8 personas reales por esta omisión. Fix:
+            // agregar las 3 columnas al select. Email primario (de
+            // auth.users) se resuelve post-fetch con getUserById para
+            // cada auth_user_id — no se puede joinar directo desde el
+            // cliente sin RPC dedicado, pero admin con SUPABASE_SERVICE_
+            // ROLE_KEY tampoco existe client-side. Resolvemos con RPC
+            // supabaseAdmin desde /api/admin/proveedores-emails cuando
+            // haga falta; por ahora el email_publico + telefono +
+            // whatsapp cubren el contacto del proveedor.
             const { data, error } = await supabase
                 .from('proveedores')
-                .select('id, nombre, apellido_p, foto_perfil, rut, foto_carnet, foto_carnet_dorso, comuna, auth_user_id, verificacion_estado, verificacion_nota, created_at')
+                .select('id, nombre, apellido_p, foto_perfil, rut, foto_carnet, foto_carnet_dorso, comuna, auth_user_id, verificacion_estado, verificacion_nota, created_at, email_publico, telefono, whatsapp')
                 .eq('verificacion_estado', 'pendiente')
                 .order('created_at', { ascending: false });
             if (error) throw error;
