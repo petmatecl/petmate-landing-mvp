@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale';
 import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
+import { getCarnetSignedUrl } from '../../lib/carnetUrl';
 
 type AdminTab = 'incorporacion' | 'verificacion';
 
@@ -148,7 +149,15 @@ export default function ProveedorApprovalList() {
                 .eq('verificacion_estado', 'pendiente')
                 .order('created_at', { ascending: false });
             if (error) throw error;
-            setVerificaciones(data || []);
+            // Sprint Ola-1 A1 — resolver signed URLs para las fotos de carnet
+            // (bucket documents es privado; el path/URL guardado en BD no
+            // sirve al render directo). Ver lib/carnetUrl.ts.
+            const withSignedUrls = await Promise.all((data || []).map(async (prov) => ({
+                ...prov,
+                foto_carnet_signed_url: await getCarnetSignedUrl(prov.foto_carnet),
+                foto_carnet_dorso_signed_url: await getCarnetSignedUrl(prov.foto_carnet_dorso),
+            })));
+            setVerificaciones(withSignedUrls);
         } catch (err) {
             console.error('Error fetching verificaciones', err);
             toast.error('Error al cargar verificaciones pendientes');
@@ -377,17 +386,25 @@ export default function ProveedorApprovalList() {
                                             <div className="space-y-2">
                                                 <div className="flex items-center gap-3">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={prov.foto_carnet} alt="Carnet frontal"
-                                                        className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
-                                                        onClick={() => setSelectedImage(prov.foto_carnet)} />
+                                                    {prov.foto_carnet_signed_url ? (
+                                                        <img src={prov.foto_carnet_signed_url} alt="Carnet frontal"
+                                                            className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                                                            onClick={() => setSelectedImage(prov.foto_carnet_signed_url)} />
+                                                    ) : (
+                                                        <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Sin URL</div>
+                                                    )}
                                                     <span className="text-xs text-slate-500 font-medium">Frontal</span>
                                                 </div>
                                                 {prov.foto_carnet_dorso && (
                                                     <div className="flex items-center gap-3">
                                                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                        <img src={prov.foto_carnet_dorso} alt="Carnet dorso"
-                                                            className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
-                                                            onClick={() => setSelectedImage(prov.foto_carnet_dorso)} />
+                                                        {prov.foto_carnet_dorso_signed_url ? (
+                                                            <img src={prov.foto_carnet_dorso_signed_url} alt="Carnet dorso"
+                                                                className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
+                                                                onClick={() => setSelectedImage(prov.foto_carnet_dorso_signed_url)} />
+                                                        ) : (
+                                                            <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Sin URL</div>
+                                                        )}
                                                         <span className="text-xs text-slate-500 font-medium">Dorso</span>
                                                     </div>
                                                 )}

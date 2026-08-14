@@ -932,7 +932,11 @@ export default function ProveedorDashboard() {
         setRutInputError('');
         setUploadingCarnet(true);
         try {
-            // Upload frontal
+            // Sprint Ola-1 A1 (2026-08-14) — el bucket `documents` es privado.
+            // Antes se guardaba getPublicUrl() que producía URLs inválidas para
+            // bucket privado → admin veía <img> roto al aprobar. Ahora guardamos
+            // el PATH y el admin resuelve con createSignedUrl al renderizar.
+            // Ver lib/carnetUrl.ts para el helper de resolución con backward-compat.
             let carnetUrl = proveedor.foto_carnet || null;
             if (carnetFile) {
                 const ext = carnetFile.name.split('.').pop();
@@ -941,8 +945,7 @@ export default function ProveedorDashboard() {
                     .from('documents')
                     .upload(path, carnetFile, { upsert: true });
                 if (upErr) throw upErr;
-                const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
-                carnetUrl = urlData.publicUrl;
+                carnetUrl = path; // Guardar path, no URL. Admin resuelve con signed URL.
             }
             // Upload dorso
             let dorsoUrl = proveedor.foto_carnet_dorso || null;
@@ -953,8 +956,7 @@ export default function ProveedorDashboard() {
                     .from('documents')
                     .upload(path, carnetDorsoFile, { upsert: true });
                 if (upErr) throw upErr;
-                const { data: urlData } = supabase.storage.from('documents').getPublicUrl(path);
-                dorsoUrl = urlData.publicUrl;
+                dorsoUrl = path; // Path, no URL. Ver A1 fix arriba.
             }
             const formatted = formatRut(cleanedRut);
             const { error: saveErr } = await supabase.from('proveedores').update({

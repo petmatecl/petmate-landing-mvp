@@ -26,7 +26,7 @@ export default function ConversionMetrics() {
 
             const [
                 usuariosRes, conversRes, evalRes, vistasRes,
-                topCategRes, topComunaRes, topChatRes
+                topCategRes, _topComunaRes, topChatRes
             ] = await Promise.all([
                 // 1. Nuevos usuarios buscadores en 30d
                 supabase.from('usuarios_buscadores')
@@ -49,17 +49,20 @@ export default function ConversionMetrics() {
                     .eq('tipo', 'vista_servicio')
                     .gte('created_at', since30d),
 
-                // 5. Top categorías por conversaciones (join via servicios_publicados)
+                // 5. Conversaciones con solo el servicio_id y proveedor_auth_id.
+                //    Sprint Ola-1 C1 (2026-08-14) — fix del 400: la tabla
+                //    conversations NO tiene FKs definidas (verificado MCP), así
+                //    que PostgREST rechaza el embed con !servicio_id(...) /
+                //    !sitter_id(...). Reescribimos como lookup cliente-side:
+                //    fetch conversations plain + IN sobre servicios y proveedores.
                 supabase.from('conversations')
-                    .select('servicios_publicados!servicio_id(categoria_slug:categorias_servicio!categoria_id(nombre))')
+                    .select('servicio_id, sitter_id')
                     .gte('created_at', since30d)
-                    .limit(200),
+                    .limit(400),
 
-                // 6. Comunas: extraer de conversaciones via proveedor
-                supabase.from('conversations')
-                    .select('proveedor:proveedores!sitter_id(comuna)')
-                    .gte('created_at', since30d)
-                    .limit(200),
+                // 6. Placeholder — mantenemos el índice 5 posicional, el fetch
+                //    real de categorías y comunas se hace post-Promise.all abajo.
+                Promise.resolve({ data: null, error: null }),
 
                 // 7. Top servicios por clicks en chat
                 supabase.from('eventos_tracking')
@@ -69,23 +72,48 @@ export default function ConversionMetrics() {
                     .limit(500),
             ]);
 
-            // Process top categorias
+            // Sprint Ola-1 C1 (2026-08-14) — lookup cliente-side de categorías
+            // y comunas por servicio/proveedor, reemplazando los embeds FK que
+            // devolvían 400 (conversations sin FKs definidas).
+            const conversationsRows = (topCategRes.data || []) as Array<{ servicio_id: string | null; sitter_id: string | null }>;
+            const servicioIds = Array.from(new Set(conversationsRows.map(r => r.servicio_id).filter(Boolean))) as string[];
+            const sitterIds = Array.from(new Set(conversationsRows.map(r => r.sitter_id).filter(Boolean))) as string[];
+
+            let servicioCategoriaMap: Record<string, string> = {};
+            let proveedorComunaMap: Record<string, string> = {};
+
+            if (servicioIds.length > 0) {
+                const { data: servRows } = await supabase.from('servicios_publicados')
+                    .select('id, categorias_servicio!inner(nombre)')
+                    .in('id', servicioIds);
+                (servRows || []).forEach((r: any) => {
+                    if (r.id && r.categorias_servicio?.nombre) {
+                        servicioCategoriaMap[r.id] = r.categorias_servicio.nombre;
+                    }
+                });
+            }
+            if (sitterIds.length > 0) {
+                const { data: provRows } = await supabase.from('proveedores')
+                    .select('id, comuna')
+                    .in('id', sitterIds);
+                (provRows || []).forEach((r: any) => {
+                    if (r.id && r.comuna) proveedorComunaMap[r.id] = r.comuna;
+                });
+            }
+
             const catCount: Record<string, number> = {};
-            (topCategRes.data || []).forEach((row: any) => {
-                const nombre = row.servicios_publicados?.categoria_slug?.nombre;
-                if (nombre) catCount[nombre] = (catCount[nombre] || 0) + 1;
+            const comunaCount: Record<string, number> = {};
+            conversationsRows.forEach((row) => {
+                const cat = row.servicio_id ? servicioCategoriaMap[row.servicio_id] : null;
+                if (cat) catCount[cat] = (catCount[cat] || 0) + 1;
+                const comuna = row.sitter_id ? proveedorComunaMap[row.sitter_id] : null;
+                if (comuna) comunaCount[comuna] = (comunaCount[comuna] || 0) + 1;
             });
+
             const topCategorias = Object.entries(catCount)
                 .map(([nombre, count]) => ({ nombre, count }))
                 .sort((a, b) => b.count - a.count)
                 .slice(0, 5);
-
-            // Process top comunas
-            const comunaCount: Record<string, number> = {};
-            (topComunaRes.data || []).forEach((row: any) => {
-                const c = row.proveedor?.comuna;
-                if (c) comunaCount[c] = (comunaCount[c] || 0) + 1;
-            });
             const topComunas = Object.entries(comunaCount)
                 .map(([comuna, count]) => ({ comuna, count }))
                 .sort((a, b) => b.count - a.count)

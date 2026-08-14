@@ -155,6 +155,38 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn('Welcome email failed (non-blocking):', welcomeErr);
     }
 
+    // 4. Sprint Ola-1 A3 (2026-08-14) — notify admin de nueva solicitud de
+    //    proveedor. Fire-and-forget, no bloquea el flow del proveedor.
+    //    Motivación: hallazgo PO 2026-08-11 de 8 solicitudes acumuladas 6
+    //    semanas sin respuesta por ausencia de mecanismo de notificación.
+    if (rol === 'proveedor') {
+      try {
+        // Resolver el ID del proveedor recién insertado para pasarlo al endpoint.
+        const { data: newProv } = await supabaseAdmin
+          .from('proveedores')
+          .select('id')
+          .eq('auth_user_id', userId)
+          .maybeSingle();
+        if (newProv?.id) {
+          // Fire-and-forget sin await — si el endpoint falla el signup ya
+          // terminó exitoso. El endpoint mismo tiene failure-handling graceful
+          // (200 skipped en errores no-fatales).
+          fetch(`${siteUrl}/api/admin/notify-nueva-solicitud`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
+            },
+            body: JSON.stringify({ proveedorId: newProv.id }),
+          }).catch((err) => {
+            console.warn('[signup] notify-nueva-solicitud fire-and-forget failed:', err);
+          });
+        }
+      } catch (notifyErr) {
+        console.warn('Admin notification failed (non-blocking):', notifyErr);
+      }
+    }
+
     return res.status(201).json({ ok: true, userId });
   } catch (err: any) {
     console.error('Signup API error:', err);

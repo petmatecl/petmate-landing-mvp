@@ -11,6 +11,10 @@ const ProveedorApprovalList = dynamic(() => import('../components/Admin/Proveedo
 const EvaluacionModerationList = dynamic(() => import('../components/Admin/EvaluacionModerationList'), { ssr: false });
 const ProveedorManagementList = dynamic(() => import('../components/Admin/ProveedorManagementList'), { ssr: false });
 const ConversionMetrics = dynamic(() => import('../components/Admin/ConversionMetrics'), { ssr: false });
+// Sprint Ola-1 C1-extended (2026-08-14) — OfertaMetrics para el umbral de
+// apertura de campaña a tutores (servicios por categoría + comuna). Ver
+// components/Admin/OfertaMetrics.tsx.
+const OfertaMetrics = dynamic(() => import('../components/Admin/OfertaMetrics'), { ssr: false });
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -311,7 +315,12 @@ export default function AdminDashboard() {
 
                         {/* Tab content */}
                         {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
-                        {activeTab === 'conversion' && <ConversionMetrics />}
+                        {activeTab === 'conversion' && (
+                            <div className="space-y-12">
+                                <OfertaMetrics />
+                                <ConversionMetrics />
+                            </div>
+                        )}
                         {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
                         {activeTab === 'moderacion' && <EvaluacionModerationList />}
                         {activeTab === 'proveedores' && <ProveedorManagementList />}
