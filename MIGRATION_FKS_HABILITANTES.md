@@ -217,9 +217,47 @@ COMMIT;
 
 ## 5. Estado y próximo movimiento
 
-- **Migration escrita** en `migrations/20260814_fks_habilitantes.sql`.
-- **Auditoría huérfanas** — pendiente ejecución PROD por Aldo (§2).
-- **Aplicación migration** — pendiente ejecución PROD por Aldo (§3) tras auditoría limpia.
-- **A2 batch delete** — pendiente post-migration (§4).
+- **Migration original** aplicada 2026-08-14 pero **con 3 divergencias descubiertas post-aplicación** — ver §6.
+- **Migration correctiva** en `migrations/20260814b_fks_agendamientos_correctiva.sql` — pendiente aplicación Aldo.
+- **Auditoría huérfanas** — §2 (aplicable también antes de la correctiva; huérfanas siguen bloqueando ADD CONSTRAINT).
+- **A2 batch delete** — pendiente post-correctiva.
 
-**Ola 2 arranca** post-A2 batch delete + A4 rate limit Upstash.
+**Ola 2 arranca** post-correctiva + A2 batch delete + A4 rate limit Upstash.
+
+## 6. Post-mortem 2026-08-14 — divergencia migration original vs tabla aprobada
+
+Aldo verificó post-aplicación en prod y descubrió que 3 de las 10 FKs quedaron con `ON DELETE CASCADE` cuando la tabla aprobada §1 declaraba `RESTRICT` explícito para las 3.
+
+| # | FK | §1 aprobado | Aplicado prod | Match? |
+|---|---|---|---|---|
+| 1 | `agendamientos.servicio_id` | RESTRICT | **CASCADE** | ❌ |
+| 2 | `agendamientos.proveedor_id` | RESTRICT | **CASCADE** | ❌ |
+| 3 | `agendamientos.tutor_id` | RESTRICT | **CASCADE** | ❌ |
+| 4 | `agendamientos.mascota_id` | SET NULL | SET NULL | ✅ |
+| 5 | `servicios_publicados.proveedor_id` | CASCADE | CASCADE | ✅ |
+| 6 | `servicios_publicados.categoria_id` | RESTRICT | NO ACTION | ✅ (equivalente en PG) |
+| 7 | `evaluaciones.servicio_id` | CASCADE | CASCADE | ✅ |
+| 8 | `evaluaciones.proveedor_id` | CASCADE | CASCADE | ✅ |
+| 9 | `contactos.servicio_id` | CASCADE | CASCADE | ✅ |
+| 10 | `contactos.proveedor_id` | CASCADE | CASCADE | ✅ |
+
+**Causa técnica**: el bloque `DO $$ IF NOT EXISTS` de la migration original verificaba por **NOMBRE de constraint**, no por **semántica**. Hipótesis: prod ya tenía las 3 constraints (con esos nombres exactos, creadas por Supabase u otra migration histórica) en CASCADE. El `IF NOT EXISTS` matcheó → skipeó el `ALTER` → constraints pre-existentes en CASCADE quedaron. La migration hizo NO-OP semántico para esas 3.
+
+**Bug de diseño del auditor**: confundí "idempotente para re-ejecución" con "garantiza el estado deseado". La idempotencia por nombre no garantiza semántica correcta cuando el nombre ya existe con definición distinta.
+
+**Consecuencia crítica para A2**: con las 3 en CASCADE, `DELETE FROM proveedores WHERE es_ejemplo=true` **eliminaría en silencio todos los agendamientos vinculados** — invalida la columna `agendamientos_bloquea_delete` del dry-run §4.2, y contradice el diseño de seguridad aprobado ("solo se puede borrar un proveedor SIN reservas"). **A2 bloqueado hasta correctiva aplicada**.
+
+**Fix**: `migrations/20260814b_fks_agendamientos_correctiva.sql` — DROP + ADD explícito de las 3 FKs con RESTRICT. La secuencia DROP+ADD garantiza el `delete_rule` esperado independiente de la definición previa.
+
+## 7. Aprendizaje P8 aplicado a migrations — verificación por diff, no por dump
+
+La migration original terminaba con un `SELECT` que mostraba las 10 constraints con sus `delete_rule`. Aldo pegó el output. La divergencia estaba visible en el output pero **nadie la comparó contra la tabla aprobada** — la validación fue "el query devolvió 10 rows" en vez de "cada delete_rule matchea el esperado". Es exactamente el patrón P8 aplicado al ciclo de migrations: **la verificación corrió y dio output, pero nadie validó el output contra el criterio**. Precedente del día: 3 iteraciones de GA4 persiguiendo el log equivocado de una extensión.
+
+**Fix operativo permanente** — la migration correctiva incluye un bloque `DO $$` al final que:
+1. Declara un array `esperado` con las 10 (constraint_name, delete_rule).
+2. Query el estado real de cada una.
+3. Si alguna no matchea → `RAISE EXCEPTION` con mensaje detallado. Fuerza `ROLLBACK` de la transacción entera.
+4. Solo si todas matchean → `RAISE NOTICE '✅ Verificación FKs OK'`.
+
+**Toda migration futura que modifique constraints/indexes/columnas semánticamente-sensibles debe seguir este patrón**: terminar con un bloque de assertion diff-vs-esperado que RAISE EXCEPTION si diverge. Anotable en CLAUDE.md como corolario P8 si el PO lo aprueba.
+
