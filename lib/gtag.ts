@@ -18,11 +18,22 @@ declare global {
     }
 }
 
-// https://developers.google.com/analytics/devguides/collection/gtagjs/pages
+// Sprint ga4-fix (2026-08-14) — patrón GA4 canónico para pageviews.
+//
+// La versión previa llamaba `gtag("config", GA_TRACKING_ID, {page_path: url})`
+// en cada route change. Ese patrón es DEPRECADO en GA4: `config` reinicia
+// el estado interno del measurement ID (unbind del binding original, potencial
+// pérdida de events buffered). El patrón correcto GA4 es
+// `gtag("event", "page_view", {page_path: url})` — solo dispara el evento
+// sin tocar el config. Puede haber contribuido al bug de eventos custom
+// no ingeridos (post-pageview el config quedaba en estado inconsistente).
+// Ver: developers.google.com/analytics/devguides/collection/ga4/single-page-applications
 export const pageview = (url: string) => {
     if (typeof window === 'undefined' || !window.gtag) return;
-    window.gtag("config", GA_TRACKING_ID, {
+    window.gtag('event', 'page_view', {
         page_path: url,
+        page_location: window.location.href,
+        page_title: document.title,
     });
 };
 
@@ -100,5 +111,27 @@ export function trackEvent(
     // Guard doble: gtag script puede no haber cargado aún (user no aceptó
     // cookies o script tardó). En ese caso también no-op silencioso.
     if (!window.gtag) return;
+
+    // Sprint ga4-fix (2026-08-14) — assertion ruidosa contra el bug
+    // "Sending event to undefined". Post-init, `window.google_tag_manager`
+    // debe existir y tener una key === GA_TRACKING_ID cuando el config
+    // quedó registrado correctamente. Si no, el evento se descartará
+    // silente en el envío (P8: la librería acepta la llamada pero el
+    // efecto no ocurre — mismo patrón que causó las 4 iteraciones de
+    // Sentry). Con este check el bug reaparece LOUD y detectable.
+    //
+    // Solo warning (no throw) — no queremos romper el flow del usuario
+    // por un bug de observabilidad. El log es filtrable en Sentry y da
+    // el hint exacto para diagnóstico.
+    const tagManager = (window as unknown as { google_tag_manager?: Record<string, unknown> }).google_tag_manager;
+    if (tagManager && !tagManager[GA_TRACKING_ID]) {
+        console.error(
+            `[gtag] ⚠️ El destino GA "${GA_TRACKING_ID}" no está registrado en window.google_tag_manager. ` +
+            `Evento "${nombre}" se enviará a undefined (descartado silente en el envío). ` +
+            `Root cause típica: race entre <Script> de gtag/js y el snippet inline de gtag('config',...) — ` +
+            `revisar components/ConsentScripts.tsx.`
+        );
+    }
+
     window.gtag('event', nombre, params ?? {});
 }
