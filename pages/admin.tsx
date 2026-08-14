@@ -15,6 +15,10 @@ const ConversionMetrics = dynamic(() => import('../components/Admin/ConversionMe
 // apertura de campaña a tutores (servicios por categoría + comuna). Ver
 // components/Admin/OfertaMetrics.tsx.
 const OfertaMetrics = dynamic(() => import('../components/Admin/OfertaMetrics'), { ssr: false });
+// Sprint A4 fase 2 (2026-08-14) — badge visible del backend rate limiter
+// (upstash | memory | memory-fallback). Silencioso cuando todo OK en dev,
+// rojo persistente cuando degradado en prod/preview. Aldo lo ve al entrar.
+const RateLimitBadge = dynamic(() => import('../components/Admin/RateLimitBadge'), { ssr: false });
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -307,9 +311,12 @@ export default function AdminDashboard() {
                     <div className="max-w-6xl">
                         {/* Header */}
                         <div className="mb-8">
-                            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                                {tabs.find(t => t.id === activeTab)?.label || 'Panel de Administración'}
-                            </h1>
+                            <div className="flex items-center gap-3 flex-wrap">
+                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                                    {tabs.find(t => t.id === activeTab)?.label || 'Panel de Administración'}
+                                </h1>
+                                <RateLimitBadge />
+                            </div>
                             <p className="mt-1 text-sm text-slate-500">Herramientas de gestión y moderación del marketplace.</p>
                         </div>
 

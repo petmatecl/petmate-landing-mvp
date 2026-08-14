@@ -104,6 +104,7 @@ function memoryCheck(
 let redisSingleton: Redis | null = null;
 let redisInitAttempted = false;
 let missingCredsReported = false; // solo reporta 1 vez por lifetime del contenedor
+let lastRuntimeError: { at: number; message: string } | null = null; // último fallo runtime de Upstash (para admin badge)
 
 // Detectar si estamos en un entorno "productivo" (prod real o preview de
 // Vercel — ambos deberían tener credenciales reales). Mismo espíritu que
@@ -140,17 +141,23 @@ function getRedis(): Redis | null {
     // lo esperado, ese caso es diseño del fallback.
     if (isServerlessEnv() && !missingCredsReported) {
       missingCredsReported = true;
-      Sentry.captureMessage(
-        `[rate-limit] UPSTASH credentials missing in VERCEL_ENV=${process.env.VERCEL_ENV}. Falling back to in-memory limiter (NO cross-invocation persistence). Rate limit is effectively no-op in serverless.`,
-        {
-          level: 'error',
-          tags: {
-            subsystem: 'rate-limit',
-            reason: 'missing-credentials',
-            vercel_env: process.env.VERCEL_ENV || 'unknown',
-          },
-        }
-      );
+      const msg = `[rate-limit] UPSTASH credentials missing in VERCEL_ENV=${process.env.VERCEL_ENV}. Falling back to in-memory limiter (NO cross-invocation persistence). Rate limit is effectively no-op in serverless.`;
+      // Doble canal para observabilidad:
+      // 1. Sentry — solo activa en production (gate del proyecto). Alerta persistente.
+      // 2. console.error — visible en Vercel Runtime Logs en production Y preview.
+      //    Sin este canal el fix era invisible en preview (gate Sentry lo silenciaba)
+      //    — hueco detectado por PO al smoke A4 con 8ª instancia del meta-patrón:
+      //    "una señal intermedia (dashboard vacío / Sentry vacío) llevó a
+      //    conclusión sobre el sistema sin haber probado el efecto".
+      console.error(msg);
+      Sentry.captureMessage(msg, {
+        level: 'error',
+        tags: {
+          subsystem: 'rate-limit',
+          reason: 'missing-credentials',
+          vercel_env: process.env.VERCEL_ENV || 'unknown',
+        },
+      });
       // No await flush acá — la primera request no debe pagar el costo del
       // flush ni bloquear. La cola drena en el próximo await de Sentry
       // (los endpoints que ya usan flushSentryEvents lo harán). Peor caso:
@@ -164,6 +171,8 @@ function getRedis(): Redis | null {
   try {
     redisSingleton = new Redis({ url, token });
   } catch (err) {
+    const msg = `[rate-limit] Redis client construction failed: ${err instanceof Error ? err.message : String(err)}`;
+    console.error(msg, err);
     Sentry.captureException(err, {
       level: 'error',
       tags: { subsystem: 'rate-limit', reason: 'redis-init-failed' },
@@ -171,6 +180,82 @@ function getRedis(): Redis | null {
     redisSingleton = null;
   }
   return redisSingleton;
+}
+
+// ---------------------------------------------------------------------------
+// Estado del backend para el badge /admin — cero mutación del limiter,
+// solo introspección de qué path atendería si llegara una request AHORA.
+// El endpoint /api/admin/rate-limit-status usa esto + un PING opcional.
+// ---------------------------------------------------------------------------
+export interface RateLimitBackendStatus {
+  /**
+   * Path que se está usando efectivamente:
+   * - 'upstash': Upstash cliente construido, listo para servir requests.
+   * - 'memory': Sin credenciales (dev local o config error) — fallback in-memory activo.
+   * - 'memory-fallback': Upstash construido pero última request runtime reventó
+   *   (fail-open activo hasta próxima recuperación del servicio).
+   */
+  backend: 'upstash' | 'memory' | 'memory-fallback';
+  /**
+   * true si VERCEL_ENV=='production'|'preview' y backend != 'upstash'
+   * (situación anómala que debe llamar la atención del operador).
+   */
+  degraded: boolean;
+  /** VERCEL_ENV del contenedor que respondió, para diagnóstico. */
+  vercelEnv: string | null;
+  /** Timestamp ISO del último error runtime de Upstash (si hubo). */
+  lastRuntimeErrorAt: string | null;
+  /** Mensaje del último error runtime, truncado a 200 chars. */
+  lastRuntimeErrorMessage: string | null;
+}
+
+export function getBackendStatus(): RateLimitBackendStatus {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const hasCredentials = !!(url && token);
+  const inServerless = isServerlessEnv();
+
+  let backend: RateLimitBackendStatus['backend'];
+  if (!hasCredentials) {
+    backend = 'memory';
+  } else if (lastRuntimeError && Date.now() - lastRuntimeError.at < 60_000) {
+    // Consideramos "memory-fallback" si hubo error runtime en el último minuto.
+    // Fuera de esa ventana asumimos recuperación (Upstash puede haber vuelto).
+    backend = 'memory-fallback';
+  } else {
+    backend = 'upstash';
+  }
+
+  return {
+    backend,
+    degraded: inServerless && backend !== 'upstash',
+    vercelEnv: process.env.VERCEL_ENV || null,
+    lastRuntimeErrorAt: lastRuntimeError ? new Date(lastRuntimeError.at).toISOString() : null,
+    lastRuntimeErrorMessage: lastRuntimeError
+      ? lastRuntimeError.message.slice(0, 200)
+      : null,
+  };
+}
+
+/**
+ * Ping activo a Upstash — usado por el endpoint /api/admin/rate-limit-status
+ * para chequear salud del servicio en tiempo real (no solo estado cacheado).
+ * Cuesta 1 comando Upstash. Devuelve `null` si no hay cliente construido.
+ */
+export async function pingRedis(): Promise<{ ok: boolean; latencyMs: number | null; error: string | null }> {
+  const redis = getRedis();
+  if (!redis) return { ok: false, latencyMs: null, error: 'redis-not-initialized' };
+  const start = Date.now();
+  try {
+    await redis.ping();
+    return { ok: true, latencyMs: Date.now() - start, error: null };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - start,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
 }
 
 // Cache de Ratelimit instances por (limit, windowSeconds, prefix) — reutilizar
@@ -242,7 +327,14 @@ export function rateLimit(options: RateLimitOptions = {}) {
     const rl = getRatelimit(prefix, limit, windowSeconds);
 
     if (!rl) {
-      // Sin Upstash disponible → fallback in-memory (solo dev local).
+      // Sin Upstash disponible → fallback in-memory (dev local, o config
+      // error en prod/preview). El header X-RateLimit-Backend permite al
+      // operador ver este estado con un simple `curl -I` sin depender de
+      // Sentry (que puede estar gate-ado). Introducido a raíz del sprint
+      // A4 smoke — el PO detectó que el retry-after 55s del fallback lo
+      // haría notorio, pero un smoke automatizado necesitaba una señal
+      // directa y no una deducción por firma de comportamiento.
+      res.setHeader('X-RateLimit-Backend', 'memory');
       const now = Date.now();
       const result = memoryCheck(key, limit, windowSeconds, now);
       if (!result.success) {
@@ -256,6 +348,10 @@ export function rateLimit(options: RateLimitOptions = {}) {
 
     try {
       const result = await rl.limit(key);
+      // Path Upstash ejecutó sin excepción → limpiar marca de error runtime
+      // si estaba activa (recuperación observada). El badge admin verá esto.
+      if (lastRuntimeError) lastRuntimeError = null;
+      res.setHeader('X-RateLimit-Backend', 'upstash');
       if (!result.success) {
         const retryAfter = Math.max(1, Math.ceil((result.reset - Date.now()) / 1000));
         res.setHeader('Retry-After', String(retryAfter));
@@ -270,7 +366,16 @@ export function rateLimit(options: RateLimitOptions = {}) {
       res.setHeader('X-RateLimit-Remaining', String(result.remaining));
       return true;
     } catch (err) {
-      // FAIL-OPEN: Upstash no responde → dejamos pasar + gritamos a Sentry.
+      // FAIL-OPEN: Upstash reventó en runtime (timeout, quota, TLS, etc.) →
+      // dejamos pasar la request + registramos por 3 canales:
+      //   1. console.error para Vercel Runtime Logs (visible en preview + prod).
+      //   2. Sentry.captureException (solo activa en prod por gate global).
+      //   3. lastRuntimeError module-level → expuesto por getBackendStatus()
+      //      para que el badge admin muestre 'memory-fallback' hasta ~60s post-error.
+      const msg = err instanceof Error ? err.message : String(err);
+      lastRuntimeError = { at: Date.now(), message: msg };
+      res.setHeader('X-RateLimit-Backend', 'memory-fallback');
+      console.error(`[rate-limit] Upstash runtime error (fail-open): ${msg}`);
       Sentry.captureException(err, {
         level: 'warning',
         tags: {
