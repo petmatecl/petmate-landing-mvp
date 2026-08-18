@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useId, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabaseClient';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
@@ -2575,7 +2575,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     </button>
                 </div>
             </div>
-            <Toaster position="top-center" richColors />
+            {/* Ola 2 fix Toaster duplicado (2026-08-18): el <Toaster/> global
+                vive en pages/_app.tsx:48 con la misma config exacta
+                (position="top-center" richColors). Este local era redundante,
+                los toast() de este modal ya se enrutaban al global. Eliminado
+                para evitar el doble mount que puede duplicar el auto-dismiss
+                timer + z-index conflicts al abrir/cerrar el modal. */}
         </div>
     );
 }

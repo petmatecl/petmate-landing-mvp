@@ -26,7 +26,7 @@ import {
     Star,
     Home, Sun, PawPrint, Scissors, Truck, Stethoscope, Dumbbell, MapPin, Grid2x2, Camera,
     Sparkles, X,
-    Dog, Cat, FileText, Pencil, Calendar, ChevronDown, Clock,
+    Dog, Cat, FileText, Pencil, Calendar, ChevronDown, Clock, ClipboardList,
     LucideIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -1180,7 +1180,7 @@ export default function ServiceDetailView({
                                 return (
                                     <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-600"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            <ClipboardList size={22} className="text-accent-600" aria-hidden="true" />
                                             Información del servicio
                                         </h3>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1235,7 +1235,7 @@ export default function ServiceDetailView({
                                     {/* Bloque principal — top-N (flat o agrupado por modalidad). */}
                                     <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
                                         <h3 className="text-xl font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-accent-600"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+                                            <ClipboardList size={22} className="text-accent-600" aria-hidden="true" />
                                             Información del servicio
                                         </h3>
                                         {topResult.tipo === 'flat'
