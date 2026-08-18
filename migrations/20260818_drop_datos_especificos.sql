@@ -40,14 +40,38 @@
 --   vuelve NOT NULL con DEFAULT NULL — datos históricos NO recuperables
 --   si ya se droparon, ver DUMP recomendado abajo).
 --
--- BACKUP RECOMENDADO ANTES DE EJECUTAR
---   Aldo puede correr esto ANTES del BEGIN para dumpear los datos
---   existentes por si algún registro no-vacío es útil retroactivamente:
+-- BACKUP OBLIGATORIO ANTES DE EJECUTAR — PASO SEPARADO, GUARDAR A ARCHIVO
+--   Aldo ejecuta ESTE query PRIMERO en una corrida distinta del SQL Editor
+--   y **COPIA EL OUTPUT A UN ARCHIVO LOCAL** antes de tocar la migration
+--   principal. Si algo sale mal después del DROP, esta es la ÚNICA vía de
+--   recuperación — no queda en ningún otro lado.
+--
 --     SELECT id, nombre, datos_especificos
 --     FROM proveedores
 --     WHERE datos_especificos IS NOT NULL
 --       AND datos_especificos::text NOT IN ('null', '{}');
---   En staging el resultado fue 1 fila. En prod es incierto.
+--
+--   En staging el resultado fue 1 fila. En prod es incierto. Guardar como
+--   `backup_datos_especificos_prod_20260818.json` o similar antes de
+--   continuar. Este NO va dentro del BEGIN/COMMIT de abajo — es paso previo.
+--
+-- EJECUCIÓN EN UN SOLO CLICK (crítico — corolario P8 6ª)
+--   El bloque `BEGIN...COMMIT` que sigue **DEBE ejecutarse en una única
+--   corrida del SQL Editor con un único click Run**. Copiar TODO desde
+--   `BEGIN;` hasta `COMMIT;` en el editor y ejecutar de una sola vez.
+--
+--   Si se ejecuta en corridas separadas (ej. `BEGIN;` en un click,
+--   `CREATE OR REPLACE FUNCTION` en otro), el SQL Editor descarta la
+--   transacción abierta silenciosamente entre corridas. Riesgo mayor que
+--   A2 con DELETE: acá una migration a medias deja la RPC vieja borrada
+--   y la columna sin dropear, o RPC nueva creada con columna aún viva
+--   (INSERT explota con column doesn't exist en runtime del signup
+--   siguiente). Ver `CLAUDE.md > Corolario P8 6ª (SQL Editor no persiste
+--   transacciones entre corridas)`.
+--
+--   Verificación pre-ejecución: mirar el buffer del editor y confirmar
+--   que contiene DESDE `BEGIN;` HASTA `COMMIT;` en un solo bloque
+--   contiguo. Si Aldo pega solo parte, abortar y re-copiar completo.
 --
 -- APROBACIÓN CONSULTA OBLIGATORIA
 --   Este archivo se genera COMO EVIDENCIA para el PO. Aldo lo ejecuta
