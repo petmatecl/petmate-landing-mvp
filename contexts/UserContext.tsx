@@ -26,6 +26,31 @@ function isProtectedPath(path: string): boolean {
     return false;
 }
 
+// Sprint orphan-fix (2026-08-18) — paths donde el guard huérfano NO debe
+// redirigir aunque el user no tenga perfil, para permitir el flow de
+// completar-registro y no romper landing/login/etc mientras el user
+// está en tránsito. Cualquier otro path protegido dispara el redirect.
+//
+// Nota: SÍ redirige desde `/` (home post-login), `/explorar`, `/proveedor`,
+// `/mensajes` y cualquier otra ruta que requiera perfil para tener sentido.
+// La única forma de "vivir sin perfil" en la app es estar en una de estas
+// rutas de tránsito.
+function isOrphanSafeRoute(path: string): boolean {
+    const [pathNoQuery] = path.split('?');
+    if (pathNoQuery === '/completar-registro' || pathNoQuery === '/completar-registro/') return true;
+    if (pathNoQuery === '/login' || pathNoQuery === '/login/') return true;
+    if (pathNoQuery === '/register' || pathNoQuery === '/register/') return true;
+    if (pathNoQuery === '/logout' || pathNoQuery === '/logout/') return true;
+    if (pathNoQuery === '/security-logout' || pathNoQuery === '/security-logout/') return true;
+    if (pathNoQuery === '/email-confirmado' || pathNoQuery === '/email-confirmado/') return true;
+    if (pathNoQuery === '/forgot-password' || pathNoQuery === '/forgot-password/') return true;
+    if (pathNoQuery === '/reset-password' || pathNoQuery === '/reset-password/') return true;
+    // Rutas estáticas informativas — el user puede leerlas sin necesitar
+    // perfil (típicamente accedidas antes de decidir signup).
+    if (pathNoQuery === '/terminos' || pathNoQuery === '/privacidad' || pathNoQuery === '/quienes-somos') return true;
+    return false;
+}
+
 // Types
 type Role = 'usuario' | 'proveedor' | 'admin';
 
@@ -194,6 +219,26 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
             setProveedorRow(proveedorData ?? null);
+
+            // Sprint orphan-fix (2026-08-18) — guard huérfano.
+            // Auth activa + cero perfiles en ambas tablas = huérfano.
+            // Redirigimos a /completar-registro para que el usuario elija
+            // rol y complete su perfil. Solo si NO estamos ya en una ruta
+            // "orphan-safe" (evita loops y permite navegación de tránsito).
+            // Cubre TODAS las vías de entrada: Google OAuth, Auth API
+            // pública Supabase, rollback fallido de /api/auth/signup, o
+            // cualquier futura vía que cree auth.users sin perfil. Reemplaza
+            // el rollback frágil de email-confirmado.tsx que llamaba
+            // signOut() sin poder borrar auth.users.
+            if (!proveedorData && !seekerData) {
+                const currentPath = router.asPath;
+                if (!isOrphanSafeRoute(currentPath)) {
+                    router.replace(`/completar-registro?from=${encodeURIComponent(currentPath)}`);
+                    // NO retornamos aquí — dejamos que el estado se hidrate
+                    // como huérfano para que la página /completar-registro
+                    // vea `user` disponible cuando aterrice.
+                }
+            }
 
             const hasApprovedProvider = proveedorData?.estado === 'aprobado';
             const statusOfProvider = proveedorData ? proveedorData.estado : 'none';
