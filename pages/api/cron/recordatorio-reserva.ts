@@ -57,7 +57,7 @@ import {
     formatRangoNoches, formatRangoNochesPartes, ymdChile,
     formatFechaSinHora, formatHoraCorta, formatBloqueHorarioSinFecha,
 } from '../../../lib/formatFecha';
-import { formatDireccionLinea } from '../../../lib/formatDireccion';
+import { resolverDonde } from '../../../lib/emails/resolvers';
 import { RecordatorioReservaEmail } from '../../../components/Emails/RecordatorioReservaEmail';
 
 const BATCH_LIMIT = 30;
@@ -233,37 +233,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 horaLinea = formatHoraCorta(c.fecha_preferida);
             }
 
-            // Cascada del bloque "Dónde":
-            //   1. formatDireccionLinea (estructurada Ola 1 o direccion_servicio
-            //      legacy) — solo se puebla cuando modalidad_elegida='casa_tutor',
-            //      pero el helper hace fallback graceful. Crítico para
-            //      variante proveedor con servicio a domicilio.
-            //   2. Primera comuna de servicio.comunas_cobertura → "En {comuna}"
-            //      (F1/F2 sin dirección: paseos/hospedaje en recinto del proveedor).
-            //   3. Fallback: "Se coordina por chat con {nombre}" (el otro se
-            //      resuelve por destinatario — al enviar).
-            // El "nombreOtro" del fallback se resuelve en enviarRecordatorio()
-            // porque depende del destinatario. Acá emitimos un placeholder
-            // `__CHAT_CON_OTRO__` que enviarRecordatorio reemplaza.
-            const direccion = formatDireccionLinea({
-                region: c.region,
-                comuna: c.comuna,
-                calle: c.calle,
-                numero: c.numero,
-                direccion_info: c.direccion_info,
-                direccion_servicio: c.direccion_servicio,
-            });
-            const comunasCobertura: string[] = Array.isArray(servicio.comunas_cobertura)
-                ? servicio.comunas_cobertura
-                : [];
-            let donde: string;
-            if (direccion) {
-                donde = direccion;
-            } else if (comunasCobertura.length > 0) {
-                donde = `En ${comunasCobertura[0]}`;
-            } else {
-                donde = '__CHAT_CON_OTRO__';
-            }
+            // Cascada del bloque "Dónde" — vía helper canónico
+            // `resolverDonde` de lib/emails/resolvers.ts (ZB3 sprint ZONAB-1).
+            // Cascada: dirección estructurada → primera comuna de cobertura →
+            // null (fallback). Tanda 5 deuda cron 2026-08-18: unificado con el
+            // helper que ya usan los 4 notify-* endpoints. Output byte-idéntico
+            // al bloque inline previo — verificado con render-diff. La única
+            // diferencia local es el placeholder `__CHAT_CON_OTRO__` en vez
+            // de `null` — el cron lo resuelve post-hoc por destinatario en
+            // enviarRecordatorio() (nombre depende de a quién enviamos).
+            const donde: string = resolverDonde({
+                agend: {
+                    region: c.region,
+                    comuna: c.comuna,
+                    calle: c.calle,
+                    numero: c.numero,
+                    direccion_info: c.direccion_info,
+                    direccion_servicio: c.direccion_servicio,
+                },
+                servicio: { comunas_cobertura: servicio.comunas_cobertura },
+            }) ?? '__CHAT_CON_OTRO__';
 
             // Ventana de cancelación server-side. F2 tiene enforcement (RLS
             // + endpoint /api/agendamientos/cancelar). F1/legacy no lo tiene
