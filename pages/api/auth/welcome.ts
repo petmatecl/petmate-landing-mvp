@@ -75,7 +75,7 @@ const ProviderWelcomeEmail = ({ nombre, confirmationUrl }: { nombre: string; con
             Para publicar tu servicio y empezar a recibir consultas necesitamos que subas una foto de tu carnet (frontal y dorso) desde tu panel. Es rápido — toma menos de dos minutos.
         </p>
         <p style="font-size: 15px; line-height: 1.55; margin-bottom: 20px; color: #475569;">
-            Nuestro equipo revisa las fotos entre 24 y 48 horas y te avisamos por correo cuando esté aprobado.
+            Te avisamos por correo apenas esté revisado.
         </p>
         <a
             href="${siteUrl}/proveedor?tab=perfil&seccion=identidad"

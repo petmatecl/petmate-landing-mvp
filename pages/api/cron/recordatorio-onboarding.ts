@@ -164,7 +164,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             <h1 style="color:#134E4A;font-size:22px;margin-bottom:8px">Hola ${escapeHtml(prov.nombre)},</h1>
             <p style="font-size:16px;line-height:1.55;color:#334155">Vimos que te registraste en Pawnecta hace unos días pero aún no completaste el paso de verificación de identidad. Es rápido y es lo único que falta antes de que puedas publicar tu servicio.</p>
             <h3 style="font-size:17px;margin-top:24px;color:#0F172A">Necesitas subir dos fotos de tu carnet</h3>
-            <p style="font-size:15px;line-height:1.55;color:#475569">Frontal y dorso, desde tu panel de proveedor. Toma menos de dos minutos. Nuestro equipo revisa entre 24 y 48 horas y te avisamos por correo cuando esté aprobado.</p>
+            <p style="font-size:15px;line-height:1.55;color:#475569">Frontal y dorso, desde tu panel de proveedor. Toma menos de dos minutos. Te avisamos por correo apenas esté revisado.</p>
             <a href="${siteUrl}/proveedor?tab=perfil&seccion=identidad" style="display:inline-block;background:#16A34A;color:#ffffff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:600;margin-top:20px;font-size:15px">
               Subir mi carnet ahora
             </a>
