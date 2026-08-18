@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale';
 import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock, Building, User, FileText, Briefcase, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
+import ProveedorDetailDrawer from './ProveedorDetailDrawer';
 import { getCarnetSignedUrl } from '../../lib/carnetUrl';
 
 type AdminTab = 'incorporacion' | 'verificacion';
@@ -37,6 +38,9 @@ export default function ProveedorApprovalList() {
     const [confirmDialog, setConfirmDialog] = useState<{
         open: boolean; title: string; message: string; confirmLabel: string; onConfirm: () => void;
     }>({ open: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} });
+
+    // Drawer detalle proveedor (P2 preview aprobado 2026-08-18)
+    const [selectedDetailProv, setSelectedDetailProv] = useState<any | null>(null);
 
     useEffect(() => {
         fetchPendientes();
@@ -302,22 +306,33 @@ export default function ProveedorApprovalList() {
                         )}
                     </div>
                     <div className="min-w-0 flex-1">
-                        {prov.servicios_activos > 0 ? (
+                        {/* P2 (2026-08-18): nombre convertido en botón que abre drawer
+                            detalle. Antes: link a /proveedor/{id} (404 sin servicios) o
+                            span estático. Ahora: siempre botón hover para "ver detalle
+                            del perfil" — el trigger consistente para todos los casos
+                            (con o sin servicios). El link externo al perfil público
+                            queda como ícono secundario solo cuando `servicios_activos > 0`
+                            (el perfil existe en /proveedor/{id}). */}
+                        <button
+                            type="button"
+                            onClick={() => setSelectedDetailProv(prov)}
+                            className="text-base font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-2 flex-wrap text-left"
+                            title="Ver detalle del proveedor"
+                        >
+                            {prov.nombre} {prov.apellido_p || ''}
+                            {prov.es_cuenta_prueba && (
+                                <span title="Cuenta de prueba (dominio @pawnecta-test.com)"
+                                      className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-warning-100 text-warning-800 rounded text-[10px] font-semibold uppercase tracking-widest">
+                                    <TestTube2 size={10} /> Prueba
+                                </span>
+                            )}
+                        </button>
+                        {prov.servicios_activos > 0 && (
                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                className="text-base font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-1.5">
-                                {prov.nombre} {prov.apellido_p || ''}
-                                <ExternalLink size={14} className="text-slate-300" />
+                                className="text-xs text-slate-400 hover:text-accent-600 inline-flex items-center gap-1 mt-0.5"
+                                title="Abrir perfil público en nueva pestaña">
+                                Ver perfil público <ExternalLink size={11} />
                             </a>
-                        ) : (
-                            <span className="text-base font-semibold text-slate-900 flex items-center gap-2 flex-wrap">
-                                {prov.nombre} {prov.apellido_p || ''}
-                                {prov.es_cuenta_prueba && (
-                                    <span title="Cuenta de prueba (dominio @pawnecta-test.com)"
-                                          className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-warning-100 text-warning-800 rounded text-[10px] font-semibold uppercase tracking-widest">
-                                        <TestTube2 size={10} /> Prueba
-                                    </span>
-                                )}
-                            </span>
                         )}
                         {prov.comuna && (
                             <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5"><MapPin size={14} /> {prov.comuna}</p>
@@ -715,6 +730,16 @@ export default function ProveedorApprovalList() {
                 onCancel={() => setConfirmDialog(d => ({ ...d, open: false }))}
                 loading={isSubmitting}
             />
+
+            {/* Drawer detalle proveedor — P2 (2026-08-18). Se abre al hacer
+                clic en el nombre en cualquier grupo (A o B). Cierre por
+                backdrop, botón X, o ESC. */}
+            {selectedDetailProv && (
+                <ProveedorDetailDrawer
+                    prov={selectedDetailProv}
+                    onClose={() => setSelectedDetailProv(null)}
+                />
+            )}
         </div>
     );
 }
