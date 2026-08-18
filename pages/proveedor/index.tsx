@@ -225,11 +225,15 @@ export default function ProveedorDashboard() {
     const [uploadingCarnet, setUploadingCarnet] = useState(false);
     const [showVerificationGate, setShowVerificationGate] = useState(false);
 
+    // Sprint badge-f1 (2026-08-18) — verificación pasa de bloqueante a
+    // opcional con badge. `handlePublishClick` ya no gatea por
+    // verificacion_estado; el badge es puro incentivo (Q7 diseño).
+    // El modal sigue disponible como invitación descartable, disparado
+    // desde el botón "Verificar identidad" del sidebar (ver
+    // sidebarVerificacionBadge más abajo) y auto-abierto una sola vez
+    // por sesión-nueva vía localStorage marker cuando 'sin_enviar'.
+    // Ver CLAUDE.md > "Ejes independientes: estado vs verificacion_estado".
     const handlePublishClick = () => {
-        if (verificacionEstado !== 'aprobado') {
-            setShowVerificationGate(true);
-            return;
-        }
         setEditingServiceId(null);
         setIsServiceModalOpen(true);
     };
@@ -454,6 +458,23 @@ export default function ProveedorDashboard() {
         localStorage.setItem(`pawnecta.proveedor.solicitudes.lastSeenAt.${proveedor.id}`, String(now));
         setSolicitudesLastSeenAt(now);
     }, [activeTab, proveedor?.id]);
+
+    // Sprint badge-f1 — auto-abrir modal de invitación a verificar UNA
+    // sola vez por proveedor. Trigger: primer mount post-hydrate con
+    // verificacion_estado='sin_enviar' y sin marker localStorage.
+    // Al mostrarse (independiente de si el proveedor lo descarta con
+    // "Más tarde" o clickea "Verificar ahora"), se marca shown → no
+    // vuelve a auto-abrir. El CTA del sidebar sigue disponible como
+    // trigger manual siempre. Trade-off cross-browser aceptado (mismo
+    // patrón que solicitudes.lastSeenAt más arriba): localStorage local.
+    useEffect(() => {
+        if (!proveedor?.id || typeof window === 'undefined') return;
+        if (verificacionEstado !== 'sin_enviar') return;
+        const key = `pawnecta.proveedor.verifPromptShown.${proveedor.id}`;
+        if (localStorage.getItem(key)) return;
+        setShowVerificationGate(true);
+        localStorage.setItem(key, String(Date.now()));
+    }, [proveedor?.id, verificacionEstado]);
 
     const solicitudesPendientesCount = useMemo(
         () => solicitudes.filter(s => {
@@ -1280,6 +1301,34 @@ export default function ProveedorDashboard() {
                                 </button>
                             ))}
                         </nav>
+
+                        {/* Sprint badge-f1 — CTA sidebar "Verificar identidad".
+                            Visible cuando 'sin_enviar' o 'rechazado'. Es el único
+                            trigger post-signup del modal invitación (el gate del
+                            botón Publicar desapareció). Aparece siempre — el
+                            proveedor puede descartar el modal con "Más tarde"
+                            pero el CTA sigue en el sidebar como recordatorio
+                            pasivo (sin re-abrir modal automáticamente).
+                            Ver CLAUDE.md > "Ejes independientes: estado vs
+                            verificacion_estado". */}
+                        {(verificacionEstado === 'sin_enviar' || verificacionEstado === 'rechazado') && (
+                            <div className="mt-6 pt-4 border-t border-slate-200">
+                                <button
+                                    onClick={() => setShowVerificationGate(true)}
+                                    className="w-full flex items-start gap-3 p-3 rounded-lg bg-accent-50 hover:bg-accent-100 border border-accent-200 transition-colors text-left"
+                                >
+                                    <Shield size={20} className="text-accent-700 shrink-0 mt-0.5" />
+                                    <div className="flex flex-col min-w-0">
+                                        <span className="text-sm font-semibold text-accent-900">
+                                            Verificar identidad
+                                        </span>
+                                        <span className="text-[12px] text-accent-800/80 leading-snug mt-0.5">
+                                            Gana el badge de confianza y aparece destacado
+                                        </span>
+                                    </div>
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </aside>
 

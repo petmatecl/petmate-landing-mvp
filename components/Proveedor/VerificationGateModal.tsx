@@ -35,11 +35,15 @@ export default function VerificationGateModal({
 
     let icon, iconColor, title, body, primaryLabel, primaryAction;
 
+    // Sprint badge-f1 (2026-08-18) — verificación opcional con badge de
+    // confianza. Todos los branches son ahora invitaciones descartables
+    // (excepto 'pendiente' que reporta estado sin acción). Copy alineado
+    // con el badge unificado "Identidad verificada" que aterriza en F2.
     if (verificacionEstado === 'pendiente') {
         icon = Clock;
         iconColor = 'text-warning-600 bg-warning-50';
         title = 'Verificación en revisión';
-        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisaremos por email cuando esté lista (24-48h). Mientras tanto, no puedes publicar servicios.';
+        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisamos por correo apenas esté lista. Mientras tanto puedes seguir publicando servicios y recibiendo consultas normalmente.';
         primaryLabel = 'Entendido';
         primaryAction = onClose;
     } else if (verificacionEstado === 'rechazado') {
@@ -47,16 +51,16 @@ export default function VerificationGateModal({
         iconColor = 'text-danger-600 bg-danger-50';
         title = 'Verificación rechazada';
         body = verificacionNota
-            ? `Tu verificación fue rechazada: ${verificacionNota}`
-            : 'Tu verificación fue rechazada. Revisa tu perfil y reenvía los documentos.';
+            ? `Tu verificación fue rechazada: ${verificacionNota}. Puedes reenviar los documentos desde tu perfil cuando quieras.`
+            : 'Tu verificación fue rechazada. Puedes reenviar los documentos desde tu perfil cuando quieras.';
         primaryLabel = 'Ir a mi perfil';
         primaryAction = onGoToVerification;
     } else {
-        // 'sin_enviar' (default)
+        // 'sin_enviar' (default) — invitación descartable, no bloqueante.
         icon = Shield;
         iconColor = 'text-accent-600 bg-accent-50';
-        title = 'Verifica tu identidad para publicar';
-        body = 'Para publicar tu primer servicio necesitas verificar tu identidad. Esto incluye tu RUT y una foto de tu carnet (frontal y dorso). Es por seguridad de la plataforma y de quienes contratan tus servicios.';
+        title = 'Verifica tu identidad y gana el badge';
+        body = 'Los proveedores con identidad verificada aparecen destacados en las búsquedas y generan más confianza en los tutores. Solo necesitas subir una foto de tu carnet (frontal y dorso) desde tu perfil — toma menos de dos minutos.';
         primaryLabel = 'Verificar ahora';
         primaryAction = onGoToVerification;
     }
@@ -110,7 +114,7 @@ export default function VerificationGateModal({
                                 onClick={onClose}
                                 className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
                             >
-                                Cancelar
+                                {verificacionEstado === 'sin_enviar' ? 'Más tarde' : 'Cancelar'}
                             </button>
                         )}
                         <button

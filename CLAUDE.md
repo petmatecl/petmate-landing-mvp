@@ -30,9 +30,31 @@ Pawnecta es un marketplace de servicios para mascotas en Chile. Conecta tutores 
 
 **Tutor (usuario)** — explora sin registro. Necesita cuenta para contactar o evaluar. Tabla: `usuarios_buscadores` (solo tiene: id, auth_user_id, nombre, email, rut, created_at).
 
-**Proveedor** — se registra con RUT + foto carnet (frontal + dorso), revisión manual admin 24-48h. Publica servicios con precio y disponibilidad. Tabla: `proveedores` (tiene nombre_publico para display, nombre/apellido_p/apellido_m para datos legales).
+**Proveedor** — se registra con correo (signup wizard). El registro es **auto-aprobado** (sprint badge-f1, 2026-08-18). Publica servicios con precio y disponibilidad. Puede verificar su identidad opcionalmente (subir carnet frontal + dorso) para obtener el badge "Identidad verificada" en su ficha. Tabla: `proveedores` (tiene nombre_publico para display, nombre/apellido_p/apellido_m para datos legales).
 
 **Admin** — rol en array `proveedores.roles`, verificado por `is_admin()` function. Panel en /admin con sidebar sticky.
+
+### Ejes independientes: `estado` vs `verificacion_estado`
+
+Dos dimensiones que gobiernan cosas distintas — **no se mueven en tándem**. Confundirlas es la clase de bug donde "aprobado" pasa a significar cualquier cosa.
+
+- **`proveedores.estado`** → **cuenta activa o suspendida** (eje de moderación).
+  - Valores usados: `'aprobado'` (activa, publica y aparece en catálogo), `'pendiente'` (legacy, cuenta creada pero no habilitada — histórico pre-2026-08-18), `'suspendido'` (moderación admin lo apagó — no publica, no aparece en catálogo).
+  - Signup nuevo: `'aprobado'` de entrada (auto-aprobación, sin intervención admin). `aprobado_por=NULL` distingue auto-aprobación de la humana histórica.
+  - Cambio a `'suspendido'` es acción del admin desde el panel — pieza de S2 (reportes) del sprint badge-f1.
+  - RPC `buscar_servicios` filtra por `estado='aprobado'` → `'suspendido'` desaparece del catálogo público.
+
+- **`proveedores.verificacion_estado`** → **identidad verificada (badge de confianza)** (eje del badge).
+  - Valores: `'sin_enviar'` (default, no subió carnet), `'pendiente'` (subió carnet, admin no revisó), `'aprobado'` (admin verificó la coincidencia carnet↔nombre), `'rechazado'` (admin rechazó — nota en `verificacion_nota`).
+  - **NO condiciona publicar, aparecer en catálogo, ni recibir reservas.** Es puro incentivo — determina el badge "Identidad verificada" en cards, ficha y perfil público.
+  - Fuente real del badge en RPC `buscar_servicios`: `COALESCE(p.rut_verificado, false) AS proveedor_verificado`. En `pages/proveedor/[id].tsx` el badge condiciona por `rut_verificado OR verificacion_estado='aprobado'` (unificado a "Identidad verificada" en las 3 superficies desde sprint badge-f1).
+  - El tab admin "Verificaciones" (`ProveedorApprovalList.tsx` L197-198) actualiza `verificacion_estado='aprobado', rut_verificado=true` en un solo UPDATE — son la misma acción a nivel producto.
+
+**Reglas prácticas al leer/escribir el modelo**:
+- Un proveedor `estado='aprobado' + verificacion_estado='sin_enviar'` es lo normal en el flow nuevo — publica y aparece en catálogo sin badge.
+- Un proveedor `estado='suspendido' + verificacion_estado='aprobado'` es un caso legítimo: cuenta suspendida por moderación, aunque su carnet estuvo verificado.
+- Un proveedor `estado='pendiente'` es **legacy** — sprint badge-f1 dejó cero pendientes en prod (`migrations/20260818_auto_aprobar_7_pendientes.sql`). Si aparece uno nuevo es por acción admin (reactivación tras suspensión, por ejemplo).
+- **Nunca inferir uno del otro** en código o queries. Si un caller necesita "cuenta activa AND verificada", debe pedir ambas condiciones explícitas.
 
 ## Tablas principales (Supabase)
 

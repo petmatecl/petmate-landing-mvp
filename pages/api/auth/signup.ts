@@ -136,6 +136,29 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.warn('Failed to set initial bio (non-blocking):', bioErr.message);
           }
         }
+
+        // Sprint badge-f1 (2026-08-18) — auto-aprobación.
+        // `estado='aprobado'` de entrada, sin intervención admin.
+        // La RPC registrar_proveedor inserta con default `estado='pendiente'`;
+        // hacemos UPDATE inmediato post-RPC por el mismo motivo que bio
+        // (no podemos tocar el RPC server-side). aprobado_por=NULL marca
+        // "auto-aprobación" (revisión humana histórica dejaba el uuid del
+        // admin — NULL distingue el nuevo flujo). `verificacion_estado`
+        // sigue 'sin_enviar' — es el eje independiente del badge.
+        // Ver CLAUDE.md > "Ejes independientes: estado vs verificacion_estado".
+        const { error: autoAprobarErr } = await supabaseAdmin
+          .from('proveedores')
+          .update({
+            estado: 'aprobado',
+            aprobado_at: new Date().toISOString(),
+            aprobado_por: null,
+          })
+          .eq('auth_user_id', userId);
+        if (autoAprobarErr) {
+          // No bloqueante: el proveedor queda con estado='pendiente' (default
+          // RPC) y sale del flow como antes. Logueamos para detección.
+          console.warn('Failed auto-aprobar proveedor (non-blocking):', autoAprobarErr.message);
+        }
       }
     } catch (profileErr: any) {
       // Rollback: delete the orphaned auth user so the email can be re-registered

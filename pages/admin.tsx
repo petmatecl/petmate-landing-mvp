@@ -33,6 +33,34 @@ export default function AdminDashboard() {
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
 
+    // Sprint badge-f1 (2026-08-18) — auto-aprobación al signup deja el
+    // tab Aprobaciones legacy vacío en el flow nuevo. Ocultamos el tab
+    // cuando count=0 para no mostrar ruido permanente. Reaparece si en el
+    // futuro aparece un pendiente (suspensión manual, cuenta legacy que
+    // el admin re-active, etc.). Query barata: HEAD count sobre
+    // proveedores.estado='pendiente' con filtro es_ejemplo. Corre una
+    // sola vez al aterrizar el admin verificado.
+    const [aprobacionesPendientesCount, setAprobacionesPendientesCount] = useState<number | null>(null);
+    useEffect(() => {
+        if (!isAdmin) return;
+        let cancelled = false;
+        (async () => {
+            const { count, error } = await supabase
+                .from('proveedores')
+                .select('id', { count: 'exact', head: true })
+                .eq('estado', 'pendiente')
+                .or('es_ejemplo.eq.false,es_ejemplo.is.null');
+            if (cancelled) return;
+            if (error) {
+                console.warn('[admin] fetch aprobacionesPendientesCount failed:', error);
+                setAprobacionesPendientesCount(0);
+                return;
+            }
+            setAprobacionesPendientesCount(count ?? 0);
+        })();
+        return () => { cancelled = true; };
+    }, [isAdmin]);
+
     const checkAuth = React.useCallback(async () => {
         try {
             const { data: { session }, error } = await supabase.auth.getSession();
@@ -146,13 +174,28 @@ export default function AdminDashboard() {
         }
     };
 
+    // Tab Aprobaciones se oculta cuando el contador de pendientes es 0
+    // (auto-aprobación sprint badge-f1). Reaparece automáticamente si
+    // aparece un pendiente. Mientras `aprobacionesPendientesCount` es
+    // null (fetch en curso al mount), el tab se muestra para evitar
+    // hidration flash — la primera lectura decide si queda o no.
     const tabs = [
         { id: 'dashboard', label: 'Métricas', icon: BarChart3 },
         { id: 'conversion', label: 'Conversión', icon: TrendingUp },
-        { id: 'aprobaciones', label: 'Aprobaciones', icon: UserCheck },
+        ...(aprobacionesPendientesCount !== 0
+            ? [{ id: 'aprobaciones', label: 'Aprobaciones', icon: UserCheck }]
+            : []),
         { id: 'moderacion', label: 'Moderación', icon: MessageSquareWarning },
         { id: 'proveedores', label: 'Proveedores', icon: Users },
     ];
+
+    // Si el tab activo se ocultó (activeTab='aprobaciones' pero count llegó
+    // a 0), volver al dashboard sin dejar contenido colgando.
+    useEffect(() => {
+        if (activeTab === 'aprobaciones' && aprobacionesPendientesCount === 0) {
+            setActiveTab('dashboard');
+        }
+    }, [activeTab, aprobacionesPendientesCount]);
 
     // Detect real header height (navbar + optional banner)
     const [headerH, setHeaderH] = useState(72);
