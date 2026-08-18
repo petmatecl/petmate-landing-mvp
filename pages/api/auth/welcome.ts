@@ -57,14 +57,14 @@ const ProviderWelcomeEmail = ({ nombre, confirmationUrl }: { nombre: string; con
         </a>
         ` : ''}
         <p style="font-size: 16px; line-height: 1.5; margin-bottom: 16px;">
-            <strong>Revisaremos tu información en las próximas 24 a 48 horas.</strong> Te avisaremos por este correo cuando tu perfil esté activo y listo para operar.
+            <strong>Tu cuenta ya está activa.</strong> Confirma tu correo con el botón de arriba y entra a tu panel para empezar.
         </p>
 
-        <h3 style="font-size: 18px; margin-top: 24px; margin-bottom: 12px;">¿Qué viene después?</h3>
+        <h3 style="font-size: 18px; margin-top: 24px; margin-bottom: 12px;">Próximos pasos</h3>
         <ul style="font-size: 16px; line-height: 1.5; padding-left: 20px; margin-bottom: 24px;">
-            <li style="margin-bottom: 8px;">Completar tu perfil con fotos atractivas de tu hogar o servicios.</li>
-            <li style="margin-bottom: 8px;">Publicar tus primeros servicios con descripciones claras.</li>
-            <li style="margin-bottom: 8px;">Estar atento para recibir consultas de dueños en tu comuna.</li>
+            <li style="margin-bottom: 8px;">Completa tu perfil con fotos atractivas de tu hogar o servicios.</li>
+            <li style="margin-bottom: 8px;">Publica tu primer servicio con precio y disponibilidad.</li>
+            <li style="margin-bottom: 8px;">Sube tu carnet cuando quieras para obtener el badge de identidad verificada.</li>
         </ul>
 
         <p style="font-size: 14px; color: #64748b;">

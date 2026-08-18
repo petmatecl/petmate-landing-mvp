@@ -115,6 +115,23 @@ export default function RegisterWizard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sprint orphan-fix (2026-08-18) — reset de scroll al cambiar de paso
+  // del wizard. Sin esto, el browser conserva la posición vertical entre
+  // renders (no hay cambio de ruta, solo de state) y el usuario aterriza
+  // a media pantalla en el paso siguiente — sin ver encabezado ni
+  // indicador de paso. Detectado por PO en smoke H3 y priorizado porque
+  // es exactamente el formulario donde perdemos 59 personas confirmadas.
+  //
+  // Fallback si no hay window (SSR). behavior:'auto' (no smooth) para
+  // aterrizar arriba instantáneo sin animación distractora. También
+  // cubre los botones "Atrás" (setStep(1)/setStep(2)) porque el hook
+  // reacciona a cualquier cambio de step, hacia adelante o hacia atrás.
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [step]);
+
   // Pre-seleccionar rol desde query param ?rol=proveedor o ?rol=usuario
   useEffect(() => {
     if (!router.isReady) return;
@@ -203,10 +220,22 @@ export default function RegisterWizard() {
         showError('Por favor completa los campos obligatorios (Comuna).');
         return;
       }
+      // Sprint orphan-fix (2026-08-18) — validación del mínimo 50 caracteres
+      // en la descripción. Antes se anunciaba "Mínimo 50 caracteres" en la
+      // ayuda pero no se enforceaba — el campo submitteaba con 33/500 sin
+      // bloquear. Detectado por PO en smoke H3. Fix: campo sigue OPCIONAL
+      // (puede quedar vacío y avanzar) pero si el usuario escribió algo,
+      // debe alcanzar el mínimo o dar error accionable. Copy consistente
+      // con el texto de ayuda ("si describes tu experiencia...").
+      const descTrimmed = descripcion.trim();
+      if (descTrimmed.length > 0 && descTrimmed.length < 50) {
+        showError(`Si describes tu experiencia debe tener al menos 50 caracteres (llevas ${descTrimmed.length}). Puedes dejar el campo vacío si prefieres agregar la descripción más tarde desde tu panel.`);
+        return;
+      }
       // Datos dinamicos por categoria ya no se validan en registro — se
       // llenaran cuando el proveedor cree su primer servicio (Sprint 4 Fase 1).
       if (!aceptaPolitica) {
-        showError('Debes aceptar las políticas de publicación para continuar.');
+        showError('Debes aceptar los Términos y Condiciones para continuar.');
         return;
       }
     }
@@ -533,7 +562,7 @@ export default function RegisterWizard() {
                         <option key={cat.value} value={cat.value}>{cat.label}</option>
                       ))}
                     </select>
-                    <p className="text-xs text-slate-500 mt-1">Podrás agregar más categorías desde tu panel después de ser aprobado.</p>
+                    <p className="text-xs text-slate-500 mt-1">Podrás agregar más categorías desde tu panel cuando quieras.</p>
                   </div>
                 )}
 
@@ -612,7 +641,7 @@ export default function RegisterWizard() {
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                   />
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-xs text-slate-500">Mínimo 50 caracteres. Una buena descripción aumenta tus consultas.</p>
+                    <p className="text-xs text-slate-500">Opcional. Si describes tu experiencia (mínimo 50 caracteres), recibirás más consultas.</p>
                     <span className="text-xs text-slate-500">{descripcion.length} / 500</span>
                   </div>
                 </div>
@@ -635,7 +664,7 @@ export default function RegisterWizard() {
                     <Link href="/privacidad" target="_blank" className="text-accent-700 hover:underline">
                       Política de Privacidad
                     </Link>
-                    . Entiendo que mi perfil será revisado por el equipo de Pawnecta antes de ser publicado.
+                    . Entiendo que Pawnecta puede revisar y suspender perfiles que incumplan los términos.
                   </label>
                 </div>
 
@@ -644,7 +673,7 @@ export default function RegisterWizard() {
                   <button onClick={handleFinalSubmit} disabled={loading} className="w-2/3 bg-accent-600 text-white font-semibold py-4 rounded-xl hover:bg-accent-700 transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                     {loading ? (
                       <><Loader2 size={18} className="animate-spin" /> Creando cuenta...</>
-                    ) : "Enviar Solicitud"}
+                    ) : "Crear cuenta"}
                   </button>
                 </div>
               </div>
@@ -656,18 +685,18 @@ export default function RegisterWizard() {
                 <div className="w-20 h-20 bg-accent-100 text-accent-600 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle2 size={40} />
                 </div>
-                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">¡Registro Exitoso!</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">¡Listo!</h2>
 
                 <p className="text-slate-600 mb-4 max-w-md mx-auto">
-                  <strong>Revisa tu correo electrónico</strong> ({email}) y haz clic en el enlace de confirmación para activar tu cuenta.
+                  <strong>Revisa tu correo</strong> ({email}) y haz clic en el enlace de confirmación para activar tu cuenta.
                 </p>
                 {rol === 'usuario' ? (
                   <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
-                    Una vez confirmado tu correo, podrás iniciar sesión y explorar servicios para tu mascota.
+                    Después ya puedes iniciar sesión y explorar servicios para tu mascota.
                   </p>
                 ) : (
                   <p className="text-slate-500 mb-8 max-w-md mx-auto text-sm">
-                    Una vez confirmado tu correo, nuestro equipo revisará tus datos en las próximas 24-48 horas y te notificaremos cuando tu perfil esté aprobado.
+                    Después ya puedes entrar a tu panel y publicar tu primer servicio.
                   </p>
                 )}
                 <p className="text-xs text-slate-500 mb-8 max-w-md mx-auto">

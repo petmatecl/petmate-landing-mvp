@@ -43,6 +43,10 @@ export default function VerificationGateModal({
         icon = Clock;
         iconColor = 'text-warning-600 bg-warning-50';
         title = 'Verificación en revisión';
+        // Merge conflict resuelto 2026-08-18: HEAD (badge-f1) mantiene
+        // "puedes seguir publicando" porque F1 quita el gate; main
+        // (orphan-fix) decía "no puedes publicar" cuando aún había gate
+        // pre-F1. Post-merge de badge-f1 a main, el gate ya no existe.
         body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisamos por correo apenas esté lista. Mientras tanto puedes seguir publicando servicios y recibiendo consultas normalmente.';
         primaryLabel = 'Entendido';
         primaryAction = onClose;
