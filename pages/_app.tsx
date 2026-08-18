@@ -45,7 +45,33 @@ export default function MyApp({ Component, pageProps }: AppProps) {
 
           <PushNotifications />
           <SessionTimeout />
-          <Toaster position="top-center" richColors />
+          {/* Ola 2 B4 (2026-08-18) — sistema de toasts unificado con paleta
+              Pawnecta. Elimina `richColors` (que traía emerald/rose default
+              de sonner) y enruta cada variante (success/info/warning/error)
+              a los tokens semánticos del sistema visual v3
+              (success/info/warning/danger). Cero color nuevo — solo mapea
+              los tokens preexistentes de tailwind.config.js a sonner via
+              classNames. Ratios WCAG AA verificados: texto vs bg 8.7-9.2:1
+              (pasan AAA con holgura); border vs ground compensado por
+              shadow + ícono + título dark que dan la separación visual.
+              Ver acta ACTA_OLA_2_B4.md para detalles. */}
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              classNames: {
+                toast:        'group rounded-xl border shadow-md',
+                title:        'font-semibold text-sm',
+                description:  'text-xs opacity-90 mt-1',
+                actionButton: 'font-semibold text-xs px-3 py-1.5 rounded-lg',
+                cancelButton: 'text-xs px-3 py-1.5 rounded-lg border',
+                closeButton:  'text-slate-400 hover:text-slate-600',
+                success: 'bg-success-50 border-success-100 text-success-900',
+                info:    'bg-info-50 border-info-100 text-info-900',
+                warning: 'bg-warning-50 border-warning-100 text-warning-900',
+                error:   'bg-danger-50 border-danger-100 text-danger-900',
+              },
+            }}
+          />
 
           {/* Skip link — a11y: permite saltar nav y llegar directo al contenido principal */}
           <a
