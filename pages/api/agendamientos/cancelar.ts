@@ -44,13 +44,19 @@
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
-import { emailLimiter } from '../../../lib/rateLimit';
+import { apiLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession, maskUid } from '../../../lib/apiAuth';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    if (!(await emailLimiter(req, res))) return;
+    // Nitpick T4-#3 2026-08-18: cambiado de emailLimiter (3/60s) a apiLimiter
+    // (30/60s). Este endpoint es una MUTACIÓN (cancelar reserva), no email —
+    // el emailLimiter angosto rebotaba a usuarios legítimos que cancelaban
+    // varias reservas seguidas (household NAT'd, rage-click, batch de
+    // cleanup) con un 429 injustificado. apiLimiter mantiene protección
+    // contra abuso pero tolera cadencia realista de mutaciones UI.
+    if (!(await apiLimiter(req, res))) return;
 
     const userId = await verifySession(req);
     if (!userId) return res.status(401).json({ error: 'Unauthorized' });
@@ -59,6 +65,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const parsed = agendamientoNotifySchema.safeParse(rawBody);
     if (!parsed.success) return res.status(400).json({ error: 'Invalid input' });
     const { agendamientoId } = parsed.data;
+
+    // Nitpick T4-#5 2026-08-18: log "recibido" simétrico al de
+    // notify-proveedor.ts:41. Sin este log, la trazabilidad en Vercel Runtime
+    // Logs de un flow de cancelación era peor que la de los envíos de email
+    // notify-*. Ahora ambos endpoints logean su entrada.
+    console.log('[cancelar] recibido', {
+        agendamientoId,
+        callerId: maskUid(userId),
+    });
 
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -98,7 +113,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 tutorAuthUserId: maskUid(tutor?.auth_user_id),
                 agendamientoId,
             });
-            return res.status(403).json({ error: 'No autorizado.' });
+            // Nitpick T4-#2 2026-08-18: unificar respuesta con L86 (agendamiento
+            // no encontrado). Antes: 404 para "no existe" vs 403 para "no
+            // autorizado" — distinguibles desde afuera = enumeration oracle
+            // sobre existencia de ids ajenos (bajo riesgo por UUIDs
+            // unguessable pero eliminar por defensa en profundidad). Ahora
+            // ambos devuelven 404 con el mismo copy — cliente no sabe si el
+            // id existe o si el caller no es su tutor. El log-warn interno
+            // sigue distinguiendo para audit.
+            return res.status(404).json({ error: 'Reserva no encontrada.' });
         }
 
         // 2. Scope: solo F2 confirmadas (capacidad_snapshot_estadia NOT NULL).

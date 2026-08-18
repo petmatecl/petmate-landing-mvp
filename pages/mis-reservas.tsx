@@ -227,10 +227,20 @@ export default function MisSolicitudesPage() {
                 });
                 if (!res.ok) {
                     const body = await res.json().catch(() => ({ error: 'Error desconocido.' }));
+                    // Nitpick T4-#8 2026-08-18: distinguir 4xx vs 5xx.
+                    // Antes: cerrábamos el dialog en cualquier !res.ok. Para
+                    // un 5xx transient (Vercel Function timeout, Supabase
+                    // hiccup) el usuario perdía la fila y tenía que
+                    // re-localizarla + re-abrir el dialog. Ahora: 4xx
+                    // (permanent — reserva no existe, no autorizado,
+                    // reserva ya cancelada) cierra el dialog porque
+                    // reintentar da lo mismo. 5xx (transient) deja el
+                    // dialog abierto para que el user reintente el submit
+                    // sin re-navegar. El toast se muestra en ambos casos.
                     toast.error(body?.error || 'No pudimos cancelar la reserva.');
-                    // Cerrar dialog aunque falle, para que el usuario vea el
-                    // toast completo y no quede el modal encimado.
-                    setCancelDialogId(null);
+                    if (res.status >= 400 && res.status < 500) {
+                        setCancelDialogId(null);
+                    }
                     return;
                 }
             } else {
@@ -665,6 +675,25 @@ function SolicitudCard({
     onVolverASolicitar: (agendamientoId: string, servicioId: string) => void;
     volverASolicitarLoading: boolean;
 }) {
+    // Nitpick T4-#6 2026-08-18: tick de tiempo para hacer reactivo
+    // `puedeCancelarPorVentana` (que computa `Date.now()` en render).
+    // Antes: una tab abierta a través del boundary de la ventana de
+    // cancelación mostraba el botón enabled forever hasta que el usuario
+    // hiciera refresh manual. Ahora: setInterval 60s dispara re-render
+    // con `nowTick` actualizado — el useMemo/compute detecta el cruce
+    // del boundary y deshabilita el botón sin refresh del usuario.
+    // Costo: 1 re-render/min por card visible en el DOM. Volumen normal
+    // (<50 cards por user típico) → despreciable.
+    const [nowTick, setNowTick] = useState(() => Date.now());
+    useEffect(() => {
+        const iv = setInterval(() => setNowTick(Date.now()), 60_000);
+        return () => clearInterval(iv);
+    }, []);
+    // `nowTick` referenciado abajo para que React sepa que este render
+    // depende del tick (aunque puedeCancelarPorVentana lee Date.now()
+    // internamente — nowTick es solo el trigger de re-evaluación).
+    void nowTick;
+
     const proveedor = solicitud.proveedor;
     const servicio = solicitud.servicio;
     // PD1 sprint PRODUCTO-2: estado DERIVADO en UI (cero cambios BD). El
@@ -890,7 +919,14 @@ function SolicitudCard({
                         Reserva confirmada al instante
                     </p>
                     <p className="text-sm text-slate-700 leading-relaxed">
-                        Elegiste un horario disponible — no hace falta esperar respuesta del proveedor.
+                        {/* Nitpick T4-#9 2026-08-18: branch F2 vs F1 en el copy.
+                            Antes: siempre "Elegiste un horario disponible" —
+                            inconsistente para F2 que elige NOCHES, no horario.
+                            Alinea con el copy del picker F2 y del email
+                            ReservaConfirmadaTutorEmail. */}
+                        {esReservaAgendaF2
+                            ? 'Elegiste noches disponibles — no hace falta esperar respuesta del proveedor.'
+                            : 'Elegiste un horario disponible — no hace falta esperar respuesta del proveedor.'}
                         {solicitud.nota_proveedor && (
                             <> {' '}Su nota: <span className="italic">&quot;{solicitud.nota_proveedor}&quot;</span></>
                         )}
@@ -945,15 +981,29 @@ function SolicitudCard({
                     </button>
                 )}
                 {isConfirmada && (
-                    <button
-                        type="button"
-                        onClick={onCancel}
-                        disabled={!puedeCancelarPorVentanaValue}
+                    // Nitpick T4-#7 2026-08-18: Firefox y algunos Safari NO
+                    // dispatch pointer events sobre elementos <button disabled>,
+                    // así que el `title` puesto directo en el button no
+                    // muestra tooltip en esos browsers. Wrap en <span title>
+                    // funciona porque el pointer event alcanza el span
+                    // wrapper (que sí es interactivo con hover), y el
+                    // button interior sigue disabled bloqueando el click.
+                    // aria-disabled duplicado en el span para consistencia
+                    // con lectores de pantalla — el disabled del button es
+                    // el enforcement real.
+                    <span
                         title={puedeCancelarPorVentanaValue ? undefined : tooltipVentanaCerrada}
-                        className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        className="inline-block"
                     >
-                        Cancelar reserva
-                    </button>
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            disabled={!puedeCancelarPorVentanaValue}
+                            className="inline-flex items-center px-4 py-2 text-sm font-semibold text-danger-600 border border-danger-300 hover:bg-danger-50 rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                        >
+                            Cancelar reserva
+                        </button>
+                    </span>
                 )}
                 {isConfirmada && servicio?.id && (
                     <Link
