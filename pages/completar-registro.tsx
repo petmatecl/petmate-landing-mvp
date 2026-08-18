@@ -34,7 +34,7 @@ import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../lib/comunas';
  */
 export default function CompletarRegistroPage() {
     const router = useRouter();
-    const { user, isLoading: userLoading, refreshProfile, proveedorRow, hasSeekerProfile } = useUser();
+    const { user, isLoading: userLoading, proveedorRow, hasSeekerProfile } = useUser();
 
     const [rol, setRol] = useState<'usuario' | 'proveedor' | null>(null);
     const [nombre, setNombre] = useState('');
@@ -134,10 +134,21 @@ export default function CompletarRegistroPage() {
             }
 
             toast.success('¡Registro completo! Bienvenido a Pawnecta.');
-            // Re-hidratar UserContext antes de navegar — evita que el
-            // guard vea el estado stale y rebote acá otra vez.
-            await refreshProfile();
-            router.replace(rol === 'proveedor' ? '/proveedor' : '/explorar');
+            // Full navigation en vez de router.replace() + refreshProfile().
+            // Detectado en smoke H3 (Aldo, 2026-08-18): sin full-nav, dos
+            // redirects concurrentes competían — el `useEffect` de esta
+            // página que dispara al detectar `proveedorRow` recién
+            // poblado, y el `router.replace` del handleSubmit — y Next
+            // Pages dedupaba/dejaba uno colgado. El user quedaba trabado
+            // y necesitaba Ctrl+Shift+R para desatorar. Un guard-de-rescate
+            // que requiere hard-refresh no rescata a nadie: es el mismo
+            // patrón "mecanismo existe, se ejecuta, usuario no llega al
+            // otro lado" que perseguimos toda la semana. window.location
+            // hace full page load → UserContext se re-monta → hydrateFromSession
+            // ve el perfil recién creado desde el primer render → aterriza
+            // directo en el dashboard. Mismo patrón que logout() en
+            // UserContext ya usa (window.location.href = '/').
+            window.location.assign(rol === 'proveedor' ? '/proveedor' : '/explorar');
         } catch (err: any) {
             console.error('complete-registration submit error:', err);
             setError('Error de conexión. Verifica tu internet e intenta de nuevo.');
