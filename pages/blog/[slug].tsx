@@ -143,18 +143,19 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                         />
                     </div>
 
-                    {/* Content */}
-                    <div
-                        className="prose prose-slate prose-lg max-w-none 
-                        prose-headings:text-slate-900 prose-headings:font-semibold prose-headings:tracking-tight
-                        prose-p:text-slate-600 prose-p:leading-relaxed prose-p:text-lg
-                        prose-a:text-accent-700 prose-a:font-medium prose-a:no-underline hover:prose-a:underline
-                        prose-strong:text-slate-700 prose-strong:font-semibold
-                        prose-li:text-slate-600 prose-li:marker:text-accent-600
-                        prose-blockquote:border-l-4 prose-blockquote:border-accent-200 prose-blockquote:bg-accent-50/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic prose-blockquote:text-slate-700
-                        prose-img:rounded-2xl prose-img:shadow-sm"
-                        dangerouslySetInnerHTML={{ __html: post.content }}
-                    />
+                    {/* Content — Deuda UI 2026-08-18 (T6-3): removidas ~14
+                        clases `prose-*` que eran NO-OP en runtime — el plugin
+                        `@tailwindcss/typography` NUNCA estuvo instalado (0
+                        rules `.prose` en el CSS bundle prod verificado).
+                        Además, el contenido HTML del post (via
+                        dangerouslySetInnerHTML) ya trae classNames explícitos
+                        por tag desde el backend/CMS (h3 con `text-xl font-bold
+                        text-slate-800 mt-8 mb-4`, etc.) — el plugin sería
+                        redundante incluso si se instalara.
+                        Cero cambio visible al usuario. -35KB de bundle CSS
+                        potenciales evitados vs instalar el plugin sin
+                        necesidad real. */}
+                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
 
                     {/* CTA contextual — vincula tráfico orgánico a producto */}
                     {(() => {

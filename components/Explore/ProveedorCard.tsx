@@ -70,7 +70,14 @@ export default function ProveedorCard({ proveedor }: Props) {
 
             {/* Contenido */}
             <div className="p-5 flex flex-col flex-grow">
-                <h3 className="font-semibold text-base text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2">
+                {/* Paridad con ServiceCard (T6-4 2026-08-18): min-h-[2.5em]
+                    reserva altura fija para 2 líneas de título aunque el
+                    nombre_publico sea corto (1 línea). Sin esto, en un grid
+                    de tarjetas mixtas la fila con nombres cortos queda más
+                    baja que las de nombres largos → misalignment vertical
+                    del bloque de badges y comuna. Coherente con
+                    ServiceCard.tsx:141 que ya usa el mismo min-h. */}
+                <h3 className="font-semibold text-base text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2 min-h-[2.5em]">
                     {proveedor.nombre_publico}
                 </h3>
                 <p className="text-sm text-slate-500 mt-1 truncate">{proveedor.comuna}</p>

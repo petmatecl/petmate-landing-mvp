@@ -134,6 +134,15 @@ module.exports = {
         danger:  colors.red,
         warning: colors.amber,
         info:    colors.blue,
+        // Deuda UI T6-2 (2026-08-18): `notification` = alias de `red` HOY,
+        // pero con nombre semanticamente separado de `danger`. Motivo:
+        // el punto de "no leido" del NotificationBell no es un error,
+        // es un aviso pendiente de revision. Compartir el mismo rojo
+        // que error/danger es visual accidente, no diseño. Este alias
+        // permite rotar el color de notifs (por ej. a naranja/amber)
+        // en 1 sola línea sin tocar componentes. HOY cero cambio visual
+        // — futuro cambio de identidad tocando SOLO esta línea.
+        notification: colors.red,
       },
       fontFamily: {
         // Outfit para todo — cuerpo, titulos, botones, labels. La variable

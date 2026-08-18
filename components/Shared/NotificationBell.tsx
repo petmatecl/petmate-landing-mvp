@@ -122,11 +122,15 @@ export default function NotificationBell() {
                 className="relative p-2 rounded-full hover:bg-slate-100 transition-colors text-slate-600 focus:outline-none focus:ring-2 focus:ring-accent-600/20"
             >
                 <Bell size={20} />
-                {/* danger token por unificación de paleta del rojo de UI. Semánticamente
-                    es indicador de NO-LEÍDO (notificación), no error/peligro. Si a futuro
-                    se quiere separar, crear token 'notification' en tailwind.config.js. */}
+                {/* Deuda UI T6-2 2026-08-18: bg-danger-500 → bg-notification-500.
+                    Alias semántico separado del rojo de error creado en
+                    tailwind.config.js:143 (`notification: colors.red`). Cero cambio
+                    visual HOY (ambos apuntan al mismo hex red-500); permite rotar
+                    el color de notifs con 1 línea en tailwind.config cuando aparezca
+                    criterio de diseño para separar visualmente NO-LEÍDO
+                    (notificación pendiente) de error/peligro. */}
                 {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-danger-500 rounded-full border-2 border-white animate-pulse" />
+                    <span className="absolute top-1 right-1 h-2.5 w-2.5 bg-notification-500 rounded-full border-2 border-white animate-pulse" />
                 )}
             </button>
 
