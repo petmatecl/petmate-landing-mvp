@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock } from 'lucide-react';
+import { Check, X, FileImage, ExternalLink, Mail, Phone, MapPin, Loader2, AlertTriangle, ShieldCheck, ShieldX, Shield, Clock, Building, User, FileText, Briefcase, TestTube2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
 import { getCarnetSignedUrl } from '../../lib/carnetUrl';
@@ -48,13 +48,20 @@ export default function ProveedorApprovalList() {
     const fetchPendientes = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('proveedores')
-                .select('*')
-                .eq('estado', 'pendiente')
-                .order('created_at', { ascending: false });
-            if (error) throw error;
-            setProveedores(data || []);
+            // Bug producto 2026-08-18: SELECT client-side directo dejaba el
+            // email real (auth.users) invisible al admin — email_publico está
+            // vacío para casi todos porque es opcional. Ahora vía endpoint
+            // server-side (verifySession + isAdmin) que hace el join con
+            // service_role_key + enriquece con conteo de servicios + flag
+            // de cuenta de prueba.
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session?.access_token) throw new Error('Sin sesión activa');
+            const res = await fetch('/api/admin/proveedores-pendientes', {
+                headers: { Authorization: `Bearer ${session.access_token}` },
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const body = await res.json();
+            setProveedores(body.proveedores || []);
         } catch (error) {
             console.error('Error fetching pendientes', error);
             toast.error('Error al cargar solicitudes pendientes');
@@ -289,27 +296,88 @@ export default function ProveedorApprovalList() {
                                                 <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
                                             )}
                                         </div>
-                                        <div>
-                                            <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                                className="text-base font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-1.5">
-                                                {prov.nombre} {prov.apellido_p}
-                                                <ExternalLink size={14} className="text-slate-300" />
-                                            </a>
+                                        <div className="min-w-0 flex-1">
+                                            {/* Bug producto 2026-08-18 punto 2: quitar link externo cuando
+                                                el perfil público no existe. `/proveedor/{id}` da 404 para
+                                                proveedores sin servicios activos (que es exactamente la
+                                                gente que vive en esta pestaña). Solo linkeamos cuando SÍ
+                                                hay servicios activos. */}
+                                            {prov.servicios_activos > 0 ? (
+                                                <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
+                                                    className="text-base font-semibold text-slate-900 hover:text-accent-600 transition-colors flex items-center gap-1.5">
+                                                    {prov.nombre} {prov.apellido_p || ''}
+                                                    <ExternalLink size={14} className="text-slate-300" />
+                                                </a>
+                                            ) : (
+                                                <span className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                                                    {prov.nombre} {prov.apellido_p || ''}
+                                                    {prov.es_cuenta_prueba && (
+                                                        <span title="Cuenta de prueba (dominio @pawnecta-test.com)"
+                                                              className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-warning-100 text-warning-800 rounded text-[10px] font-semibold uppercase tracking-widest">
+                                                            <TestTube2 size={10} /> Prueba
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            )}
                                             <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5"><MapPin size={14} /> {prov.comuna || 'Sin comuna'}</p>
                                             <p className="text-xs font-semibold text-slate-400 mt-2 bg-slate-50 inline-block px-2 py-1 rounded">
                                                 {format(new Date(prov.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                                             </p>
+                                            {/* Punto 3: mostrar tipo_entidad y datos de empresa si es
+                                                empresa. El wizard registro guarda estos campos y hoy no se
+                                                muestran en el panel de aprobación. */}
+                                            <div className="mt-2 flex flex-wrap gap-1.5">
+                                                {prov.tipo_entidad === 'empresa' ? (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-info-50 text-info-800 border border-info-100 rounded text-[11px] font-medium">
+                                                        <Building size={11} /> Empresa
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-700 border border-slate-200 rounded text-[11px] font-medium">
+                                                        <User size={11} /> Persona natural
+                                                    </span>
+                                                )}
+                                                {prov.servicios_activos > 0 && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-success-50 text-success-800 border border-success-100 rounded text-[11px] font-medium">
+                                                        {prov.servicios_activos} servicio{prov.servicios_activos > 1 ? 's' : ''} activo{prov.servicios_activos > 1 ? 's' : ''}
+                                                    </span>
+                                                )}
+                                                {prov.servicios_inactivos > 0 && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-warning-50 text-warning-800 border border-warning-100 rounded text-[11px] font-medium">
+                                                        {prov.servicios_inactivos} servicio{prov.servicios_inactivos > 1 ? 's' : ''} en preparación
+                                                    </span>
+                                                )}
+                                                {prov.servicios_activos === 0 && prov.servicios_inactivos === 0 && (
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-200 rounded text-[11px] font-medium">
+                                                        Sin servicio publicado
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 border-y xl:border-y-0 xl:border-x border-slate-100 py-4 xl:py-0 xl:px-6">
                                         <div className="space-y-3">
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <div className="w-7 h-7 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><Mail size={14} /></div>
-                                                <span className="font-medium text-slate-700">{prov.email_publico || 'No proveído'}</span>
+                                            {/* Punto 1: email REAL de auth.users como dato principal
+                                                (email_publico secundario si existe). */}
+                                            <div className="text-sm">
+                                                <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1 flex items-center gap-1.5"><Mail size={12} /> Correo</span>
+                                                {prov.email_auth ? (
+                                                    <a href={`mailto:${prov.email_auth}`} className="font-medium text-accent-700 hover:underline break-all">
+                                                        {prov.email_auth}
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-slate-400 italic">Sin correo en auth.users</span>
+                                                )}
+                                                {prov.email_publico && prov.email_publico !== prov.email_auth && (
+                                                    <div className="text-xs text-slate-500 mt-1 break-all">
+                                                        Público: {prov.email_publico}
+                                                    </div>
+                                                )}
                                             </div>
-                                            <div className="flex items-center gap-2 text-sm">
-                                                <div className="w-7 h-7 bg-slate-50 rounded-lg flex items-center justify-center text-slate-400"><Phone size={14} /></div>
-                                                <span className="font-medium text-slate-700">{prov.telefono || prov.whatsapp || 'No proveído'}</span>
+                                            <div className="text-sm">
+                                                <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1 flex items-center gap-1.5"><Phone size={12} /> Teléfono</span>
+                                                <span className="font-medium text-slate-700">
+                                                    {prov.telefono || prov.whatsapp || <span className="text-slate-400 italic">No provisto</span>}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="space-y-3">
@@ -317,6 +385,23 @@ export default function ProveedorApprovalList() {
                                                 <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1">RUT</span>
                                                 <span className="font-mono font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">{prov.rut || '—'}</span>
                                             </div>
+                                            {/* Punto 3: datos de empresa cuando aplica. */}
+                                            {prov.tipo_entidad === 'empresa' && (prov.razon_social || prov.rut_empresa || prov.nombre_fantasia || prov.giro) && (
+                                                <div className="text-xs bg-info-50/50 border border-info-100 rounded-lg p-2 space-y-1">
+                                                    {prov.razon_social && <div><span className="text-slate-400">Razón social:</span> <span className="text-slate-700 font-medium">{prov.razon_social}</span></div>}
+                                                    {prov.rut_empresa && <div><span className="text-slate-400">RUT empresa:</span> <span className="text-slate-700 font-mono">{prov.rut_empresa}</span></div>}
+                                                    {prov.nombre_fantasia && <div><span className="text-slate-400">Nombre fantasía:</span> <span className="text-slate-700 font-medium">{prov.nombre_fantasia}</span></div>}
+                                                    {prov.giro && <div><span className="text-slate-400">Giro:</span> <span className="text-slate-700">{prov.giro}</span></div>}
+                                                </div>
+                                            )}
+                                            {/* Punto 3: bio si tiene. Trunca a 2 líneas + hover title
+                                                completo. */}
+                                            {prov.bio && (
+                                                <div className="text-xs text-slate-600 leading-relaxed line-clamp-2" title={prov.bio}>
+                                                    <FileText size={11} className="inline text-slate-400 mr-1" />
+                                                    {prov.bio}
+                                                </div>
+                                            )}
                                             {(prov.foto_carnet || prov.foto_rut) && (
                                                 <button onClick={() => setSelectedImage(prov.foto_carnet || prov.foto_rut)}
                                                     className="text-sm text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-lg w-fit transition-colors">
