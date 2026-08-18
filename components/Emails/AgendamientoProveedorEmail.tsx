@@ -65,7 +65,7 @@ export const AgendamientoProveedorEmail = ({
             <Head />
             <Preview>{esConfirmadaAuto
                 ? `${nombreTutor} reservó ${servicioTitulo} en Pawnecta.`
-                : `Nueva solicitud de agendamiento de ${nombreTutor} para tu servicio en Pawnecta.`}
+                : `Nueva solicitud de reserva de ${nombreTutor} para tu servicio en Pawnecta.`}
             </Preview>
             <Body style={layoutStyles.main}>
                 <Container style={layoutStyles.container}>
@@ -79,7 +79,7 @@ export const AgendamientoProveedorEmail = ({
                             {esConfirmadaAuto ? (
                                 <><strong>{nombreTutor}</strong> reservó tu servicio <strong>{servicioTitulo}</strong>. La reserva ya está <strong>confirmada</strong> — no necesitas responder.</>
                             ) : (
-                                <><strong>{nombreTutor}</strong> te solicitó un agendamiento para tu servicio <strong>{servicioTitulo}</strong>.</>
+                                <><strong>{nombreTutor}</strong> quiere reservar tu servicio <strong>{servicioTitulo}</strong>.</>
                             )}
                         </Text>
 

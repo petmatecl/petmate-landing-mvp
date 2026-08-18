@@ -19,12 +19,10 @@ interface NewMessageEmailProps {
     chatUrl: string;
 }
 
-export const NewMessageEmail: React.FC<NewMessageEmailProps> = ({
-    recipientName,
-    senderName,
-    messagePreview,
-    chatUrl,
-}) => {
+// Deuda emails 2026-08-18: React.FC → signature explícita (ver comentario
+// en AprobacionProveedorEmail.tsx).
+export function NewMessageEmail(props: Readonly<NewMessageEmailProps>): React.ReactElement {
+    const { recipientName, senderName, messagePreview, chatUrl } = props;
     const baseUrl = 'https://www.pawnecta.com';
 
     return (
@@ -79,6 +77,6 @@ export const NewMessageEmail: React.FC<NewMessageEmailProps> = ({
             </Body>
         </Html>
     );
-};
+}
 
 export default NewMessageEmail;

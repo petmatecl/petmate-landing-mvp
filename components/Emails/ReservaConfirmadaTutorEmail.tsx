@@ -129,7 +129,7 @@ export const ReservaConfirmadaTutorEmail = ({
                         </Section>
 
                         <Text style={layoutStyles.text}>
-                            Si necesitas cancelar, puedes hacerlo desde <strong>Mis solicitudes</strong> — {esRango
+                            Si necesitas cancelar, puedes hacerlo desde <strong>Mis reservas</strong> — {esRango
                                 ? 'las noches se liberan para otros tutores.'
                                 : 'el horario se libera para otros tutores.'}
                         </Text>

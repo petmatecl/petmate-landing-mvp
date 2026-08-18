@@ -146,7 +146,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             : null;
         const subject = esConfirmadaAuto
             ? 'Nueva reserva confirmada en Pawnecta'
-            : 'Nueva solicitud de agendamiento en Pawnecta';
+            : 'Nueva solicitud de reserva en Pawnecta';
 
         // ZB3 sprint ZONAB-1: alimentar props `donde` y `fechaSub` desde los
         // helpers puros de lib/emails/resolvers.ts. Fallback donde: chat con

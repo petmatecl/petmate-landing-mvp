@@ -15,9 +15,10 @@ interface WelcomeEmailProps {
     firstName: string;
 }
 
-export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
-    firstName,
-}) => {
+// Deuda emails 2026-08-18: React.FC → signature explícita (ver comentario
+// en AprobacionProveedorEmail.tsx).
+export function WelcomeEmail(props: Readonly<WelcomeEmailProps>): React.ReactElement {
+    const { firstName } = props;
     const baseUrl = 'https://www.pawnecta.com';
 
     return (
@@ -37,7 +38,7 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
                     <Section>
                         <Text style={{ fontSize: '16px', lineHeight: '24px', color: '#374151' }}>
                             Estamos muy felices de que te unas a nuestra comunidad.
-                            Ahora puedes buscar cuidadores de confianza o gestionar tus solicitudes fácilmente.
+                            Ahora puedes buscar cuidadores de confianza o gestionar tus reservas fácilmente.
                         </Text>
                         <Text style={{ fontSize: '16px', lineHeight: '24px', color: '#374151', marginTop: '32px' }}>
                             Saludos,<br />
@@ -52,6 +53,6 @@ export const WelcomeEmail: React.FC<WelcomeEmailProps> = ({
             </Body>
         </Html>
     );
-};
+}
 
 export default WelcomeEmail;
