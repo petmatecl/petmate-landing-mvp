@@ -51,6 +51,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import type React from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import {
@@ -94,7 +95,7 @@ type Elegible = {
     checkOutHora: string | null;
 };
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET' && req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -510,6 +511,35 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'Internal error' });
     }
 }
+
+// Tanda 5 T5-4 piloto wrapper Sentry (2026-08-18, GO PO opción A).
+// `wrapApiHandlerWithSentry(handler, parameterizedRoute)` de @sentry/nextjs
+// v10 envuelve el handler agregando:
+//   1. Captura automática de throws NO manejados (los que salen del catch
+//      externo del try/catch del handler — hoy inexistentes al no haber
+//      throws sin catch, pero red de seguridad para bugs futuros).
+//   2. Parameterized route en el evento Sentry — permite agrupar issues
+//      por ruta canónica en vez de por URL individual.
+//   3. Auto-flush de la cola Sentry antes de que la Vercel Function
+//      termine (equivalente a llamar `flushSentryEvents()` manualmente).
+//
+// Se aplica SOLO a este cron (piloto por decisión PO):
+//   * Cron largo con múltiples awaits externos (Resend, Supabase auth,
+//     Supabase updates).
+//   * Corre diario sin supervisión humana.
+//   * Va a seguir corriendo durante el mes que el PO está en China.
+//   * Ya tuvo drift observado en tests (aunque no en prod).
+//   * Anterior: cualquier throw fuera del try/catch de tasks se perdía
+//     en logs efímeros. Ahora: llega a Sentry con parameterized route
+//     `/api/cron/recordatorio-reserva`.
+//
+// NO se aplica masivamente a los 32 endpoints — 26/32 usan try/catch
+// como diseño ("email fallo → 200 skipped" — patrón CLAUDE.md), el
+// wrapper convertiría no-errors en events flood.
+//
+// Otros 2 candidatos anotados en BACKLOG como "aplicar solo si aparece
+// caso concreto sin traza" (notifications/create, disponibilidad-noches).
+export default wrapApiHandlerWithSentry(handler, '/api/cron/recordatorio-reserva');
 
 // ----------------------------------------------------------------------------
 // enviarRecordatorio — envía email (via Resend con RecordatorioReservaEmail
