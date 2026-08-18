@@ -97,7 +97,23 @@ Ventajas vs mencionar `contacto@pawnecta.com`:
 
 Elimina la mención al canal por completo. Pierde la ruta de escape (usuario con problema persistente queda sin qué hacer), pero cero promesa.
 
-**Convención propuesta para post-launch**: cualquier toast de error del usuario final que necesite ruta de escape debe redirigir al FeedbackWidget, no a email. Los emails a `contacto@pawnecta.com` se reservan para superficies donde el usuario ya está fuera del flujo (footer, T&C, privacidad — donde ya están) y donde una respuesta con latencia es aceptable. Sin cambios en toasts existentes hasta que el PO decida la propuesta de arriba.
+**Convención aprobada por PO 2026-08-18** (cláusula operativa, no regla P-numerada):
+
+> **Toasts de error user-facing con ruta de escape → FeedbackWidget, no email.** El widget de comentarios está montado globalmente (`pages/_app.tsx:67`), persiste en `feedback_submissions` de Supabase, y desacopla la respuesta de que alguien esté online (Aldo lo lee cuando pueda; el usuario tiene ruta real de reporte sin esperar). Los emails a `contacto@pawnecta.com` se reservan para **superficies asíncronas** donde la latencia es aceptable: footer, Términos de Servicio, Política de Privacidad, headers `reply-to` de transaccionales. La convención se aplica al aterrizar el próximo toast user-facing que requiera ruta de escape — sin cambios a los toasts existentes en este commit (0 matches user-facing en el grep pre-B4).
+
+**Copy de referencia para futuros toasts de error genéricos** (usar como plantilla):
+
+```ts
+toast.error('No pudimos guardar tu servicio', {
+  description: 'Verifica tu conexión y vuelve a intentar. Si persiste, cuéntanos desde el ícono de comentarios (abajo a la derecha).',
+});
+```
+
+Ventajas del copy:
+- No promete tiempo de respuesta.
+- Redirige a canal asíncrono que persiste sin dependencia de Aldo online.
+- "Cuéntanos" es voz neutra, no ambigua sobre urgencia.
+- El FeedbackWidget ya está visible en todas las páginas; cero fricción de descubrimiento.
 
 ## 5. Cierre de ciclo A1 — warning "Tu verificación pendiente"
 
