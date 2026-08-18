@@ -32,10 +32,19 @@ const nextConfig = {
     // Next 15) a `images.remotePatterns`. Doc: https://nextjs.org/docs/app/api-reference/components/image#remotepatterns
     // Cada entry acota host + protocolo; `pathname: '/**'` mantiene la
     // permisividad del array `domains` viejo (cualquier ruta dentro del host).
+    // Deuda BD 2026-08-18: los 2 hosts Supabase Storage se acotan a
+    // `/storage/v1/object/public/**` para impedir que el `next/image` proxy
+    // sirva rutas arbitrarias del host aunque un attacker las conociera. En
+    // runtime cero impacto — `getPublicUrl()` de Supabase genera URLs con
+    // exactamente ese prefijo (`/storage/v1/object/public/<bucket>/<path>`).
+    // Los proxies de imagen ya rechazan implícitamente cualquier path fuera
+    // (ver `pages/api/proxy-image.ts`), esto refuerza a nivel Next config.
+    // Los 3 CDNs de imágenes públicas (ui-avatars, pexels, unsplash) siguen
+    // con `/**` porque son fuentes externas donde no controlamos el path.
     remotePatterns: [
       { protocol: 'https', hostname: 'ui-avatars.com', pathname: '/**' },
-      { protocol: 'https', hostname: 'vubmjguwzpesxcgenkxo.supabase.co', pathname: '/**' },
-      { protocol: 'https', hostname: 'pwhplhjkmmbgnphcoibh.supabase.co', pathname: '/**' },
+      { protocol: 'https', hostname: 'vubmjguwzpesxcgenkxo.supabase.co', pathname: '/storage/v1/object/public/**' },
+      { protocol: 'https', hostname: 'pwhplhjkmmbgnphcoibh.supabase.co', pathname: '/storage/v1/object/public/**' },
       { protocol: 'https', hostname: 'images.pexels.com', pathname: '/**' },
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
     ],

@@ -91,9 +91,19 @@ export function finEfectivoMs(r: ReservaParaDerivar): number | null {
     if (fam === 'F1') {
         return new Date(r.fecha_preferida).getTime() + (r.duracion_min || 0) * 60_000;
     }
-    // legacy
+    // legacy (V4a/V4b — flujo pendiente-viejo pre-agenda)
     if (r.fecha_fin) return new Date(r.fecha_fin).getTime();
-    if (r.duracion_horas) return new Date(r.fecha_preferida).getTime() + r.duracion_horas * 3_600_000;
+    // Deuda BD 2026-08-18: fix falsy-zero en check de duracion_horas.
+    // Un legacy con `duracion_horas === 0` (no debería por wizard, pero sin
+    // CHECK constraint en BD) hoy pasaba al fallback puntual (fin = fecha).
+    // Semánticamente el fin sigue siendo la fecha, pero el check explícito
+    // `!= null && > 0` documenta la intención: solo usamos duracion_horas
+    // como offset si es un número positivo válido. Cero cambio funcional —
+    // test unit `duracion_horas: 0 → fin === fecha_preferida` en
+    // estadoDerivado.test.ts locka el comportamiento.
+    if (r.duracion_horas != null && r.duracion_horas > 0) {
+        return new Date(r.fecha_preferida).getTime() + r.duracion_horas * 3_600_000;
+    }
     return new Date(r.fecha_preferida).getTime();
 }
 

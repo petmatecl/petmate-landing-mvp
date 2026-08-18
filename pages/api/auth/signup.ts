@@ -106,9 +106,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           p_rut_empresa: tipo_entidad === 'empresa' ? rut_empresa || null : null,
           p_nombre_fantasia: tipo_entidad === 'empresa' ? nombre_fantasia?.trim() || null : null,
           p_giro: tipo_entidad === 'empresa' ? giro?.trim() || null : null,
-          // datos_especificos deprecado en Sprint 4 Fase 1 — siempre null para
-          // proveedores nuevos. La data legacy en BD se preserva intacta.
-          p_datos_especificos: null,
+          // Deuda BD 2026-08-18: datos_especificos deprecado desde Sprint 4
+          // Fase 1. Ya NO se envía como parámetro — la RPC vieja
+          // `registrar_proveedor` lo tenía con `DEFAULT NULL`, así que
+          // omitirlo produce INSERT con `datos_especificos = NULL`
+          // (comportamiento idéntico al `p_datos_especificos: null`
+          // explícito previo). Esta remoción del cliente permite que la
+          // migration SQL de `DROP COLUMN datos_especificos` + `CREATE OR
+          // REPLACE FUNCTION registrar_proveedor(...)` sin ese parámetro
+          // se ejecute sin romper el cliente en el orden
+          // (a) deploy código nuevo (este commit),
+          // (b) Aldo ejecuta la migration SQL,
+          // (c) cero disruption de signup en el intervalo.
         });
         if (insertError) throw new Error('Error guardando datos de proveedor: ' + insertError.message);
 

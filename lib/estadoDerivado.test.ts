@@ -100,6 +100,15 @@ test('legacy V1 puntual: fecha_preferida directo', () => {
     assert.equal(finEfectivoMs(r), new Date(iso(-1)).getTime());
 });
 
+// Deuda BD 2026-08-18 — lock-in del fix falsy-zero en check duracion_horas
+// (`r.duracion_horas != null && r.duracion_horas > 0`). Un legacy con
+// duracion_horas=0 (edge case sin CHECK en BD) debe caer al fallback
+// puntual (fin = fecha_preferida), no explotar ni sumar cero.
+test('legacy: duracion_horas === 0 cae al fallback puntual (fin = fecha)', () => {
+    const r = { estado: 'confirmada', fecha_preferida: iso(-1), duracion_horas: 0 };
+    assert.equal(finEfectivoMs(r), new Date(iso(-1)).getTime());
+});
+
 // ────────────────────────────────────────────────────────────────────────────
 // estadoDerivado() — regla 1: confirmada + fin pasado → realizada
 // ────────────────────────────────────────────────────────────────────────────
