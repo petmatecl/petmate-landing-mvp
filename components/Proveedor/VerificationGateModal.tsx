@@ -39,7 +39,7 @@ export default function VerificationGateModal({
         icon = Clock;
         iconColor = 'text-warning-600 bg-warning-50';
         title = 'Verificación en revisión';
-        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisaremos por email cuando esté lista (24-48h). Mientras tanto, no puedes publicar servicios.';
+        body = 'Tu verificación está siendo revisada por nuestro equipo. Te avisamos por correo apenas esté lista. Mientras tanto no puedes publicar servicios.';
         primaryLabel = 'Entendido';
         primaryAction = onClose;
     } else if (verificacionEstado === 'rechazado') {

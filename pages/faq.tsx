@@ -9,7 +9,7 @@ const faqs = [
     },
     {
         question: "¿Cómo sé que los proveedores son de confianza?",
-        answer: "Todos los proveedores en Pawnecta verificaron su identidad con RUT y foto de carnet antes de publicar. Además, las evaluaciones solo pueden escribirlas usuarios que efectivamente contactaron al proveedor — sin reseñas falsas."
+        answer: "Los proveedores en Pawnecta pueden verificar su identidad subiendo su RUT y foto de carnet — los verificados muestran el badge de identidad verificada en su ficha. Además, las evaluaciones solo pueden escribirlas usuarios que efectivamente contactaron al proveedor — sin reseñas falsas."
     },
     {
         question: "¿Cómo contacto a un proveedor?",
@@ -29,7 +29,7 @@ const faqs = [
     },
     {
         question: "¿Cómo me registro como proveedor?",
-        answer: "Ve a Registrarse y elige 'Quiero ofrecer servicios'. Necesitarás tu RUT y una foto de tu carnet de identidad. Tu cuenta será revisada en un plazo de 24 a 48 horas. Una vez aprobada, podrás publicar todos los servicios que ofrezcas."
+        answer: "Ve a Registrarse y elige 'Quiero ofrecer servicios'. Completa el formulario y confirma tu correo — tu cuenta queda activa de inmediato y puedes publicar tus servicios. Si quieres el badge de identidad verificada en tu ficha, sube tu RUT y foto de carnet desde tu panel: revisamos las verificaciones apenas podamos."
     },
     {
         question: "¿Qué servicios puedo publicar?",

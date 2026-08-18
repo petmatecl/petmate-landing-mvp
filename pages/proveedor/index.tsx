@@ -973,7 +973,7 @@ export default function ProveedorDashboard() {
             // funnel oferta. Post-success del submit del wizard verificación
             // (carnet front+dorso + RUT). Gate PL2: no-op en no-prod.
             trackEvent('verificacion_enviada');
-            toast.success('Solicitud de verificación enviada. Revisaremos en 24-48h.');
+            toast.success('Solicitud de verificación enviada. Te avisamos por correo apenas esté revisada.');
         } catch (err: any) {
             toast.error(err.message || 'Error al enviar verificación');
         } finally {
@@ -1177,7 +1177,7 @@ export default function ProveedorDashboard() {
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8 flex items-start gap-3">
                             <Clock size={20} className="text-slate-400 shrink-0 mt-0.5" />
                             <p className="text-slate-600 text-sm leading-relaxed">
-                                Te notificaremos a tu correo en un plazo de <strong>24 a 48 horas</strong> hábiles.
+                                Te avisamos por correo apenas tu verificación esté revisada.
                             </p>
                         </div>
 
@@ -1641,7 +1641,7 @@ export default function ProveedorDashboard() {
                                                     <Clock size={20} className="shrink-0" />
                                                     <div>
                                                         <p className="font-semibold text-sm">Solicitud enviada — en revisión</p>
-                                                        <p className="text-xs text-warning-600 mt-0.5">Revisamos las solicitudes en un plazo de 24 a 48 horas hábiles.</p>
+                                                        <p className="text-xs text-warning-600 mt-0.5">Te avisamos por correo apenas esté revisada.</p>
                                                     </div>
                                                 </div>
                                             )}
