@@ -127,6 +127,61 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       sent++;
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // Sub-flujo (c) 2026-08-19 — recordatorio de subir carnet
+    // ─────────────────────────────────────────────────────────────────
+    // Proveedores con `verificacion_estado='sin_enviar'` que se
+    // registraron entre 48h y 14d atrás y aún no han subido carnet.
+    // Este flujo es la señal externa que hoy falta — sin él, los
+    // proveedores que cierran el tab post-signup se pierden porque
+    // el `VerificationGateModal` (agregado 30-abr) solo dispara si
+    // vuelven al panel.
+    //
+    // Idempotencia: marcador `email_carnet_recordatorio_at`. La
+    // migration 20260819 hace backfill retroactivo (NOW() para todos
+    // los existentes) → NO dispara sobre los 7 actuales que Aldo va
+    // a contactar a mano. Solo aplica a registros POST-migration.
+    const { data: providersSinCarnet } = await supabaseAdmin
+      .from('proveedores')
+      .select('auth_user_id, nombre, email_carnet_recordatorio_at, created_at')
+      .eq('verificacion_estado', 'sin_enviar')
+      .is('email_carnet_recordatorio_at', null)
+      .lt('created_at', cutoff48h)
+      .gt('created_at', cutoff7d)
+      .or('es_ejemplo.eq.false,es_ejemplo.is.null')
+      .limit(30);
+
+    for (const prov of (providersSinCarnet || [])) {
+      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      if (!authUser?.user?.email) continue;
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to: authUser.user.email,
+        subject: `${prov.nombre}, sube tu carnet para completar tu registro en Pawnecta`,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b;padding:20px">
+            <h1 style="color:#134E4A;font-size:22px;margin-bottom:8px">Hola ${escapeHtml(prov.nombre)},</h1>
+            <p style="font-size:16px;line-height:1.55;color:#334155">Vimos que te registraste en Pawnecta hace unos días pero aún no completaste el paso de verificación de identidad. Es rápido y es lo único que falta antes de que puedas publicar tu servicio.</p>
+            <h3 style="font-size:17px;margin-top:24px;color:#0F172A">Necesitas subir dos fotos de tu carnet</h3>
+            <p style="font-size:15px;line-height:1.55;color:#475569">Frontal y dorso, desde tu panel de proveedor. Toma menos de dos minutos. Nuestro equipo revisa entre 24 y 48 horas y te avisamos por correo cuando esté aprobado.</p>
+            <a href="${siteUrl}/proveedor?tab=perfil&seccion=identidad" style="display:inline-block;background:#16A34A;color:#ffffff;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:600;margin-top:20px;font-size:15px">
+              Subir mi carnet ahora
+            </a>
+            <p style="margin-top:28px;font-size:14px;color:#64748B;line-height:1.55">¿Tienes alguna duda o el proceso te resulta confuso? Responde este correo y te acompañamos.</p>
+            <p style="margin-top:18px;font-size:12px;color:#94A3B8">Pawnecta — Conectando mascotas con cuidadores de confianza</p>
+          </div>
+        `,
+      });
+
+      await supabaseAdmin
+        .from('proveedores')
+        .update({ email_carnet_recordatorio_at: new Date().toISOString() })
+        .eq('auth_user_id', prov.auth_user_id);
+
+      sent++;
+    }
+
     return res.status(200).json({ success: true, sent });
   } catch (err) {
     // Sweep #1 finding [70]: sin `details` en el response.
