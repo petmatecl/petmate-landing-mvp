@@ -157,6 +157,24 @@ function diasEntreIso(desde: string, hasta: string): number {
 // fecha_preferida = medianoche Chile check-in, fecha_fin = medianoche Chile
 // check-out. Respeta DST via Intl (mismo patron que el F1 picker en el
 // bloque V1 puntual).
+// Deuda pickers 2026-08-18 — watchdog cross-tab F2.
+// getSession() de Supabase toma el lock cross-tab de gotrue-js. Si otra
+// tab del mismo usuario está en medio de un refreshSession() (token por
+// expirar), el segundo getSession() se queda esperando el lock sin
+// timeout → submit F1/F2 se cuelga sin señal visual. Observado en el
+// smoke S4 de F2-3-C. Fix: Promise.race contra timeout 15s con throw
+// tipado 'session-timeout' que el submit catch reconoce y muestra copy
+// idéntico al F1 existente (ServiceFormModal.tsx:747).
+// Extensible sin cambiar callers si el timeout se ajusta.
+const SESSION_TIMEOUT_MS = 15_000;
+async function getSessionWithTimeout() {
+    const query = supabase.auth.getSession();
+    const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('session-timeout')), SESSION_TIMEOUT_MS);
+    });
+    return Promise.race([query, timeout]) as ReturnType<typeof supabase.auth.getSession>;
+}
+
 function chileMidnightUtc(fecha: string): Date {
     const [y, m, d] = fecha.split('-').map(Number);
     const guessUtcMs = Date.UTC(y, m - 1, d, 0, 0);
@@ -536,10 +554,19 @@ export default function SolicitarAgendamientoModal({
     const isDiaDisabledEst = (date: Date): boolean => {
         const ymd = ymdFromDate(date);
         const dia = pickerEstDiasMap.get(ymd);
-        // Sin data (fuera del fetch actual) → no bloqueamos aca (el fetch
-        // se dispara al cambiar mes; los dias del mes visible siempre
-        // deberian estar en el map).
-        if (!dia) return false;
+        // Deuda pickers 2026-08-18 — fix undefined-as-available.
+        // Antes: sin data → devolvíamos false (visualmente clickeable) →
+        // si el rango incluía días undefined, el excludeDisabled manual
+        // los aceptaba y el server rebotaba con `23P01` — copy engañoso
+        // (no fue race, fue validación fría del cliente contra ventana
+        // incompleta).
+        //
+        // Ahora: undefined es disabled SOLO CUANDO el fetch ya trajo
+        // algún dato (map.size > 0). Antes del primer fetch (mount + antes
+        // del skeleton loading catch), NO bloqueamos porque `map.size === 0`
+        // significa "aún no medimos" — no "esta fecha está ocupada". El
+        // skeleton overlay del JSX cubre el hueco visual mientras carga.
+        if (!dia) return pickerEstDiasMap.size > 0;
         return !dia.disponible;
     };
 
@@ -666,7 +693,7 @@ export default function SolicitarAgendamientoModal({
 
             setSubmitting(true);
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session } } = await getSessionWithTimeout();
                 if (!session) {
                     setErrorMsg('Tu sesión expiró. Te llevamos al login.');
                     // Hard redirect al login con el path actual como retorno.
@@ -800,7 +827,11 @@ export default function SolicitarAgendamientoModal({
                 onClose();
             } catch (err: any) {
                 console.error('[picker-estadia] insert error:', err);
-                setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
+                if (err?.message === 'session-timeout') {
+                    setErrorMsg('El envío tardó demasiado. Verifica tu conexión y vuelve a intentar.');
+                } else {
+                    setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
+                }
             } finally {
                 setSubmitting(false);
             }
@@ -822,7 +853,7 @@ export default function SolicitarAgendamientoModal({
 
             setSubmitting(true);
             try {
-                const { data: { session } } = await supabase.auth.getSession();
+                const { data: { session } } = await getSessionWithTimeout();
                 if (!session) {
                     setErrorMsg('Tu sesión expiró. Te llevamos al login.');
                     // Hard redirect al login con el path actual como retorno.
@@ -980,7 +1011,11 @@ export default function SolicitarAgendamientoModal({
                 onClose();
             } catch (err: any) {
                 console.error('[picker] insert error:', err);
-                setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
+                if (err?.message === 'session-timeout') {
+                    setErrorMsg('El envío tardó demasiado. Verifica tu conexión y vuelve a intentar.');
+                } else {
+                    setErrorMsg(err?.message || 'Hubo un error al reservar. Intenta de nuevo.');
+                }
             } finally {
                 setSubmitting(false);
             }
@@ -1109,7 +1144,7 @@ export default function SolicitarAgendamientoModal({
 
         setSubmitting(true);
         try {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await getSessionWithTimeout();
             if (!session) {
                 setErrorMsg('Tu sesión expiró. Recarga la página e inicia sesión de nuevo.');
                 return;
@@ -1222,6 +1257,10 @@ export default function SolicitarAgendamientoModal({
             onClose();
         } catch (err: any) {
             console.error('[SolicitarAgendamientoModal] insert error:', err);
+            if (err?.message === 'session-timeout') {
+                setErrorMsg('El envío tardó demasiado. Verifica tu conexión y vuelve a intentar.');
+                return;
+            }
             if (err?.code === '23505') {
                 // PD4-bis sprint PRODUCTO-2 (2026-08-04) — copy más útil
                 // cuando la pendiente bloqueante tiene fecha pasada
@@ -1375,7 +1414,7 @@ export default function SolicitarAgendamientoModal({
                                     {pickerEstError}
                                 </div>
                             ) : (
-                                <div className="border border-slate-200 rounded-xl p-2 sm:p-3 bg-white">
+                                <div className="border border-slate-200 rounded-xl p-2 sm:p-3 bg-white relative">
                                     <DayPicker
                                         mode="range"
                                         numberOfMonths={pickerEstMonths}
@@ -1392,9 +1431,31 @@ export default function SolicitarAgendamientoModal({
                                         }}
                                         locale={es}
                                         weekStartsOn={1}
-                                        fromDate={new Date()}
+                                        // Deuda pickers 2026-08-18 — fix TZ browser en fromDate.
+                                        // Antes: `new Date()` usa TZ del browser. Un tutor en
+                                        // TZ occidental (ej. viaje) podía ver "hoy" clickeable
+                                        // siendo ya "ayer" en Chile. Server rechazaba con
+                                        // `pasado`, pero cosmético mejorable. Ahora usa
+                                        // `chileMidnightUtc(localTodayIso())` — el mismo cursor
+                                        // temporal que el resto de la lógica del picker.
+                                        fromDate={chileMidnightUtc(localTodayIso())}
                                         showOutsideDays={false}
                                     />
+                                    {/* Deuda pickers 2026-08-18 — skeleton overlay al cambiar mes.
+                                        Antes: al navegar a un mes nuevo, F2 mantenía los días
+                                        previos visibles sin señal de "cargando" (F1 sí tenía
+                                        skeleton). Confusión: el user cree que ya cargó y
+                                        clickea en días que aún no se validaron. Ahora: overlay
+                                        semi-transparente con spinner cubre el DayPicker mientras
+                                        `pickerEstLoading` y ya hay data previa (map.size > 0
+                                        → estado "refetch", vs primer load que usa el skeleton
+                                        principal de arriba). isDiaDisabledEst refuerza
+                                        deshabilitando días undefined del nuevo mes. */}
+                                    {pickerEstLoading && pickerEstDiasMap.size > 0 && (
+                                        <div className="absolute inset-0 bg-white/70 rounded-xl flex items-center justify-center pointer-events-none" aria-hidden="true">
+                                            <Loader2 size={20} className="text-slate-500 animate-spin" />
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
