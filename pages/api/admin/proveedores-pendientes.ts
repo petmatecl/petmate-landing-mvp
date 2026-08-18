@@ -36,10 +36,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         //    muestra bastantes campos y evolucionaremos qué se renderiza —
         //    mejor pagar el ancho aquí que iterar el SELECT cada vez que la
         //    UI necesite un campo más.
+        // Bug producto 2026-08-18 (fix directo): filtrar `es_ejemplo=true`.
+        // El endpoint devolvía las 2 cuentas de prueba marcadas por Aldo en
+        // Supabase Studio, inflando el contador a "9 en espera" cuando
+        // deberían ser 7. Coherente con el filtro que ya aplica OfertaMetrics
+        // (components/Admin/OfertaMetrics.tsx:94).
         const { data: proveedores, error: provErr } = await supabaseAdmin
             .from('proveedores')
             .select('*')
             .eq('estado', 'pendiente')
+            .or('es_ejemplo.eq.false,es_ejemplo.is.null')
             .order('created_at', { ascending: false });
         if (provErr) throw provErr;
 
