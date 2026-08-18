@@ -115,6 +115,23 @@ export default function RegisterWizard() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // Sprint orphan-fix (2026-08-18) — reset de scroll al cambiar de paso
+  // del wizard. Sin esto, el browser conserva la posición vertical entre
+  // renders (no hay cambio de ruta, solo de state) y el usuario aterriza
+  // a media pantalla en el paso siguiente — sin ver encabezado ni
+  // indicador de paso. Detectado por PO en smoke H3 y priorizado porque
+  // es exactamente el formulario donde perdemos 59 personas confirmadas.
+  //
+  // Fallback si no hay window (SSR). behavior:'auto' (no smooth) para
+  // aterrizar arriba instantáneo sin animación distractora. También
+  // cubre los botones "Atrás" (setStep(1)/setStep(2)) porque el hook
+  // reacciona a cualquier cambio de step, hacia adelante o hacia atrás.
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'auto' });
+    }
+  }, [step]);
+
   // Pre-seleccionar rol desde query param ?rol=proveedor o ?rol=usuario
   useEffect(() => {
     if (!router.isReady) return;
