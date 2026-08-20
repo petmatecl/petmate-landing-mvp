@@ -2,72 +2,103 @@ import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { CheckCircle, Loader2 } from "lucide-react";
+import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { useUser } from "../contexts/UserContext";
 
 /**
- * Sprint orphan-fix (2026-08-18) — SIMPLIFICADO. Antes era la fábrica
- * principal de cuentas huérfanas: el handler intentaba INSERT del perfil
- * client-side, y si fallaba, hacía `signOut()` como "rollback" — pero
- * `signOut()` solo cierra la sesión del browser, NO borra `auth.users`.
- * Cada INSERT fallido dejaba un auth.users vivo sin perfil. 74 cuentas
- * huérfanas por formulario email + 18 por Google OAuth confirmadas en
- * prod (12-dic-2025 → 21-mar-2026).
+ * Sprint email-landing (2026-08-20) — landing post-confirmación de correo.
  *
- * Nueva responsabilidad: procesar el token/code de Supabase (PKCE o
- * implicit hash), setear la sesión, y navegar. NADA de INSERT — eso lo
- * hace el guard en UserContext (redirige a /completar-registro si no
- * hay perfil) + endpoint server-side /api/auth/complete-registration
- * con service_role.
+ * Historia del archivo:
+ *  (1) Sprint orphan-fix (2026-08-18): refactor total desde la versión que
+ *      hacía INSERT client-side del perfil y `signOut()` de rollback (bug
+ *      root que generó 92 huérfanos históricos). Se dejó como router pasivo
+ *      que hidrataba sesión y mandaba a `/` para que el guard H3 tomara
+ *      el volante — pero terminaba huérfana del flow real porque el Site
+ *      URL del Dashboard apuntaba a la raíz.
+ *  (2) Sprint email-landing (2026-08-20): responsabilidad expandida a
+ *      página de aterrizaje explícita. `admin.generateLink` en
+ *      `/api/auth/signup.ts:74` ahora pasa `redirectTo:
+ *      <SITE_URL>/email-confirmado`. Site URL Dashboard queda en raíz
+ *      como fallback global (magic link / change email / invite usan
+ *      copy propio, no este).
  *
- * Beneficios:
- * - Cero cuentas huérfanas nuevas por esta página. El guard captura y
- *   la página /completar-registro los rescata con endpoint seguro.
- * - Handler mucho más simple. Cero rollback frágil. Cero race con RLS
- *   client-side (todos los INSERT pasan por service_role).
- * - Cubre TODAS las vías (Google, email link, magic link, futuras) con
- *   un solo mecanismo.
+ * Requisitos de producto (PO 2026-08-20):
+ *  - Confirmación explícita y visible del correo verificado (no inferible).
+ *  - Aterrizaje en el panel que corresponde al ROL, no al home público.
+ *  - CTA es acción concreta (publicar/explorar), no lugar ("Ir a mi panel").
+ *  - Cero auto-redirect: usuario post-click no está apurado, tiene el control.
+ *  - Copy chileno con tuteo, cero voseo, sin promesas de revisión ni ventanas.
+ *
+ * Flujo:
+ *  (a) Procesa PKCE `?code=` o hash `#access_token=` (`exchangeCodeForSession`
+ *      o `setSession`). Errores del hash (`error`, `error_code`, `error_description`
+ *      — típicos de token expirado o consumido dos veces) se muestran con
+ *      copy amable + CTA a re-registro o login.
+ *  (b) Espera a que UserContext termine de hidratar perfil (`isLoading=false`).
+ *  (c) Detecta rol vía `proveedorRow` / `hasSeekerProfile` / huérfano.
+ *      Muestra copy + CTA según ese rol.
+ *  (d) Botón CTA principal:
+ *      - Proveedor: `/proveedor?abrirServicio=1` (dashboard abre
+ *        ServiceFormModal automáticamente por query param, cero fricción).
+ *      - Tutor: `/explorar`.
+ *      - Huérfano (fallback defensivo): `/completar-registro` — el guard H3
+ *        también captura desde acá si el user navega manualmente a
+ *        cualquier ruta no-safe.
+ *  (e) Link secundario discreto "Ir a mi panel" para proveedores que
+ *      prefieren llegar sin modal abierto.
  */
 export default function EmailConfirmadoPage() {
     const router = useRouter();
+    const { proveedorRow, hasSeekerProfile, isLoading: userLoading, user } = useUser();
+
     const [statusText, setStatusText] = useState("Verificando confirmación...");
-    const [isProcessing, setIsProcessing] = useState(true);
+    const [sessionReady, setSessionReady] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [showManualButton, setShowManualButton] = useState(false);
+    const [errorKind, setErrorKind] = useState<'expired' | 'invalid' | 'unknown' | null>(null);
 
-    // Fallback si algo se cuelga.
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (isProcessing) setShowManualButton(true);
-        }, 5000);
-        return () => clearTimeout(timer);
-    }, [isProcessing]);
-
+    // Procesar token una vez al mount.
     useEffect(() => {
         let mounted = true;
 
-        // Una vez que hay sesión activa, el UserContext guard decide
-        // adónde va el user (dashboard si tiene perfil, /completar-registro
-        // si es huérfano). Nosotros solo aterrizamos en `/` y el guard
-        // toma el volante.
-        const navigateAfterSession = () => {
+        const failWith = (msg: string, kind: 'expired' | 'invalid' | 'unknown') => {
             if (!mounted) return;
-            setStatusText("¡Listo! Continuando...");
-            // Usamos router.replace('/') — el guard en UserContext detecta
-            // sesión + estado de perfil y redirige apropiadamente.
-            setTimeout(() => router.replace('/'), 800);
+            console.warn('[email-confirmado] fail:', kind, msg);
+            setErrorMsg(msg);
+            setErrorKind(kind);
         };
 
-        const failWith = (msg: string) => {
-            if (!mounted) return;
-            console.warn('[email-confirmado] fail:', msg);
-            setErrorMsg(msg);
-            setIsProcessing(false);
-            setShowManualButton(true);
+        // Detectar errores del hash o query params ANTES de procesar tokens.
+        // Supabase Auth redirige acá con `error=access_denied&error_code=otp_expired`
+        // en el hash cuando el link expiró o el token fue consumido.
+        const detectErrorInUrl = (): boolean => {
+            const hash = window.location.hash;
+            const search = window.location.search;
+            const params = new URLSearchParams(
+                hash.startsWith('#') ? hash.slice(1) : (search.startsWith('?') ? search.slice(1) : '')
+            );
+            const error = params.get('error');
+            const errorCode = params.get('error_code');
+            const errorDesc = params.get('error_description');
+
+            if (!error && !errorCode) return false;
+
+            if (errorCode === 'otp_expired' || errorDesc?.toLowerCase().includes('expired')) {
+                failWith('El enlace del correo ya expiró.', 'expired');
+                return true;
+            }
+            if (errorCode === 'access_denied' || errorDesc?.toLowerCase().includes('invalid')) {
+                failWith('Este enlace ya no es válido. Puede que hayas hecho clic más de una vez o que el correo sea de otra sesión.', 'invalid');
+                return true;
+            }
+            failWith(`No pudimos completar la confirmación (${errorCode || error}).`, 'unknown');
+            return true;
         };
 
         const processTokens = async () => {
-            // 1. PKCE: `?code=XX` en query params.
+            if (detectErrorInUrl()) return;
+
+            // PKCE: `?code=XX` en query params.
             const code = new URLSearchParams(window.location.search).get('code');
             if (code) {
                 setStatusText("Verificando código de seguridad...");
@@ -75,21 +106,23 @@ export default function EmailConfirmadoPage() {
                     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
                     if (error) throw error;
                     if (data.session) {
-                        navigateAfterSession();
+                        if (mounted) setSessionReady(true);
                         return;
                     }
-                    failWith('No se recibió sesión del servidor.');
+                    failWith('No recibimos sesión del servidor.', 'unknown');
                 } catch (err: any) {
-                    failWith(`Error validando el enlace: ${err?.message || 'desconocido'}`);
+                    const msg = err?.message || 'desconocido';
+                    const kind = /expired/i.test(msg) ? 'expired' : /invalid|already/i.test(msg) ? 'invalid' : 'unknown';
+                    failWith(msg, kind);
                 }
                 return;
             }
 
-            // 2. Implicit / recovery: `#access_token=...` en hash.
+            // Implicit / recovery: `#access_token=...` en hash.
             const hash = window.location.hash;
             if (hash && hash.includes('access_token')) {
                 setStatusText("Procesando token...");
-                const params = new URLSearchParams(hash.replace('#', ''));
+                const params = new URLSearchParams(hash.slice(1));
                 const access_token = params.get('access_token');
                 const refresh_token = params.get('refresh_token');
 
@@ -98,40 +131,40 @@ export default function EmailConfirmadoPage() {
                         const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
                         if (error) throw error;
                         if (data.session) {
-                            navigateAfterSession();
+                            if (mounted) setSessionReady(true);
                             return;
                         }
-                        failWith('No se recibió sesión del servidor.');
+                        failWith('No recibimos sesión del servidor.', 'unknown');
                     } catch (err: any) {
-                        failWith(`Token inválido: ${err?.message || 'desconocido'}`);
+                        const msg = err?.message || 'desconocido';
+                        const kind = /expired/i.test(msg) ? 'expired' : /invalid|already/i.test(msg) ? 'invalid' : 'unknown';
+                        failWith(msg, kind);
                     }
                     return;
                 }
-                failWith('Enlace incompleto.');
+                failWith('El enlace del correo está incompleto.', 'invalid');
                 return;
             }
 
-            // 3. Nada en URL — puede que la sesión ya esté activa por
-            //    otra tab o que el user llegó directo. Verificamos.
+            // Nada en URL — chequear si la sesión ya está activa por otra tab.
             try {
                 const { data } = await supabase.auth.getSession();
                 if (data?.session) {
-                    navigateAfterSession();
+                    if (mounted) setSessionReady(true);
                     return;
                 }
-                setStatusText("No detectamos un enlace válido. Puedes iniciar sesión desde el botón de abajo.");
-                if (mounted) setTimeout(() => setShowManualButton(true), 1200);
+                failWith('No detectamos un enlace válido en esta página.', 'invalid');
             } catch (err: any) {
-                failWith(`Error verificando sesión: ${err?.message || 'desconocido'}`);
+                failWith(err?.message || 'Error verificando sesión.', 'unknown');
             }
         };
 
         processTokens();
 
-        // Suscriptor por si el flow PKCE resuelve tarde o llega vía tab.
+        // Suscriptor por si el flow resuelve tarde (ej. token propagándose).
         const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-                navigateAfterSession();
+            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && mounted) {
+                setSessionReady(true);
             }
         });
 
@@ -139,65 +172,136 @@ export default function EmailConfirmadoPage() {
             mounted = false;
             subscription.unsubscribe();
         };
-    }, [router]);
+    }, []);
+
+    // Loading state: procesando token o UserContext aún hidratando perfil.
+    const isLoading = !errorKind && (!sessionReady || userLoading || !user);
+
+    // Detección de rol post-hidratación.
+    // proveedor > tutor > huérfano (fallback defensivo — el guard H3 también
+    // captura si el user navega manualmente a ruta protegida).
+    type Rol = 'proveedor' | 'tutor' | 'orphan';
+    const rol: Rol | null = isLoading
+        ? null
+        : proveedorRow
+            ? 'proveedor'
+            : hasSeekerProfile
+                ? 'tutor'
+                : 'orphan';
+
+    // Copy + CTA según rol.
+    const roleContent = (() => {
+        if (rol === 'proveedor') {
+            return {
+                subtitle: 'Tu cuenta ya está activa. Publica tu primer servicio y empieza a recibir consultas.',
+                primaryLabel: 'Publicar mi primer servicio',
+                primaryHref: '/proveedor?abrirServicio=1',
+                secondaryLabel: 'Ir a mi panel',
+                secondaryHref: '/proveedor',
+            };
+        }
+        if (rol === 'tutor') {
+            return {
+                subtitle: 'Tu cuenta ya está activa. Busca el servicio que necesitas para tu mascota.',
+                primaryLabel: 'Explorar servicios',
+                primaryHref: '/explorar',
+                secondaryLabel: null,
+                secondaryHref: null,
+            };
+        }
+        // orphan (raro post-F1 — signup crea perfil server-side). Defensivo:
+        // ofrecemos /completar-registro. El guard H3 también captura si el
+        // user intenta navegar a ruta protegida.
+        return {
+            subtitle: 'Tu cuenta quedó activa pero falta un paso para elegir tu rol y completar el perfil.',
+            primaryLabel: 'Completar mi registro',
+            primaryHref: '/completar-registro',
+            secondaryLabel: null,
+            secondaryHref: null,
+        };
+    })();
 
     return (
         <>
             <Head>
-                <title>Confirmando cuenta — Pawnecta</title>
+                <title>Correo confirmado — Pawnecta</title>
                 <meta name="robots" content="noindex,nofollow" />
             </Head>
 
             <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-accent-50 to-white">
-                {errorMsg ? (
-                    <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-                        <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-warning-100 flex items-center justify-center text-warning-700 text-2xl font-bold">!</div>
-                        <h1 className="text-xl font-bold text-slate-900 mb-2">
-                            No pudimos completar el proceso
-                        </h1>
-                        <p className="text-sm text-slate-600 mb-5">{errorMsg}</p>
-                        <Link
-                            href="/login"
-                            className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors"
-                        >
-                            Ir a iniciar sesión
-                        </Link>
-                    </div>
-                ) : (
-                    <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
-                        {isProcessing ? (
-                            <>
-                                <Loader2 className="w-14 h-14 mx-auto text-accent-600 animate-spin mb-5" />
-                                <h1 className="text-xl font-bold text-slate-900 mb-2">
-                                    Confirmando tu cuenta
-                                </h1>
-                                <p className="text-sm text-slate-600">{statusText}</p>
-                            </>
-                        ) : (
-                            <>
-                                <CheckCircle className="w-14 h-14 mx-auto text-accent-600 mb-5" />
-                                <h1 className="text-xl font-bold text-slate-900 mb-2">
-                                    ¡Correo confirmado!
-                                </h1>
-                                <p className="text-sm text-slate-600 mb-4">{statusText}</p>
-                            </>
-                        )}
-
-                        {showManualButton && (
-                            <div className="mt-6 pt-6 border-t border-slate-200">
-                                <p className="text-xs text-slate-500 mb-3">
-                                    Si esta pantalla no avanza sola, puedes ingresar manualmente:
-                                </p>
+                <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+                    {errorKind ? (
+                        <div className="text-center">
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-warning-100 flex items-center justify-center text-warning-700">
+                                <AlertTriangle size={28} aria-hidden="true" />
+                            </div>
+                            <h1 className="text-xl font-bold text-slate-900 mb-2">
+                                {errorKind === 'expired'
+                                    ? 'El enlace expiró'
+                                    : errorKind === 'invalid'
+                                        ? 'Este enlace ya no es válido'
+                                        : 'No pudimos completar el proceso'}
+                            </h1>
+                            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                                {errorKind === 'expired'
+                                    ? 'Los enlaces de confirmación duran un tiempo limitado. Regístrate de nuevo o inicia sesión y te reenviamos uno.'
+                                    : errorKind === 'invalid'
+                                        ? 'Puede que hayas hecho clic más de una vez o que el correo sea de otra sesión. Si ya activaste tu cuenta, entra directamente.'
+                                        : errorMsg || 'Por favor intenta de nuevo o contáctanos si el problema persiste.'}
+                            </p>
+                            <div className="flex flex-col gap-2">
                                 <Link
                                     href="/login"
-                                    className="inline-flex items-center justify-center h-11 px-5 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors"
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors"
                                 >
                                     Iniciar sesión
                                 </Link>
+                                <Link
+                                    href="/register"
+                                    className="inline-flex items-center justify-center h-11 px-6 rounded-xl text-slate-700 hover:bg-slate-50 border border-slate-200 font-medium text-sm transition-colors"
+                                >
+                                    Registrarme de nuevo
+                                </Link>
                             </div>
-                        )}
-                    </div>
-                )}
+                        </div>
+                    ) : isLoading ? (
+                        <div className="text-center">
+                            <Loader2 className="w-12 h-12 mx-auto text-accent-600 animate-spin mb-5" aria-hidden="true" />
+                            <h1 className="text-lg font-semibold text-slate-800 mb-1">
+                                Confirmando tu cuenta
+                            </h1>
+                            <p className="text-sm text-slate-500" aria-live="polite">{statusText}</p>
+                        </div>
+                    ) : (
+                        <div className="text-center">
+                            <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-accent-50 flex items-center justify-center text-accent-700">
+                                <CheckCircle size={36} aria-hidden="true" />
+                            </div>
+                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
+                                ¡Listo, tu correo está confirmado!
+                            </h1>
+                            <p className="text-sm text-slate-600 mb-7 leading-relaxed">
+                                {roleContent.subtitle}
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <Link
+                                    href={roleContent.primaryHref}
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors"
+                                >
+                                    {roleContent.primaryLabel}
+                                </Link>
+                                {roleContent.secondaryLabel && roleContent.secondaryHref && (
+                                    <Link
+                                        href={roleContent.secondaryHref}
+                                        className="inline-flex items-center justify-center h-10 text-slate-500 hover:text-slate-700 text-sm font-medium transition-colors"
+                                    >
+                                        {roleContent.secondaryLabel}
+                                    </Link>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
             </div>
         </>
     );

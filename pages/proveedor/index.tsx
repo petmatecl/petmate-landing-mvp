@@ -238,6 +238,25 @@ export default function ProveedorDashboard() {
         setIsServiceModalOpen(true);
     };
 
+    // Sprint email-landing (2026-08-20) — deep-link `?abrirServicio=1`
+    // desde la landing /email-confirmado (CTA "Publicar mi primer servicio").
+    // Auto-dispara el ServiceFormModal al mount del dashboard, sin que el
+    // proveedor tenga que buscar el botón. Requisito PO: "el CTA es la
+    // acción, no el lugar" — un proveedor recién confirmado que llega al
+    // panel vacío pierde intención; con el modal abierto empieza a llenar
+    // el servicio inmediatamente. Espera a que proveedor.id esté hidratado
+    // (evita disparo en la primera pasada del effect antes de hydrate).
+    // Limpia el query param con shallow-replace para no re-abrir el modal
+    // si el proveedor recarga la página.
+    useEffect(() => {
+        if (!router.isReady || !proveedor?.id) return;
+        if (router.query.abrirServicio !== '1') return;
+        handlePublishClick();
+        const { abrirServicio: _drop, ...rest } = router.query;
+        router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, proveedor?.id, router.query.abrirServicio]);
+
     const handleGoToVerification = () => {
         setShowVerificationGate(false);
         setActiveTab('perfil');

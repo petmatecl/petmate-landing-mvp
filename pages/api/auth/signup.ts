@@ -68,13 +68,34 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const userId = authData.user?.id;
     if (!userId) throw new Error('No user ID returned');
 
-    // 1b. Generate email confirmation link
+    // 1b. Generate email confirmation link.
+    // Sprint email-landing (2026-08-20) — `redirectTo` explícito a
+    // /email-confirmado. Sin este parámetro, Supabase usa Site URL
+    // default del Dashboard (raíz `https://www.pawnecta.com`), y el
+    // fragment #access_token del confirm signup lo consumía el JS SDK
+    // en la home sin mensaje — usuario aterrizaba logueado en portada
+    // pública sin saber que la verificación funcionó.
+    //
+    // Ventaja de pasarlo explícito acá vs cambiar Site URL en Dashboard:
+    // el Site URL es fallback GLOBAL de TODOS los emails Auth (magic
+    // link, change email, invite user, recovery). Si apuntábamos Site
+    // URL a /email-confirmado, cambio de correo también aterrizaba en
+    // una página que dice "¡Correo confirmado!" — copy incorrecto para
+    // ese flujo. Redirect por-tipo mantiene Site URL neutro.
+    //
+    // Recovery/reset password ya pasa `redirectTo` propio desde
+    // pages/forgot-password.tsx:31-32. Este redirect es solo para el
+    // link inicial de confirmación post-signup.
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
     let confirmationUrl: string | null = null;
     try {
       const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({
         type: 'signup',
         email,
         password,
+        options: {
+          redirectTo: `${siteUrl}/email-confirmado`,
+        },
       });
       if (linkError) {
         console.warn('Failed to generate confirmation link:', linkError.message);
@@ -173,7 +194,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //    armar la URL del self-call; un atacante que llegara al edge antes
     //    del bind podía redirigir el fetch a su host llevándose el
     //    x-internal-secret. Falla-cerrada si SITE_URL no está seteada.
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    //    Nota (sprint email-landing 2026-08-20): `siteUrl` ya se declaró
+    //    arriba para el redirectTo del generateLink; reusamos el mismo
+    //    binding acá para el self-fetch. No re-declarar.
     try {
       await fetch(`${siteUrl}/api/auth/welcome`, {
         method: 'POST',
