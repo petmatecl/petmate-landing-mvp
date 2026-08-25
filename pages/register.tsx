@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
+import { resetInactivityTimer } from "../lib/sessionTimeout";
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from "../lib/comunas";
 import { trackEvent } from "../lib/gtag";
 
@@ -283,6 +284,12 @@ export default function RegisterWizard() {
         }
         throw new Error(signupData.error || 'Error al crear la cuenta.');
       }
+
+      // Sprint session-timeout fix-de-fix (2026-08-25) — reset del
+      // marker de inactividad post-signup exitoso. Intención explícita
+      // del user (submit del wizard con todos los datos válidos).
+      // Cero dependencia de events del SDK. Ver `lib/sessionTimeout.ts`.
+      resetInactivityTimer();
 
       // Sprint ANALYTICS-1: registro_proveedor_completado — ⭐ KEY EVENT
       // del funnel oferta. Fire SOLO post-success + rol=proveedor. Users

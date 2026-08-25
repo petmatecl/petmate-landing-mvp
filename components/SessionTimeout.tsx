@@ -27,15 +27,26 @@ import { isAuthTransitRoute } from "../lib/authTransitRoutes";
  *       El user está estableciendo/cerrando sesión — cualquier chequeo
  *       de inactividad ahí es contraproducente.
  *
- *   (2) SUBSCRIBE A `SIGNED_IN` PARA RESETEAR MARKER. El marker
- *       `pawnecta_last_activity` solo se actualizaba con eventos de
- *       interacción del user (mousedown, mousemove, keydown, scroll,
- *       touchstart). Un user que se registra y no toca el browser
- *       (se va al correo, hace click en el link 20 min después)
- *       vuelve con el marker viejo → expulsión aunque acabe de crear
- *       sesión. Fix: `onAuthStateChange` subscribe → en SIGNED_IN,
- *       resetear el marker a NOW. Cualquier autenticación (signup,
- *       login, confirmación de correo, magic link) reinicia el reloj.
+ *   (2) [REVERT 2026-08-25] SUBSCRIBE A `SIGNED_IN` PARA RESETEAR
+ *       MARKER — DESACTIVADO. La versión original de este fix reseteaba
+ *       el marker en el event `SIGNED_IN` de `onAuthStateChange`,
+ *       asumiendo que solo dispararía en login genuino. Supabase JS
+ *       v2.84 también dispara SIGNED_IN en cada F5 con sesión activa
+ *       (refresh silente al mount) — cada carga de página reseteaba
+ *       el marker, y el timeout de inactividad quedó desactivado en
+ *       toda la app. PO detectó con smoke específico (positivo conocido).
+ *       El objetivo original era legítimo (reset post autenticación
+ *       intencional para cubrir "signup + 20min + click en correo"),
+ *       pero el mecanismo (event del SDK) es frágil por semántica no
+ *       garantizada por contrato. REEMPLAZADO por:
+ *       `lib/sessionTimeout.ts resetInactivityTimer()` llamado desde
+ *       4 puntos de INTENCIÓN EXPLÍCITA del usuario (login submit,
+ *       register submit, confirmación de correo con token fresh en URL,
+ *       complete-registration submit). Cero dependencia de events del
+ *       SDK. Ver `lib/sessionTimeout.ts` para historia completa y
+ *       `CLAUDE.md > "No construir lógica de sesión sobre eventos del
+ *       SDK cuya semántica no esté garantizada por contrato"` para la
+ *       regla operativa que motivó el diseño nuevo.
  *
  *   (3) CATCH NO-EXPULSIVO. El catch de `getSession()` L44 (pre-fix)
  *       hacía `window.location.href = "/security-logout"` INCONDICIONAL
@@ -133,16 +144,11 @@ export default function SessionTimeout() {
             window.addEventListener(event, resetTimer);
         });
 
-        // Fix (2): subscribe a SIGNED_IN para resetear el marker cuando
-        // el user se autentica (signup, login, confirmación de correo,
-        // magic link). Sin este subscribe, un user que hace signup y
-        // luego click al link del correo 20 min después vuelve con
-        // marker viejo → expulsión aunque la sesión sea nueva.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-            if (event === 'SIGNED_IN') {
-                resetTimer();
-            }
-        });
+        // Fix (2) REVERTIDO 2026-08-25 — ver comentario ampliado arriba.
+        // Reemplazado por lib/sessionTimeout.ts resetInactivityTimer()
+        // llamado desde puntos de intención explícita del usuario, no
+        // desde events del SDK cuya semántica no está garantizada por
+        // contrato.
 
         // Iniciar
         init();
@@ -153,7 +159,6 @@ export default function SessionTimeout() {
             events.forEach((event) => {
                 window.removeEventListener(event, resetTimer);
             });
-            subscription.unsubscribe();
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router.pathname]);

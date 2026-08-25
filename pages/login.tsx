@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
+import { resetInactivityTimer } from "../lib/sessionTimeout";
 
 const inputClass =
   "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors";
@@ -116,6 +117,12 @@ export default function LoginPage() {
         setError("No se pudo iniciar sesión. Inténtalo de nuevo.");
         return;
       }
+
+      // Sprint session-timeout fix-de-fix (2026-08-25) — reset del
+      // marker de inactividad post-login exitoso. Intención explícita
+      // del user (submit del form con credenciales válidas). Cero
+      // dependencia de events del SDK. Ver `lib/sessionTimeout.ts`.
+      resetInactivityTimer();
 
       // Determinar destino según rol
       if (redirect) {

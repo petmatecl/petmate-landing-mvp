@@ -7,6 +7,7 @@ import { Loader2, Search, Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../contexts/UserContext';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../lib/comunas';
+import { resetInactivityTimer } from '../lib/sessionTimeout';
 
 /**
  * Sprint orphan-fix (2026-08-18) — página de rescate para cuentas que
@@ -132,6 +133,13 @@ export default function CompletarRegistroPage() {
                 setSubmitting(false);
                 return;
             }
+
+            // Sprint session-timeout fix-de-fix (2026-08-25) — reset
+            // del marker de inactividad post-completar-registro exitoso.
+            // Intención explícita del user (submit del form de rescate
+            // huérfano con rol elegido). Cero dependencia de events del
+            // SDK. Ver `lib/sessionTimeout.ts`.
+            resetInactivityTimer();
 
             toast.success('¡Registro completo! Bienvenido a Pawnecta.');
             // Full navigation en vez de router.replace() + refreshProfile().

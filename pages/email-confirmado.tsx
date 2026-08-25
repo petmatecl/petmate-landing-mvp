@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
+import { resetInactivityTimer } from "../lib/sessionTimeout";
 
 /**
  * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
@@ -76,6 +77,16 @@ export default function EmailConfirmadoPage() {
     //         "Entra a tu cuenta" sin loader.
     const [hasSomethingToProcess, setHasSomethingToProcess] = useState<boolean | null>(null);
 
+    // Sprint session-timeout fix-de-fix (2026-08-25) — subset explícito
+    // de `hasSomethingToProcess === true` que indica AUTENTICACIÓN
+    // FRESH desde link (hash con access_token o query code), en oposición
+    // a "sesión previa detectada por getSession fallback" o "error en URL".
+    // Usado como AND-guard para resetear el marker de inactividad SOLO
+    // cuando el user completó auth intencional post-click al link — nunca
+    // por re-hidratación de sesión existente ni por aterrizaje mudo.
+    // Ver `lib/sessionTimeout.ts` para regla operativa completa.
+    const [freshAuthTokenSeen, setFreshAuthTokenSeen] = useState(false);
+
     // Kill-switch temporal (regla nueva CLAUDE.md 2026-08-25 —
     // pantallas de tránsito async con dependencia externa deben tener
     // red de seguridad temporal). 4s antes de mostrar la salida manual.
@@ -120,6 +131,7 @@ export default function EmailConfirmadoPage() {
 
         if (hasToken) {
             setHasSomethingToProcess(true);
+            setFreshAuthTokenSeen(true);
             return;
         }
 
@@ -141,6 +153,19 @@ export default function EmailConfirmadoPage() {
         const t = setTimeout(() => setTimedOut(true), 4000);
         return () => clearTimeout(t);
     }, []);
+
+    // Sprint session-timeout fix-de-fix (2026-08-25) — reset del marker
+    // de inactividad SOLO si: (a) la URL trajo token fresh (hash o code
+    // — no un aterrizaje mudo ni una sesión previa detectada por
+    // getSession fallback), Y (b) el user se hidrató exitosamente.
+    // Doble-guard: cero disparo por re-hidratación de sesión existente.
+    // Cubre exactamente el escenario "signup + 20min al correo + click"
+    // sin afectar el timeout de inactividad normal en el resto de la app.
+    useEffect(() => {
+        if (freshAuthTokenSeen && user) {
+            resetInactivityTimer();
+        }
+    }, [freshAuthTokenSeen, user]);
 
     // Detección de rol post-hidratación.
     type Rol = 'proveedor' | 'tutor' | 'orphan';
