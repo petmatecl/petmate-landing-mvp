@@ -161,12 +161,13 @@ export default function EmailConfirmadoPage() {
                         failWith('No recibimos sesión del servidor.', 'unknown');
                     } catch (err: any) {
                         const msg = err?.message || 'desconocido';
-                        const kind = /expired/i.test(msg) ? 'expired' : /invalid|already/i.test(msg) ? 'invalid' : 'unknown';
+                        // Mismo colapso que detectErrorInUrl y el catch de PKCE.
+                        const kind = /expired|invalid|already|used/i.test(msg) ? 'used_or_expired' : 'unknown';
                         failWith(msg, kind);
                     }
                     return;
                 }
-                failWith('El enlace del correo está incompleto.', 'invalid');
+                failWith('El enlace del correo está incompleto.', 'used_or_expired');
                 return;
             }
 
