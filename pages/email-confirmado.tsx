@@ -1,220 +1,158 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
-import { useRouter } from "next/router";
 import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 
 /**
- * Sprint email-landing (2026-08-20) — landing post-confirmación de correo.
+ * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
+ * para eliminar el race condition que dejaba el loader pegado indefinidamente.
  *
- * Historia del archivo:
- *  (1) Sprint orphan-fix (2026-08-18): refactor total desde la versión que
- *      hacía INSERT client-side del perfil y `signOut()` de rollback (bug
- *      root que generó 92 huérfanos históricos). Se dejó como router pasivo
- *      que hidrataba sesión y mandaba a `/` para que el guard H3 tomara
- *      el volante — pero terminaba huérfana del flow real porque el Site
- *      URL del Dashboard apuntaba a la raíz.
- *  (2) Sprint email-landing (2026-08-20): responsabilidad expandida a
- *      página de aterrizaje explícita. `admin.generateLink` en
- *      `/api/auth/signup.ts:74` ahora pasa `redirectTo:
- *      <SITE_URL>/email-confirmado`. Site URL Dashboard queda en raíz
- *      como fallback global (magic link / change email / invite usan
- *      copy propio, no este).
+ * HISTORIA DEL BUG
+ *   Aldo reportó: pantalla "Procesando token..." pegada 60+ segundos post-
+ *   click del correo de confirmación. Solo salía con Ctrl+Shift+R, y el
+ *   hard refresh mostraba éxito inmediato — o sea la sesión SÍ estaba
+ *   hidratada, lo que fallaba era el render. Cero errores console, cero
+ *   requests pending. Estado React que quedaba pegado.
  *
- * Requisitos de producto (PO 2026-08-20):
- *  - Confirmación explícita y visible del correo verificado (no inferible).
- *  - Aterrizaje en el panel que corresponde al ROL, no al home público.
- *  - CTA es acción concreta (publicar/explorar), no lugar ("Ir a mi panel").
- *  - Cero auto-redirect: usuario post-click no está apurado, tiene el control.
- *  - Copy chileno con tuteo, cero voseo, sin promesas de revisión ni ventanas.
+ * ROOT CAUSE
+ *   El handler viejo declaraba `sessionReady` state que dependía de:
+ *   (a) resolución del `setSession(access_token, refresh_token)` sobre el
+ *       hash, o (b) evento `SIGNED_IN` capturado por el listener local
+ *       `onAuthStateChange`. Supabase JS con `detectSessionInUrl: true`
+ *       (default) procesa el hash automáticamente al mount del cliente,
+ *       ANTES de que la página monte. El SIGNED_IN se disparaba en ese
+ *       instante — el listener local aún no estaba suscrito. Perdía el
+ *       evento para siempre. El `setSession()` posterior sobre tokens ya
+ *       consumidos por el SDK global podía devolver `{ data: null, error:
+ *       null }` silencioso (idempotencia rara de Supabase) y no seteaba
+ *       `sessionReady`. Loader pegado indefinido.
  *
- * Flujo:
- *  (a) Procesa PKCE `?code=` o hash `#access_token=` (`exchangeCodeForSession`
- *      o `setSession`). Errores del hash (`error`, `error_code`, `error_description`
- *      — típicos de token expirado o consumido dos veces) se muestran con
- *      copy amable + CTA a re-registro o login.
- *  (b) Espera a que UserContext termine de hidratar perfil (`isLoading=false`).
- *  (c) Detecta rol vía `proveedorRow` / `hasSeekerProfile` / huérfano.
- *      Muestra copy + CTA según ese rol.
- *  (d) Botón CTA principal:
- *      - Proveedor: `/proveedor?abrirServicio=1` (dashboard abre
- *        ServiceFormModal automáticamente por query param, cero fricción).
- *      - Tutor: `/explorar`.
- *      - Huérfano (fallback defensivo): `/completar-registro` — el guard H3
- *        también captura desde acá si el user navega manualmente a
- *        cualquier ruta no-safe.
- *  (e) Link secundario discreto "Ir a mi panel" para proveedores que
- *      prefieren llegar sin modal abierto.
+ * FIX — DOS PARTES
+ *   (a) ELIMINAR `sessionReady`. Es state redundante que depende de events
+ *       que se pierden. La señal correcta ya existe en el UserContext:
+ *       `user` está poblado ⇔ sesión hidratada. UserContext hidrata por
+ *       dos canales (getSession() inicial + SIGNED_IN listener), ambos
+ *       inevitables — el listener LOCAL de la página es superfluo. Eliminado.
+ *   (b) TIMEOUT DEFENSIVO 4s (kill-switch). Cualquier pantalla de tránsito
+ *       que dependa de eventos async debe tener red de seguridad temporal.
+ *       Aunque la causa raíz vuelva por otra vía (bump SDK, nueva ruta
+ *       OAuth, cache stale), el user siempre sale del limbo en ≤4s con
+ *       un CTA manual. Copy del timeout AFIRMA que la cuenta está activa
+ *       porque Supabase valida el token server-side ANTES del redirect —
+ *       no es una promesa, es un hecho verificado (email_confirmed_at
+ *       poblado aunque la pantalla no lo comunicara).
+ *
+ * 4 ESTADOS DE RENDER MUTUAMENTE EXCLUSIVOS
+ *   (1) `errorKind` set → pantalla "Este enlace ya no sirve" con CTAs
+ *       login/register. Dispara cuando el URL trae ?error=access_denied
+ *       o error_code=otp_expired (link consumido o vencido — Supabase
+ *       no los distingue, ambos van al mismo copy).
+ *   (2) `hasSomethingToProcess === false` → pantalla "Entra a tu cuenta"
+ *       instantánea. Dispara cuando el URL está limpio (bookmark, second
+ *       click cuando el fragment ya fue limpiado, navegación directa).
+ *       Copy sugerido por PO: habla de la acción del usuario, no de la
+ *       mecánica interna de la página.
+ *   (3) UserContext aún hidratando (`userLoading || !user`) → loader.
+ *       Si a los 4s sigue en (3), avanza a (3b) timeout screen "Tu
+ *       cuenta ya está activa" con CTA único "Iniciar sesión".
+ *   (4) `user` poblado → pantalla success con detección de rol
+ *       (proveedor → CTA con `?abrirServicio=1`, tutor → CTA a /explorar,
+ *       huérfano → CTA a /completar-registro).
+ *
+ * NO REQUIERE cambio de env, config Supabase, ni migration.
  */
 export default function EmailConfirmadoPage() {
-    const router = useRouter();
     const { proveedorRow, hasSeekerProfile, isLoading: userLoading, user } = useUser();
 
-    const [statusText, setStatusText] = useState("Verificando confirmación...");
-    const [sessionReady, setSessionReady] = useState(false);
-    const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    // Sprint email-landing hotfix (2026-08-25) — Aldo detectó empíricamente
-    // que Supabase Auth devuelve `error_code=otp_expired` tanto para link
-    // VENCIDO como para link CONSUMIDO. Son indistinguibles desde el
-    // response (design decision de Supabase para no leak estado del user
-    // — mismo error code cubre ambos casos). Antes había dos kinds
-    // separados (`expired` vs `invalid`) que dividían por regex sobre el
-    // description, pero el desc "Email link is invalid or has expired"
-    // matchea AMBAS palabras — el ramo `invalid` era código muerto y el
-    // ramo `expired` mostraba copy engañoso para el caso más frecuente
-    // (usuario hace click dos veces post-confirmación exitosa).
-    // Colapsados en un solo `used_or_expired` con copy honesto que no
-    // afirma cuál de los dos ocurrió. `unknown` se mantiene para catch-all
-    // de códigos genuinos inesperados.
     const [errorKind, setErrorKind] = useState<'used_or_expired' | 'unknown' | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-    // Procesar token una vez al mount.
+    // null = aún no evaluado (primer render antes del effect sync).
+    // true = URL trae hash/code/error o sesión previa activa → esperar
+    //        UserContext o mostrar error/loader.
+    // false = URL "limpia" sin nada que procesar → pantalla directa
+    //         "Entra a tu cuenta" sin loader.
+    const [hasSomethingToProcess, setHasSomethingToProcess] = useState<boolean | null>(null);
+
+    // Kill-switch temporal (regla nueva CLAUDE.md 2026-08-25 —
+    // pantallas de tránsito async con dependencia externa deben tener
+    // red de seguridad temporal). 4s antes de mostrar la salida manual.
+    const [timedOut, setTimedOut] = useState(false);
+
+    // Sync check al mount: qué trae la URL. Sin async, sin listeners.
+    // Se ejecuta una sola vez, deps vacío.
     useEffect(() => {
-        let mounted = true;
+        const hash = window.location.hash;
+        const search = window.location.search;
+        const params = new URLSearchParams(
+            hash.startsWith('#') ? hash.slice(1) : (search.startsWith('?') ? search.slice(1) : '')
+        );
 
-        const failWith = (msg: string, kind: 'used_or_expired' | 'unknown') => {
-            if (!mounted) return;
-            console.warn('[email-confirmado] fail:', kind, msg);
-            setErrorMsg(msg);
-            setErrorKind(kind);
-        };
+        const error = params.get('error');
+        const errorCode = params.get('error_code');
+        const errorDesc = params.get('error_description');
 
-        // Detectar errores del hash o query params ANTES de procesar tokens.
-        // Supabase Auth redirige acá con `error=access_denied&error_code=otp_expired`
-        // en el hash cuando el link expiró O cuando el token ya fue consumido.
-        // Ambos casos caen en `used_or_expired` — Supabase no los distingue.
-        const detectErrorInUrl = (): boolean => {
-            const hash = window.location.hash;
-            const search = window.location.search;
-            const params = new URLSearchParams(
-                hash.startsWith('#') ? hash.slice(1) : (search.startsWith('?') ? search.slice(1) : '')
-            );
-            const error = params.get('error');
-            const errorCode = params.get('error_code');
-            const errorDesc = params.get('error_description');
-
-            if (!error && !errorCode) return false;
-
-            // Códigos conocidos que representan "link usado o vencido":
-            // - otp_expired (Supabase manda esto para ambos casos).
-            // - access_denied (variante que se ve en algunos flows PKCE).
-            // - description que menciona "expired" o "invalid".
+        // Rama 1: error en URL (link consumido/vencido).
+        // Supabase no distingue ambos casos — `otp_expired` cubre los dos.
+        if (error || errorCode) {
             const desc = errorDesc?.toLowerCase() || '';
             const isUsedOrExpired = errorCode === 'otp_expired'
                 || errorCode === 'access_denied'
                 || desc.includes('expired')
                 || desc.includes('invalid');
-
             if (isUsedOrExpired) {
-                failWith('El enlace ya no sirve.', 'used_or_expired');
-                return true;
+                setErrorMsg('El enlace ya no sirve.');
+                setErrorKind('used_or_expired');
+            } else {
+                setErrorMsg(`No pudimos completar la confirmación (${errorCode || error}).`);
+                setErrorKind('unknown');
             }
+            setHasSomethingToProcess(true);
+            return;
+        }
 
-            failWith(`No pudimos completar la confirmación (${errorCode || error}).`, 'unknown');
-            return true;
-        };
+        // Rama 2/3: chequear si hay algo que el SDK deba procesar.
+        const hasHashToken = hash && hash.includes('access_token');
+        const hasCode = new URLSearchParams(search).get('code');
+        const hasToken = !!(hasHashToken || hasCode);
 
-        const processTokens = async () => {
-            if (detectErrorInUrl()) return;
+        if (hasToken) {
+            setHasSomethingToProcess(true);
+            return;
+        }
 
-            // PKCE: `?code=XX` en query params.
-            const code = new URLSearchParams(window.location.search).get('code');
-            if (code) {
-                setStatusText("Verificando código de seguridad...");
-                try {
-                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-                    if (error) throw error;
-                    if (data.session) {
-                        if (mounted) setSessionReady(true);
-                        return;
-                    }
-                    failWith('No recibimos sesión del servidor.', 'unknown');
-                } catch (err: any) {
-                    const msg = err?.message || 'desconocido';
-                    // Colapsado a used_or_expired — mismo motivo que
-                    // detectErrorInUrl: Supabase no distingue link consumido
-                    // de link vencido en el mensaje de error del SDK.
-                    const kind = /expired|invalid|already|used/i.test(msg) ? 'used_or_expired' : 'unknown';
-                    failWith(msg, kind);
-                }
-                return;
-            }
-
-            // Implicit / recovery: `#access_token=...` en hash.
-            const hash = window.location.hash;
-            if (hash && hash.includes('access_token')) {
-                setStatusText("Procesando token...");
-                const params = new URLSearchParams(hash.slice(1));
-                const access_token = params.get('access_token');
-                const refresh_token = params.get('refresh_token');
-
-                if (access_token && refresh_token) {
-                    try {
-                        const { data, error } = await supabase.auth.setSession({ access_token, refresh_token });
-                        if (error) throw error;
-                        if (data.session) {
-                            if (mounted) setSessionReady(true);
-                            return;
-                        }
-                        failWith('No recibimos sesión del servidor.', 'unknown');
-                    } catch (err: any) {
-                        const msg = err?.message || 'desconocido';
-                        // Mismo colapso que detectErrorInUrl y el catch de PKCE.
-                        const kind = /expired|invalid|already|used/i.test(msg) ? 'used_or_expired' : 'unknown';
-                        failWith(msg, kind);
-                    }
-                    return;
-                }
-                failWith('El enlace del correo está incompleto.', 'used_or_expired');
-                return;
-            }
-
-            // Nada en URL — chequear si la sesión ya está activa por otra tab.
+        // URL limpia. Puede haber sesión activa por otra tab (chequeo
+        // async), o puede no haber nada — en cualquier caso la landing
+        // resuelve una vez sabemos el resultado del getSession.
+        (async () => {
             try {
                 const { data } = await supabase.auth.getSession();
-                if (data?.session) {
-                    if (mounted) setSessionReady(true);
-                    return;
-                }
-                failWith('No detectamos un enlace válido en esta página.', 'used_or_expired');
-            } catch (err: any) {
-                failWith(err?.message || 'Error verificando sesión.', 'unknown');
+                setHasSomethingToProcess(!!data?.session);
+            } catch {
+                setHasSomethingToProcess(false);
             }
-        };
-
-        processTokens();
-
-        // Suscriptor por si el flow resuelve tarde (ej. token propagándose).
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session && mounted) {
-                setSessionReady(true);
-            }
-        });
-
-        return () => {
-            mounted = false;
-            subscription.unsubscribe();
-        };
+        })();
     }, []);
 
-    // Loading state: procesando token o UserContext aún hidratando perfil.
-    const isLoading = !errorKind && (!sessionReady || userLoading || !user);
+    // Kill-switch temporal — activa a los 4s pase lo que pase.
+    useEffect(() => {
+        const t = setTimeout(() => setTimedOut(true), 4000);
+        return () => clearTimeout(t);
+    }, []);
 
     // Detección de rol post-hidratación.
-    // proveedor > tutor > huérfano (fallback defensivo — el guard H3 también
-    // captura si el user navega manualmente a ruta protegida).
     type Rol = 'proveedor' | 'tutor' | 'orphan';
-    const rol: Rol | null = isLoading
-        ? null
-        : proveedorRow
+    const rol: Rol | null = user
+        ? proveedorRow
             ? 'proveedor'
             : hasSeekerProfile
                 ? 'tutor'
-                : 'orphan';
+                : 'orphan'
+        : null;
 
-    // Copy + CTA según rol.
+    // Copy + CTA según rol (preservado del refactor anterior — cero cambio).
     const roleContent = (() => {
         if (rol === 'proveedor') {
             return {
@@ -234,9 +172,6 @@ export default function EmailConfirmadoPage() {
                 secondaryHref: null,
             };
         }
-        // orphan (raro post-F1 — signup crea perfil server-side). Defensivo:
-        // ofrecemos /completar-registro. El guard H3 también captura si el
-        // user intenta navegar a ruta protegida.
         return {
             subtitle: 'Tu cuenta quedó activa pero falta un paso para elegir tu rol y completar el perfil.',
             primaryLabel: 'Completar mi registro',
@@ -245,6 +180,10 @@ export default function EmailConfirmadoPage() {
             secondaryHref: null,
         };
     })();
+
+    // Cálculo del estado terminal (loading vs success) — solo relevante
+    // si estamos en "tenemos algo que procesar".
+    const isWaitingForSession = hasSomethingToProcess === true && (userLoading || !user);
 
     return (
         <>
@@ -255,22 +194,13 @@ export default function EmailConfirmadoPage() {
 
             <div className="min-h-[calc(100vh-200px)] flex items-center justify-center p-6 bg-gradient-to-b from-accent-50 to-white">
                 <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-sm p-8">
+
+                    {/* ESTADO 1 — Error en URL. */}
                     {errorKind ? (
                         <div className="text-center">
                             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-warning-100 flex items-center justify-center text-warning-700">
                                 <AlertTriangle size={28} aria-hidden="true" />
                             </div>
-                            {/*
-                              Copy unificado (sprint email-landing hotfix 2026-08-25).
-                              Antes había dos ramos separados 'expired' vs 'invalid'
-                              con copy distinto, pero Supabase Auth manda el mismo
-                              error_code (`otp_expired`) para link consumido Y para
-                              link vencido — imposible distinguir. El ramo 'invalid'
-                              era código muerto y el 'expired' engañaba al usuario
-                              más común (click doble post-confirmación exitosa) que
-                              leía "el enlace expiró" cuando en realidad su cuenta
-                              ya estaba activa. Un solo mensaje honesto cubre ambos.
-                            */}
                             <h1 className="text-xl font-bold text-slate-900 mb-2">
                                 {errorKind === 'used_or_expired'
                                     ? 'Este enlace ya no sirve'
@@ -296,15 +226,72 @@ export default function EmailConfirmadoPage() {
                                 </Link>
                             </div>
                         </div>
-                    ) : isLoading ? (
+                    )
+                    /* ESTADO 2 — URL "limpia" sin nada que procesar
+                       (bookmark, navegación directa, second click con hash
+                       ya limpiado). Copy PO 2026-08-25: habla de la acción
+                       del usuario, no de la mecánica interna. */
+                    : hasSomethingToProcess === false ? (
+                        <div className="text-center">
+                            <h1 className="text-xl font-bold text-slate-900 mb-2">
+                                Entra a tu cuenta
+                            </h1>
+                            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                                No hay nada que confirmar acá. Si ya confirmaste tu correo, inicia sesión. Si todavía no tienes cuenta, regístrate.
+                            </p>
+                            <div className="flex flex-col gap-2">
+                                <Link
+                                    href="/login"
+                                    className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors"
+                                >
+                                    Iniciar sesión
+                                </Link>
+                                <Link
+                                    href="/register"
+                                    className="inline-flex items-center justify-center h-11 px-6 rounded-xl text-slate-700 hover:bg-slate-50 border border-slate-200 font-medium text-sm transition-colors"
+                                >
+                                    Registrarme
+                                </Link>
+                            </div>
+                        </div>
+                    )
+                    /* ESTADO 3b — Timeout defensivo. UserContext no hidrató
+                       en 4s pero sabemos que Supabase valida el token
+                       server-side antes del redirect (email_confirmed_at
+                       poblado). Copy afirma en vez de dudar. */
+                    : isWaitingForSession && timedOut ? (
+                        <div className="text-center">
+                            <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-accent-50 flex items-center justify-center text-accent-700">
+                                <CheckCircle size={28} aria-hidden="true" />
+                            </div>
+                            <h1 className="text-xl font-bold text-slate-900 mb-2">
+                                Tu cuenta ya está activa
+                            </h1>
+                            <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+                                Esta pantalla se demoró más de lo normal, pero tu correo quedó confirmado. Inicia sesión para entrar a tu panel.
+                            </p>
+                            <Link
+                                href="/login"
+                                className="inline-flex items-center justify-center h-12 px-6 rounded-xl bg-accent-600 hover:bg-accent-700 text-white font-semibold text-sm transition-colors w-full"
+                            >
+                                Iniciar sesión
+                            </Link>
+                        </div>
+                    )
+                    /* ESTADO 3a — Loading (< 4s). */
+                    : isWaitingForSession ? (
                         <div className="text-center">
                             <Loader2 className="w-12 h-12 mx-auto text-accent-600 animate-spin mb-5" aria-hidden="true" />
                             <h1 className="text-lg font-semibold text-slate-800 mb-1">
                                 Confirmando tu cuenta
                             </h1>
-                            <p className="text-sm text-slate-500" aria-live="polite">{statusText}</p>
+                            <p className="text-sm text-slate-500" aria-live="polite">
+                                Un segundo...
+                            </p>
                         </div>
-                    ) : (
+                    )
+                    /* ESTADO 4 — Success con rol. */
+                    : (
                         <div className="text-center">
                             <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-accent-50 flex items-center justify-center text-accent-700">
                                 <CheckCircle size={36} aria-hidden="true" />
