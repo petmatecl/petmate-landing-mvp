@@ -224,6 +224,13 @@ export default function ProveedorDashboard() {
     const [carnetDorsoPreview, setCarnetDorsoPreview] = useState<string | null>(null);
     const [uploadingCarnet, setUploadingCarnet] = useState(false);
     const [showVerificationGate, setShowVerificationGate] = useState(false);
+    // Sprint email-landing hotfix (2026-08-25) — Marker sync que dice
+    // "esta sesión de página ya sirvió el CTA ?abrirServicio=1 del
+    // email-landing". Sobrevive re-renders pero no remount. Consumido
+    // por el useEffect consolidado que orquesta abrirServicio vs
+    // VerificationGateModal auto-abrir. Ver comentario ampliado en el
+    // useEffect L~251.
+    const servedAbrirServicioRef = useRef(false);
 
     // Sprint badge-f1 (2026-08-18) — verificación pasa de bloqueante a
     // opcional con badge. `handlePublishClick` ya no gatea por
@@ -238,24 +245,60 @@ export default function ProveedorDashboard() {
         setIsServiceModalOpen(true);
     };
 
-    // Sprint email-landing (2026-08-20) — deep-link `?abrirServicio=1`
-    // desde la landing /email-confirmado (CTA "Publicar mi primer servicio").
-    // Auto-dispara el ServiceFormModal al mount del dashboard, sin que el
-    // proveedor tenga que buscar el botón. Requisito PO: "el CTA es la
-    // acción, no el lugar" — un proveedor recién confirmado que llega al
-    // panel vacío pierde intención; con el modal abierto empieza a llenar
-    // el servicio inmediatamente. Espera a que proveedor.id esté hidratado
-    // (evita disparo en la primera pasada del effect antes de hydrate).
-    // Limpia el query param con shallow-replace para no re-abrir el modal
-    // si el proveedor recarga la página.
+    // Sprint email-landing hotfix (2026-08-25) — CONSOLIDACIÓN de dos
+    // useEffect que competían por el mount post-hidratación de proveedor:
+    //   (1) auto-abrir ServiceFormModal cuando viene `?abrirServicio=1`
+    //       del CTA "Publicar mi primer servicio" de /email-confirmado.
+    //   (2) auto-abrir VerificationGateModal una vez por proveedor con
+    //       verificacion_estado='sin_enviar' (sprint badge-f1).
+    //
+    // Antes eran 2 useEffect separados (este + L489). Ambos observaban
+    // `proveedor?.id` cambiando de null a hidratado y disparaban en el
+    // mismo tick. Race: el gate ganaba visualmente (declarado después
+    // en el JSX tree) y el ServiceFormModal no llegaba a persistir su
+    // state. Aldo reportó empíricamente: click en el CTA → aterriza
+    // en el modal invitación en vez del formulario.
+    //
+    // Fix (2026-08-25):
+    //  - Un solo useEffect con prioridad explícita + `return` que corta
+    //    antes de considerar el gate. Cero race.
+    //  - useRef `servedAbrirServicioRef`: sobrevive re-renders pero NO
+    //    remount. Cuando `router.replace` limpia `?abrirServicio=1`,
+    //    el effect se re-ejecuta con param undefined; sin el ref, el
+    //    gate dispararía en esa re-corrida.
+    //  - Flag localStorage `verifPromptShown` NO se marca en la rama
+    //    de abrirServicio. Regla PO: si el modal no llegó a mostrarse,
+    //    el proveedor debe verlo en su próxima visita. Preserva la
+    //    reaparición cuando el mismo proveedor navega a /explorar y
+    //    vuelve a /proveedor SIN query param.
+    //  - Preserva smoke (b) de F1: en visita normal (sin query param
+    //    y sin ref seteado), el gate se auto-abre una vez, marca el
+    //    flag, y no reaparece tras descartar / reload / re-login.
     useEffect(() => {
-        if (!router.isReady || !proveedor?.id) return;
-        if (router.query.abrirServicio !== '1') return;
-        handlePublishClick();
-        const { abrirServicio: _drop, ...rest } = router.query;
-        router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+        if (!router.isReady || !proveedor?.id || typeof window === 'undefined') return;
+
+        // Prioridad 1: intención explícita de publicar del CTA landing.
+        if (router.query.abrirServicio === '1' && !servedAbrirServicioRef.current) {
+            servedAbrirServicioRef.current = true;
+            handlePublishClick();
+            const { abrirServicio: _drop, ...rest } = router.query;
+            router.replace({ pathname: router.pathname, query: rest }, undefined, { shallow: true });
+            return;
+        }
+
+        // Guard: si esta sesión de página ya sirvió abrirServicio, no
+        // re-disparar gate al limpiar el query param (React re-corre
+        // el effect).
+        if (servedAbrirServicioRef.current) return;
+
+        // Prioridad 2: auto-abrir gate de verificación una vez por proveedor.
+        if (verificacionEstado !== 'sin_enviar') return;
+        const key = `pawnecta.proveedor.verifPromptShown.${proveedor.id}`;
+        if (localStorage.getItem(key)) return;
+        setShowVerificationGate(true);
+        localStorage.setItem(key, String(Date.now()));
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [router.isReady, proveedor?.id, router.query.abrirServicio]);
+    }, [router.isReady, proveedor?.id, verificacionEstado, router.query.abrirServicio]);
 
     const handleGoToVerification = () => {
         setShowVerificationGate(false);
@@ -478,22 +521,12 @@ export default function ProveedorDashboard() {
         setSolicitudesLastSeenAt(now);
     }, [activeTab, proveedor?.id]);
 
-    // Sprint badge-f1 — auto-abrir modal de invitación a verificar UNA
-    // sola vez por proveedor. Trigger: primer mount post-hydrate con
-    // verificacion_estado='sin_enviar' y sin marker localStorage.
-    // Al mostrarse (independiente de si el proveedor lo descarta con
-    // "Más tarde" o clickea "Verificar ahora"), se marca shown → no
-    // vuelve a auto-abrir. El CTA del sidebar sigue disponible como
-    // trigger manual siempre. Trade-off cross-browser aceptado (mismo
-    // patrón que solicitudes.lastSeenAt más arriba): localStorage local.
-    useEffect(() => {
-        if (!proveedor?.id || typeof window === 'undefined') return;
-        if (verificacionEstado !== 'sin_enviar') return;
-        const key = `pawnecta.proveedor.verifPromptShown.${proveedor.id}`;
-        if (localStorage.getItem(key)) return;
-        setShowVerificationGate(true);
-        localStorage.setItem(key, String(Date.now()));
-    }, [proveedor?.id, verificacionEstado]);
+    // Sprint email-landing hotfix (2026-08-25) — Auto-abrir del gate
+    // (sprint badge-f1) CONSOLIDADO con el hook de abrirServicio en el
+    // useEffect de L~251. La lógica del gate sigue viva pero orquestada
+    // con prioridad para no chocar con el ServiceFormModal cuando el
+    // proveedor llega con intención explícita de publicar. Ver comentario
+    // ampliado allá para el diseño completo del race fix.
 
     const solicitudesPendientesCount = useMemo(
         () => solicitudes.filter(s => {
