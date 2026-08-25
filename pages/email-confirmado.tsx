@@ -55,13 +55,26 @@ export default function EmailConfirmadoPage() {
     const [statusText, setStatusText] = useState("Verificando confirmación...");
     const [sessionReady, setSessionReady] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-    const [errorKind, setErrorKind] = useState<'expired' | 'invalid' | 'unknown' | null>(null);
+    // Sprint email-landing hotfix (2026-08-25) — Aldo detectó empíricamente
+    // que Supabase Auth devuelve `error_code=otp_expired` tanto para link
+    // VENCIDO como para link CONSUMIDO. Son indistinguibles desde el
+    // response (design decision de Supabase para no leak estado del user
+    // — mismo error code cubre ambos casos). Antes había dos kinds
+    // separados (`expired` vs `invalid`) que dividían por regex sobre el
+    // description, pero el desc "Email link is invalid or has expired"
+    // matchea AMBAS palabras — el ramo `invalid` era código muerto y el
+    // ramo `expired` mostraba copy engañoso para el caso más frecuente
+    // (usuario hace click dos veces post-confirmación exitosa).
+    // Colapsados en un solo `used_or_expired` con copy honesto que no
+    // afirma cuál de los dos ocurrió. `unknown` se mantiene para catch-all
+    // de códigos genuinos inesperados.
+    const [errorKind, setErrorKind] = useState<'used_or_expired' | 'unknown' | null>(null);
 
     // Procesar token una vez al mount.
     useEffect(() => {
         let mounted = true;
 
-        const failWith = (msg: string, kind: 'expired' | 'invalid' | 'unknown') => {
+        const failWith = (msg: string, kind: 'used_or_expired' | 'unknown') => {
             if (!mounted) return;
             console.warn('[email-confirmado] fail:', kind, msg);
             setErrorMsg(msg);
@@ -70,7 +83,8 @@ export default function EmailConfirmadoPage() {
 
         // Detectar errores del hash o query params ANTES de procesar tokens.
         // Supabase Auth redirige acá con `error=access_denied&error_code=otp_expired`
-        // en el hash cuando el link expiró o el token fue consumido.
+        // en el hash cuando el link expiró O cuando el token ya fue consumido.
+        // Ambos casos caen en `used_or_expired` — Supabase no los distingue.
         const detectErrorInUrl = (): boolean => {
             const hash = window.location.hash;
             const search = window.location.search;
@@ -83,14 +97,21 @@ export default function EmailConfirmadoPage() {
 
             if (!error && !errorCode) return false;
 
-            if (errorCode === 'otp_expired' || errorDesc?.toLowerCase().includes('expired')) {
-                failWith('El enlace del correo ya expiró.', 'expired');
+            // Códigos conocidos que representan "link usado o vencido":
+            // - otp_expired (Supabase manda esto para ambos casos).
+            // - access_denied (variante que se ve en algunos flows PKCE).
+            // - description que menciona "expired" o "invalid".
+            const desc = errorDesc?.toLowerCase() || '';
+            const isUsedOrExpired = errorCode === 'otp_expired'
+                || errorCode === 'access_denied'
+                || desc.includes('expired')
+                || desc.includes('invalid');
+
+            if (isUsedOrExpired) {
+                failWith('El enlace ya no sirve.', 'used_or_expired');
                 return true;
             }
-            if (errorCode === 'access_denied' || errorDesc?.toLowerCase().includes('invalid')) {
-                failWith('Este enlace ya no es válido. Puede que hayas hecho clic más de una vez o que el correo sea de otra sesión.', 'invalid');
-                return true;
-            }
+
             failWith(`No pudimos completar la confirmación (${errorCode || error}).`, 'unknown');
             return true;
         };
@@ -112,7 +133,10 @@ export default function EmailConfirmadoPage() {
                     failWith('No recibimos sesión del servidor.', 'unknown');
                 } catch (err: any) {
                     const msg = err?.message || 'desconocido';
-                    const kind = /expired/i.test(msg) ? 'expired' : /invalid|already/i.test(msg) ? 'invalid' : 'unknown';
+                    // Colapsado a used_or_expired — mismo motivo que
+                    // detectErrorInUrl: Supabase no distingue link consumido
+                    // de link vencido en el mensaje de error del SDK.
+                    const kind = /expired|invalid|already|used/i.test(msg) ? 'used_or_expired' : 'unknown';
                     failWith(msg, kind);
                 }
                 return;
@@ -235,19 +259,26 @@ export default function EmailConfirmadoPage() {
                             <div className="w-14 h-14 mx-auto mb-4 rounded-full bg-warning-100 flex items-center justify-center text-warning-700">
                                 <AlertTriangle size={28} aria-hidden="true" />
                             </div>
+                            {/*
+                              Copy unificado (sprint email-landing hotfix 2026-08-25).
+                              Antes había dos ramos separados 'expired' vs 'invalid'
+                              con copy distinto, pero Supabase Auth manda el mismo
+                              error_code (`otp_expired`) para link consumido Y para
+                              link vencido — imposible distinguir. El ramo 'invalid'
+                              era código muerto y el 'expired' engañaba al usuario
+                              más común (click doble post-confirmación exitosa) que
+                              leía "el enlace expiró" cuando en realidad su cuenta
+                              ya estaba activa. Un solo mensaje honesto cubre ambos.
+                            */}
                             <h1 className="text-xl font-bold text-slate-900 mb-2">
-                                {errorKind === 'expired'
-                                    ? 'El enlace expiró'
-                                    : errorKind === 'invalid'
-                                        ? 'Este enlace ya no es válido'
-                                        : 'No pudimos completar el proceso'}
+                                {errorKind === 'used_or_expired'
+                                    ? 'Este enlace ya no sirve'
+                                    : 'No pudimos completar el proceso'}
                             </h1>
                             <p className="text-sm text-slate-600 mb-6 leading-relaxed">
-                                {errorKind === 'expired'
-                                    ? 'Los enlaces de confirmación duran un tiempo limitado. Regístrate de nuevo o inicia sesión y te reenviamos uno.'
-                                    : errorKind === 'invalid'
-                                        ? 'Puede que hayas hecho clic más de una vez o que el correo sea de otra sesión. Si ya activaste tu cuenta, entra directamente.'
-                                        : errorMsg || 'Por favor intenta de nuevo o contáctanos si el problema persiste.'}
+                                {errorKind === 'used_or_expired'
+                                    ? 'Puede que ya lo hayas usado o que haya pasado mucho tiempo. Si ya confirmaste tu cuenta, inicia sesión y listo.'
+                                    : errorMsg || 'Por favor intenta de nuevo o contáctanos si el problema persiste.'}
                             </p>
                             <div className="flex flex-col gap-2">
                                 <Link
