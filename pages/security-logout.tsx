@@ -14,12 +14,19 @@ export default function SecurityLogout() {
                     <ShieldAlert className="w-10 h-10 text-accent-600" />
                 </div>
 
+                {/* Sprint email-landing session-timeout fix (2026-08-25):
+                    copy causa-neutral. Antes afirmaba "inactividad" pero
+                    este destino cubre varios paths — inactividad real +
+                    fallback catch de errores no-diagnosticados. Copy nuevo
+                    describe el EFECTO observable ("cerramos tu sesión") sin
+                    inferir la CAUSA. Ver CLAUDE.md > "Pantalla de estado
+                    no debe afirmar causa que no verificó". */}
                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-2">
-                    Sesión cerrada por seguridad
+                    Cerramos tu sesión
                 </h1>
 
                 <p className="text-slate-600 mb-8 leading-relaxed">
-                    Para proteger tu cuenta, hemos cerrado tu sesión automáticamente debido a un periodo de inactividad.
+                    Por seguridad cerramos tu sesión. Vuelve a entrar para continuar.
                 </p>
 
                 <Link

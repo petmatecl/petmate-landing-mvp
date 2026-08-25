@@ -2,6 +2,14 @@ import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
 
+// Sprint email-landing session-timeout fix (2026-08-25) — `isOrphanSafeRoute`
+// migrado a `lib/authTransitRoutes.ts` como constante compartida con
+// `SessionTimeout`. Antes ambos guards mantenían listas paralelas y era
+// deuda por olvidar sincronizar cuando se agregara una nueva ruta de
+// tránsito de auth. Ver comentario en el módulo compartido para historia
+// completa del bug que motivó la centralización.
+import { isOrphanSafeRoute } from '../lib/authTransitRoutes';
+
 // Rutas que requieren sesion activa. Cuando SIGNED_OUT no-voluntario llega
 // (token expiro, otra tab cambio de usuario), redirigimos al login solo si
 // el usuario esta en una de estas — evita el redirect brusco cuando esta
@@ -23,31 +31,6 @@ function isProtectedPath(path: string): boolean {
     if (pathNoQuery.startsWith('/admin')) return true;
     if (pathNoQuery.startsWith('/mensajes')) return true;
     if (pathNoQuery.startsWith('/favoritos')) return true;
-    return false;
-}
-
-// Sprint orphan-fix (2026-08-18) — paths donde el guard huérfano NO debe
-// redirigir aunque el user no tenga perfil, para permitir el flow de
-// completar-registro y no romper landing/login/etc mientras el user
-// está en tránsito. Cualquier otro path protegido dispara el redirect.
-//
-// Nota: SÍ redirige desde `/` (home post-login), `/explorar`, `/proveedor`,
-// `/mensajes` y cualquier otra ruta que requiera perfil para tener sentido.
-// La única forma de "vivir sin perfil" en la app es estar en una de estas
-// rutas de tránsito.
-function isOrphanSafeRoute(path: string): boolean {
-    const [pathNoQuery] = path.split('?');
-    if (pathNoQuery === '/completar-registro' || pathNoQuery === '/completar-registro/') return true;
-    if (pathNoQuery === '/login' || pathNoQuery === '/login/') return true;
-    if (pathNoQuery === '/register' || pathNoQuery === '/register/') return true;
-    if (pathNoQuery === '/logout' || pathNoQuery === '/logout/') return true;
-    if (pathNoQuery === '/security-logout' || pathNoQuery === '/security-logout/') return true;
-    if (pathNoQuery === '/email-confirmado' || pathNoQuery === '/email-confirmado/') return true;
-    if (pathNoQuery === '/forgot-password' || pathNoQuery === '/forgot-password/') return true;
-    if (pathNoQuery === '/reset-password' || pathNoQuery === '/reset-password/') return true;
-    // Rutas estáticas informativas — el user puede leerlas sin necesitar
-    // perfil (típicamente accedidas antes de decidir signup).
-    if (pathNoQuery === '/terminos' || pathNoQuery === '/privacidad' || pathNoQuery === '/quienes-somos') return true;
     return false;
 }
 
