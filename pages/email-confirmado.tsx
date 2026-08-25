@@ -178,7 +178,7 @@ export default function EmailConfirmadoPage() {
                     if (mounted) setSessionReady(true);
                     return;
                 }
-                failWith('No detectamos un enlace válido en esta página.', 'invalid');
+                failWith('No detectamos un enlace válido en esta página.', 'used_or_expired');
             } catch (err: any) {
                 failWith(err?.message || 'Error verificando sesión.', 'unknown');
             }
