@@ -2655,7 +2655,27 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <button type="button" onClick={onClose} className="px-5 py-2.5 rounded-xl text-slate-600 font-normal hover:bg-slate-100 transition-colors">
                         Cancelar
                     </button>
+                    {/* Sprint panel-prov-fixes-hotfix (2026-08-27) — `type="button"`
+                        explícito. Este botón vivió sin type declarado dentro de
+                        un <form onSubmit={handleSubmit}> (L1470), por lo que el
+                        default HTML lo marcaba como `type="submit"`. Con el
+                        `onClick={handleSubmit}` propio, cada click ejecutaba
+                        handleSubmit DOS VECES: una por el onClick del botón,
+                        otra por el submit del form. Empíricamente descartado
+                        el vector de doble INSERT/UPDATE por smoke en staging
+                        (Aldo 2026-08-27: SELECT COUNT antes/después = delta 1),
+                        pero los toasts SÍ se duplicaban en cada corrida del
+                        handler — la promesa async del INSERT/UPDATE ganaba
+                        la carrera contra la segunda ejecución sync del guard,
+                        entonces la BD veía 1 sola escritura pero el toast se
+                        disparaba 2 veces. Pregunta abierta que queda anotada
+                        en BACKLOG: `e.preventDefault()` intercepta el submit
+                        del form en el camino de éxito pero NO en el camino de
+                        error — asimetría sin explicación completa todavía.
+                        El fix cierra el vector estructural igual, no depende
+                        de resolver la asimetría. */}
                     <button
+                        type="button"
                         onClick={handleSubmit}
                         disabled={loading || fetching || uploadingFotos}
                         className="px-6 py-2.5 bg-accent-600 text-white font-medium tracking-wide rounded-xl hover:bg-accent-700 transition-colors shadow-lg shadow-accent-600/20 disabled:opacity-50 flex items-center gap-2"
