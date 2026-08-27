@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
+import { getCategoriasCached, type Categoria } from '../../lib/catalogoCategorias';
 import { useUser } from '../../contexts/UserContext';
 import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 import { nochesEntre } from '../../lib/formatFecha';
@@ -100,7 +101,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
-    const [categorias, setCategorias] = useState<any[]>([]);
+    // Sprint panel-prov-fixes (2026-08-27) — cambio de estado del select
+    // de Categoría para eliminar el race del primer render con
+    // categorias=[]. Ahora hay 3 estados observables:
+    //   'loading' → dropdown "Cargando categorías…", disabled.
+    //   'error'   → dropdown "No pudimos cargar" + CTA Reintentar inline.
+    //   'ready'   → dropdown con las N opciones habilitadas.
+    // Ver `lib/catalogoCategorias.ts` para historia y diseño del cache.
+    const [categorias, setCategorias] = useState<Categoria[]>([]);
+    const [categoriasStatus, setCategoriasStatus] = useState<'loading' | 'error' | 'ready'>('loading');
+    const [categoriasError, setCategoriasError] = useState<string | null>(null);
 
     // Form fields
     const [categoriaId, setCategoriaId] = useState('');
@@ -279,11 +289,24 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setBlackoutErrors({});
     };
 
+    // Sprint panel-prov-fixes (2026-08-27) — reemplaza query directa por
+    // helper cacheado. Estados 'loading'/'error'/'ready' se propagan al
+    // render del select para que el user nunca vea un dropdown vacío
+    // silencioso (bug del race preexistente que este sprint resuelve).
+    // Cero cambio del contrato del state `categorias` — sigue siendo un
+    // array `Categoria[]` que el select mapea a `<option>`.
     const fetchCategorias = useCallback(async () => {
-        const { data, error } = await supabase.from('categorias_servicio').select('id, nombre, icono, slug').order('nombre');
-        if (!error && data) {
-            setCategorias(data);
+        setCategoriasStatus('loading');
+        setCategoriasError(null);
+        const { data, error } = await getCategoriasCached();
+        if (error) {
+            setCategorias([]);
+            setCategoriasError(error);
+            setCategoriasStatus('error');
+            return;
         }
+        setCategorias(data);
+        setCategoriasStatus('ready');
     }, []);
 
     // Default de categoría solo para servicios nuevos. Separado de fetchCategorias
@@ -1444,17 +1467,49 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="md:col-span-1">
                                             <label htmlFor="servicio-categoria" className="block text-sm font-medium text-slate-700 mb-1.5">Categoría</label>
+                                            {/*
+                                              Sprint panel-prov-fixes (2026-08-27) — 3 estados observables:
+                                              (a) 'loading' → select disabled con "Cargando categorías…"
+                                                  como única opción. Cero interacción posible.
+                                              (b) 'error'  → select disabled con "No pudimos cargar…" +
+                                                  botón inline "Reintentar" que re-dispara fetchCategorias.
+                                                  Ver `lib/catalogoCategorias.ts` — el helper NO cachea
+                                                  fallos, entonces cada reintento re-fetchea limpio.
+                                              (c) 'ready'  → select con las N categorías habilitadas.
+                                              El bug preexistente era mostrar dropdown vacío durante
+                                              el race del primer render — ahora hay estado visible en
+                                              todos los momentos.
+                                            */}
                                             <select
                                                 id="servicio-categoria"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                                                 value={categoriaId}
                                                 onChange={(e) => { setCategoriaId(e.target.value); setDetalles({}); }}
                                                 required
+                                                disabled={categoriasStatus !== 'ready'}
                                             >
-                                                {categorias.map(c => (
+                                                {categoriasStatus === 'loading' && (
+                                                    <option value="" disabled>Cargando categorías…</option>
+                                                )}
+                                                {categoriasStatus === 'error' && (
+                                                    <option value="" disabled>No pudimos cargar las categorías</option>
+                                                )}
+                                                {categoriasStatus === 'ready' && categorias.map(c => (
                                                     <option key={c.id} value={c.id}>{c.nombre}</option>
                                                 ))}
                                             </select>
+                                            {categoriasStatus === 'error' && (
+                                                <div className="mt-1.5 flex items-center gap-2 text-xs text-danger-700">
+                                                    <span>{categoriasError || 'Error de red.'}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={fetchCategorias}
+                                                        className="font-semibold text-accent-700 hover:text-accent-800 underline underline-offset-2"
+                                                    >
+                                                        Reintentar
+                                                    </button>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="md:col-span-2">
                                             <label htmlFor="servicio-titulo" className="block text-sm font-medium text-slate-700 mb-1.5">Título <span className="text-red-500">*</span></label>

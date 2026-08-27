@@ -8,6 +8,7 @@ import { trackEvent } from '../../lib/gtag';
 import { useProveedorStats } from '../../lib/useProveedorStats';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
+import { prefetchCategorias } from '../../lib/catalogoCategorias';
 import VerificationGateModal from '../../components/Proveedor/VerificationGateModal';
 import ConversationList from '../../components/Chat/ConversationList';
 import MessageThread from '../../components/Chat/MessageThread';
@@ -231,6 +232,19 @@ export default function ProveedorDashboard() {
     // VerificationGateModal auto-abrir. Ver comentario ampliado en el
     // useEffect L~251.
     const servedAbrirServicioRef = useRef(false);
+
+    // Sprint panel-prov-fixes (2026-08-27) — prefetch fire-and-forget del
+    // catálogo de categorías al mount del panel. Puebla el cache
+    // module-level de `lib/catalogoCategorias.ts` antes de que el
+    // proveedor abra el ServiceFormModal por primera vez → dropdown de
+    // Categoría pobla instantáneo, cero race del primer render con
+    // categorias=[]. Combinado con el loading/error state del propio
+    // select (fallback si el prefetch falló o no resolvió a tiempo),
+    // cubre los dos casos: mayoría de aperturas via cache warm + edge
+    // case del user que abre el modal en el mismo tick del mount.
+    useEffect(() => {
+        prefetchCategorias();
+    }, []);
 
     // Sprint badge-f1 (2026-08-18) — verificación pasa de bloqueante a
     // opcional con badge. `handlePublishClick` ya no gatea por
