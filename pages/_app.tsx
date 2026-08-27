@@ -17,6 +17,7 @@ import { OnlineStatusProvider } from "../components/Shared/OnlineStatusProvider"
 import { RoleSelectionInterceptor } from "../components/Auth/RoleSelectionInterceptor";
 import ErrorBoundary from "../components/ErrorBoundary";
 import FeedbackWidget from "../components/Shared/FeedbackWidget";
+import { FeedbackProvider } from "../contexts/FeedbackContext";
 import ConsentScripts from "../components/ConsentScripts";
 import CookieBanner from "../components/CookieBanner";
 
@@ -38,6 +39,10 @@ export default function MyApp({ Component, pageProps }: AppProps) {
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
+      {/* Sprint admin-visibilidad (2026-08-27) — FeedbackProvider dentro del
+          árbol para que Header (franja lanzamiento) y FeedbackWidget compartan
+          el estado `isOpen`. Ver contexts/FeedbackContext.tsx. */}
+      <FeedbackProvider>
       <OnlineStatusProvider>
         <div className={`${outfit.className} ${outfit.variable} min-h-screen flex flex-col bg-slate-50`}>
           <RoleSelectionInterceptor />
@@ -94,6 +99,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           <CookieBanner />
         </div>
       </OnlineStatusProvider>
+      </FeedbackProvider>
     </UserContextProvider>
   );
 }

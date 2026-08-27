@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
+import { useFeedback } from '../../contexts/FeedbackContext';
 import { MessageCircle, X, Send, Loader2, Check, AlertCircle } from 'lucide-react';
 
 type Rol = 'tutor' | 'proveedor' | 'admin' | 'otro';
@@ -37,8 +38,14 @@ function rolFromUserRoles(roles: string[]): Rol {
 export default function FeedbackWidget() {
     const router = useRouter();
     const { user, roles, isAuthenticated } = useUser();
+    // Sprint admin-visibilidad (2026-08-27) — estado `open` movido al
+    // FeedbackContext global. Permite que la franja lanzamiento en
+    // components/Header.tsx llame `open()` desde su CTA "cuéntanos" sin
+    // event bus custom. El resto de la UI del widget (categoria, mensaje,
+    // errores, rate limit) sigue siendo estado local — pertenece al form
+    // interno, no tiene consumidores externos.
+    const { isOpen: open, open: openWidget, close: closeWidget } = useFeedback();
 
-    const [open, setOpen] = useState(false);
     const [categoria, setCategoria] = useState<Categoria | ''>('');
     const [rolAnonimo, setRolAnonimo] = useState<Rol | ''>('');
     const [mensaje, setMensaje] = useState('');
@@ -80,7 +87,7 @@ export default function FeedbackWidget() {
     };
 
     const closeAndReset = () => {
-        setOpen(false);
+        closeWidget();
         reset();
     };
 
@@ -153,7 +160,7 @@ export default function FeedbackWidget() {
             {/* Trigger flotante: bottom-right, mobile icon-only, desktop con texto */}
             {!open && (
                 <button
-                    onClick={() => setOpen(true)}
+                    onClick={openWidget}
                     aria-haspopup="dialog"
                     aria-expanded={false}
                     aria-controls="feedback-widget-panel"

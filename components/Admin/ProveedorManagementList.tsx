@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle } from 'lucide-react';
+import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle, Copy, CheckCircle2 } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
 
@@ -29,16 +29,21 @@ export default function ProveedorManagementList() {
         fetchProveedores();
     }, []);
 
+    // Sprint admin-visibilidad (2026-08-27) — reemplazo del .from('proveedores')
+    // por el RPC admin_listar_proveedores() (security definer + is_admin gate).
+    // Razón: el email real vive en auth.users que NO está expuesto por
+    // PostgREST al rol authenticated (schema fuera de db-schemas de Supabase
+    // por default), entonces el panel mostraba "N/A" en la columna Contacto
+    // porque leía prov.email_publico (opcional, 0/N poblado). El RPC joinea
+    // proveedores + auth.users y devuelve email real + email_confirmado
+    // (boolean derivado de email_confirmed_at IS NOT NULL) + last_sign_in_at.
+    // Ver migrations/20260827_admin_listar_proveedores_rpc.sql para el gate.
+    // n_servicios / n_servicios_activos vienen precomputados en el RPC —
+    // reemplazan al array embed .servicios(...) del select anterior.
     const fetchProveedores = async () => {
         setLoading(true);
         try {
-            const { data, error } = await supabase
-                .from('proveedores')
-                .select(`
-                    *,
-                    servicios:servicios_publicados(id, titulo, activo)
-                `)
-                .order('created_at', { ascending: false });
+            const { data, error } = await supabase.rpc('admin_listar_proveedores');
 
             if (error) throw error;
             setProveedores(data || []);
@@ -47,6 +52,18 @@ export default function ProveedorManagementList() {
             toast.error('Error al cargar la lista de proveedores');
         } finally {
             setLoading(false);
+        }
+    };
+
+    // Sprint admin-visibilidad — copiar el correo al portapapeles con 1 click.
+    // navigator.clipboard puede fallar en contextos no-HTTPS o si el user no
+    // dio permiso; el catch cubre esos escenarios sin romper la tabla.
+    const copyEmail = async (email: string) => {
+        try {
+            await navigator.clipboard.writeText(email);
+            toast.success('Correo copiado');
+        } catch {
+            toast.error('No se pudo copiar. Selecciónalo a mano.');
         }
     };
 
@@ -117,7 +134,10 @@ export default function ProveedorManagementList() {
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             const fullName = `${prov.nombre} ${prov.apellido_p}`.toLowerCase();
-            const email = (prov.email_publico || prov.email || "").toLowerCase();
+            // Sprint admin-visibilidad — buscar por email_auth (auth.users) que ahora
+            // viene del RPC. email_publico se mantiene como fallback histórico por si
+            // el proveedor lo pobló manualmente (0/N pobladas hoy, pero cero costo).
+            const email = (prov.email_auth || prov.email_publico || "").toLowerCase();
             const rut = (prov.rut || "").toLowerCase();
 
             matchesSearch = fullName.includes(term) || email.includes(term) || rut.includes(term);
@@ -209,14 +229,51 @@ export default function ProveedorManagementList() {
                                                 </div>
                                             </div>
                                         </td>
+                                        {/* Sprint admin-visibilidad (2026-08-27) — columna Contacto:
+                                            (1) email_auth del RPC (auth.users.email real), (2) botón
+                                            Copiar con navigator.clipboard, (3) badge de estado de
+                                            confirmación del correo. Sin confirmar = cuenta aprobada
+                                            que NO puede entrar (login rebota). El copy explícito
+                                            "no puede entrar" evita ambigüedad — es exactamente el
+                                            estado operativo que Aldo necesita ver de un vistazo. */}
                                         <td className="px-6 py-4">
-                                            <p className="text-slate-700 font-medium">{prov.email_publico || prov.email || 'N/A'}</p>
-                                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><MapPin size={12} /> {prov.comuna || 'N/A'}</p>
+                                            {prov.email_auth ? (
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-slate-700 font-medium">{prov.email_auth}</p>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => copyEmail(prov.email_auth)}
+                                                        aria-label={`Copiar correo de ${prov.nombre}`}
+                                                        title="Copiar correo"
+                                                        className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <Copy size={14} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <p className="text-slate-400 italic text-xs">Sin cuenta en auth</p>
+                                            )}
+                                            {prov.email_auth && (
+                                                prov.email_confirmado ? (
+                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-success-100 text-success-700 rounded-full text-[10px] font-medium uppercase tracking-widest">
+                                                        <CheckCircle2 size={10} /> Confirmado
+                                                    </span>
+                                                ) : (
+                                                    <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-warning-100 text-warning-700 rounded-full text-[10px] font-medium uppercase tracking-widest">
+                                                        <AlertTriangle size={10} /> Sin confirmar — no puede entrar
+                                                    </span>
+                                                )
+                                            )}
+                                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin size={12} /> {prov.comuna || 'N/A'}</p>
                                         </td>
+                                        {/* Sprint admin-visibilidad — n_servicios/n_servicios_activos
+                                            precomputados en el RPC (reemplazan al array embed
+                                            .servicios(...) del select anterior). Muestra activos primero
+                                            porque es la métrica operativa; total como contexto secundario. */}
                                         <td className="px-6 py-4 text-center">
                                             <div className="inline-flex flex-col items-center justify-center">
-                                                <span className="font-bold text-slate-700 text-lg leading-none">{prov.servicios?.length || 0}</span>
-                                                <span className="text-[10px] uppercase font-medium text-slate-400 tracking-widest">Publicados</span>
+                                                <span className="font-bold text-slate-700 text-lg leading-none">{prov.n_servicios_activos ?? 0}</span>
+                                                <span className="text-[10px] uppercase font-medium text-slate-400 tracking-widest">Activos {prov.n_servicios && prov.n_servicios !== prov.n_servicios_activos ? `/ ${prov.n_servicios} total` : ''}</span>
                                             </div>
                                         </td>
                                         {/* T3 — misma triada de T2 (proveedores.tsx) con tokens semanticos:

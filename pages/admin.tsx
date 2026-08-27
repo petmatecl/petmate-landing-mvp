@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
-import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, TrendingUp } from 'lucide-react';
+import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
 
@@ -19,6 +19,11 @@ const OfertaMetrics = dynamic(() => import('../components/Admin/OfertaMetrics'),
 // (upstash | memory | memory-fallback). Silencioso cuando todo OK en dev,
 // rojo persistente cuando degradado en prod/preview. Aldo lo ve al entrar.
 const RateLimitBadge = dynamic(() => import('../components/Admin/RateLimitBadge'), { ssr: false });
+// Sprint admin-visibilidad (2026-08-27) — lista solo-lectura de
+// feedback_submissions. Tabla ya existía con RLS admin desde 20260508
+// pero la superficie UI faltaba (patrón "infra sin superficie" que veníamos
+// viendo esta semana). Ver components/Admin/FeedbackList.tsx.
+const FeedbackList = dynamic(() => import('../components/Admin/FeedbackList'), { ssr: false });
 
 export default function AdminDashboard() {
     const router = useRouter();
@@ -57,6 +62,31 @@ export default function AdminDashboard() {
                 return;
             }
             setAprobacionesPendientesCount(count ?? 0);
+        })();
+        return () => { cancelled = true; };
+    }, [isAdmin]);
+
+    // Sprint admin-visibilidad (2026-08-27) — count de feedback con estado
+    // 'nuevo' para badge del tab. Mismo patrón que aprobacionesPendientesCount:
+    // HEAD count barato, corre una vez al aterrizar el admin verificado. Sin
+    // este badge Aldo declaró explícitamente que va a olvidar revisar el tab.
+    // RLS de feedback_submissions ya filtra a admin — cero RPC necesario.
+    const [feedbackNuevosCount, setFeedbackNuevosCount] = useState<number | null>(null);
+    useEffect(() => {
+        if (!isAdmin) return;
+        let cancelled = false;
+        (async () => {
+            const { count, error } = await supabase
+                .from('feedback_submissions')
+                .select('id', { count: 'exact', head: true })
+                .eq('estado', 'nuevo');
+            if (cancelled) return;
+            if (error) {
+                console.warn('[admin] fetch feedbackNuevosCount failed:', error);
+                setFeedbackNuevosCount(0);
+                return;
+            }
+            setFeedbackNuevosCount(count ?? 0);
         })();
         return () => { cancelled = true; };
     }, [isAdmin]);
@@ -179,14 +209,22 @@ export default function AdminDashboard() {
     // aparece un pendiente. Mientras `aprobacionesPendientesCount` es
     // null (fetch en curso al mount), el tab se muestra para evitar
     // hidration flash — la primera lectura decide si queda o no.
-    const tabs = [
+    // Sprint admin-visibilidad (2026-08-27) — `badge?: number` opcional en el
+    // tab. Se muestra solo cuando > 0 (evita ruido "0" cuando la bandeja está
+    // limpia). Feedback tab siempre visible (a diferencia de Aprobaciones que
+    // se auto-oculta en 0) porque la ausencia de feedback también es señal —
+    // Aldo va a querer confirmar visualmente que la sección existe aunque
+    // esté vacía. MessageSquareText (no Warning) porque el feedback no es
+    // todo problema y el ícono de warning sesga la lectura antes de abrir.
+    const tabs: Array<{ id: string; label: string; icon: any; badge?: number }> = [
         { id: 'dashboard', label: 'Métricas', icon: BarChart3 },
         { id: 'conversion', label: 'Conversión', icon: TrendingUp },
         ...(aprobacionesPendientesCount !== 0
-            ? [{ id: 'aprobaciones', label: 'Aprobaciones', icon: UserCheck }]
+            ? [{ id: 'aprobaciones', label: 'Aprobaciones', icon: UserCheck, badge: aprobacionesPendientesCount ?? undefined }]
             : []),
         { id: 'moderacion', label: 'Moderación', icon: MessageSquareWarning },
         { id: 'proveedores', label: 'Proveedores', icon: Users },
+        { id: 'feedback', label: 'Feedback', icon: MessageSquareText, badge: feedbackNuevosCount ?? undefined },
     ];
 
     // Si el tab activo se ocultó (activeTab='aprobaciones' pero count llegó
@@ -319,7 +357,15 @@ export default function AdminDashboard() {
                                         }`}
                                 >
                                     <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-400'} />
-                                    {tab.label}
+                                    <span className="flex-1 text-left">{tab.label}</span>
+                                    {typeof tab.badge === 'number' && tab.badge > 0 && (
+                                        <span
+                                            aria-label={`${tab.badge} pendientes`}
+                                            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-semibold bg-accent-600 text-white"
+                                        >
+                                            {tab.badge > 99 ? '99+' : tab.badge}
+                                        </span>
+                                    )}
                                 </button>
                             );
                         })}
@@ -344,6 +390,14 @@ export default function AdminDashboard() {
                             >
                                 <Icon size={14} />
                                 {tab.label}
+                                {typeof tab.badge === 'number' && tab.badge > 0 && (
+                                    <span
+                                        aria-label={`${tab.badge} pendientes`}
+                                        className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${isActive ? 'bg-white text-accent-700' : 'bg-accent-600 text-white'}`}
+                                    >
+                                        {tab.badge > 99 ? '99+' : tab.badge}
+                                    </span>
+                                )}
                             </button>
                         );
                     })}
@@ -374,6 +428,7 @@ export default function AdminDashboard() {
                         {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
                         {activeTab === 'moderacion' && <EvaluacionModerationList />}
                         {activeTab === 'proveedores' && <ProveedorManagementList />}
+                        {activeTab === 'feedback' && <FeedbackList />}
                     </div>
                 </div>
             </div>

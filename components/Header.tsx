@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useState, useEffect, useRef } from "react";
 import { useUser } from "../contexts/UserContext"; // Context Unificado
+import { useFeedback } from "../contexts/FeedbackContext";
 import { supabase } from "../lib/supabaseClient";
 import NotificationBell from "./Shared/NotificationBell";
 import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
@@ -21,6 +22,10 @@ export default function Header() {
 
   // Use Unified Context
   const { user, profile, isAuthenticated, hasSeekerProfile, providerStatus, logout } = useUser();
+  // Sprint admin-visibilidad (2026-08-27) — la franja lanzamiento invita a
+  // enviar feedback ("cuéntanos"). El CTA abre el FeedbackWidget existente
+  // mediante el context global (ver contexts/FeedbackContext.tsx).
+  const { open: openFeedback } = useFeedback();
 
   // Banner "Estamos en lanzamiento" es solo para guests — usuarios autenticados
   // (tutores, proveedores, admins) NO lo ven para evitar invitación redundante.
@@ -88,13 +93,28 @@ export default function Header() {
 
   return (
     <header className={`sticky top-0 z-40 border-b border-slate-300 bg-white/95 backdrop-blur-md transition-shadow ${scrolled ? 'shadow-md' : 'shadow-sm'}`}>
-      {/* Franja superior lanzamiento — solo para guests no autenticados */}
+      {/* Franja superior lanzamiento — solo para guests no autenticados.
+
+          Sprint admin-visibilidad (2026-08-27) — copy nuevo con 2 CTAs
+          inline: "Regístrate" navega a /register (sin ?rol para que la
+          persona elija en el wizard; el copy invita a ambos roles y el
+          destino tiene que hacer exactamente eso), y "cuéntanos" abre el
+          FeedbackWidget via context. Cerrar el ciclo requiere leer los
+          feedbacks recibidos — ver el nuevo tab Feedback en /admin. */}
       {showLaunchBanner && (
         <div className="bg-slate-900 text-white text-sm">
           <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-2 sm:px-6 lg:px-8">
             <div className="flex flex-1 items-center justify-center gap-2">
               <p className="text-center font-medium tracking-wide">
-                <Link href="/register?rol=proveedor" className="hover:underline decoration-accent-500 underline-offset-2">Estamos en lanzamiento — Regístrate como proveedor</Link>
+                Estamos construyendo Pawnecta.{' '}
+                <Link href="/register" className="underline decoration-accent-500 underline-offset-2 hover:decoration-white">Regístrate</Link>
+                {' '}y{' '}
+                <button
+                  type="button"
+                  onClick={openFeedback}
+                  className="underline decoration-accent-500 underline-offset-2 hover:decoration-white bg-transparent p-0 font-inherit text-inherit cursor-pointer"
+                >cuéntanos</button>
+                {' '}qué te gustaría encontrar.
               </p>
             </div>
             <button
