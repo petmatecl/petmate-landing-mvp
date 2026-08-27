@@ -365,11 +365,19 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         { key: 'formacion', label: 'Formación profesional', tipo: 'text', placeholder: 'Ej: Postgrado en etología clínica UDLA, certificación IAABC' },
         { key: 'duracion_sesion', label: 'Duración de la sesión de evaluación (minutos)', tipo: 'number', placeholder: 'Ej: 90' },
         { key: 'trabaja_con_veterinario', label: 'Coordino con derivación veterinaria cuando corresponde', tipo: 'boolean' },
-        { key: 'especies_atendidas', label: 'Especies que atiendes', tipo: 'multiselect', opciones: [
-            { value: 'perros', label: 'Perros' },
-            { value: 'gatos',  label: 'Gatos' },
-            { value: 'otras',  label: 'Otras especies' },
-        ] },
+        // Sprint panel-prov-fixes (2026-08-27) — REMOVIDO `especies_atendidas`.
+        // Bug detectado en smoke email-landing 2026-08-25 y decisión PO
+        // 2026-08-27: el campo base "Mascotas aceptadas" del ServiceFormModal
+        // (columnas escalares `acepta_perros`/`gatos`/`otras`, únicas que
+        // lee el RPC `buscar_servicios`) ya cubre la respuesta binaria. Este
+        // preset creaba un segundo campo idéntico que guardaba en
+        // `detalles.especies_atendidas` (JSONB), sin lector funcional, con
+        // riesgo de datos contradictorios si el user marcaba distinto en
+        // los 2 campos. Un etólogo que atienda especies exóticas puede
+        // decirlo en la descripción del servicio. Icon map con la entry
+        // `especies_atendidas: Stethoscope` (L722) se deja intacto — cero
+        // uso pero cero problema. Data huérfana en staging (1 servicio con
+        // `detalles.especies_atendidas = "[]"`) se deja también — sin lector.
         { key: 'radio_cobertura_km', label: 'Radio de cobertura a domicilio (km)', tipo: 'number', condicionalDe: 'modalidad', condicionalValor: 'domicilio' },
         { key: 'inclusiones', label: '¿Qué incluye el servicio?', tipo: 'multiselect', opciones: [
             { value: 'evaluacion_inicial',      label: 'Evaluación inicial' },
