@@ -614,6 +614,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         if (!titulo.trim()) return toast.error("El título es obligatorio.");
         if (titulo.length > 80) return toast.error("El título es muy largo (máx. 80 caracteres).");
         if (!descripcion.trim()) return toast.error("La descripción es obligatoria.");
+        // Sprint panel-prov-fixes (2026-08-27) — mínimo 100 caracteres.
+        // Fundamento decisión PO 2026-08-27: descripción del servicio es
+        // sobre QUÉ ofrece + CÓMO, distinto de la bio del proveedor
+        // (50 chars en register.tsx) que es sobre QUIÉN. 50 chars no
+        // alcanza para cubrir (i) qué incluye, (ii) cómo se hace,
+        // (iii) qué la diferencia. 100 es "una oración descriptiva con
+        // detalle mínimo" — piso razonable. Copy accionable, dice QUÉ
+        // escribir (no solo que falta), respetando requisito PO.
+        if (descripcion.trim().length < 100) return toast.error("La descripción debe tener al menos 100 caracteres. Cuenta con qué incluye y cómo lo haces.");
         if (descripcion.length > 500) return toast.error("La descripción es muy larga (máx. 500 caracteres).");
         if (!precioDesde) return toast.error("El precio desde es obligatorio.");
         if (!perros && !gatos && !otras) return toast.error("Selecciona al menos un tipo de mascota aceptada.");
@@ -1530,7 +1539,18 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
 
                                     <div>
-                                        <label htmlFor="servicio-descripcion" className="block text-sm font-medium text-slate-700 mb-1.5">Descripción <span className="text-red-500">*</span></label>
+                                        {/* Sprint panel-prov-fixes (2026-08-27) — 3 señales del
+                                            mínimo 100 caracteres visible antes/durante/al intentar:
+                                            (a) hint en el label "mínimo 100 caracteres".
+                                            (b) contador expandido "N/500 · faltan X para el mínimo"
+                                                en ámbar mientras < 100. Vuelve al gris "N/500" al
+                                                pasar el umbral.
+                                            (c) toast accionable en submit (validación L617).
+                                            Decisión PO 2026-08-27: NO agregar borde ámbar en blur —
+                                            3 señales alcanzan, la 4ta molesta. */}
+                                        <label htmlFor="servicio-descripcion" className="block text-sm font-medium text-slate-700 mb-1.5">
+                                            Descripción <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">· mínimo 100 caracteres</span>
+                                        </label>
                                         <textarea
                                             id="servicio-descripcion"
                                             name="servicio-descripcion"
@@ -1542,7 +1562,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
                                             className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
                                         />
-                                        <div className="text-right text-xs text-slate-500 mt-1">{descripcion.length}/500</div>
+                                        <div className={`text-right text-xs mt-1 ${descripcion.trim().length < 100 ? 'text-warning-700 font-medium' : 'text-slate-500'}`}>
+                                            {descripcion.length}/500
+                                            {descripcion.trim().length < 100 && (
+                                                <span> · faltan {100 - descripcion.trim().length} para el mínimo</span>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             </div>
