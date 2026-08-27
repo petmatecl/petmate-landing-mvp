@@ -106,28 +106,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn('Confirmation link generation failed (non-blocking):', linkErr);
     }
 
-    // TEMPORARY — sprint email-landing smoke (2026-08-20).
-    // REMOVER ANTES DEL MERGE A MAIN. Ver PEDIDOS DIRECTOS DEL PO en
-    // BACKLOG.md item "[abierto] Remover log temporal `[signup-debug]`
-    // antes de merge email-landing → main".
-    //
-    // Razón: en Vercel Preview con Deployment Protection habilitada, el
-    // self-call `fetch('${siteUrl}/api/auth/welcome')` en L201 NO alcanza
-    // la Function target — el edge de Vercel devuelve login page 401
-    // sin ejecutar la Function. `fetch` en Node no lanza en 4xx, así que
-    // el catch de L209 se traga el silencio. El welcome email nunca se
-    // envía en preview, y por transitividad el `confirmationUrl` no
-    // llega a AUDIT_INBOX para poder smokear la landing /email-confirmado.
-    // Log temporal en Vercel Runtime Logs con prefijo `[signup-debug]`
-    // grepeable para extraer el link del signup manual y correr los
-    // smokes 1-4 de email-landing en preview sin depender del correo.
-    //
-    // NUNCA aterrizar este log a prod — expone URL con JWT del signup
-    // por ~1h (default OTP expiry) en logs que persisten con retención
-    // Pro plan. Aunque el JWT solo sirve para confirmar-email del user
-    // recién creado (no acceso general), es superficie innecesaria.
-    console.log('[signup-debug] confirmationUrl:', confirmationUrl);
-
     // 2. Insert profile (rollback auth user if this fails)
     try {
       if (rol === 'usuario') {
