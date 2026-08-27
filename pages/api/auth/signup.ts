@@ -106,6 +106,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       console.warn('Confirmation link generation failed (non-blocking):', linkErr);
     }
 
+    // ⚠ LOG TEMPORAL — SOLO EN LA RAMA `session-timeout-fix`. NO MERGEAR.
+    // Sprint email-landing 2026-08-20 introdujo este mismo log en la rama
+    // `email-landing`, se removió pre-merge (commit 7ac85f8). Re-agregado
+    // acá en `session-timeout-fix` 2026-08-27 para desbloquear los smokes
+    // pendientes (tutor + deep-link) que dependen de recibir el link de
+    // confirmación en preview. En preview, Vercel Deployment Protection
+    // bloquea el self-call server-side a `/api/auth/welcome`, y Supabase
+    // Auth staging no tiene Custom SMTP configurado → el correo no llega
+    // por ninguno de los dos canales.
+    //
+    // Esta rama `session-timeout-fix` NO SE VA A MERGEAR EN ESTE ESTADO.
+    // Contiene el fix del reorder de listeners como diseño listo, y este
+    // log solo mientras se corren smokes contra este preview. Cuando la
+    // rama se retome para merge real, este log debe REMOVERSE ANTES del
+    // merge — el patrón exacto que documentó el sprint email-landing como
+    // deuda estructural en BACKLOG (item PDPO 'no poder obtener link de
+    // confirmación en preview sin código temporal').
+    //
+    // Riesgo si se mergea con el log: expone URL con JWT del signup por
+    // ~1h en Runtime Logs prod con retención Pro plan. El JWT solo sirve
+    // para confirm-email del user recién creado (no acceso general), pero
+    // es superficie innecesaria.
+    console.log('[signup-debug] confirmationUrl:', confirmationUrl);
+
     // 2. Insert profile (rollback auth user if this fails)
     try {
       if (rol === 'usuario') {
