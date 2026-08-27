@@ -84,6 +84,26 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
   **Voto auditor**: **A**. Es más limpio arquitectónicamente, elimina la deuda para siempre (no depende de config Vercel-specific), reduce costo de invocaciones Function-to-Function (~50% menos requests billables en el flow signup). Pero B es válido si el sprint quiere ser mínimo. Decisión pendiente PO.
 
+- **[abierto — ESTADO REAL DE PROD, actualizado 2026-08-27 post-cleanup smokes email-landing]** **Snapshot verificado empírico prod**:
+  - **8 proveedores no-ejemplo**: admin (canocortes) + 7 personas reales.
+  - **3 pueden entrar hoy**: Eduardo Cano, Verónica González, Nicole Novion (con su cuenta nueva del 27-ago).
+  - **5 NO pueden entrar** — todos con `email_confirmed_at = NULL` en `auth.users`. Están aprobados en `proveedores` desde 2026-08-18 (migration del sprint badge-f1) pero nunca confirmaron el correo, así que el login los rebota antes de llegar a cualquier pantalla: **Fernanda Hamasaki, Laura Marlenet Criado, Francisca Polette Orellana, Isidora Maciel, Ignacia Mellado**. Este es el estado exacto que el email de recuperación H4 (backlog previo) atendería si se dispara.
+  - **DECISIÓN PO 2026-08-27**: **NO contactar todavía**. Prioridad es terminar la web para lanzamiento primero; invitar a las 5 ahora las expone a bugs recién cerrados. El PO avisará explícitamente cuándo arrancar el flow de recuperación. No tratar como pendiente urgente.
+  - **3 servicios activos en catálogo**: los mismos que se venían reportando (Eduardo Cano, 3 categorías distintas del 12-mayo). Contra umbral apertura tutores = 25 con mínimo 3 por categoría → **cobertura real 3/25 = 12%, ninguna categoría cumple el mínimo**.
+  - Registros previos que decían 9 proveedores dormidos o 3/25 concentrado (items previos del backlog) se ajustan con este snapshot: son 5 dormidos por falta de confirm email + 2 sin publicar aunque confirmaron. Actualización de números, no de conclusión.
+
+- **[abierto — DUPLICADO, detectado 2026-08-27 post-cleanup smokes]** **Nicole Novion aparece con dos cuentas en prod**:
+  - `auracaninaspa@gmail.com`, creada 2026-08-16, `email_confirmed_at = NULL` (una de las 5 dormidas del item anterior).
+  - `anicolenovion@gmail.com`, creada 2026-08-27, confirmada.
+  - Volvió sola 11 días después con otro correo. Cero mecanismo del sistema causó el duplicado — decisión propia de la usuaria de registrarse de nuevo en vez de recuperar la cuenta vieja.
+  - **Pendiente de resolver**: decidir si consolidar (borrar la vieja + preservar solo la nueva confirmada) o dejar ambas hasta que Nicole lo pida. Sin urgencia — la vieja no molesta operativamente porque no puede entrar. Cuando el flow de recuperación H4 se dispare (según decisión PO arriba), Nicole probablemente ignora el correo de recuperación de la cuenta vieja porque ya tiene la nueva. Se puede limpiar en batch post-launch.
+
+- **[abierto — OBSERVADO UNA VEZ, sin causa establecida, 2026-08-27 durante smoke S4 prod]** `/explorar` colgado 60+ segundos post-navegación desde landing `/email-confirmado`, requirió Ctrl+Shift+R. Detectado por Aldo tras click "Explorar servicios" del CTA tutor. **NO reproducido en 4 reintentos** (logueado normal / deslogueado / logueado incógnito / deslogueado incógnito). Única diferencia contextual entre la ocurrencia y los reintentos: **cuando pasó, la sesión estaba recién hidratada por confirmación de correo (primer aterrizaje de esa cuenta)**; los reintentos fueron con sesiones ya establecidas.
+  - **Anotado como dato observable, cero mecanismo inferido**. Si vuelve a aparecer con Network tab abierto, capturar (requests pending, timing, JS errors) y anexar acá. Sin evidencia adicional no es diagnosticable — proponer mecanismo sin datos es exactamente el corolario P8 11ª (atribución causal sin verificar) que ya cayó dos veces este mes.
+  - **Priorización**: baja. Cero reproducciones activas, único incidente aislado. Reactivar si se acumula evidencia.
+
+- **[cerrado 2026-08-27 por Aldo durante cleanup smokes]** **Registro fantasma "Admin Pawnecta" en prod**: había 2 filas "Admin Pawnecta" creadas con 15 segundos de diferencia el 2026-02-25. Una con `auth_user_id = NULL` (sin user asociado), `roles=["admin"]` — basura histórica del setup inicial del admin. Aldo la borró usando `SET LOCAL role='service_role'` (aplica acá porque `proveedores` sí tiene trigger `_guard_fn` — al revés que el DELETE sobre `auth.users` que requiere `postgres` por privileges). Cero riesgo de seguridad (sin auth_user_id nadie puede autenticarse contra esa fila), pero contaminaba conteos de oferta. Cerrado.
+
 - **[abierto — PRIORIDAD ALTA, detectado 2026-08-25 durante revisión BACKLOG mascotas]** **Oferta real prod = 3/25 concentrada en 1 proveedor + 9 proveedores aprobados sin publicar**. Verificado por Aldo 2026-08-25 con query directa a prod tras el diagnóstico del bug mascotas duplicadas:
   ```
   titulo                                       | activo | n_fotos | sin_comunas | created_at
