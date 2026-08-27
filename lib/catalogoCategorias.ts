@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from './supabaseClient';
 
 /**
@@ -78,7 +79,17 @@ export async function getCategoriasCached(): Promise<{ data: Categoria[]; error:
             .order('nombre');
 
         if (error) {
-            return { data: [], error: error.message };
+            // Sprint panel-prov-fixes hotfix (2026-08-27) — captureException
+            // del error real de Supabase para diagnóstico, pero NO propagar
+            // el mensaje crudo al caller. El caller decide qué copy mostrar
+            // al usuario (típicamente causa-neutral en español). Ver
+            // CLAUDE.md > "Pantalla de estado no debe afirmar una causa
+            // que no verificó" — corolario aplicado al error UX: el error
+            // crudo de JavaScript en inglés no le dice nada útil al user.
+            Sentry.captureException(error, {
+                tags: { component: 'getCategoriasCached', phase: 'supabase-query' },
+            });
+            return { data: [], error: 'supabase-query-error' };
         }
 
         const rows = data as Categoria[] | null;
@@ -92,7 +103,15 @@ export async function getCategoriasCached(): Promise<{ data: Categoria[]; error:
         cache = rows;
         return { data: rows, error: null };
     } catch (err: any) {
-        return { data: [], error: err?.message || 'Error de red al cargar categorías.' };
+        // captureException con el error original (TypeError, network fail,
+        // lo que sea) → Sentry tiene el detalle técnico para diagnóstico.
+        // Al caller le devolvemos un sentinel string que solo indica
+        // "hubo error", no el mensaje crudo — evita filtrar 'TypeError:
+        // Failed to fetch' u otros mensajes en inglés a la UI del user.
+        Sentry.captureException(err, {
+            tags: { component: 'getCategoriasCached', phase: 'network-or-throw' },
+        });
+        return { data: [], error: 'network-error' };
     }
 }
 

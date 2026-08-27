@@ -1509,7 +1509,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             </select>
                                             {categoriasStatus === 'error' && (
                                                 <div className="mt-1.5 flex items-center gap-2 text-xs text-danger-700">
-                                                    <span>{categoriasError || 'Error de red.'}</span>
+                                                    {/* Sprint panel-prov-fixes hotfix (2026-08-27) —
+                                                        copy fijo en español, causa-neutral. Antes
+                                                        mostraba `{categoriasError || 'Error de red.'}`
+                                                        que filtraba mensajes crudos de JavaScript
+                                                        en inglés ('TypeError: Failed to fetch') a
+                                                        un proveedor que no tiene idea qué significa.
+                                                        Detalle técnico se captura vía
+                                                        Sentry.captureException en el helper
+                                                        `lib/catalogoCategorias.ts` — visible para
+                                                        diagnóstico interno, invisible para el user. */}
+                                                    <span>No pudimos cargar las categorías. Revisa tu conexión y vuelve a intentar.</span>
                                                     <button
                                                         type="button"
                                                         onClick={fetchCategorias}
