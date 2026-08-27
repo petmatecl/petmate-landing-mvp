@@ -16,10 +16,10 @@
 -- primer statement — RAISE EXCEPTION antes de tocar la data. Cero endpoint
 -- HTTP server-side nuevo (Opción A del diagnóstico 2026-08-27, aprobada PO).
 --
--- Retorna todas las columnas del perfil + email real de auth.users +
--- email_confirmado (boolean derivado de email_confirmed_at IS NOT NULL) +
--- last_sign_in_at (útil para detectar cuentas dormidas) + banned_until +
--- n_servicios / n_servicios_activos (elimina el segundo query embed que
+-- Retorna todas las columnas del perfil relevantes al admin + email real de
+-- auth.users + email_confirmado (boolean derivado de email_confirmed_at IS NOT
+-- NULL) + last_sign_in_at (útil para detectar cuentas dormidas) + banned_until
+-- + n_servicios / n_servicios_activos (elimina el segundo query embed que
 -- hacía el .select('*, servicios:servicios_publicados(...)')).
 --
 -- Uso: `supabase.rpc('admin_listar_proveedores')` desde
@@ -30,9 +30,44 @@
 -- Restricción de alcance del sprint: solo lectura. Cero acciones sobre el
 -- proveedor desde este RPC — suspender/reactivar/rechazar siguen su path
 -- actual (.from('proveedores').update(...) gated por policy Admin update all).
+--
+-- ─────────────────────────────────────────────────────────────────────────
+-- Historial de correcciones (P6 aplicada empíricamente contra
+-- information_schema.columns antes de reescribir):
+--
+--   V1 (2026-08-27, commit c0838e3) — nunca aplicada. Incluía dos columnas
+--     inexistentes en `proveedores`: `es_placeholder` y `notas_admin`. Postgres
+--     habría rechazado al ejecutar. `notas_admin` sí existe pero en
+--     `feedback_submissions` — la otra tabla del mismo sprint, confusión
+--     entre tablas del mismo contexto. Detectado por PO con
+--     `information_schema.columns` antes del apply. Regla operativa
+--     confirmada: el nombre de una columna que NO vengo de leer de
+--     `information_schema` en el turno vigente es hipótesis de nombre,
+--     no hecho (CLAUDE.md > P6 corolario ampliado 2026-08-25).
+--
+--   V2 (esta versión) — 18 columnas verificadas 1 a 1 contra
+--     information_schema. Removidas: `es_placeholder`, `notas_admin`.
+--     Agregadas por pedido PO: `telefono` (para contactar dormidos por
+--     otra vía cuando el correo no confirmó), `whatsapp` (mismo motivo),
+--     `perfil_completo` (indicador chico "quién completó vs quién no"),
+--     `region` (complemento geográfico a comuna).
+-- ─────────────────────────────────────────────────────────────────────────
+--
+-- SOBRE EL DROP FUNCTION IF EXISTS abajo:
+--   Postgres rechaza `CREATE OR REPLACE FUNCTION` cuando cambia el shape del
+--   `RETURNS TABLE(...)` con `ERROR: cannot change return type of existing
+--   function`. Por eso DROP explícito antes del CREATE cuando la firma
+--   cambia. `IF EXISTS` lo hace idempotente: si la función nunca se aplicó
+--   (staging virgen o prod virgen — que es el caso hoy, la V1 nunca se
+--   ejecutó por auditoría P6 antes del apply), el DROP es no-op silencioso.
+--   Si en el futuro se agrega/quita una columna al RETURNS, mantener el
+--   DROP (con o sin IF EXISTS según el estado) al escribir la próxima
+--   revisión.
 -- ============================================================================
 
-CREATE OR REPLACE FUNCTION public.admin_listar_proveedores()
+DROP FUNCTION IF EXISTS public.admin_listar_proveedores();
+
+CREATE FUNCTION public.admin_listar_proveedores()
 RETURNS TABLE(
     id                  uuid,
     nombre              text,
@@ -42,13 +77,15 @@ RETURNS TABLE(
     rut                 text,
     rut_verificado      boolean,
     comuna              text,
+    region              text,
     foto_perfil         text,
     estado              text,
     verificacion_estado text,
-    es_placeholder      boolean,
     es_ejemplo          boolean,
+    perfil_completo     boolean,
+    telefono            text,
+    whatsapp            text,
     created_at          timestamptz,
-    notas_admin         text,
     auth_user_id        uuid,
     email_auth          text,
     email_confirmado    boolean,
@@ -69,9 +106,10 @@ BEGIN
 
     RETURN QUERY
     SELECT p.id, p.nombre, p.apellido_p, p.apellido_m, p.nombre_publico,
-           p.rut, p.rut_verificado, p.comuna, p.foto_perfil, p.estado,
-           p.verificacion_estado, p.es_placeholder, p.es_ejemplo,
-           p.created_at, p.notas_admin, p.auth_user_id,
+           p.rut, p.rut_verificado, p.comuna, p.region, p.foto_perfil, p.estado,
+           p.verificacion_estado, p.es_ejemplo, p.perfil_completo,
+           p.telefono, p.whatsapp,
+           p.created_at, p.auth_user_id,
            au.email::text AS email_auth,
            (au.email_confirmed_at IS NOT NULL) AS email_confirmado,
            au.last_sign_in_at, au.banned_until,
@@ -91,6 +129,7 @@ REVOKE ALL ON FUNCTION public.admin_listar_proveedores() FROM PUBLIC;
 GRANT EXECUTE ON FUNCTION public.admin_listar_proveedores() TO authenticated;
 
 COMMENT ON FUNCTION public.admin_listar_proveedores() IS
-    'Sprint admin-visibilidad (2026-08-27). SECURITY DEFINER + is_admin() gate. '
-    'Retorna perfil proveedor + email real auth.users + email_confirmado. '
+    'Sprint admin-visibilidad (2026-08-27, V2). SECURITY DEFINER + is_admin() gate. '
+    'Retorna perfil proveedor + email real auth.users + email_confirmado + '
+    'telefono/whatsapp/region/perfil_completo. '
     'Uso: supabase.rpc(''admin_listar_proveedores'') desde componentes admin.';

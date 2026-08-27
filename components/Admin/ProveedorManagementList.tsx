@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle, Copy, CheckCircle2 } from 'lucide-react';
+import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle, Copy, CheckCircle2, Phone, MessageCircle, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
 
@@ -55,13 +55,14 @@ export default function ProveedorManagementList() {
         }
     };
 
-    // Sprint admin-visibilidad — copiar el correo al portapapeles con 1 click.
+    // Sprint admin-visibilidad — copiar valor al portapapeles con 1 click.
     // navigator.clipboard puede fallar en contextos no-HTTPS o si el user no
     // dio permiso; el catch cubre esos escenarios sin romper la tabla.
-    const copyEmail = async (email: string) => {
+    // `etiqueta` va en el toast para diferenciar correo/teléfono/whatsapp.
+    const copyValue = async (value: string, etiqueta: string) => {
         try {
-            await navigator.clipboard.writeText(email);
-            toast.success('Correo copiado');
+            await navigator.clipboard.writeText(value);
+            toast.success(`${etiqueta} copiado`);
         } catch {
             toast.error('No se pudo copiar. Selecciónalo a mano.');
         }
@@ -242,7 +243,7 @@ export default function ProveedorManagementList() {
                                                     <p className="text-slate-700 font-medium">{prov.email_auth}</p>
                                                     <button
                                                         type="button"
-                                                        onClick={() => copyEmail(prov.email_auth)}
+                                                        onClick={() => copyValue(prov.email_auth, 'Correo')}
                                                         aria-label={`Copiar correo de ${prov.nombre}`}
                                                         title="Copiar correo"
                                                         className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
@@ -264,7 +265,55 @@ export default function ProveedorManagementList() {
                                                     </span>
                                                 )
                                             )}
+                                            {/* Sprint admin-visibilidad — teléfono y whatsapp (RPC V2, pedido
+                                                PO 2026-08-27). Vía alternativa de contacto cuando el correo
+                                                no está confirmado. Solo se muestran si están presentes,
+                                                cero placeholder vacío. Botón Copiar por cada uno. */}
+                                            {prov.telefono && (
+                                                <div className="flex items-center gap-2 mt-1 text-xs text-slate-600">
+                                                    <Phone size={12} className="text-slate-400 shrink-0" />
+                                                    <span>{prov.telefono}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => copyValue(prov.telefono, 'Teléfono')}
+                                                        aria-label={`Copiar teléfono de ${prov.nombre}`}
+                                                        title="Copiar teléfono"
+                                                        className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <Copy size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {prov.whatsapp && (
+                                                <div className="flex items-center gap-2 mt-1 text-xs text-slate-600">
+                                                    <MessageCircle size={12} className="text-slate-400 shrink-0" />
+                                                    <span>{prov.whatsapp}</span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => copyValue(prov.whatsapp, 'WhatsApp')}
+                                                        aria-label={`Copiar whatsapp de ${prov.nombre}`}
+                                                        title="Copiar whatsapp"
+                                                        className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                    >
+                                                        <Copy size={12} />
+                                                    </button>
+                                                </div>
+                                            )}
                                             <p className="text-xs text-slate-500 flex items-center gap-1 mt-1"><MapPin size={12} /> {prov.comuna || 'N/A'}</p>
+                                            {/* Sprint admin-visibilidad — indicador chico "perfil completo".
+                                                Usa la col `perfil_completo` de proveedores (NOT NULL,
+                                                calculada por calcular_perfil_completo_proveedor + triggers).
+                                                Discreto en gris cuando incompleto; verde con check cuando
+                                                completo. Cero acción — solo señal. */}
+                                            {prov.perfil_completo ? (
+                                                <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-success-700 uppercase tracking-widest">
+                                                    <UserCheck size={10} /> Perfil completo
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
+                                                    Perfil incompleto
+                                                </span>
+                                            )}
                                         </td>
                                         {/* Sprint admin-visibilidad — n_servicios/n_servicios_activos
                                             precomputados en el RPC (reemplazan al array embed
