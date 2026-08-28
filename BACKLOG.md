@@ -57,11 +57,11 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 - **[abierto — PRIORIDAD ALTA, sprint de investigación en curso, rama `cuelgue-diag`]** **Cuelgue intermitente de carga (spinner indefinido, se destraba con Ctrl+Shift+R)** — hallazgo del PO durante smokes prod del sprint admin-visibilidad. **NO introducido por ese sprint** — reproducido en múltiples rutas no relacionadas y en ambos entornos. Prioridad ALTA (por encima de session-timeout-fix).
 
-  **HIPÓTESIS SERVICE WORKER REFUTADA por corte de variable del PO 2026-08-28** (actualización de la entrada original que la marcaba como "sin confirmar"):
-  - PO confirmó primero que el SW existe en prod: `sw.js`, versión `#3134`, "activated and is running", recibido `28-08-2026 10:26:28`.
-  - PO tildó **"Bypass for network"** en DevTools > Application > Service Workers (el navegador ignora el SW por completo).
-  - **Cuelgue se reprodujo IGUAL**. El SW **NO es la causa**.
-  - Corolario para BACKLOG y CLAUDE.md: hipótesis "SW cachea mal" era circunstancial (`StrategyHandler.js` aparecía como initiator en trace) — resultó falsa. Instancia canónica de la regla "ninguna hipótesis se da por buena sin un corte de variable que la distinga de las demás".
+  **HIPÓTESIS SERVICE WORKER — estado actual: NO DESCARTADA, prueba de refutación INVÁLIDA (corregido 2026-08-28 con evidencia nueva)**:
+  - PO confirmó SW existe en prod: `sw.js`, versión `#3134`, "activated and is running", recibido `28-08-2026 10:26:28`.
+  - Primer intento de refutación (28-08 AM): PO tildó **"Bypass for network"** en DevTools > Application > Service Workers y el cuelgue se reprodujo. Conclusión inicial: "SW no es la causa".
+  - **Corrección (28-08, evidencia nueva)**: en captura de Network posterior con **Bypass for network SIGUE tildado**, `StrategyHandler.js:160` aparece como `initiator` de 20+ requests. **El bypass NO silenció al SW como se creía**. Entonces la refutación del turno anterior era inválida — el SW seguía interviniendo aunque el toggle estuviera activo. Hipótesis SW pasa a **"no descartada, prueba inválida"** — retest requiere otro corte de variable (por ejemplo: `Unregister` del SW + hard refresh, para prueba real de "sin SW").
+  - Corolario para el sprint de investigación y CLAUDE.md candidato: verificar que el mecanismo de refutación **efectivamente hace lo que promete** antes de sacar conclusión. Mismo patrón P8 5ª (mecanismo de verificación falla mientras verificado sí funciona) aplicado a un toggle de DevTools. "Bypass for network" tal vez desactiva algún subset de requests, no todas — comportamiento a documentar con prueba positiva antes de reutilizarlo.
 
   **HECHOS ACUMULADOS (verificados por el PO en el navegador, 2026-08-28)**:
   1. **Transversal a rutas**. Cuelgue observado en `/admin > Proveedores` ("Cargando base de proveedores..."), `/admin > Moderación` ("Cargando evaluaciones pendientes..."), explorar servicios, ficha de proveedor. Distintos componentes, distintas queries, mismo síntoma.
@@ -73,11 +73,14 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   7. **`Service Workers > Clients`** acumula entradas: pasó de **3 a 4 clientes** contra `https://pawnecta.com/admin` durante la sesión de pruebas.
   8. **Sin disparador identificado**. El PO no puede predecir cuándo pasa.
 
-  **DESCARTADO**:
-  - RPC nuevo `admin_listar_proveedores` (evidencia hecho 5).
-  - Service Worker (evidencia refuta arriba).
-  - Rutas específicas (evidencia hecho 1 — transversal).
+  **DESCARTADO con evidencia (28-08 tarde)**:
+  - RPC nuevo `admin_listar_proveedores` (evidencia hecho 5 — RPC responde 200 en 81 ms cuando SÍ carga).
+  - Rutas específicas (evidencia hecho 1 — transversal a `/admin > Proveedores`, `/admin > Moderación`, explorar, ficha proveedor).
   - Entorno específico (evidencia hecho 2 — prod y staging).
+  - "La query salió y no volvió" (evidencia NUEVA de captura Network 28-08: **CERO requests a Supabase durante el cuelgue**. El fetch no llega ni a red. Descarta cualquier hipótesis basada en latencia backend, RLS estancado, o timeout de transporte).
+
+  **NO DESCARTADO** (pero con prueba de refutación inválida):
+  - Service Worker — ver bloque arriba, retest requerido con `Unregister` real, no toggle "Bypass for network".
 
   **DATOS FALTANTES ordenados por costo-beneficio** (para el sprint de investigación):
   - Captura de **Network con "Preserve log" durante el cuelgue activo** — qué requests están pending y desde qué initiator.
