@@ -414,7 +414,18 @@ export default function AdminDashboard() {
                                 </h1>
                                 <RateLimitBadge />
                             </div>
-                            <p className="mt-1 text-sm text-slate-500">Herramientas de gestión y moderación del marketplace.</p>
+                            {/* Sprint admin-visibilidad (2026-08-27) — subtítulo contextual
+                                por tab activo. El copy genérico "Herramientas de gestión
+                                y moderación" se heredó al tab Feedback donde suena a
+                                "vas a moderar", cuando la vista es solo lectura de
+                                sugerencias y reportes de usuarios. Ternario simple: si
+                                el tab activo tiene subtítulo propio, lo usa; sino el
+                                genérico histórico. */}
+                            <p className="mt-1 text-sm text-slate-500">
+                                {activeTab === 'feedback'
+                                    ? 'Sugerencias y reportes enviados por usuarios del sitio.'
+                                    : 'Herramientas de gestión y moderación del marketplace.'}
+                            </p>
                         </div>
 
                         {/* Tab content */}
