@@ -123,9 +123,34 @@ BEGIN
 END;
 $$;
 
--- Cerrar la puerta ancha primero, después abrir solo a authenticated.
+-- Cerrar la puerta ancha primero, después revocar a anon explícitamente
+-- (default privileges del schema public en prod otorgan EXECUTE a anon
+-- sobre toda función nueva — REVOKE FROM PUBLIC NO lo cubre porque el
+-- privilegio está asignado DIRECTAMENTE al rol anon, no via PUBLIC ni
+-- via membership en authenticated). Después abrir solo a authenticated.
 -- is_admin() filtra adentro; anon nunca debería poder llamarla.
+--
+-- Diagnóstico empírico PO 2026-08-27 durante apply prod (staging no lo
+-- reveló por config divergente entre entornos):
+--   1. Bloque completo un solo Run → anon_can_call = TRUE.
+--   2. REVOKE ALL FROM PUBLIC aparte → sigue TRUE.
+--   3. pg_proc.proacl → privilegio como `anon=X/postgres` DIRECTO en
+--      la función, no via PUBLIC.
+--   4. pg_auth_members para anon → CERO filas (anon NO es miembro de
+--      authenticated).
+--   5. pg_default_acl → schema public en prod tiene DEFAULT PRIVILEGES
+--      que otorgan EXECUTE a anon sobre toda función nueva. Se aplican
+--      en el CREATE.
+--   6. Control: is_admin() — función preexistente — también da
+--      anon_can_call = TRUE en prod. Consistente con el hallazgo.
+--   7. Fix: REVOKE explícito FROM anon.
+--
+-- Anotada la deuda de config en BACKLOG (prioridad ALTA, revisar ANTES
+-- del lanzamiento). Cualquier RPC futuro tiene que llevar este REVOKE
+-- explícito hasta que el default privilege de anon en public sea
+-- removido a nivel schema.
 REVOKE ALL ON FUNCTION public.admin_listar_proveedores() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.admin_listar_proveedores() FROM anon;
 GRANT EXECUTE ON FUNCTION public.admin_listar_proveedores() TO authenticated;
 
 COMMENT ON FUNCTION public.admin_listar_proveedores() IS

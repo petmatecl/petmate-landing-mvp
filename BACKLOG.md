@@ -215,6 +215,35 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 - **[abierto — PRIORIDAD BAJA, pregunta abierta anotada 2026-08-27]** **Asimetría de `e.preventDefault()` en el submit de `ServiceFormModal` entre camino de éxito vs camino de error** — pregunta de PO **2026-08-27** post-smoke Escenario B. Contexto: el smoke empírico de Aldo en staging (SELECT COUNT servicios_publicados antes/después = delta 1 con UN solo click en "Publicar Servicio") descartó doble INSERT/UPDATE en el camino de éxito. El hotfix `type="button"` cierra el vector estructural. Pero queda pregunta abierta sin explicación completa: si `handleSubmit` ejecutaba dos veces (por `onClick` + por submit del `<form>` default), el `e.preventDefault()` que Aldo verificó como funcional en el camino de éxito debería haber sido igualmente funcional en el camino de error donde SÍ se vieron dos toasts consecutivos. La asimetría no está explicada — hay algo distinto entre ambos paths que hace que un preventDefault intercepte y el otro no. Hipótesis a NO adoptar sin evidencia (P8 11ª — cero atribución causal sin verificar): puede ser reentrada async, orden de listeners, error thrown que bypassa el bubble, o algo del ciclo React synthetic event. **Sin resolver, no bloquea nada** (el vector estructural quedó cerrado por el fix del `type="button"`). Se anota para dejar constancia y no fabricar mecanismo. Retomable como diagnóstico frío si algún bug futuro relacionado con submits duplicados vuelve a aparecer.
 
+- **[abierto — PRIORIDAD ALTA, revisar ANTES del lanzamiento, detectado durante apply prod del sprint admin-visibilidad 2026-08-27]** **Default privileges divergentes entre staging y prod: en prod, toda función nueva del schema public nace con EXECUTE otorgado a `anon`** — hallazgo empírico del PO durante apply de la migration `20260827_admin_listar_proveedores_rpc.sql` en prod.
+
+  **Contexto**: la migration se aplicó en staging con `REVOKE ALL FROM PUBLIC + GRANT EXECUTE TO authenticated` y quedó con `anon_can_call = false` con un solo Run. En prod, el mismo bloque idéntico dejó `anon_can_call = TRUE`. Investigación empírica del PO reveló que el mecanismo real NO era ni "REVOKE no toma junto al CREATE" (mi hipótesis inicial) ni "bloque entero funciona" (mi hipótesis correctiva) — ambas eran incorrectas.
+
+  **7 evidencias del diagnóstico (PO 2026-08-27, orden cronológico)**:
+  1. Bloque completo con un solo Run → `anon_can_call = TRUE`.
+  2. `REVOKE ALL ... FROM PUBLIC` aparte → sigue en `TRUE`.
+  3. `SELECT proacl FROM pg_proc WHERE proname='admin_listar_proveedores'` → el privilegio estaba como `anon=X/postgres` **DIRECTO en la función**, no via `PUBLIC`. `proacl = {postgres=X/postgres, authenticated=X/postgres, service_role=X/postgres, anon=X/postgres}`.
+  4. `SELECT * FROM pg_auth_members WHERE member = (SELECT oid FROM pg_roles WHERE rolname='anon')` → CERO filas. **`anon` NO es miembro de `authenticated`** — descartada esa hipótesis alternativa.
+  5. `SELECT * FROM pg_default_acl WHERE defaclnamespace = 'public'::regnamespace` → el schema `public` en prod tiene **DEFAULT PRIVILEGES que otorgan EXECUTE a `anon` sobre toda función nueva**. Se aplican en el momento del `CREATE FUNCTION`, entonces ni un REVOKE anterior al CREATE ni un REVOKE FROM PUBLIC posterior lo tocan (apuntan al lugar equivocado).
+  6. **Control positivo (P8)**: `has_function_privilege('anon', 'public.is_admin()', 'EXECUTE')` → también `TRUE` en prod. `is_admin()` es función preexistente que este sprint NO toca — confirma que el hallazgo es sistémico del schema, no del RPC nuevo.
+  7. **Fix inmediato**: `REVOKE ALL ON FUNCTION public.admin_listar_proveedores() FROM anon;` — corrió limpio, `anon_can_call = FALSE`.
+
+  **Divergencia staging vs prod**: staging NO tiene esos default privileges (verificable con la misma query paso 5 contra `jmtadvdkicyylcwjcmcl`), por eso el mismo bloque idéntico funciona sin `REVOKE FROM anon` en staging pero no en prod. **Fuentes probables de la divergencia**: (i) migración legacy manual en prod que agregó los defaults sin trackear; (ii) Supabase init template distinto entre proyectos según cuándo se crearon; (iii) alguna acción admin manual en Supabase Studio que otorgó defaults sin dejar rastro en `migrations/`. Ninguna hipótesis verificada — requiere auditoría de `pg_default_acl` completa en ambos entornos + trazado con SUPABASE MIGRATION HISTORY.
+
+  **Consecuencia operativa hasta que se resuelva la deuda**:
+  - **Cualquier RPC nuevo en prod hereda EXECUTE a anon por default**. `REVOKE FROM anon` explícito es OBLIGATORIO en la migration, no basta con `REVOKE FROM PUBLIC`.
+  - **Otras funciones preexistentes** pueden tener el mismo hueco (control positivo `is_admin()` lo confirma). Requiere auditoría cross-schema: `SELECT proname FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND has_function_privilege('anon', p.oid, 'EXECUTE')`. Cada match es un vector potencial — evaluar gate propio de la función (si tiene `is_admin()` inline, sigue seguro aunque anon pueda llamarla; si no, es fuga).
+
+  **Fix estructural propuesto (sprint dedicado ANTES del lanzamiento)**:
+  1. Auditar `pg_default_acl` en prod: identificar qué GRANT default está activo, quién lo puso, cuándo.
+  2. `ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE EXECUTE ON FUNCTIONS FROM anon;` — remover el default. Cero impacto en funciones existentes (solo afecta futuras).
+  3. Auditar funciones preexistentes que hoy tienen `anon EXECUTE`: para cada una, evaluar si tiene gate interno (`is_admin()` o similar). Si sí, dejar como está. Si no, `REVOKE FROM anon` explícito.
+  4. Alinear staging con prod (o al revés, según decisión de qué config es la correcta a mantener).
+
+  **Costo grueso**: ~2-3 horas (auditoría + bloque de REVOKEs + verificación). Sprint chico dedicado, bloqueante para lanzamiento porque cualquier RPC futuro que se olvide del `REVOKE FROM anon` explícito abre superficie.
+
+  **Regla operativa candidata para CLAUDE.md** (redacción cierra PO): verificar un privilegio con `has_function_privilege` no alcanza para saber DE DÓNDE viene ese privilegio. Ante un resultado inesperado, leer `pg_proc.proacl` + `pg_auth_members` + `pg_default_acl` **antes** de proponer un fix. Dos REVOKE al rol equivocado se hicieron antes de mirar el ACL — pérdida de tiempo evitable con la query correcta al principio.
+
 - **[abierto — PRIORIDAD MEDIA, detectado + repro-verificado durante smokes staging admin-visibilidad 2026-08-27]** **Copy "sesión expiró" mostrado a personas que NUNCA tuvieron sesión** — pedido PO **2026-08-27**, PARADO durante el sprint `admin-visibilidad` porque el fix NO es trivial ("cambio de string" es engañoso — toca lógica de routing en 2+ archivos).
 
   **Repro empírico completo del PO 2026-08-27** (refuta la hipótesis inicial del auditor que decía "es rebote de no-admin"):
