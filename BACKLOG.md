@@ -55,35 +55,42 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 - **[cerrado 2026-08-27, pre-merge `email-landing`] Remover log temporal `[signup-debug] confirmationUrl:`** — agregado 2026-08-20 en [pages/api/auth/signup.ts](pages/api/auth/signup.ts) para desbloqueo de smokes con Deployment Protection Vercel. Removido antes del merge de `email-landing` a main. Verificación empírica: `grep -n 'signup-debug' pages/api/auth/` → 0 matches; `grep -rn 'signup-debug' --include="*.ts" --include="*.tsx"` → 0 matches. Cero residuo en prod.
 
-- **[abierto — PRIORIDAD ALTA, preexistente, detectado durante smokes prod admin-visibilidad 2026-08-28]** **Cuelgue intermitente de carga (spinner indefinido, se destraba con Ctrl+Shift+R)** — hallazgo del PO durante smokes prod del sprint admin-visibilidad. **NO introducido por este sprint** — reproducido en múltiples rutas no relacionadas y en ambos entornos. Prioridad ALTA (por encima de session-timeout-fix). El PO abre sprint propio de investigación después del tag y manda prompt separado.
+- **[abierto — PRIORIDAD ALTA, sprint de investigación en curso, rama `cuelgue-diag`]** **Cuelgue intermitente de carga (spinner indefinido, se destraba con Ctrl+Shift+R)** — hallazgo del PO durante smokes prod del sprint admin-visibilidad. **NO introducido por ese sprint** — reproducido en múltiples rutas no relacionadas y en ambos entornos. Prioridad ALTA (por encima de session-timeout-fix).
 
-  **Síntoma observado**:
-  - La página queda en spinner indefinido, **más de 60 segundos**, sin toast de error y sin nada en consola.
-  - Se destraba **solo con Ctrl+Shift+R** (hard refresh).
-  - Ocurre en **PROD y STAGING** — no es específico de un entorno.
-  - Ocurre en **múltiples rutas**: `/admin`, explorar servicios, ficha de proveedor. **No es específico del panel admin** — el cambio del sprint admin-visibilidad NO es el causante.
-  - Frecuencia: **"seguido" según el PO**, sin disparador claro identificado.
+  **HIPÓTESIS SERVICE WORKER REFUTADA por corte de variable del PO 2026-08-28** (actualización de la entrada original que la marcaba como "sin confirmar"):
+  - PO confirmó primero que el SW existe en prod: `sw.js`, versión `#3134`, "activated and is running", recibido `28-08-2026 10:26:28`.
+  - PO tildó **"Bypass for network"** en DevTools > Application > Service Workers (el navegador ignora el SW por completo).
+  - **Cuelgue se reprodujo IGUAL**. El SW **NO es la causa**.
+  - Corolario para BACKLOG y CLAUDE.md: hipótesis "SW cachea mal" era circunstancial (`StrategyHandler.js` aparecía como initiator en trace) — resultó falsa. Instancia canónica de la regla "ninguna hipótesis se da por buena sin un corte de variable que la distinga de las demás".
 
-  **Evidencia que descarta al RPC nuevo `admin_listar_proveedores`**:
-  - Cuando finalmente carga, Network muestra `admin_listar_proveedores` con **status 200 en 81 ms, 2.7 kB** — la llamada RPC es sana.
-  - En el mismo trace: **"Finish: 5.91 s" con timeline extendido a 80.000 ms** — hay algo colgando fuera de la RPC.
+  **HECHOS ACUMULADOS (verificados por el PO en el navegador, 2026-08-28)**:
+  1. **Transversal a rutas**. Cuelgue observado en `/admin > Proveedores` ("Cargando base de proveedores..."), `/admin > Moderación` ("Cargando evaluaciones pendientes..."), explorar servicios, ficha de proveedor. Distintos componentes, distintas queries, mismo síntoma.
+  2. Ocurre en **PROD y STAGING**.
+  3. **Spinner INFINITO**. Sin toast de error, sin excepción en consola, sin request fallido reportado. Única cosa en Console: warning de `feature_collector.js` sobre parámetros deprecados — no parece relacionado pero **anotado como observación pendiente**.
+  4. Se destraba con **Ctrl+Shift+R**. Recarga normal **no siempre** destraba.
+  5. Cuando la página SÍ carga, el RPC responde sano: `admin_listar_proveedores` status **200 en 81 ms, 2.7 kB**. En el mismo trace: **"Finish: 5.91 s"** con timeline extendido hasta **80.000 ms**.
+  6. **Upstash respondió** durante el cuelgue: el chip "Rate limit: Upstash" YA muestra su valor (14-30 ms). Header renderizó; **lo que no resuelve es el contenido**.
+  7. **`Service Workers > Clients`** acumula entradas: pasó de **3 a 4 clientes** contra `https://pawnecta.com/admin` durante la sesión de pruebas.
+  8. **Sin disparador identificado**. El PO no puede predecir cuándo pasa.
 
-  **Hipótesis SIN CONFIRMAR (NO darla por buena)**:
-  - **Service Worker en juego**: `StrategyHandler.js` aparece como `initiator` de múltiples requests en el trace observado por el PO. Sería consistente con que el hard refresh destrabe (bypasa SW cache). Pero es hipótesis — el patrón "SW muy cachear" también puede explicar otros comportamientos (offline fallback, redirect loops de precache stale, etc.).
+  **DESCARTADO**:
+  - RPC nuevo `admin_listar_proveedores` (evidencia hecho 5).
+  - Service Worker (evidencia refuta arriba).
+  - Rutas específicas (evidencia hecho 1 — transversal).
+  - Entorno específico (evidencia hecho 2 — prod y staging).
 
-  **Dato faltante para confirmar/refutar hipótesis SW**:
-  - **Captura de DevTools > Application > Service Workers durante un cuelgue** (no post-mortem — con el cuelgue activo, para ver estado del SW: activo, waiting, redundant, versión activa vs registrada, fetch handler intercepting o pass-through).
-  - **Captura de Network con "Preserve log" durante el cuelgue** — para ver qué requests están pending y desde qué initiator, no solo el snapshot post-recovery.
-  - **Repro controlado con timestamps** — anotar hora exacta del cuelgue, ruta, si venía de navegación previa o aterrizaje directo, si había otra tab del mismo origen abierta.
+  **DATOS FALTANTES ordenados por costo-beneficio** (para el sprint de investigación):
+  - Captura de **Network con "Preserve log" durante el cuelgue activo** — qué requests están pending y desde qué initiator.
+  - Estado de **document.readyState** + eventos `DOMContentLoaded`/`load` en el momento del cuelgue.
+  - Estado de los **contexts React** (isLoading del UserContext, isOpen del FeedbackContext) en el momento del cuelgue — el spinner del componente mira `loading` local, pero podría estar bloqueado por un context upstream que nunca resolvió.
+  - Estado de las **promesas pending** en el heap (DevTools > Memory heap snapshot durante el cuelgue).
+  - Repro controlado con timestamps + secuencia de acciones exacta previa al cuelgue.
 
-  **Contexto del proyecto que puede ser relevante** (parte del sprint de investigación, no acción hoy):
-  - PWA activa en prod via `@ducanh2912/next-pwa@10.2.9` (fork mantenido). Ver CLAUDE.md > "PWA / Service Worker" para la config completa: NetworkFirst para HTML/navigations + API no-auth (10s timeout), StaleWhileRevalidate para JS/CSS/imgs, CacheFirst para fonts, cleanupOutdatedCaches al activar. Cache-busting de `/sw.js` con `Cache-Control: public, max-age=0, must-revalidate` a nivel Vercel + browser.
-  - Limitación conocida documentada: "el browser re-revisa `sw.js` en navigation events (~24h o cuando vuelve a foco). SPA client-side routing (Link, router.push) NO dispara re-check." — plausible fuente de comportamiento raro si el SW nuevo no llegó al user y el viejo tiene lógica divergente.
-  - **Demoledor de SW residuales** existe para staging/preview (`scripts/write-sw-demolisher.js` como hook prebuild), pero prod SÍ tiene SW real activo por diseño.
+  **Contexto del proyecto** (referencia, sin conclusión): PWA activa en prod via `@ducanh2912/next-pwa@10.2.9`. Ver CLAUDE.md > "PWA / Service Worker". El SW existe y funciona, pero fue descartado como causa.
 
-  **Bloqueante**: SÍ, potencialmente. Si el cuelgue es frecuente en users reales, se pierden sesiones/reservas/interacciones. Investigación urgente.
+  **Rama de investigación**: `cuelgue-diag` (12 chars, DNS-safe) desde `main @ 979e693` — creada para instrumentación diagnóstica futura. El PO aprueba cualquier instrumentación antes de mergear.
 
-  **Restricción PO**: "NO investigues esto ahora. Solo dejalo registrado en el acta y como entrada de BACKLOG con prioridad ALTA, por encima de session-timeout-fix. Lo abrimos como sprint propio apenas cierres el tag, y te mando el prompt de investigación por separado."
+  **Restricción del sprint (PO 2026-08-28)**: es sólo diagnóstico. Cero fix, cero código productivo, cero hipótesis dada por buena sin corte de variable que la distinga de las demás. Ronda actual: **mapa de código de los caminos comunes de carga** (sin hipótesis todavía).
 
 - **[abierto — PRIORIDAD ALTA, preexistente descubierto 2026-08-27 durante smoke email-landing] Timeout de inactividad por check-al-mount está roto desde su primer commit** — el path "F5 tras 10+ min sin actividad → expulsión a `/security-logout`" NUNCA funcionó en la práctica. Detectado por Aldo con smoke positivo-conocido (seteo marker a hace 20 min, F5 en `/proveedor`, verificar expulsión); resultado: no expulsó, marker se pisó a NOW post-recarga. Bug preexistente, no del sprint email-landing.
   - **Diagnóstico técnico** ([components/SessionTimeout.tsx](components/SessionTimeout.tsx) desde commit `840ef3e`, meses):
