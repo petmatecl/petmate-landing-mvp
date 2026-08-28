@@ -162,7 +162,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const hydrateFromSession = async (session: any) => {
-        cx('userctx:hydrate-start', { hasUser: !!session?.user });
+        // Sprint cuelgue-diag ronda 3 — loguear user.id por hydrate para
+        // detectar cross-fire dual-cuenta (dos hydrates con user.id distinto
+        // = otra tab cambió de cuenta = causa real del cambio Admin→Usuario).
+        // Si los dos user.id son iguales, el cambio es CONSECUENCIA del catch.
+        cx('userctx:hydrate-start', {
+            hasUser: !!session?.user,
+            userId: session?.user?.id ?? null,
+            email: session?.user?.email ?? null,
+        });
         if (!session?.user) {
             setUser(null);
             setProfile(null);
@@ -191,18 +199,23 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // antes corria /proveedor/index.tsx checkProviderStatus. La carga
             // extra (cols completas vs 6) es despreciable; el round-trip que
             // ahorramos en Fase C del path critico NO lo es.
-            const [proveedorRes, seekerRes] = await cxTrack('userctx:hydrate-promise-all', Promise.all([
-                supabase
+            // Sprint cuelgue-diag ronda 3 — separar Promise.all en 2
+            // cxTrack independientes. Cada query tiene su propio timeout de
+            // 20s, entonces sabemos CUÁL cuelga (o si son las dos). Antes
+            // el wrap era colectivo y el timeout mataba el race entero sin
+            // decir quién.
+            const [proveedorRes, seekerRes] = await Promise.all([
+                cxTrack('userctx:hydrate-query-proveedores', supabase
                     .from('proveedores')
                     .select('*')
                     .eq('auth_user_id', session.user.id)
-                    .maybeSingle(),
-                supabase
+                    .maybeSingle()),
+                cxTrack('userctx:hydrate-query-usuarios_buscadores', supabase
                     .from('usuarios_buscadores')
                     .select('id, nombre')
                     .eq('auth_user_id', session.user.id)
-                    .maybeSingle(),
-            ]));
+                    .maybeSingle()),
+            ]);
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
             setProveedorRow(proveedorData ?? null);
@@ -316,15 +329,31 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // hidratación evitada.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                if (!mounted) return;
+                // Sprint cuelgue-diag ronda 3 — log del event exacto + user
+                // + mounted, ANTES del switch. Discrimina cuál rama entra
+                // (o si NINGUNA entra, señal de que el evento no matchea
+                // ninguna case y el hydrate #2 no viene de acá).
+                cx('userctx:onAuthStateChange fired', {
+                    event,
+                    hasSession: !!session,
+                    userId: session?.user?.id ?? null,
+                    mounted,
+                });
+                if (!mounted) {
+                    cx('userctx:onAuthStateChange EXIT-unmounted');
+                    return;
+                }
                 switch (event) {
                     case 'SIGNED_IN':
+                        cx('userctx:onAuthStateChange BRANCH=SIGNED_IN → hydrate');
                         await hydrateFromSession(session);
                         break;
                     case 'TOKEN_REFRESHED':
+                        cx('userctx:onAuthStateChange BRANCH=TOKEN_REFRESHED (no-op)');
                         // No re-hidratar perfil (overhead innecesario).
                         break;
                     case 'SIGNED_OUT': {
+                        cx('userctx:onAuthStateChange BRANCH=SIGNED_OUT → hydrate(null)');
                         await hydrateFromSession(null);
                         // Voluntary logout: logout()/softReset() prendio la bandera
                         // y ya se encarga del redirect. Reset y salir.
@@ -344,6 +373,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         break;
                     }
                     // INITIAL_SESSION: NO handler. Ya cubierto por getSession() arriba.
+                    default:
+                        // Sprint cuelgue-diag ronda 3 — cualquier event no matcheado
+                        // (INITIAL_SESSION, USER_UPDATED, PASSWORD_RECOVERY, MFA_CHALLENGE_VERIFIED, etc.)
+                        // NO dispara hydrate. Log del default para descartar eventos raros.
+                        cx('userctx:onAuthStateChange BRANCH=default (no hydrate)', event);
                 }
             }
         );
