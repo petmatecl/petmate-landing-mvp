@@ -67,6 +67,27 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Sprint dedicado**: rama `session-timeout-fix` creada 2026-08-27 con fix listo (sin mergear), esperando retomarlo con cabeza fresca post-`email-landing` en prod. Ver commit inicial de esa rama con el diseño exacto propuesto.
   - **Compatibilidad con `email-landing`**: el fix 1 del SessionTimeout (exclusión de rutas auth transit) que SÍ aterriza en `email-landing` NO afecta el path del setTimeout que funciona — en las rutas excluidas (`/login`, `/register`, `/email-confirmado`, etc) el useEffect entero no corre, entonces cero setTimeout registrado ahí, comportamiento intencional (users en flow de auth no deben ser expulsados por inactividad de sesión anterior). En el resto de rutas (`/proveedor`, `/mis-reservas`, etc), el useEffect corre y el setTimeout se registra normal.
 
+- **[abierto — PRIORIDAD ALTA, sprint propio, pedido PO 2026-08-27] Feedback con adjunto de imagen** — hoy el widget `components/Shared/FeedbackWidget.tsx` es solo texto. Los usuarios no pueden reportar un problema con evidencia visual, que es justo lo que hace falta cuando algo se ve mal en pantalla. **Orden**: después de session-timeout, antes de "Duplicaciones campo-específico vs formulario base en `camposPorCategoria.ts`".
+
+  **Decisiones de producto YA TOMADAS por el PO (no re-abrir en el sprint)**:
+  1. **Solo usuarios con sesión activa** pueden adjuntar imagen. Anónimos siguen enviando feedback de texto, sin adjunto.
+  2. **Una imagen por envío**. No múltiples.
+  3. **Máximo 3 MB antes de comprimir**. Reusar el compresor de fotos que ya existe en fichas de mascotas.
+  4. **Formatos permitidos: JPG y PNG únicamente**. NO PDF, NO HEIC, **NO SVG** (SVG queda excluido explícitamente por riesgo de contenido activo).
+  5. **Bucket PRIVADO en Supabase Storage**. El admin ve la imagen vía **URL firmada de vida corta**. NO bucket público.
+  6. **Si la subida falla, el feedback se envía igual sin la imagen**. El texto nunca se pierde por un error de storage.
+
+  **Razón del bucket privado, punto no negociable del PO**: una captura de bug suele traer datos personales en pantalla — teléfono, dirección, correo de terceros, sesión abierta. Un bucket público expone eso a cualquiera con el link.
+
+  **Pendiente de diseño cuando se abra el sprint (NO diseñar ahora)**:
+  - Políticas RLS del bucket.
+  - Retención: cuánto tiempo se guarda la imagen y qué pasa al resolver el feedback.
+  - Rate limiting de subida (ya hay Upstash en el proyecto).
+  - Render en la vista `/admin` de Feedback (`components/Admin/FeedbackList.tsx` — sprint `admin-visibilidad`).
+  - Qué hacer con envíos históricos sin adjunto.
+
+  **Nota auditor**: entrada solo anotada por instrucción explícita del PO ("NO la implementes, no la diseñes en detalle, no toques código"). Prioridad y decisiones producto fijas — reabrir con el PO en el momento del sprint.
+
 - **[abierto — sprint dedicado post email-landing]** Fix estructural: self-calls server-side rotos en Vercel Preview con Deployment Protection. Detectado 2026-08-20 durante smoke email-landing. **Alcance**: 5 llamadas `fetch('${NEXT_PUBLIC_SITE_URL}/api/...')` desde otras Functions del proyecto, todas silentes en preview protegido:
   - [pages/api/auth/signup.ts:201](pages/api/auth/signup.ts#L201) → `/api/auth/welcome`.
   - [pages/api/auth/signup.ts:229](pages/api/auth/signup.ts#L229) → `/api/admin/notify-nueva-solicitud`.
