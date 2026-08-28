@@ -384,6 +384,43 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         }
     };
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // SPRINT deadlock-fix (2026-08-28) — INSTRUMENTACIÓN TEMPORAL EXTRA
+    // Expone hydratedUserIdRef + helper para aislar T1b (verificar PIEZA 1
+    // del fix en isolación). T1a y T3 no ejercitaron el setTimeout: T1a
+    // salió por el guard (PIEZA 2, sin llegar al setTimeout), T3 entró por
+    // Canal 1 (sin pasar por el switch SIGNED_IN).
+    //
+    // Protocolo T1b (correr en consola del preview):
+    //   window.__resetHydratedUserId()  // guard no bloqueará el próximo SIGNED_IN
+    //   const { data: { session: s } } = await window.__pawnectaSupabase.auth.getSession()
+    //   const t0 = performance.now()
+    //   await window.__pawnectaSupabase.auth.setSession({
+    //     access_token: s.access_token, refresh_token: s.refresh_token
+    //   })
+    //   const after = await window.__pawnectaSupabase.from('categorias_servicio').select('id').limit(1)
+    //   console.log('T1b', { elapsed: performance.now() - t0, ok: after.data?.length === 1 })
+    //
+    // Post-fix esperado: elapsed < 2000, ok:true. Logs deben mostrar
+    //   BRANCH=SIGNED_IN → hydrate (deferred macrotask)
+    // (NO 'skipped by guard'). Control negativo ya establecido en
+    // cuelgue-diag @ 70799d4: mismo camino cuelga 20s. Se remueve junto
+    // con el resto de la instrumentación pre-merge.
+    // ═══════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        (window as any).__hydratedUserIdRef = hydratedUserIdRef;
+        (window as any).__resetHydratedUserId = () => {
+            const prev = hydratedUserIdRef.current;
+            hydratedUserIdRef.current = null;
+            cx('__resetHydratedUserId called via consola helper', { prev });
+        };
+        return () => {
+            delete (window as any).__hydratedUserIdRef;
+            delete (window as any).__resetHydratedUserId;
+        };
+    }, []);
+
     useEffect(() => {
         const unmountLog = cxMount('userctx-provider');
         let mounted = true;
