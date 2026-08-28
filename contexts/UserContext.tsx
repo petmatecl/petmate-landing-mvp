@@ -1,6 +1,8 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
+// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal. NO merge a main.
+import { cx, cxTrack, cxMount } from '../lib/cuelgueTelemetry';
 
 // Sprint email-landing session-timeout fix (2026-08-25) — `isOrphanSafeRoute`
 // migrado a `lib/authTransitRoutes.ts` como constante compartida con
@@ -160,6 +162,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const hydrateFromSession = async (session: any) => {
+        cx('userctx:hydrate-start', { hasUser: !!session?.user });
         if (!session?.user) {
             setUser(null);
             setProfile(null);
@@ -170,6 +173,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setCapabilities(GUEST_CAPABILITIES);
             setOnboardingStatus('COMPLETE');
             setIsLoading(false);
+            cx('userctx:hydrate-end-guest setIsLoading(false)');
             return;
         }
 
@@ -187,7 +191,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // antes corria /proveedor/index.tsx checkProviderStatus. La carga
             // extra (cols completas vs 6) es despreciable; el round-trip que
             // ahorramos en Fase C del path critico NO lo es.
-            const [proveedorRes, seekerRes] = await Promise.all([
+            const [proveedorRes, seekerRes] = await cxTrack('userctx:hydrate-promise-all', Promise.all([
                 supabase
                     .from('proveedores')
                     .select('*')
@@ -198,7 +202,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     .select('id, nombre')
                     .eq('auth_user_id', session.user.id)
                     .maybeSingle(),
-            ]);
+            ]));
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
             setProveedorRow(proveedorData ?? null);
@@ -280,6 +284,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         } catch (err: any) {
             // Profile query failed — KEEP the user logged in, just with minimal state
             console.error("UserContext: profile query failed (user stays logged in):", err);
+            cx('userctx:hydrate-catch', err?.message);
             setProfile(null);
             setProveedorRow(null);
             setHasSeekerProfile(false);
@@ -287,17 +292,23 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setCapabilities(GUEST_CAPABILITIES);
         } finally {
             setIsLoading(false);
+            cx('userctx:hydrate-end setIsLoading(false)');
         }
     };
 
     useEffect(() => {
+        const unmountLog = cxMount('userctx-provider');
         let mounted = true;
 
         // Canal 1: lectura inicial sincrónica. Sin Promise.race ni timeout —
         // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
         // resuelve sin colgarse en Web Locks orphaned.
-        supabase.auth.getSession().then(({ data: { session } }) => {
+        cx('userctx:canal1-getSession-called');
+        cxTrack('userctx:canal1-getSession', supabase.auth.getSession()).then(({ data: { session } }) => {
             if (mounted) hydrateFromSession(session);
+            else cx('userctx:canal1-resolved-but-unmounted');
+        }).catch((err) => {
+            cx('userctx:canal1-catch', err?.message);
         });
 
         // Canal 2: cambios futuros. INITIAL_SESSION intencionalmente fuera
@@ -340,6 +351,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return () => {
             mounted = false;
             subscription.unsubscribe();
+            unmountLog();
         };
     }, []);
 

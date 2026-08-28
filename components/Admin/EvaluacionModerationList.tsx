@@ -5,6 +5,8 @@ import { es } from 'date-fns/locale';
 import { Check, X, Star, MessageSquare, Loader2, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
+// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal. NO merge a main.
+import { cx, cxTrack, cxMount } from '../../lib/cuelgueTelemetry';
 
 export default function EvaluacionModerationList() {
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
@@ -18,7 +20,10 @@ export default function EvaluacionModerationList() {
     }>({ open: false, title: '', message: '', confirmLabel: '', variant: 'default', onConfirm: () => {} });
 
     useEffect(() => {
+        const unmountLog = cxMount('eml');
+        cx('eml:effect-fired');
         fetchPendientes();
+        return unmountLog;
     }, []);
 
     const fetchPendientes = async () => {
@@ -34,7 +39,11 @@ export default function EvaluacionModerationList() {
             // hace falta un endpoint admin server-side (service_role) que
             // resuelva usuario_id → nombre completo; hoy mostramos el mismo
             // "Nombre I." publico. Backlog post-launch.
-            const { data, error } = await supabase
+            // Sprint cuelgue-diag — envuelve query con timeout 20s + logs.
+            // Cast <any> porque PostgrestFilterBuilder es thenable pero TS
+            // no infiere T al pasar por Promise.race (instrumentación temporal,
+            // NO merge a main).
+            const { data, error } = await cxTrack<any>('eml:query-evaluaciones-pendientes', supabase
                 .from('evaluaciones')
                 .select(`
                     *,
@@ -43,7 +52,7 @@ export default function EvaluacionModerationList() {
                     proveedor:proveedores(nombre, apellido_p)
                 `)
                 .eq('estado', 'pendiente')
-                .order('created_at', { ascending: false });
+                .order('created_at', { ascending: false }));
 
             if (error) throw error;
 
@@ -53,6 +62,7 @@ export default function EvaluacionModerationList() {
             toast.error('Error al cargar evaluaciones pendientes');
         } finally {
             setLoading(false);
+            cx('eml:fetch-finally setLoading(false)');
         }
     };
 
