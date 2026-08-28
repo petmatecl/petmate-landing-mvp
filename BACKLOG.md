@@ -305,6 +305,37 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
   **Regla operativa candidata para CLAUDE.md** (redacción cierra PO): verificar un privilegio con `has_function_privilege` no alcanza para saber DE DÓNDE viene ese privilegio. Ante un resultado inesperado, leer `pg_proc.proacl` + `pg_auth_members` + `pg_default_acl` **antes** de proponer un fix. Dos REVOKE al rol equivocado se hicieron antes de mirar el ACL — pérdida de tiempo evitable con la query correcta al principio.
 
+- **[abierto — PRIORIDAD MEDIA, detectado durante sprint cuelgue-diag ronda 3, 2026-08-28]** **Degradación silenciosa de permisos en UI cuando la carga de perfil falla** — hallazgo INDEPENDIENTE del fix del cuelgue intermitente, aunque emerge del mismo mecanismo. Anotado como pedido PO explícito durante análisis del snapshot ronda 2 (`await __cuelgueDx()` mostró `hasSession: true` post-episodio mientras el header ya había cambiado "Admin" → "Usuario").
+
+  **Mecanismo estructural**:
+  - Cuando el `Promise.all` de [contexts/UserContext.tsx:190-201](contexts/UserContext.tsx#L190-L201) falla (por cuelgue con timeout, por network transitorio, por cualquier throw en la query de perfil), el catch en [L280-287](contexts/UserContext.tsx#L280-L287) setea explícitamente `setProfile(null)` + `setCapabilities(GUEST_CAPABILITIES)`.
+  - El comentario del código lo declara intencional: `"Profile query failed — KEEP the user logged in, just with minimal state"`. La sesión Supabase permanece viva, `user` sigue poblado, `isAuthenticated` sigue `true`.
+  - Pero `profile === null` → el Header lee roles con fallback en [L126](contexts/UserContext.tsx#L126): `const roles = profile?.roles || ['usuario']`. **Un admin real queda con `roles = ['usuario']` en la UI**.
+  - Consecuencia visible: el header renderiza "Usuario" en vez de "Admin". Tabs, menús, capabilities derivadas (`canViewSitterDashboard`, `canPublishProfile`, etc.) caen a `GUEST_CAPABILITIES`.
+
+  **Evidencia empírica que lo confirmó** (snapshot PO 2026-08-28 tarde, después del episodio):
+  - `getSessionTest: { ok: true, hasSession: true, error: null }` — sesión Supabase intacta.
+  - `dataFetchTest: { ok: true, status: 200, rowCount: 1 }` — cliente sano end-to-end.
+  - Header pasó de "Admin" a "Usuario" durante el cuelgue, sin ninguna acción del usuario, sin logout, sin toast, sin banner de error.
+
+  **Superficies afectadas** (no exhaustivo — verificar en el sprint del fix):
+  - Todos los links del dropdown del avatar del Header — cambian según `providerStatus === 'aprobado'` + `hasSeekerProfile`. Al degradar a `profile=null`, `providerStatus='none'`, `hasSeekerProfile=false` → dropdown pierde acceso a "Panel de proveedor", "Mis reservas", "Mis mascotas", "Mis favoritos".
+  - `/admin` — el checkAuth de [pages/admin.tsx:100-118](pages/admin.tsx#L100-L118) hace su propia query a `proveedores` con `roles, estado`. Si ese query también falla en el catch, el admin ve "Acceso restringido" inline en lugar del panel — pero puede recuperar volviendo a intentar. Si el hydrate del UserContext fue el que falló pero admin.tsx checkAuth resuelve OK, el admin entra al panel PERO el Header muestra "Usuario".
+  - RoleGuard con `requiredRole='admin'` hace su propia query DB (no depende de `profile.roles` del context) — probablemente sobrevive el fallo del hydrate. Pero cualquier consumer que lea `useUser().roles` directo cae al fallback `['usuario']`.
+
+  **Por qué es problemático** (independiente del cuelgue):
+  - **Silencioso**: cero aviso al usuario. Ni toast, ni banner, ni cambio de icono, nada. El admin cree que sigue siendo admin y navega el sitio como usuario común sin saber por qué faltan opciones.
+  - **Reversible pero no auto-recuperable**: el `refreshProfile()` existe en el context pero no se llama automáticamente después de un catch. El usuario tiene que loguearse de nuevo (o hacer F5) para recuperar `profile` poblado.
+  - **Escala con el cuelgue**: mientras el bug del cuelgue exista, esta degradación se dispara cada vez. Fix del cuelgue reduce frecuencia pero no elimina el vector — cualquier network transient puede dispararlo.
+
+  **Fix candidato (no diseñar ahora)**:
+  - **Opción A**: al entrar al catch, mostrar toast/banner explícito ("No pudimos cargar tu perfil, intenta recargar"). Requiere que Header/consumers renderen el error state.
+  - **Opción B**: al entrar al catch, disparar retry con backoff (2s, 5s, 10s) hasta N intentos. Si todos fallan, entonces sí mostrar el error explícito.
+  - **Opción C**: en vez de setear `profile=null`, MANTENER el `profile` previo si existía. Solo resetear en `SIGNED_OUT`. Trade-off: cache stale si el perfil cambió server-side entre hydrates. Pero es mejor que perder rol silente.
+  - **Opción D**: preservar `roles` del user object de Supabase Auth JWT (si están ahí como claim) en lugar de depender de la query de perfil. Requiere pipeline server-side que meta roles en el JWT. Más invasivo.
+
+  **Sprint dedicado post-fix del cuelgue** — no antes, para no enmascarar el cuelgue mismo. Prioridad MEDIA (no bloquea funciones críticas pero es rotura de contrato de UX). Escala a ALTA si volumen del cuelgue en users reales pasa un umbral (a decidir por PO cuando haya data de telemetry).
+
 - **[abierto — PRIORIDAD MEDIA, detectado + repro-verificado durante smokes staging admin-visibilidad 2026-08-27]** **Copy "sesión expiró" mostrado a personas que NUNCA tuvieron sesión** — pedido PO **2026-08-27**, PARADO durante el sprint `admin-visibilidad` porque el fix NO es trivial ("cambio de string" es engañoso — toca lógica de routing en 2+ archivos).
 
   **Repro empírico completo del PO 2026-08-27** (refuta la hipótesis inicial del auditor que decía "es rebote de no-admin"):
