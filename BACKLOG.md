@@ -95,6 +95,46 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
   **Restricción del sprint (PO 2026-08-28)**: es sólo diagnóstico. Cero fix, cero código productivo, cero hipótesis dada por buena sin corte de variable que la distinga de las demás. Ronda actual: **mapa de código de los caminos comunes de carga** (sin hipótesis todavía).
 
+- **[abierto — PRIORIDAD ALTA, pedido PO 2026-08-28]** **Panel de notificaciones — 8 defectos observados** — pedido consolidado del PO que reemplaza dos envíos previos (base 1-4 y ampliación 5-8) que no llegaron al contexto del auditor. Observado en dos entornos: **prod (pawnecta.com)** y **preview cuelgue-diag**, ambos con sesión admin, panel de la campana.
+
+  **Nota de versión** — a verificar en el sprint: en el preview el panel tiene botón "Marcar leídas"; en prod NO aparecía. Determinar si es diferencia de versión desplegada o de estado (quizás el botón solo aparece cuando hay no-leídas).
+
+  **DEFECTO 1 — la notificación no lleva a ninguna parte**. Click en la tarjeta: no navega, no abre nada, cero feedback. Una notificación que informa de un evento y no lleva al evento no cumple su función.
+  Decisión de producto pendiente PO: a dónde va cada TIPO de notificación (evaluación → ficha del proveedor con la review nueva; reserva → detalle en `/mis-reservas` o `/proveedor`; mensaje → thread en `/mensajes`; etc.).
+
+  **DEFECTO 2 — copy sin tildes**. Texto literal observado: **"Recibiste una nueva evaluacion. Aparecera publica tras moderacion."** Faltan cuatro tildes: evaluación, Aparecerá, pública, moderación.
+  A verificar en el sprint: (a) si el string vive en código (fix trivial junto al defecto 1), o (b) si se genera al INSERT en la BD (revisar filas históricas + decidir si migran). Revisar además el resto de templates de notificación — si uno tiene el problema, probablemente hay más.
+
+  **DEFECTO 3 — antigüedad (a definir por PO, no es bug todavía)**. Una notificación mostrada es del **02-04-2026**, casi 5 meses atrás. Definir política: la campana muestra histórico completo / ventana de tiempo / sólo no leídas / híbrido. Decisión de producto del PO.
+
+  **DEFECTO 4 — el panel no cierra y sobrevive a la navegación** (dos comportamientos, probablemente misma causa):
+  - **4a** — Click fuera no cierra el panel. Sin dismiss por backdrop, sin tecla Escape. Único modo: la X del header del panel.
+  - **4b — MÁS GRAVE**: el panel sobrevive a un cambio de ruta. Abierto en `/explorar`, navegación a `/servicio/7ccd98e8-6c25-4102-a5d6-6a7425f8251b`, y el panel siguió abierto encima del contenido nuevo, tapando hero y breadcrumb del servicio.
+  - **Efecto combinado**: usuario abre notificaciones → clickea esperando ir a algún lado (defecto 1: no pasa nada) → el panel no cierra → sigue navegando → el panel lo persigue por el sitio. Solo se libera si encuentra la X.
+  - **Revisar en el sprint si otros overlays tienen el mismo patrón roto**: `MobileActionSheet.tsx`, modal de servicio, `FeedbackWidget.tsx`. Si el patrón de cierre está mal en uno, probablemente esté mal en varios — el fix debería ser un patrón común, no un parche por pantalla.
+
+  **DEFECTO 5 — se muestra el código de reserva al usuario**. Cada tarjeta expone un identificador tipo `"e2e-f2-3-1786465527293"`. Dato interno sin valor para quien lee. Debería mostrar nombre del servicio o contexto legible ("Cuidado de Firulais", "Sesión con Camila Figueroa", etc.).
+
+  **DEFECTO 6 — DUPLICACIÓN. El más grave del grupo**. Cuatro notificaciones para lo que parece un solo evento:
+  ```
+  e2e-f2-3-1786465527293 — Del miércoles 12 de agosto al jueves 13 de agosto      (12:25:28)
+  e2e-f2-3-1786465523166 — Miércoles 12 de agosto · 12:25                          (12:25:25)
+  e2e-f2-3-1786465523166 — Miércoles 12 de agosto · de 12:25 a 13:25 · 1 hora     (12:25:25)
+  e2e-f2-3-1786465523166 — Del miércoles 12 de agosto al jueves 13 de agosto      (12:25:25)
+  ```
+  **Tres comparten código de reserva Y timestamp al segundo. Solo cambia el formato de fecha. No son tres eventos**. Determinar en el sprint si el problema está en:
+  - **Generación** — la lógica que inserta en la BD crea filas de más (por ejemplo, un trigger que corre por cada UPDATE del row de reserva, un fire-and-forget que corre 3 veces por bug de idempotencia).
+  - **Render** — una fila en BD pintada varias veces por bug de dedupe en el cliente.
+
+  **DEFECTO 7 — "Mañana" congelado**. Las cuatro notificaciones dicen `"Mañana: reserva de Camila Figueroa Mendoza"` pero son del **11-08-2026**, hace más de dos semanas. El "Mañana" se calculó **al momento de crear** la notificación y quedó **fijo en el texto**. Hoy es información falsa (no es mañana, fue hace 2 semanas).
+  Decisión de producto PO: (a) calcular "Mañana"/"Ayer"/"Hoy" al RENDERIZAR (adjetivo relativo dinámico), o (b) usar fecha absoluta ("12 de agosto"). Opción (a) requiere que el dato de fecha se preserve estructurado en la BD, no solo el string.
+
+  **DEFECTO 8 — posible dato de prueba en el entorno**. El prefijo `"e2e-"` sugiere reservas de tests end-to-end. Confirmar en el sprint (o antes) si son datos de prueba y en qué entorno(s) existen. **Si hay basura de e2e mezclada con datos reales, anotar como hallazgo INDEPENDIENTE — es problema aparte** (cleanup de datos de test + evaluar si el harness e2e limpia después de correr o si acumula infinitamente).
+
+  **Alcance del sprint dedicado** (no diseñar ahora): fix de los 8 defectos + relevamiento de overlays con patrón de cierre similar (defecto 4). Los defectos 1, 3, 7 traen decisiones de producto del PO — el sprint las levanta al arrancar. El defecto 8 puede escalar a sprint propio si el hallazgo de e2e en prod se confirma.
+
+  **Prioridad ALTA — orden explícito PO**: va **debajo del cuelgue intermitente** (que sigue siendo el más urgente por ser fallo de infra silencioso) y **por encima de session-timeout-fix** (que es un bug estructural preexistente pero de impacto acotado). La entrada de scroll (patrón general de tabs) queda **debajo** de esta.
+
 - **[abierto — PRIORIDAD ALTA, preexistente descubierto 2026-08-27 durante smoke email-landing] Timeout de inactividad por check-al-mount está roto desde su primer commit** — el path "F5 tras 10+ min sin actividad → expulsión a `/security-logout`" NUNCA funcionó en la práctica. Detectado por Aldo con smoke positivo-conocido (seteo marker a hace 20 min, F5 en `/proveedor`, verificar expulsión); resultado: no expulsó, marker se pisó a NOW post-recarga. Bug preexistente, no del sprint email-landing.
   - **Diagnóstico técnico** ([components/SessionTimeout.tsx](components/SessionTimeout.tsx) desde commit `840ef3e`, meses):
     - useEffect L~140-145 registra 5 event listeners de interacción (`mousedown, mousemove, keydown, scroll, touchstart`) **INMEDIATAMENTE** al mount, síncrono.
