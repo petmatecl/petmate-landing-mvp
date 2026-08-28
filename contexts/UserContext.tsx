@@ -125,6 +125,71 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // para leer el valor mas fresco dentro del handler de auth.
     const isVoluntaryLogoutRef = useRef(false);
 
+    // ═══════════════════════════════════════════════════════════════════════
+    // SPRINT deadlock-fix (2026-08-28) — DEADLOCK POR REENTRADA EN LOCK AUTH
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // CAUSA RAÍZ (verificada empíricamente por PO 2026-08-28 con setSession
+    // + stack trace + timeout de las dos queries del Promise.all):
+    //
+    //   El handler de onAuthStateChange corre DENTRO del lock que el SDK
+    //   Supabase Auth adquiere para operaciones que emiten eventos (setSession,
+    //   refreshSession, autoRefresh, etc.). Ver
+    //   node_modules/@supabase/auth-js/dist/main/GoTrueClient.js: setSession →
+    //   _acquireLock → _setSession → _notifyAllSubscribers('SIGNED_IN').
+    //
+    //   Hacer trabajo async al mismo cliente supabase dentro del callback
+    //   (queries de datos) provoca DEADLOCK CIRCULAR:
+    //     - Las queries llaman fetchWithAuth → _getAccessToken → auth.getSession
+    //     - auth.getSession llama _acquireLock → detecta lockAcquired=true →
+    //       encola en pendingInLock → NUNCA resuelve porque el lock exterior
+    //       está esperando a que las queries terminen.
+    //
+    //   Antipatrón oficial documentado por Supabase (issue #762): "Never use
+    //   any async supabase call inside the callback of onAuthStateChange".
+    //
+    // POR QUÉ NOP APLICA a hydrate #1 (Canal 1 sano): se dispara desde
+    //   supabase.auth.getSession().then(hydrateFromSession) — el .then corre
+    //   DESPUÉS de que el lock se libera. Las queries hijas re-adquieren lock
+    //   fresh sin conflicto.
+    //
+    // POR QUÉ NO SIRVIÓ el noOpLock preexistente: reemplaza this.lock
+    //   (primitiva Web Locks vs no-op) pero NO evita la lógica lockAcquired +
+    //   pendingInLock que corre igual con cualquier implementación de lock.
+    //   Cierra un cuelgue distinto (Web Locks huérfanos), la reentrada queda
+    //   abierta.
+    //
+    // FIX (2 piezas con roles DISTINTOS — no confundir):
+    //
+    //   PIEZA 1 — setTimeout(fn, 0) — CIERRA EL DEADLOCK (fix estructural).
+    //     Encolar el hydrate como MACROTASK hace que el callback retorne
+    //     sync, el lock del SDK se libere, y hydrateFromSession corra FUERA
+    //     del lock. Las queries hijas re-adquieren lock fresh. Cero reentrada.
+    //     Patrón oficial recomendado por Supabase auth-js.
+    //     Si esto se saca, VUELVE EL BUG. No es opcional.
+    //
+    //   PIEZA 2 — hydratedUserIdRef guard — OPTIMIZACIÓN (NO protección).
+    //     Evita re-hidratar cuando el SDK dispara SIGNED_IN silente para la
+    //     misma sesión ya hidratada (comportamiento no documentado del SDK,
+    //     precedente CLAUDE.md 2026-08-25 con SessionTimeout). Ahorra 2
+    //     queries + re-render del árbol cada vez que el SDK re-emite.
+    //     Si se saca esto, el deadlock SIGUE cerrado (PIEZA 1 lo cubre) —
+    //     solo hay trabajo redundante. El guard NO reemplaza a la PIEZA 1.
+    //
+    // REF (no state) porque el handler de onAuthStateChange puede correr
+    // entre renders y el state estar stale (race entre hydrate exitoso y
+    // handler del próximo evento). Ref se actualiza en el mismo tick que
+    // setUser, cero divergencia esperada — cualquier consumer que necesite
+    // saber "qué user está actualmente hidratado" usa el ref.
+    //
+    // LIMPIEZA DEL REF (obligatoria en 3 puntos, para no bloquear re-login
+    // legítimo con la misma cuenta):
+    //   1. hydrateFromSession con !session?.user (guest) — resetea a null.
+    //   2. Case SIGNED_OUT del handler — resetea a null.
+    //   3. softReset (logout voluntario) — resetea a null.
+    // ═══════════════════════════════════════════════════════════════════════
+    const hydratedUserIdRef = useRef<string | null>(null);
+
     const roles = profile?.roles || ['usuario']; // Default to usuario
 
     // Derive Capabilities Logic
@@ -172,6 +237,9 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             email: session?.user?.email ?? null,
         });
         if (!session?.user) {
+            // Sprint deadlock-fix — limpia el ref para que re-login futuro con
+            // la misma cuenta post-guest hidrate (guard de identidad no bloquee).
+            hydratedUserIdRef.current = null;
             setUser(null);
             setProfile(null);
             setProveedorRow(null);
@@ -181,12 +249,19 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setCapabilities(GUEST_CAPABILITIES);
             setOnboardingStatus('COMPLETE');
             setIsLoading(false);
-            cx('userctx:hydrate-end-guest setIsLoading(false)');
+            cx('userctx:hydrate-end-guest setIsLoading(false) + ref cleared');
             return;
         }
 
         // Session is valid — set user immediately
         setUser(session.user);
+        // Sprint deadlock-fix — actualizar el ref en el MISMO tick que setUser.
+        // El guard del case SIGNED_IN lee este ref para skipear hydrates
+        // redundantes cuando el SDK dispara SIGNED_IN silente para la misma
+        // sesión. Actualizamos ANTES del try/catch del Promise.all para que,
+        // aunque las queries fallen, un SIGNED_IN silente subsecuente igual
+        // se skipee (evita reintentos en loop del mismo hydrate ya fallido).
+        hydratedUserIdRef.current = session.user.id;
 
         // 2. Profile queries — failure here should NOT log the user out.
         // Las dos queries son independientes (ambas filtran por session.user.id
@@ -344,16 +419,64 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     return;
                 }
                 switch (event) {
-                    case 'SIGNED_IN':
-                        cx('userctx:onAuthStateChange BRANCH=SIGNED_IN → hydrate');
-                        await hydrateFromSession(session);
+                    case 'SIGNED_IN': {
+                        // ═══════════════════════════════════════════════════
+                        // SPRINT deadlock-fix (2026-08-28) — FIX EN 2 PIEZAS.
+                        // Ver comentario extenso donde se declara
+                        // hydratedUserIdRef. NO CONFUNDIR:
+                        //   PIEZA 1 (setTimeout) — CIERRA EL DEADLOCK.
+                        //   PIEZA 2 (guard) — OPTIMIZACIÓN, NO protección.
+                        // Sacar la PIEZA 1 pensando que el guard alcanza
+                        // reintroduce el bug.
+                        // ═══════════════════════════════════════════════════
+
+                        // PIEZA 2 — Guard de identidad (optimización).
+                        // Skipea trabajo redundante cuando el SDK emite
+                        // SIGNED_IN silente para la misma sesión ya hidratada.
+                        // Cero relación con el fix del deadlock.
+                        if (session?.user?.id && session.user.id === hydratedUserIdRef.current) {
+                            cx('userctx:SIGNED_IN skipped by guard (same user already hydrated)', session.user.id);
+                            break;
+                        }
+
+                        // PIEZA 1 — setTimeout(fn, 0) CIERRA EL DEADLOCK.
+                        // Encolar como macrotask hace que el callback retorne
+                        // sync → lock del SDK se libera → hydrateFromSession
+                        // corre FUERA del lock → sus queries hijas
+                        // (auth.getSession internamente) re-adquieren lock
+                        // fresco sin conflicto. Antipatrón oficial Supabase.
+                        cx('userctx:onAuthStateChange BRANCH=SIGNED_IN → hydrate (deferred macrotask)');
+                        setTimeout(() => {
+                            // Chequeo mounted DENTRO del macrotask: el
+                            // componente puede haberse desmontado entre el
+                            // callback y la ejecución de este setTimeout.
+                            // Sin este check corremos setState sobre árbol
+                            // desmontado (React warnings + posible leak).
+                            if (!mounted) {
+                                cx('userctx:SIGNED_IN deferred hydrate SKIPPED (unmounted before macrotask fire)');
+                                return;
+                            }
+                            hydrateFromSession(session);
+                        }, 0);
                         break;
+                    }
                     case 'TOKEN_REFRESHED':
                         cx('userctx:onAuthStateChange BRANCH=TOKEN_REFRESHED (no-op)');
                         // No re-hidratar perfil (overhead innecesario).
                         break;
                     case 'SIGNED_OUT': {
-                        cx('userctx:onAuthStateChange BRANCH=SIGNED_OUT → hydrate(null)');
+                        // Sprint deadlock-fix — limpiar el ref ANTES de
+                        // hidrate(null) para que un re-login con la MISMA
+                        // cuenta post-logout hidrate (guard de identidad
+                        // no bloquee: T3 de tests aceptación PO 2026-08-28).
+                        hydratedUserIdRef.current = null;
+                        cx('userctx:onAuthStateChange BRANCH=SIGNED_OUT → hydrate(null) + ref cleared');
+                        // NOTA: hydrateFromSession(null) NO llama a supabase
+                        // (early return del path guest hace solo setState).
+                        // Cero riesgo de reentrada aunque el callback corra
+                        // dentro del lock del SDK. Se mantiene await sync
+                        // (a diferencia del SIGNED_IN que sí necesita
+                        // setTimeout porque sus queries reentran al lock).
                         await hydrateFromSession(null);
                         // Voluntary logout: logout()/softReset() prendio la bandera
                         // y ya se encarga del redirect. Reset y salir.
@@ -431,6 +554,10 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // Prende bandera ANTES del signOut para que el handler de SIGNED_OUT
         // lo lea como voluntario y no dispare el redirect a /login?reason=expired.
         isVoluntaryLogoutRef.current = true;
+        // Sprint deadlock-fix — limpiar el ref para que re-login con la
+        // misma cuenta post-logout voluntario hidrate (guard de identidad
+        // no bloquee: T3 de tests aceptación PO 2026-08-28).
+        hydratedUserIdRef.current = null;
         setUser(null);
         setProfile(null);
         setProveedorRow(null);
