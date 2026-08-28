@@ -5,8 +5,6 @@ import { es } from 'date-fns/locale';
 import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle, Copy, CheckCircle2, Phone, MessageCircle, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
-// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal. NO merge a main.
-import { cx, cxTrack, cxMount } from '../../lib/cuelgueTelemetry';
 
 export default function ProveedorManagementList() {
     const [proveedores, setProveedores] = useState<any[]>([]);
@@ -28,10 +26,7 @@ export default function ProveedorManagementList() {
     }>({ open: false, title: '', message: '', confirmLabel: '', onConfirm: () => {} });
 
     useEffect(() => {
-        const unmountLog = cxMount('pml');
-        cx('pml:effect-fired');
         fetchProveedores();
-        return unmountLog;
     }, []);
 
     // Sprint admin-visibilidad (2026-08-27) — reemplazo del .from('proveedores')
@@ -48,8 +43,7 @@ export default function ProveedorManagementList() {
     const fetchProveedores = async () => {
         setLoading(true);
         try {
-            // Sprint cuelgue-diag — envuelve rpc con timeout 20s + logs.
-            const { data, error } = await cxTrack('pml:rpc-admin_listar_proveedores', supabase.rpc('admin_listar_proveedores'));
+            const { data, error } = await supabase.rpc('admin_listar_proveedores');
 
             if (error) throw error;
             setProveedores(data || []);
@@ -58,7 +52,6 @@ export default function ProveedorManagementList() {
             toast.error('Error al cargar la lista de proveedores');
         } finally {
             setLoading(false);
-            cx('pml:fetch-finally setLoading(false)');
         }
     };
 

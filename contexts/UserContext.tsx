@@ -1,8 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
-// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal. NO merge a main.
-import { cx, cxTrack, cxMount } from '../lib/cuelgueTelemetry';
 
 // Sprint email-landing session-timeout fix (2026-08-25) — `isOrphanSafeRoute`
 // migrado a `lib/authTransitRoutes.ts` como constante compartida con
@@ -227,15 +225,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const hydrateFromSession = async (session: any) => {
-        // Sprint cuelgue-diag ronda 3 — loguear user.id por hydrate para
-        // detectar cross-fire dual-cuenta (dos hydrates con user.id distinto
-        // = otra tab cambió de cuenta = causa real del cambio Admin→Usuario).
-        // Si los dos user.id son iguales, el cambio es CONSECUENCIA del catch.
-        cx('userctx:hydrate-start', {
-            hasUser: !!session?.user,
-            userId: session?.user?.id ?? null,
-            email: session?.user?.email ?? null,
-        });
         if (!session?.user) {
             // Sprint deadlock-fix — limpia el ref para que re-login futuro con
             // la misma cuenta post-guest hidrate (guard de identidad no bloquee).
@@ -249,7 +238,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setCapabilities(GUEST_CAPABILITIES);
             setOnboardingStatus('COMPLETE');
             setIsLoading(false);
-            cx('userctx:hydrate-end-guest setIsLoading(false) + ref cleared');
             return;
         }
 
@@ -274,22 +262,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // antes corria /proveedor/index.tsx checkProviderStatus. La carga
             // extra (cols completas vs 6) es despreciable; el round-trip que
             // ahorramos en Fase C del path critico NO lo es.
-            // Sprint cuelgue-diag ronda 3 — separar Promise.all en 2
-            // cxTrack independientes. Cada query tiene su propio timeout de
-            // 20s, entonces sabemos CUÁL cuelga (o si son las dos). Antes
-            // el wrap era colectivo y el timeout mataba el race entero sin
-            // decir quién.
             const [proveedorRes, seekerRes] = await Promise.all([
-                cxTrack('userctx:hydrate-query-proveedores', supabase
+                supabase
                     .from('proveedores')
                     .select('*')
                     .eq('auth_user_id', session.user.id)
-                    .maybeSingle()),
-                cxTrack('userctx:hydrate-query-usuarios_buscadores', supabase
+                    .maybeSingle(),
+                supabase
                     .from('usuarios_buscadores')
                     .select('id, nombre')
                     .eq('auth_user_id', session.user.id)
-                    .maybeSingle()),
+                    .maybeSingle(),
             ]);
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
@@ -372,7 +355,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         } catch (err: any) {
             // Profile query failed — KEEP the user logged in, just with minimal state
             console.error("UserContext: profile query failed (user stays logged in):", err);
-            cx('userctx:hydrate-catch', err?.message);
             setProfile(null);
             setProveedorRow(null);
             setHasSeekerProfile(false);
@@ -380,60 +362,17 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setCapabilities(GUEST_CAPABILITIES);
         } finally {
             setIsLoading(false);
-            cx('userctx:hydrate-end setIsLoading(false)');
         }
     };
 
-    // ═══════════════════════════════════════════════════════════════════════
-    // SPRINT deadlock-fix (2026-08-28) — INSTRUMENTACIÓN TEMPORAL EXTRA
-    // Expone hydratedUserIdRef + helper para aislar T1b (verificar PIEZA 1
-    // del fix en isolación). T1a y T3 no ejercitaron el setTimeout: T1a
-    // salió por el guard (PIEZA 2, sin llegar al setTimeout), T3 entró por
-    // Canal 1 (sin pasar por el switch SIGNED_IN).
-    //
-    // Protocolo T1b (correr en consola del preview):
-    //   window.__resetHydratedUserId()  // guard no bloqueará el próximo SIGNED_IN
-    //   const { data: { session: s } } = await window.__pawnectaSupabase.auth.getSession()
-    //   const t0 = performance.now()
-    //   await window.__pawnectaSupabase.auth.setSession({
-    //     access_token: s.access_token, refresh_token: s.refresh_token
-    //   })
-    //   const after = await window.__pawnectaSupabase.from('categorias_servicio').select('id').limit(1)
-    //   console.log('T1b', { elapsed: performance.now() - t0, ok: after.data?.length === 1 })
-    //
-    // Post-fix esperado: elapsed < 2000, ok:true. Logs deben mostrar
-    //   BRANCH=SIGNED_IN → hydrate (deferred macrotask)
-    // (NO 'skipped by guard'). Control negativo ya establecido en
-    // cuelgue-diag @ 70799d4: mismo camino cuelga 20s. Se remueve junto
-    // con el resto de la instrumentación pre-merge.
-    // ═══════════════════════════════════════════════════════════════════════
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-        (window as any).__hydratedUserIdRef = hydratedUserIdRef;
-        (window as any).__resetHydratedUserId = () => {
-            const prev = hydratedUserIdRef.current;
-            hydratedUserIdRef.current = null;
-            cx('__resetHydratedUserId called via consola helper', { prev });
-        };
-        return () => {
-            delete (window as any).__hydratedUserIdRef;
-            delete (window as any).__resetHydratedUserId;
-        };
-    }, []);
-
-    useEffect(() => {
-        const unmountLog = cxMount('userctx-provider');
         let mounted = true;
 
         // Canal 1: lectura inicial sincrónica. Sin Promise.race ni timeout —
         // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
         // resuelve sin colgarse en Web Locks orphaned.
-        cx('userctx:canal1-getSession-called');
-        cxTrack('userctx:canal1-getSession', supabase.auth.getSession()).then(({ data: { session } }) => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
             if (mounted) hydrateFromSession(session);
-            else cx('userctx:canal1-resolved-but-unmounted');
-        }).catch((err) => {
-            cx('userctx:canal1-catch', err?.message);
         });
 
         // Canal 2: cambios futuros. INITIAL_SESSION intencionalmente fuera
@@ -441,20 +380,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // hidratación evitada.
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
-                // Sprint cuelgue-diag ronda 3 — log del event exacto + user
-                // + mounted, ANTES del switch. Discrimina cuál rama entra
-                // (o si NINGUNA entra, señal de que el evento no matchea
-                // ninguna case y el hydrate #2 no viene de acá).
-                cx('userctx:onAuthStateChange fired', {
-                    event,
-                    hasSession: !!session,
-                    userId: session?.user?.id ?? null,
-                    mounted,
-                });
-                if (!mounted) {
-                    cx('userctx:onAuthStateChange EXIT-unmounted');
-                    return;
-                }
+                if (!mounted) return;
                 switch (event) {
                     case 'SIGNED_IN': {
                         // ═══════════════════════════════════════════════════
@@ -472,7 +398,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         // SIGNED_IN silente para la misma sesión ya hidratada.
                         // Cero relación con el fix del deadlock.
                         if (session?.user?.id && session.user.id === hydratedUserIdRef.current) {
-                            cx('userctx:SIGNED_IN skipped by guard (same user already hydrated)', session.user.id);
                             break;
                         }
 
@@ -482,23 +407,18 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         // corre FUERA del lock → sus queries hijas
                         // (auth.getSession internamente) re-adquieren lock
                         // fresco sin conflicto. Antipatrón oficial Supabase.
-                        cx('userctx:onAuthStateChange BRANCH=SIGNED_IN → hydrate (deferred macrotask)');
                         setTimeout(() => {
                             // Chequeo mounted DENTRO del macrotask: el
                             // componente puede haberse desmontado entre el
                             // callback y la ejecución de este setTimeout.
                             // Sin este check corremos setState sobre árbol
                             // desmontado (React warnings + posible leak).
-                            if (!mounted) {
-                                cx('userctx:SIGNED_IN deferred hydrate SKIPPED (unmounted before macrotask fire)');
-                                return;
-                            }
+                            if (!mounted) return;
                             hydrateFromSession(session);
                         }, 0);
                         break;
                     }
                     case 'TOKEN_REFRESHED':
-                        cx('userctx:onAuthStateChange BRANCH=TOKEN_REFRESHED (no-op)');
                         // No re-hidratar perfil (overhead innecesario).
                         break;
                     case 'SIGNED_OUT': {
@@ -507,7 +427,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         // cuenta post-logout hidrate (guard de identidad
                         // no bloquee: T3 de tests aceptación PO 2026-08-28).
                         hydratedUserIdRef.current = null;
-                        cx('userctx:onAuthStateChange BRANCH=SIGNED_OUT → hydrate(null) + ref cleared');
                         // NOTA: hydrateFromSession(null) NO llama a supabase
                         // (early return del path guest hace solo setState).
                         // Cero riesgo de reentrada aunque el callback corra
@@ -533,11 +452,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                         break;
                     }
                     // INITIAL_SESSION: NO handler. Ya cubierto por getSession() arriba.
-                    default:
-                        // Sprint cuelgue-diag ronda 3 — cualquier event no matcheado
-                        // (INITIAL_SESSION, USER_UPDATED, PASSWORD_RECOVERY, MFA_CHALLENGE_VERIFIED, etc.)
-                        // NO dispara hydrate. Log del default para descartar eventos raros.
-                        cx('userctx:onAuthStateChange BRANCH=default (no hydrate)', event);
                 }
             }
         );
@@ -545,7 +459,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return () => {
             mounted = false;
             subscription.unsubscribe();
-            unmountLog();
         };
     }, []);
 

@@ -1,9 +1,3 @@
-// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal.
-// Import ANTES que cualquier otra cosa para que T0 sea early.
-// NO merge a main. Ver lib/cuelgueTelemetry.ts.
-import { cx } from "../lib/cuelgueTelemetry";
-if (typeof window !== 'undefined') cx('app-module-eval');
-
 import type { AppProps } from "next/app";
 import Head from "next/head";
 import { UserContextProvider } from "../contexts/UserContext";

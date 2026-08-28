@@ -16,8 +16,6 @@ const CaregiverMap = dynamic(() => import('../components/Explore/CaregiverMap'),
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { toast } from "sonner";
-// Sprint cuelgue-diag (2026-08-28) — instrumentación temporal. NO merge a main.
-import { cx, cxTrack, cxMount } from "../lib/cuelgueTelemetry";
 
 import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
@@ -227,12 +225,6 @@ export default function ExplorarPage() {
         }
     }, []);
 
-    // Sprint cuelgue-diag (2026-08-28) — mount/unmount tracking.
-    useEffect(() => {
-        const unmountLog = cxMount('explorar');
-        return unmountLog;
-    }, []);
-
     // 1. Cargar Categorías desde DB (reemplaza el fallback estático si tiene datos)
     useEffect(() => {
         async function fetchCategories() {
@@ -388,14 +380,12 @@ export default function ExplorarPage() {
         };
 
         async function run() {
-            cx('explorar:run-fired', { queryKey, userId: user?.id ?? null });
             try {
                 // Single-select de categoria: una sola llamada a la RPC.
                 // La RPC ya hace el orden server-side via p_orden, asi que
                 // el client-side sort heredado del path multi-RPC se
                 // elimina junto con el branch.
-                // Sprint cuelgue-diag — envuelve rpc con timeout 20s + logs.
-                const { data, error } = await cxTrack('explorar:rpc-buscar_servicios', supabase.rpc('buscar_servicios', baseParams));
+                const { data, error } = await supabase.rpc('buscar_servicios', baseParams);
                 if (error) throw error;
                 const rows: any[] = data || [];
                 const serverTotal = rows.length > 0 ? Number(rows[0].total_count) : 0;
@@ -431,11 +421,9 @@ export default function ExplorarPage() {
                 }
             } catch (err) {
                 console.error('Error fetching services:', err);
-                cx('explorar:run-catch', (err as any)?.message);
                 setFetchError(true);
             } finally {
                 setLoading(false);
-                cx('explorar:run-finally setLoading(false)');
             }
         }
 
