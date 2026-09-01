@@ -3,6 +3,7 @@ import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { markNotificationAsRead } from '../../lib/notifications';
+import { formatFechaRelativa } from '../../lib/dateRelative';
 
 type Notification = {
     id: string;
@@ -185,7 +186,7 @@ export default function NotificationBell() {
                                                     {n.message}
                                                 </p>
                                                 <p className="text-[10px] text-slate-400 mt-2">
-                                                    {new Date(n.created_at).toLocaleString('es-CL')}
+                                                    {formatFechaRelativa(n.created_at)}
                                                 </p>
                                             </div>
                                         </div>
