@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import { useFeedback } from '../../contexts/FeedbackContext';
+import { usePersistentOverlayClose } from '../../lib/hooks/usePersistentOverlayClose';
 import { MessageCircle, X, Send, Loader2, Check, AlertCircle } from 'lucide-react';
 
 type Rol = 'tutor' | 'proveedor' | 'admin' | 'otro';
@@ -73,6 +74,27 @@ export default function FeedbackWidget() {
         }, 1000);
         return () => clearInterval(interval);
     }, [rateLimitSeconds]);
+
+    // Sprint notifs-panel C6 (2026-09-01) — cierre por Escape + routeChange
+    // para overlay persistente. FeedbackWidget vive en _app.tsx dentro de
+    // FeedbackProvider, mounted persistente entre rutas. Sin este hook, el
+    // `open` del context sobrevive a navegación y el panel arrastra por el
+    // sitio (síntoma reportado por PO en ronda 1).
+    //
+    // Se pasa `closeWidget` (estable — viene del context envuelto en
+    // useCallback en FeedbackContext.tsx), NO `closeAndReset`. Motivo:
+    // cerrar por Escape/routeChange preserva el borrador del form. Si el
+    // user quiso navegar sin submit, al reabrir el widget ve lo que estaba
+    // escribiendo — comportamiento razonable, cero razón para descartar
+    // texto escrito. `closeAndReset` sigue siendo el handler oficial de
+    // la X y del auto-close post-send (limpian borrador intencional).
+    //
+    // Colocado ANTES del early return `if pathname startsWith /admin` para
+    // respetar rules-of-hooks (hooks deben correr en el mismo orden en
+    // cada render). En rutas /admin, `open` del context sigue en false
+    // (nada abre el widget ahí — su trigger flotante también está detrás
+    // del early return), entonces el hook no registra listeners.
+    usePersistentOverlayClose(open, closeWidget);
 
     if (router.pathname.startsWith('/admin')) return null;
 

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { markNotificationAsRead } from '../../lib/notifications';
 import { formatFechaRelativa } from '../../lib/dateRelative';
+import { usePersistentOverlayClose } from '../../lib/hooks/usePersistentOverlayClose';
 
 type NotificationMetadata = {
     tipo?: string;
@@ -68,6 +69,15 @@ export default function NotificationBell() {
     // — resuelve el defecto 7 (título "Mañana: X" congelado) sin parsear el
     // title con regex (aprobación PO explícita — evita acoplamiento frágil).
     const [agendaFechas, setAgendaFechas] = useState<Map<string, AgendaFecha>>(new Map());
+
+    // Sprint notifs-panel C6 (2026-09-01) — cierre por Escape + routeChange.
+    // NotificationBell vive en Header.tsx (mounted persistente entre rutas),
+    // por eso `isOpen` sobrevive a navegación sin este hook. Cero cambio al
+    // backdrop existente (L~141) — el hook NO cubre backdrop, queda en el
+    // caller (aprobado PO D7 del sprint). useCallback para estabilidad
+    // referencial del onClose entre renders.
+    const closeBell = useCallback(() => setIsOpen(false), []);
+    usePersistentOverlayClose(isOpen, closeBell);
 
     // 1. Fetch initial state & subscribe
     useEffect(() => {
