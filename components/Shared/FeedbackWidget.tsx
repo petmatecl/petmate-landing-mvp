@@ -75,16 +75,20 @@ export default function FeedbackWidget() {
         return () => clearInterval(interval);
     }, [rateLimitSeconds]);
 
-    // Sprint notifs-panel C6 (2026-09-01) — cierre por Escape + routeChange
-    // para overlay persistente. FeedbackWidget vive en _app.tsx dentro de
-    // FeedbackProvider, mounted persistente entre rutas. Sin este hook, el
-    // `open` del context sobrevive a navegación y el panel arrastra por el
-    // sitio (síntoma reportado por PO en ronda 1).
+    // Sprint notifs-panel C6 + C7b (2026-09-01) — cierre por Escape,
+    // routeChange y otro overlay abriéndose. FeedbackWidget vive en
+    // _app.tsx dentro de FeedbackProvider, mounted persistente entre
+    // rutas. Sin este hook, el `open` del context sobrevive a navegación
+    // y el panel arrastra por el sitio (síntoma reportado por PO en
+    // ronda 1). C7b agrega cierre por otro overlay (bus custom).
     //
     // Se pasa `closeWidget` (estable — viene del context envuelto en
-    // useCallback en FeedbackContext.tsx), NO `closeAndReset`. Motivo:
-    // cerrar por Escape/routeChange preserva el borrador del form. Si el
-    // user quiso navegar sin submit, al reabrir el widget ve lo que estaba
+    // useCallback en FeedbackContext.tsx), NO `closeAndReset`. Motivo
+    // TRIPLE (cierre por Escape, routeChange y otro overlay son los
+    // TRES casos de cierre NO INTENCIONAL — el user no clickeó la X):
+    // cerrar sin intención debe PRESERVAR EL BORRADOR del form. Si el
+    // user quiso navegar sin submit, abrir otro overlay sin submit, o
+    // apretar Escape sin submit, al reabrir el widget ve lo que estaba
     // escribiendo — comportamiento razonable, cero razón para descartar
     // texto escrito. `closeAndReset` sigue siendo el handler oficial de
     // la X y del auto-close post-send (limpian borrador intencional).
@@ -94,7 +98,7 @@ export default function FeedbackWidget() {
     // cada render). En rutas /admin, `open` del context sigue en false
     // (nada abre el widget ahí — su trigger flotante también está detrás
     // del early return), entonces el hook no registra listeners.
-    usePersistentOverlayClose(open, closeWidget);
+    usePersistentOverlayClose(open, closeWidget, 'feedback');
 
     if (router.pathname.startsWith('/admin')) return null;
 

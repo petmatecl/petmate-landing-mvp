@@ -5,7 +5,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { markNotificationAsRead } from '../../lib/notifications';
 import { formatFechaRelativa } from '../../lib/dateRelative';
-import { usePersistentOverlayClose } from '../../lib/hooks/usePersistentOverlayClose';
+import { usePersistentOverlayClose, dispatchOverlayOpen } from '../../lib/hooks/usePersistentOverlayClose';
 
 type NotificationMetadata = {
     tipo?: string;
@@ -76,7 +76,11 @@ export default function NotificationBell() {
     // por eso `isOpen` sobrevive a navegación sin este hook. useCallback
     // para estabilidad referencial del onClose entre renders.
     const closeBell = useCallback(() => setIsOpen(false), []);
-    usePersistentOverlayClose(isOpen, closeBell);
+    // Sprint notifs-panel C7b — id 'notifs' registra este overlay en el
+    // bus de exclusión mutua. Al abrir el FeedbackWidget (id 'feedback'),
+    // este panel se cierra automático. Ver lib/hooks/usePersistentOverlayClose
+    // para el contract y por qué NO viola P10 de CLAUDE.md.
+    usePersistentOverlayClose(isOpen, closeBell, 'notifs');
 
     // Sprint notifs-panel C7a (2026-09-01) — Portal del backdrop + panel al
     // document.body. Diagnóstico verificado empíricamente por PO 2026-09-01
@@ -338,10 +342,19 @@ export default function NotificationBell() {
         }
     };
 
+    // Sprint notifs-panel C7b — toggle wrapper que dispatch al bus solo
+    // cuando el user ABRE (no cuando cierra con el mismo botón). Cerrar
+    // por click del botón es intencional, cero necesidad de coordinar con
+    // otros overlays. Abrir cierra al otro overlay via el bus.
+    const handleToggleBell = () => {
+        if (!isOpen) dispatchOverlayOpen('notifs');
+        setIsOpen(!isOpen);
+    };
+
     return (
         <div ref={bellRef} className="relative">
             <button
-                onClick={() => setIsOpen(!isOpen)}
+                onClick={handleToggleBell}
                 aria-label="Notificaciones"
                 aria-haspopup="menu"
                 aria-expanded={isOpen}

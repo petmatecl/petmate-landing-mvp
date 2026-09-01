@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { dispatchOverlayOpen } from '../lib/hooks/usePersistentOverlayClose';
 
 /**
  * Sprint admin-visibilidad (2026-08-27) — FeedbackContext.
@@ -38,7 +39,16 @@ const FeedbackContext = createContext<FeedbackContextValue | null>(null);
 export function FeedbackProvider({ children }: { children: React.ReactNode }) {
     const [isOpen, setIsOpen] = useState(false);
 
-    const open = useCallback(() => setIsOpen(true), []);
+    // Sprint notifs-panel C7b (2026-09-01) — dispatch al bus custom desde
+    // acá, no desde cada caller. Así el Header CTA "cuéntanos" (franja
+    // lanzamiento), el trigger flotante del widget bottom-right, y
+    // cualquier caller futuro que llame `open()` del context heredan el
+    // behavior sin duplicar el dispatch. Cuando el user abre el widget,
+    // el NotificationBell (si estaba abierto) recibe el event y se cierra.
+    const open = useCallback(() => {
+        dispatchOverlayOpen('feedback');
+        setIsOpen(true);
+    }, []);
     const close = useCallback(() => setIsOpen(false), []);
 
     const value = useMemo(() => ({ isOpen, open, close }), [isOpen, open, close]);
