@@ -84,14 +84,28 @@ BEGIN
 END;
 $$;
 
--- Cerrar la puerta ancha primero (default privileges de public en prod
--- otorgan EXECUTE a anon a toda función nueva — regla ya conocida del
--- sprint admin-visibilidad). Después revocar a anon explícitamente.
+-- Cerrar la puerta ancha primero. Los default privileges del schema public
+-- en prod (y en staging, verificado empíricamente 2026-09-01) otorgan
+-- EXECUTE tanto a `anon` COMO a `authenticated` sobre toda función nueva.
+-- El sprint admin-visibilidad detectó el caso anon porque era el que
+-- fallaba el smoke ahí; acá se descubrió que authenticated también estaba
+-- (proacl post-CREATE en staging incluía tanto anon=X como authenticated=X
+-- pese al REVOKE FROM PUBLIC + FROM anon inicial — quedó auth_puede=true
+-- hasta agregar el REVOKE FROM authenticated explícito).
+--
+-- Verificación empírica staging tras aplicar los 3 REVOKE:
+--   anon_puede=false, auth_puede=false, service_puede=true
+--   proacl={postgres=X/postgres, service_role=X/postgres}  ← limpio
+--
 -- La función es de trigger, no se llama por RPC — revocar EXECUTE es
 -- defensa en profundidad, cero impacto operativo (los triggers corren
--- con la owner del CREATE, no con el rol del caller).
+-- con la owner del CREATE, no con el rol del caller). Los 3 REVOKE quedan
+-- como plantilla para cualquier función nueva mientras la deuda
+-- estructural de default privileges (BACKLOG prioridad ALTA) no se
+-- resuelva con `ALTER DEFAULT PRIVILEGES` a nivel schema.
 REVOKE ALL ON FUNCTION public.notify_proveedor_new_eval() FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.notify_proveedor_new_eval() FROM anon;
+REVOKE ALL ON FUNCTION public.notify_proveedor_new_eval() FROM authenticated;
 
 CREATE TRIGGER trg_notify_eval
 AFTER INSERT ON public.evaluaciones
