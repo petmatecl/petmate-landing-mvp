@@ -78,7 +78,25 @@ Los tres casos en que la lectura de código o de la superficie del sistema diver
 
 Aparecieron al mirar el dato completo (SELECT * sobre la tabla o schema) o al ejecutar el gesto real (smoke DOM en vez de lectura de código):
 
-1. **`notify_viaje_publicado`** — función `SECURITY DEFINER` que hacía HTTP POST a `vectis-workspace.cl` con token hardcodeado con typo `pawnnecta`. Descubierta al listar funciones del schema `public` buscando el trigger de notifs. Sin trazabilidad en repo (grep exhaustivo del código = cero referencias reales; los 2 hits eran falsos positivos — hash npm + PNG binary). Ejecutada por PO con DROP en prod y staging. Documentada para trazabilidad forense.
+1. **`notify_viaje_publicado`** — función `SECURITY DEFINER` que hacía HTTP POST a `n8n.vectis-workspace.cl` con token hardcodeado con typo `pawnnecta`. Descubierta al listar funciones del schema `public` buscando el trigger de notifs. Sin trazabilidad en repo (grep exhaustivo del código = cero referencias reales; los 2 hits eran falsos positivos — hash npm + PNG binary). Ejecutada por PO con DROP en prod y staging.
+
+   **Origen identificado (cierre 2026-09-01)**: la función la dejó un ex socio del PO que trabajaba en un proyecto propio de "viajes" (journeys) usando la infraestructura compartida. El dominio `n8n.vectis-workspace.cl` era suyo. Explica el nombre de la función, el webhook y el token — nada de eso pertenecía a Pawnecta. **Corrige la hipótesis inicial** de "copiar y pegar de otro proyecto": no fue descuido, fue uso deliberado de la base para algo ajeno.
+
+   **Barrido de rastros verificado por PO en prod + staging (2026-09-01)**:
+   - Cero funciones con `viaje`, `vectis`, `n8n` o `webhook` en nombre o cuerpo.
+   - Cero tablas tipo `trigger_debug_log`.
+   - `net._http_response`: 0 filas. `net.http_request_queue`: 0 filas. **La función nunca ejecutó, ninguna petición salió.**
+   - Los 14 triggers son los conocidos, ninguno huérfano.
+   - Los roles de la base son todos estándar de Supabase, ninguno ajeno.
+
+   **Revisión de accesos (por PO, 2026-09-01)**:
+   - GitHub: ex socio figuraba como colaborador del repo → **ELIMINADO**.
+   - GitHub deploy keys: ninguna. Webhooks: ninguno.
+   - Supabase prod: NO figura en el Team.
+
+   **Decisión sobre rotación de service_role**: **NO se rota por ahora**. Rotarla exige regenerar el JWT secret, lo que invalida anon key, service_role y todas las sesiones activas, y obliga a actualizar variables en Vercel de inmediato o el sitio se cae. El riesgo concreto es bajo: el ex socio no tiene acceso a Supabase, la función nunca ejecutó, y no hay evidencia de que haya tenido la clave. Anotado en BACKLOG como decisión consciente con su razonamiento, prioridad baja. Si aparece cualquier indicio de acceso no autorizado, se reevalúa y ahí sí hay que armar el procedimiento con el orden de pasos (rotar JWT → actualizar Vercel envs sincronizado → invalidar sesiones → redeploy).
+
+   **Sub-item derivado a BACKLOG (prioridad media)**: revisar si la extensión `pg_net` debe seguir habilitada. Era la que permitía el POST saliente. Hoy nada la usa (verificado). Mantener activa una capacidad que nadie necesita es superficie gratis. Antes de desactivar hay que confirmar que Supabase no la use internamente para features propias.
 
 2. **Voseo residual en textos de notificaciones** — encontrado al inventariar la tabla `notifications` completa buscando otra cosa. Corregido durante la fase F2C (40 filas actualizadas en prod).
 
