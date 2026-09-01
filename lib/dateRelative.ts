@@ -11,7 +11,7 @@
 // lugares es garantía de que se desincronicen (decisión D5 aprobada por PO
 // 2026-09-01).
 //
-// Contract (aprobado por PO 2026-09-01 con caso futuro agregado):
+// Contract MODO 'creacion' (default, aprobado por PO 2026-09-01):
 //
 //   - `hace unos segundos` — pasado, < 60s desde now.
 //   - `hace X min`          — pasado, ≥ 60s y < 1h desde now (X entero).
@@ -22,16 +22,35 @@
 //   - `D de MMMM, HH:MM`    — pasado, mismo año, > 1 día atrás.
 //   - `el D de MMMM, HH:MM` — futuro, mismo año, > 1 día adelante.
 //                             El prefijo "el" marca futuro sin inventar
-//                             formato nuevo — resuelve el defecto 7 del
-//                             sprint notificaciones ("mañana congelado"):
-//                             una notif que decía "12 de septiembre, 14:30"
-//                             para dentro de 2 semanas era ambigua ("¿ya
-//                             pasó?"); con "el 12 de septiembre, 14:30"
-//                             queda explícito.
+//                             formato nuevo.
 //   - `D de MMMM de YYYY`   — distinto año (sin hora — evento distante,
 //                             detalle horario es ruido en ese contexto).
 //
-// Contexto edge:
+// Contract MODO 'evento' (agregado sprint notifs-panel C4, 2026-09-01):
+//
+//   - `Fue ayer a las HH:MM`          — pasado, ayer.
+//   - `Fue el D de MMMM, HH:MM`       — pasado, mismo año, > 1 día atrás.
+//   - `Fue el D de MMMM de YYYY`      — pasado, distinto año.
+//   - `Hoy a las HH:MM`               — mismo día (mayúscula standalone).
+//   - `Mañana a las HH:MM`            — día siguiente.
+//   - `El D de MMMM, HH:MM`           — futuro, mismo año, > 1 día.
+//   - `El D de MMMM de YYYY`          — futuro, distinto año.
+//
+//   Motivación: reservas y eventos calendarizados necesitan marcar
+//   explícitamente si YA PASARON o están POR VENIR. El modo 'creacion'
+//   deja ambiguo el pasado ("11 de agosto, 14:30" ¿ya pasó?); el modo
+//   'evento' lo marca con "Fue el" (pasado) / "El" (futuro), y con
+//   mayúscula inicial standalone en "Hoy" / "Mañana" / "Fue ayer"
+//   (no ambiguo con prefix de oración). Cierra completamente el
+//   defecto 7 del sprint notificaciones (PO 2026-09-01, aprobado con
+//   ajuste de "línea aparte, no parcheo de title").
+//
+//   El modo 'evento' NO usa `hace unos segundos` ni `hace X min` — para
+//   un evento calendarizado (reserva a las 14:30), la hora exacta es
+//   más útil que la proximidad relativa. Si el evento es HOY y "hace 3
+//   min", "Hoy a las 14:30" comunica mejor.
+//
+// Contexto edge MODO 'creacion':
 //   - Cuando el pasado es < 1h pero cruza el borde de "mismo día", igual
 //     mostramos "hace X min" porque el usuario lee la relativa como
 //     "recién" y "hoy" pierde valor (ej: notif de las 23:59 leída a las
@@ -82,26 +101,71 @@ interface FormatOpts {
      * `Date` global necesario.
      */
     now?: Date;
+    /**
+     * Modo del formato. Ver contract extenso arriba.
+     *   'creacion' (default) — cuándo se emitió el dato ("hace 3 min",
+     *     "hoy a las 14:30", "el 12 de septiembre, 14:30"). Usa "hace X"
+     *     para pasado reciente. Prefijo "el" ambiguo-neutral para futuro.
+     *   'evento' — cuándo ocurrirá/ocurrió un evento calendarizado
+     *     ("Mañana a las 10:00", "Fue el 11 de agosto, 14:30"). Marca
+     *     pasado con "Fue el/Fue ayer", futuro con "El"/"Mañana".
+     *     Cierra defecto 7 del sprint notificaciones — al leer una
+     *     tarjeta de recordatorio, queda explícito si la reserva ya
+     *     pasó o está por venir.
+     */
+    modo?: 'creacion' | 'evento';
 }
 
 /**
  * Formatea una fecha ISO como string relativa a "ahora" (o al `opts.now`
- * inyectado). Ver contract completo en el comentario extenso al inicio
- * del archivo.
+ * inyectado). Ver contract completo (ambos modos) en el comentario
+ * extenso al inicio del archivo.
  *
- * @param iso ISO 8601 string (`2026-09-01T14:30:00Z` o con offset). Cualquier
- *            string parseable por `new Date(...)` funciona.
+ * @param iso ISO 8601 string (`2026-09-01T14:30:00Z` o con offset).
+ *            Cualquier string parseable por `new Date(...)` funciona.
  * @param opts.now Referencia temporal. Default `new Date()`.
+ * @param opts.modo `'creacion'` (default) o `'evento'`. Ver contract.
  * @returns String en español chileno, ejemplo: `"hoy a las 14:30"`,
- *          `"el 12 de septiembre, 14:30"`, `"hace 3 min"`.
+ *          `"el 12 de septiembre, 14:30"`, `"hace 3 min"`,
+ *          `"Fue el 11 de agosto, 14:30"`, `"Mañana a las 10:00"`.
  */
 export function formatFechaRelativa(iso: string, opts: FormatOpts = {}): string {
     const now = opts.now ?? new Date();
+    const modo = opts.modo ?? 'creacion';
     const d = new Date(iso);
 
     // Diff en segundos. Positivo = fecha en pasado, negativo = en futuro.
     const diffSec = (now.getTime() - d.getTime()) / 1000;
     const absDiffSec = Math.abs(diffSec);
+
+    const dayDelta = calendarDayDelta(now, d);
+    const dia = d.getDate();
+    const mes = MESES[d.getMonth()];
+    const anio = d.getFullYear();
+    const hora = hhmm(d);
+
+    if (modo === 'evento') {
+        // Modo 'evento' — NO usa "hace unos segundos" ni "hace X min".
+        // Para un evento calendarizado, la hora exacta importa más que
+        // la proximidad. Marca pasado/futuro con "Fue"/"El".
+        if (dayDelta === 0) return `Hoy a las ${hora}`;
+        if (dayDelta === 1) return `Mañana a las ${hora}`;
+        if (dayDelta === -1) return `Fue ayer a las ${hora}`;
+
+        // Distinto año — sin hora (evento distante, ruido).
+        if (anio !== now.getFullYear()) {
+            return dayDelta > 0
+                ? `El ${dia} de ${mes} de ${anio}`
+                : `Fue el ${dia} de ${mes} de ${anio}`;
+        }
+
+        // Mismo año, > 1 día.
+        return dayDelta > 0
+            ? `El ${dia} de ${mes}, ${hora}`
+            : `Fue el ${dia} de ${mes}, ${hora}`;
+    }
+
+    // Modo 'creacion' (default) — comportamiento original.
 
     // Pasado reciente: < 1 minuto → "hace unos segundos". Futuro reciente
     // NO cae acá (no tiene sentido "hace unos segundos" para un evento
@@ -116,18 +180,9 @@ export function formatFechaRelativa(iso: string, opts: FormatOpts = {}): string 
         return `hace ${min} min`;
     }
 
-    // Comparación calendario (independiente de horas — cruza midnight bien).
-    const dayDelta = calendarDayDelta(now, d);
-
-    if (dayDelta === 0) return `hoy a las ${hhmm(d)}`;
-    if (dayDelta === 1) return `mañana a las ${hhmm(d)}`;
-    if (dayDelta === -1) return `ayer a las ${hhmm(d)}`;
-
-    // Más allá de ±1 día calendario.
-    const dia = d.getDate();
-    const mes = MESES[d.getMonth()];
-    const anio = d.getFullYear();
-    const hora = hhmm(d);
+    if (dayDelta === 0) return `hoy a las ${hora}`;
+    if (dayDelta === 1) return `mañana a las ${hora}`;
+    if (dayDelta === -1) return `ayer a las ${hora}`;
 
     // Distinto año → formato absoluto sin hora (evento distante).
     if (anio !== now.getFullYear()) {
