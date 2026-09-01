@@ -3,7 +3,6 @@ import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
 import { markNotificationAsRead } from '../../lib/notifications';
-import Link from 'next/link';
 
 type Notification = {
     id: string;
@@ -195,11 +194,13 @@ export default function NotificationBell() {
                             )}
                         </div>
 
-                        <div className="p-2 border-t border-slate-300 bg-slate-50/50 text-center">
-                            <Link href="/notificaciones" className="text-xs font-medium text-slate-600 hover:text-accent-600">
-                                Ver todas
-                            </Link>
-                        </div>
+                        {/* Sprint notifs-panel F6-a (2026-09-01) — Removido el
+                            footer "Ver todas" que linkeaba a /notificaciones
+                            (ruta inexistente en el repo, 404 en prod). La
+                            página /notificaciones queda anotada en BACKLOG
+                            como sprint dedicado con paginación + filtros +
+                            marcar leídas. Hasta entonces el panel corto es
+                            la única vista de notifs desde la campana. */}
                     </div>
                 </>
             )}
