@@ -94,6 +94,13 @@ export default function NotificationBell() {
                     },
                     (payload) => {
                         const newNotif = payload.new as Notification;
+                        // Sprint notifs-panel C5 (2026-09-01) — filter Postgres
+                        // realtime sigue solo por user_id (opción B aprobada por
+                        // PO — más simple, cero riesgo de filter compuesto no
+                        // soportado). Chequeo client-side defensivo por si algún
+                        // caller INSERT con read=true (no debería, todos los
+                        // callers actuales insertan read=false, pero defensivo).
+                        if (newNotif.read === true) return;
                         setNotifications((prev) => [newNotif, ...prev]);
                         setUnreadCount((prev) => prev + 1);
                         // Sprint notifs-panel C4 (2026-09-01) — Notifs que llegan
@@ -127,10 +134,24 @@ export default function NotificationBell() {
     }, []);
 
     const fetchNotifications = async (uid: string) => {
+        // Sprint notifs-panel C5 (2026-09-01) — Panel corto = SOLO NO LEÍDAS
+        // (decisión D2 del PO). Con el link "Ver todas" removido en C1
+        // (7c39210), las notifs LEÍDAS quedan INACCESIBLES desde la UI hasta
+        // que exista la página /notificaciones (anotada en BACKLOG como
+        // sprint dedicado con paginación + filtros + marcar leídas). Es
+        // DELIBERADO, no un olvido: un panel corto que muestra también
+        // leídas se vuelve ruidoso con volumen. La página /notificaciones
+        // cuando llegue va a ser el destino del histórico completo.
+        //
+        // Efecto UX al marcar una notif como leída: el optimistic update
+        // en handleMarkRead cambia read=true; el filter del render la saca
+        // de la lista visible → parece "desaparecer" del panel. Correcto:
+        // el user ya la atendió, no debería seguir viéndola en el panel corto.
         const { data, error } = await supabase
             .from('notifications')
             .select('*')
             .eq('user_id', uid)
+            .eq('read', false)
             .order('created_at', { ascending: false })
             .limit(20);
 
@@ -333,45 +354,58 @@ export default function NotificationBell() {
                             </div>
                         </div>
 
+                        {/* Sprint notifs-panel C5 (2026-09-01) — filter render
+                            por read=false. El fetch ya trae solo no-leídas
+                            (.eq('read', false)), pero handleMarkRead hace
+                            optimistic update que cambia read=true en el state
+                            local; el filter acá saca la notif del render sin
+                            necesidad de re-fetchear. Empty state se calcula
+                            sobre las visibles, no sobre el array completo. */}
                         <div className="max-h-[60vh] overflow-y-auto">
-                            {notifications.length === 0 ? (
-                                <div className="p-8 text-center text-slate-500 text-sm">
-                                    <p>No tienes notificaciones.</p>
-                                </div>
-                            ) : (
-                                <div className="divide-y divide-slate-100">
-                                    {notifications.map((n) => {
-                                        const clickeable = esClickeable(n);
-                                        const feEvento = fechaEvento(n);
-                                        return (
-                                            <div
-                                                key={n.id}
-                                                onClick={() => handleNotificationClick(n)}
-                                                title={clickeable ? undefined : 'Este destino ya no está disponible'}
-                                                className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 ${!n.read ? 'bg-accent-50/30' : ''} ${clickeable ? 'cursor-pointer' : 'cursor-default opacity-60'}`}
-                                            >
-                                                <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-accent-600' : 'bg-transparent'}`} />
-                                                <div className="flex-1">
-                                                    <p className={`text-sm ${!n.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
-                                                        {n.title}
-                                                    </p>
-                                                    <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
-                                                        {n.message}
-                                                    </p>
-                                                    {feEvento && (
-                                                        <p className="text-xs text-slate-600 mt-1 font-medium">
-                                                            {feEvento}
+                            {(() => {
+                                const visibles = notifications.filter((n) => !n.read);
+                                if (visibles.length === 0) {
+                                    return (
+                                        <div className="p-8 text-center text-slate-500 text-sm">
+                                            <p>No tienes notificaciones.</p>
+                                        </div>
+                                    );
+                                }
+                                return (
+                                    <div className="divide-y divide-slate-100">
+                                        {visibles.map((n) => {
+                                            const clickeable = esClickeable(n);
+                                            const feEvento = fechaEvento(n);
+                                            return (
+                                                <div
+                                                    key={n.id}
+                                                    onClick={() => handleNotificationClick(n)}
+                                                    title={clickeable ? undefined : 'Este destino ya no está disponible'}
+                                                    className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 ${!n.read ? 'bg-accent-50/30' : ''} ${clickeable ? 'cursor-pointer' : 'cursor-default opacity-60'}`}
+                                                >
+                                                    <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-accent-600' : 'bg-transparent'}`} />
+                                                    <div className="flex-1">
+                                                        <p className={`text-sm ${!n.read ? 'font-semibold text-slate-900' : 'font-medium text-slate-700'}`}>
+                                                            {n.title}
                                                         </p>
-                                                    )}
-                                                    <p className="text-[10px] text-slate-400 mt-2">
-                                                        {formatFechaRelativa(n.created_at)}
-                                                    </p>
+                                                        <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
+                                                            {n.message}
+                                                        </p>
+                                                        {feEvento && (
+                                                            <p className="text-xs text-slate-600 mt-1 font-medium">
+                                                                {feEvento}
+                                                            </p>
+                                                        )}
+                                                        <p className="text-[10px] text-slate-400 mt-2">
+                                                            {formatFechaRelativa(n.created_at)}
+                                                        </p>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })()}
                         </div>
 
                         {/* Sprint notifs-panel F6-a (2026-09-01) — Removido el
