@@ -111,6 +111,76 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const isVoluntaryLogoutRef = useRef(false);
 
     // ═══════════════════════════════════════════════════════════════════════
+    // SPRINT role-degradation C2 (2026-09-01) — RETRY IN-PLACE DEL HYDRATE
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // PROBLEMA QUE RESUELVE: cuando el Promise.all de las queries de perfil
+    // en hydrateFromSession falla (red transitoria, error PostgREST, RLS
+    // glitch, timeout CDN, etc.), el catch dejaba el estado degradado
+    // (profile=null, providerStatus='none', etc.) HASTA QUE EL USUARIO
+    // RECARGARA. El header pasaba de "Admin" a "Usuario", /admin rebotaba,
+    // y no había forma automática de recuperarse. Además el usuario no
+    // sabía que había pasado — silenciosa y persistente.
+    //
+    // DISEÑO — 4 intentos totales (initial + 3 retries), backoff entre cada:
+    //
+    //   t=0        attempt 0 (initial) — corre de una en el .then/case SIGNED_IN
+    //   t=500ms    attempt 1 (retry #1)
+    //   t=2500ms   attempt 2 (retry #2)  ← aviso "Reintentando..." en C3
+    //   t=10500ms  attempt 3 (retry #3)  ← aviso final "no pudimos cargar" en C3
+    //   fin.       no hay más — el estado queda degradado + aviso final visible.
+    //
+    // Total wall-clock máximo antes de agotar: ~10.5s.
+    //
+    // TRES DECISIONES CRÍTICAS A NO TOCAR:
+    //
+    // 1. RETRY SALE POR setTimeout — NO llamada directa recursiva.
+    //    Motivo: regla P10 CLAUDE.md (sprint deadlock-fix 2026-08-28).
+    //    El callback de onAuthStateChange corre DENTRO del lock del SDK
+    //    Supabase Auth. Cualquier trabajo async al mismo cliente (queries
+    //    de datos que necesitan token) provoca deadlock circular: re-adquirir
+    //    lock que el callback tiene tomado, encolar en pendingInLock, jamás
+    //    resolver. El setTimeout(fn, 0) — o cualquier delay > 0 — encola el
+    //    hydrate como MACROTASK: el callback retorna sync, el lock se libera,
+    //    y el hydrate corre FUERA del lock. Sacar el setTimeout y llamar
+    //    hydrateFromSession(session, attempt+1) directo reintroduce el deadlock.
+    //    Es el mismo mecanismo de PIEZA 1 del sprint deadlock-fix — no confundir
+    //    con la PIEZA 2 (guard del ref, que se conserva por otra razón — ver #2).
+    //
+    // 2. hydratedUserIdRef NO SE TOCA en el catch.
+    //    Motivo: el ref protege contra el LOOP DEL SIGNED_IN SILENTE del SDK
+    //    (token refresh cada ~50 min, foco de tab, etc. — el SDK re-emite
+    //    SIGNED_IN sin cambio de sesión real). El contador de retries protege
+    //    contra el LOOP DEL MISMO ERROR. Son DOS problemas distintos con dos
+    //    mecanismos distintos. Si alguien los fusiona después (ej. "limpiar
+    //    el ref en el catch para que un SIGNED_IN posterior re-intente"),
+    //    reabre uno de los dos loops según el fallo sea persistente o
+    //    transitorio. Cero acoplamiento entre ambos.
+    //
+    // 3. CLEANUP con retryTimeoutRef + mountedRef.
+    //    El setTimeout del retry puede dispararse después de que el árbol
+    //    se desmontó (navegación a otra página que reset el provider en
+    //    dev con StrictMode, cambio de user que remonta, etc.). Si el
+    //    setState de un componente desmontado corriera, React tira warning
+    //    y el trabajo se pierde. Guardar el timeout id en un ref permite
+    //    cancelarlo en el cleanup del useEffect de mount. El mountedRef
+    //    es cinturón adicional para el edge case donde el timeout ya
+    //    disparó pero la callback todavía no corrió.
+    //
+    // OBSERVABILIDAD (TEMPORAL, remover antes del merge a main):
+    //   console.log/error con prefix `[UserContext hydrate]` en cada
+    //   attempt, retry schedule y exhaustion. Le permite al smoke ver
+    //   exactamente qué attempt está corriendo. Sprint role-degradation
+    //   C4 (Sentry) reemplaza estos logs con captureMessage + tag para
+    //   filtrar en dashboard prod. Los console.log se sacan cuando C4
+    //   aterrice.
+    // ═══════════════════════════════════════════════════════════════════════
+    const MAX_RETRIES = 3;
+    const RETRY_BACKOFF_MS = [500, 2000, 8000] as const;
+    const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const mountedRef = useRef<boolean>(true);
+
+    // ═══════════════════════════════════════════════════════════════════════
     // SPRINT deadlock-fix (2026-08-28) — DEADLOCK POR REENTRADA EN LOCK AUTH
     // ═══════════════════════════════════════════════════════════════════════
     //
@@ -193,11 +263,22 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return 'COMPLETE';
     };
 
-    const hydrateFromSession = async (session: any) => {
+    const hydrateFromSession = async (session: any, attempt: number = 0) => {
         if (!session?.user) {
             // Sprint deadlock-fix — limpia el ref para que re-login futuro con
             // la misma cuenta post-guest hidrate (guard de identidad no bloquee).
             hydratedUserIdRef.current = null;
+            // Sprint role-degradation C2 — cancelar cualquier retry pending.
+            // Escenario: user logueado, queries del hydrate fallaron, retry
+            // scheduled → user hace logout antes de que el retry dispare.
+            // Sin cancelar, el retry corre hydrateFromSession(sessionVieja,
+            // attempt+1) que hace setUser(session.user) con la sesión vieja
+            // → user deslogueado queda con user!=null hasta que el retry se
+            // agote. Bug sutil pero real.
+            if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = null;
+            }
             setUser(null);
             setProfile(null);
             setProveedorRow(null);
@@ -291,6 +372,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
             const status = calculateOnboardingStatus(session.user, finalProfile);
 
+            // Sprint role-degradation C2 — hydrate exitoso, cancelar retry
+            // pending de intentos anteriores (defensivo — puede haber un
+            // retry en cola de un hydrate previo del mismo o de otro user
+            // si canal 2 disparó SIGNED_IN entre medio).
+            if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = null;
+            }
+
             setProfile(finalProfile);
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
@@ -321,17 +411,43 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
         } catch (err: any) {
             // Profile query failed — KEEP the user logged in, just with minimal state.
-            // Sprint role-degradation C1 (2026-09-01) — removido setCapabilities(GUEST)
-            // porque `capabilities` era dead code (cero consumers via useUser).
-            // Sprint role-degradation C2/C3/C4 (pendientes) — este catch se va a
-            // extender con retry in-place + aviso al user + Sentry para hacer el
-            // estado degradado recuperable y observable (hoy queda pegado hasta
-            // reload manual).
-            console.error("UserContext: profile query failed (user stays logged in):", err);
+            // Sprint role-degradation C2 (2026-09-01) — retry in-place con contador
+            // + backoff [500ms, 2s, 8s]. Ver comentario extenso donde se declaran
+            // MAX_RETRIES y retryTimeoutRef. Sacar el setTimeout de acá reabre el
+            // deadlock (regla P10). Limpiar el hydratedUserIdRef acá reabre el
+            // loop del SIGNED_IN silente (sprint deadlock-fix PIEZA 2).
+            console.error(
+                `[UserContext hydrate] attempt ${attempt} failed:`,
+                err?.message ?? err
+            );
             setProfile(null);
             setProveedorRow(null);
             setHasSeekerProfile(false);
             setProviderStatus('none');
+
+            if (attempt < MAX_RETRIES) {
+                const backoffMs = RETRY_BACKOFF_MS[attempt];
+                console.log(
+                    `[UserContext hydrate] scheduling retry ${attempt + 1}/${MAX_RETRIES} in ${backoffMs}ms`
+                );
+                // Cancelar timeout previo si existía (defensivo — no debería
+                // pasar, pero si dos hydrates entran en catch en paralelo, no
+                // queremos dos setTimeouts corriendo).
+                if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = setTimeout(() => {
+                    retryTimeoutRef.current = null;
+                    // Chequeo mounted defensivo por si el timeout disparó
+                    // después del unmount (ej. cambio de user que remonta
+                    // el provider). Sin este check, un setState post-unmount
+                    // tira warning y el trabajo se pierde.
+                    if (!mountedRef.current) return;
+                    hydrateFromSession(session, attempt + 1);
+                }, backoffMs);
+            } else {
+                console.log(
+                    `[UserContext hydrate] exhausted after ${attempt + 1} attempts — user stays degraded until manual reload (C3 aviso pendiente)`
+                );
+            }
         } finally {
             setIsLoading(false);
         }
@@ -339,6 +455,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     useEffect(() => {
         let mounted = true;
+        // Sprint role-degradation C2 — mountedRef espejo del `mounted` local
+        // para que el setTimeout del retry (fuera del scope del useEffect)
+        // pueda chequearlo. React StrictMode dispara mount→unmount→remount:
+        // seteamos en true acá para que el remount arranque en buen estado
+        // aunque el cleanup previo lo haya dejado en false.
+        mountedRef.current = true;
 
         // Canal 1: lectura inicial sincrónica. Sin Promise.race ni timeout —
         // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
@@ -430,6 +552,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
         return () => {
             mounted = false;
+            mountedRef.current = false;
+            // Sprint role-degradation C2 — cancelar el retry pending si el
+            // provider se desmonta antes de que dispare. Sin esto, el retry
+            // arrancaría un hydrate sobre árbol muerto → setState en componente
+            // desmontado (React warning) + trabajo perdido.
+            if (retryTimeoutRef.current) {
+                clearTimeout(retryTimeoutRef.current);
+                retryTimeoutRef.current = null;
+            }
             subscription.unsubscribe();
         };
     }, []);
@@ -480,6 +611,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // misma cuenta post-logout voluntario hidrate (guard de identidad
         // no bloquee: T3 de tests aceptación PO 2026-08-28).
         hydratedUserIdRef.current = null;
+        // Sprint role-degradation C2 — cancelar retry pending por si el
+        // softReset se llamó durante un retry del hydrate anterior.
+        if (retryTimeoutRef.current) {
+            clearTimeout(retryTimeoutRef.current);
+            retryTimeoutRef.current = null;
+        }
         setUser(null);
         setProfile(null);
         setProveedorRow(null);
