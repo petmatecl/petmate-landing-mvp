@@ -46,14 +46,15 @@ interface UserProfile {
     aprobado?: boolean;
 }
 
-export interface UserCapabilities {
-    canBook: boolean;
-    canPublishProfile: boolean;
-    canRespondToBooking: boolean;
-    canReview: boolean;
-    canViewSitterDashboard: boolean;
-    canViewClientDashboard: boolean;
-}
+// UserCapabilities y GUEST_CAPABILITIES removidos en sprint role-degradation
+// C1 (2026-09-01) — dead code sin consumers. Verificado por 3 vías de grep:
+// (a) `capabilities` = 1 file (este mismo, cero consumers externos);
+// (b) `UserCapabilities|GUEST_CAPABILITIES|canBook|...` = 2 files (UserContext
+//     + lib/authService.ts, ambos DEFINEN pero ninguno IMPORTA del otro);
+// (c) `useUser()` destructuring = 20 sitios, cero destructura `capabilities`.
+// El sistema entero de `capabilities` quedó como dead code doble tras algún
+// refactor sin cleanup. Anotado en BACKLOG para revisar remover lib/authService.ts
+// también en sprint aparte.
 
 export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
 
@@ -79,7 +80,6 @@ interface UserContextType {
      */
     hasSeekerProfile: boolean;
     providerStatus: 'none' | 'pendiente' | 'aprobado';
-    capabilities: UserCapabilities; // What the user CAN actually do
     onboardingStatus: OnboardingStep;
     isLoading: boolean;
     isAuthenticated: boolean;
@@ -92,16 +92,6 @@ interface UserContextType {
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
-// Default safe capabilities (guest)
-const GUEST_CAPABILITIES: UserCapabilities = {
-    canBook: false,
-    canPublishProfile: false,
-    canRespondToBooking: false,
-    canReview: false,
-    canViewSitterDashboard: false,
-    canViewClientDashboard: false,
-};
-
 export function UserContextProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -110,9 +100,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [hasSeekerProfile, setHasSeekerProfile] = useState(false);
     const [providerStatus, setProviderStatus] = useState<'none' | 'pendiente' | 'aprobado'>('none');
     const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStep>('COMPLETE'); // Default optimistic
-
-    // Derived Capabilities State
-    const [capabilities, setCapabilities] = useState<UserCapabilities>(GUEST_CAPABILITIES);
 
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -190,24 +177,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const roles = profile?.roles || ['usuario']; // Default to usuario
 
-    // Derive Capabilities Logic
-    const deriveCapabilities = (p: UserProfile | null): UserCapabilities => {
-        if (!p) return GUEST_CAPABILITIES;
-
-        const userRoles = p.roles || [];
-        const isProveedor = userRoles.includes('proveedor') || userRoles.includes('admin');
-        const isClient = userRoles.includes('usuario') || userRoles.length === 0;
-
-        return {
-            canBook: isClient,
-            canPublishProfile: isProveedor,
-            canRespondToBooking: isProveedor,
-            canReview: true,
-            canViewSitterDashboard: isProveedor,
-            canViewClientDashboard: true,
-        };
-    };
-
     // Calculate Onboarding Status
     const calculateOnboardingStatus = (u: any, p: UserProfile | null): OnboardingStep => {
         if (!u) return 'COMPLETE'; // Guest doesn't have onboarding per se
@@ -235,7 +204,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setActiveRole(null);
             setHasSeekerProfile(false);
             setProviderStatus('none');
-            setCapabilities(GUEST_CAPABILITIES);
             setOnboardingStatus('COMPLETE');
             setIsLoading(false);
             return;
@@ -324,7 +292,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             const status = calculateOnboardingStatus(session.user, finalProfile);
 
             setProfile(finalProfile);
-            setCapabilities(deriveCapabilities(finalProfile));
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
 
@@ -353,13 +320,18 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             }
 
         } catch (err: any) {
-            // Profile query failed — KEEP the user logged in, just with minimal state
+            // Profile query failed — KEEP the user logged in, just with minimal state.
+            // Sprint role-degradation C1 (2026-09-01) — removido setCapabilities(GUEST)
+            // porque `capabilities` era dead code (cero consumers via useUser).
+            // Sprint role-degradation C2/C3/C4 (pendientes) — este catch se va a
+            // extender con retry in-place + aviso al user + Sentry para hacer el
+            // estado degradado recuperable y observable (hoy queda pegado hasta
+            // reload manual).
             console.error("UserContext: profile query failed (user stays logged in):", err);
             setProfile(null);
             setProveedorRow(null);
             setHasSeekerProfile(false);
             setProviderStatus('none');
-            setCapabilities(GUEST_CAPABILITIES);
         } finally {
             setIsLoading(false);
         }
@@ -514,7 +486,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         setActiveRole(null);
         setHasSeekerProfile(false);
         setProviderStatus('none');
-        setCapabilities(GUEST_CAPABILITIES);
 
         window.localStorage.removeItem('activeRole');
         window.localStorage.removeItem('pm_auth_role_pending');
@@ -539,7 +510,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             activeRole,
             hasSeekerProfile,
             providerStatus,
-            capabilities,
             onboardingStatus,
             isLoading,
             isAuthenticated: !!user,
