@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
@@ -72,12 +73,38 @@ export default function NotificationBell() {
 
     // Sprint notifs-panel C6 (2026-09-01) — cierre por Escape + routeChange.
     // NotificationBell vive en Header.tsx (mounted persistente entre rutas),
-    // por eso `isOpen` sobrevive a navegación sin este hook. Cero cambio al
-    // backdrop existente (L~141) — el hook NO cubre backdrop, queda en el
-    // caller (aprobado PO D7 del sprint). useCallback para estabilidad
-    // referencial del onClose entre renders.
+    // por eso `isOpen` sobrevive a navegación sin este hook. useCallback
+    // para estabilidad referencial del onClose entre renders.
     const closeBell = useCallback(() => setIsOpen(false), []);
     usePersistentOverlayClose(isOpen, closeBell);
+
+    // Sprint notifs-panel C7a (2026-09-01) — Portal del backdrop + panel al
+    // document.body. Diagnóstico verificado empíricamente por PO 2026-09-01
+    // (elementFromPoint devolvió el <main>, no el backdrop): el header sticky
+    // (Header.tsx:95 `z-40`) crea un stacking context propio. El backdrop
+    // `fixed inset-0 z-40` original vivía DENTRO de ese contexto, su z-40
+    // era local — cualquier elemento del root (main content) capturaba los
+    // clicks del centro del viewport. Fix: React portal saca el subtree al
+    // root del body, donde `fixed` + z alto es efectivamente global.
+    //
+    // Panel también va al portal — sin él, el panel dentro del header (z-40
+    // local) quedaría TAPADO por el backdrop en body (z-100 global). Al
+    // portar ambos, panel usa `fixed` con posición calculada del rect del
+    // botón campana al momento de abrir. Trade-off aceptado: si el user
+    // scrollea o redimensiona con el panel abierto, la posición no se
+    // reactiva (standard pattern para dropdowns tipo Chrome — el panel
+    // queda anclado al viewport, no al botón que se movió).
+    const bellRef = useRef<HTMLDivElement>(null);
+    const [panelPos, setPanelPos] = useState<{ top: number; right: number }>({ top: 0, right: 16 });
+
+    useEffect(() => {
+        if (!isOpen || !bellRef.current) return;
+        const rect = bellRef.current.getBoundingClientRect();
+        setPanelPos({
+            top: rect.bottom + 8,
+            right: Math.max(8, window.innerWidth - rect.right),
+        });
+    }, [isOpen]);
 
     // 1. Fetch initial state & subscribe
     useEffect(() => {
@@ -312,7 +339,7 @@ export default function NotificationBell() {
     };
 
     return (
-        <div className="relative">
+        <div ref={bellRef} className="relative">
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 aria-label="Notificaciones"
@@ -334,15 +361,25 @@ export default function NotificationBell() {
                 )}
             </button>
 
-            {isOpen && (
+            {/* Sprint notifs-panel C7a (2026-09-01) — Portal al document.body.
+                Fix del defecto 4a. Ver comentario extenso donde se declara
+                bellRef + panelPos. Guard SSR con `typeof document`. */}
+            {isOpen && typeof document !== 'undefined' && createPortal(
                 <>
-                    {/* Backdrop to close */}
+                    {/* Backdrop to close — z alto GLOBAL (fuera del stacking
+                        context del header). Captura clicks del viewport. */}
                     <div
-                        className="fixed inset-0 z-40"
+                        className="fixed inset-0 z-[100]"
                         onClick={() => setIsOpen(false)}
                     />
 
-                    <div id="notification-bell-menu" role="menu" aria-label="Lista de notificaciones" className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-50 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                    <div
+                        id="notification-bell-menu"
+                        role="menu"
+                        aria-label="Lista de notificaciones"
+                        style={{ top: panelPos.top, right: panelPos.right }}
+                        className="fixed w-80 sm:w-96 bg-white rounded-2xl shadow-xl border-2 border-slate-300 z-[101] overflow-hidden animate-in fade-in zoom-in-95 duration-200"
+                    >
                         <div className="p-4 border-b border-slate-300 flex items-center justify-between bg-slate-50/50">
                             <h3 className="font-semibold text-slate-900">Notificaciones</h3>
                             <div className="flex items-center gap-3">
@@ -426,7 +463,8 @@ export default function NotificationBell() {
                             marcar leídas. Hasta entonces el panel corto es
                             la única vista de notifs desde la campana. */}
                     </div>
-                </>
+                </>,
+                document.body
             )}
         </div>
     );
