@@ -323,6 +323,59 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     .eq('auth_user_id', session.user.id)
                     .maybeSingle(),
             ]);
+
+            // ═══════════════════════════════════════════════════════════════
+            // SPRINT role-degradation C2b (2026-09-03) — CHEQUEO EXPLÍCITO
+            // DE `.error` POST-Promise.all. NO REMOVER.
+            // ═══════════════════════════════════════════════════════════════
+            //
+            // POR QUÉ existe este chequeo (NO redundante):
+            //
+            // supabase-js NO rechaza la promesa ante errores de red o de
+            // backend. Devuelve `{ data, error }` como objeto — la promesa
+            // resuelve exitosa incluso cuando el fetch subyacente tira
+            // `TypeError: Failed to fetch`. Documentado literal en
+            // https://supabase.com/docs/guides/api/handling-errors-in-supabase-js
+            // ("Every supabase-js call returns a { data, error } pair
+            //  instead of throwing").
+            //
+            // Sin este chequeo, un fallo de red devuelve
+            // `{ data: null, error: <TypeError> }` — nuestro código lee
+            // `proveedorRes.data = null`, `seekerRes.data = null`, IGNORA
+            // los `.error`, y cae al guard huérfano de abajo que interpreta
+            // "ambos data null" como "el usuario no tiene perfil, mandalo
+            // a completar-registro". CONSECUENCIA REAL: cualquier proveedor
+            // con un corte de red de 2 segundos durante el login veía una
+            // pantalla que le decía "no tenés perfil, elegí rol para
+            // empezar" — misinformación sobre su cuenta + navegación sticky
+            // que sobrevivía al retry.
+            //
+            // Bug latente en `hydrateFromSession` desde el sprint orphan-fix
+            // (2026-08-18) — vivió en producción todo ese tiempo. Detectado
+            // por el smoke del sprint role-degradation C2 (2026-09-03)
+            // cuando el PO bloqueó las queries con DevTools para probar el
+            // retry: el catch nunca disparó (no había excepción para
+            // atrapar), el guard huérfano sí disparó, y la app redirigió
+            // a /completar-registro a una cuenta admin con perfil intacto
+            // en BD.
+            //
+            // El throw acá dispara el catch existente → retry con backoff
+            // se activa correcto → si el fallo era transitorio, el retry
+            // pesca y el usuario ni se entera. Si es persistente, agotan
+            // los 3 retries y (C3 pendiente) aparece aviso al usuario.
+            //
+            // Precedente convencional: 15+ archivos del proyecto ya usan
+            // el patrón `{ data, error } = await ...; if (error) ...`.
+            // UserContext era el único archivo de queries de datos que
+            // ignoraba .error — fuera de la convención del propio proyecto.
+            //
+            // NO REMOVER PENSANDO QUE ES REDUNDANTE. Sin este chequeo, el
+            // bug del guard huérfano vuelve.
+            if (proveedorRes.error || seekerRes.error) {
+                const err = proveedorRes.error ?? seekerRes.error;
+                throw err;
+            }
+
             const proveedorData = proveedorRes.data;
             const seekerData = seekerRes.data;
             setProveedorRow(proveedorData ?? null);
@@ -337,7 +390,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // cualquier futura vía que cree auth.users sin perfil. Reemplaza
             // el rollback frágil de email-confirmado.tsx que llamaba
             // signOut() sin poder borrar auth.users.
-            if (!proveedorData && !seekerData) {
+            //
+            // Sprint role-degradation C2b (2026-09-03) — DOBLE GUARD
+            // defensivo: el `throw` de arriba ya interrumpe el flujo cuando
+            // hay error, pero explicitar `!proveedorRes.error &&
+            // !seekerRes.error` acá protege contra el escenario donde
+            // alguien en el futuro mueva el chequeo del throw. Cero costo
+            // (1 predicado más), defensa en profundidad.
+            if (!proveedorRes.error && !seekerRes.error && !proveedorData && !seekerData) {
                 const currentPath = router.asPath;
                 if (!isOrphanSafeRoute(currentPath)) {
                     router.replace(`/completar-registro?from=${encodeURIComponent(currentPath)}`);
