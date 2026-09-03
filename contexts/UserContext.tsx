@@ -58,6 +58,15 @@ interface UserProfile {
 
 export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
 
+// Sprint role-degradation C3 (2026-09-03) — estado observable del hydrate
+// para que el componente HydrationToast pueda mostrar aviso al user cuando
+// las queries fallan sostenidamente. Ver comentario extenso en el catch
+// de hydrateFromSession + componente components/Shared/HydrationToast.tsx.
+//   'ok'       — hydrate exitoso o sin intentos fallidos aún.
+//   'retrying' — 2º fallo o más, aún hay retries pendientes.
+//   'failed'   — los 4 attempts (initial + 3 retries) se agotaron.
+export type HydrationState = 'ok' | 'retrying' | 'failed';
+
 interface UserContextType {
     user: any | null; // Supabase user
     profile: UserProfile | null;
@@ -81,6 +90,11 @@ interface UserContextType {
     hasSeekerProfile: boolean;
     providerStatus: 'none' | 'pendiente' | 'aprobado';
     onboardingStatus: OnboardingStep;
+    /**
+     * Sprint role-degradation C3 — estado del hydrate para HydrationToast.
+     * Ver `HydrationState` type + componente HydrationToast.
+     */
+    hydrationState: HydrationState;
     isLoading: boolean;
     isAuthenticated: boolean;
     activateProviderMode: () => void;
@@ -100,6 +114,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     const [hasSeekerProfile, setHasSeekerProfile] = useState(false);
     const [providerStatus, setProviderStatus] = useState<'none' | 'pendiente' | 'aprobado'>('none');
     const [onboardingStatus, setOnboardingStatus] = useState<OnboardingStep>('COMPLETE'); // Default optimistic
+
+    // Sprint role-degradation C3 — state observable del hydrate para
+    // que el componente HydrationToast (en _app.tsx) muestre el aviso
+    // según transiciones. Ver el HydrationState type extendido arriba.
+    const [hydrationState, setHydrationState] = useState<HydrationState>('ok');
 
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -264,6 +283,19 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const hydrateFromSession = async (session: any, attempt: number = 0) => {
+        // Sprint role-degradation C3 — precisión A del PO. Un hydrate NUEVO
+        // (attempt=0, viene de canal 1/2 o refreshProfile — NO de retry
+        // interno) resetea el hydrationState. Sin esto, si un hydrate previo
+        // dejó 'failed' y ahora arranca uno nuevo (logout+login, cambio de
+        // user), el nuevo intento arrancaría con el toast viejo pegado.
+        // El reset del path guest (session=null abajo) cubre logout;
+        // este reset acá cubre login/canal-1/refreshProfile.
+        // NOTA: solo attempt=0 — un retry interno (attempt > 0) NO debe
+        // resetear, porque el flow del toast está en curso.
+        if (attempt === 0) {
+            setHydrationState('ok');
+        }
+
         if (!session?.user) {
             // Sprint deadlock-fix — limpia el ref para que re-login futuro con
             // la misma cuenta post-guest hidrate (guard de identidad no bloquee).
@@ -286,6 +318,10 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             setHasSeekerProfile(false);
             setProviderStatus('none');
             setOnboardingStatus('COMPLETE');
+            // Sprint role-degradation C3 — precisión A del PO. Reset a 'ok'
+            // en path guest (session=null) — cubre SIGNED_OUT + softReset,
+            // por si el user desloguea con toast 'retrying'/'failed' vivo.
+            setHydrationState('ok');
             setIsLoading(false);
             return;
         }
@@ -441,6 +477,13 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 retryTimeoutRef.current = null;
             }
 
+            // Sprint role-degradation C3 — hydrate exitoso => reset a 'ok'.
+            // Si el toast estaba visible ('retrying' o 'failed'), el
+            // HydrationToast va a dispararlo dismiss vía useEffect. Cero
+            // acción del user requerida (requisito 1 del PO — el toast se
+            // disipa solo cuando el retry pesca).
+            setHydrationState('ok');
+
             setProfile(finalProfile);
             setOnboardingStatus(status);
             setProviderStatus(statusOfProvider as 'none' | 'pendiente' | 'aprobado');
@@ -490,6 +533,13 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 console.log(
                     `[UserContext hydrate] scheduling retry ${attempt + 1}/${MAX_RETRIES} in ${backoffMs}ms`
                 );
+                // Sprint role-degradation C3 — attempt >= 1 significa que ya
+                // falló al menos 2 veces (initial=0 + retry #1=1). Mostrar
+                // aviso "reintentando" al 2º fallo, no antes (el 1er retry
+                // a los 500ms suele pescar y cero razón de molestar al user).
+                if (attempt >= 1) {
+                    setHydrationState('retrying');
+                }
                 // Cancelar timeout previo si existía (defensivo — no debería
                 // pasar, pero si dos hydrates entran en catch en paralelo, no
                 // queremos dos setTimeouts corriendo).
@@ -505,8 +555,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                 }, backoffMs);
             } else {
                 console.log(
-                    `[UserContext hydrate] exhausted after ${attempt + 1} attempts — user stays degraded until manual reload (C3 aviso pendiente)`
+                    `[UserContext hydrate] exhausted after ${attempt + 1} attempts — user stays degraded until manual reload`
                 );
+                // Sprint role-degradation C3 — 4 attempts agotados, el toast
+                // pasa de 'retrying' a 'failed' con botón "Recargar".
+                setHydrationState('failed');
             }
         } finally {
             setIsLoading(false);
@@ -677,6 +730,11 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             clearTimeout(retryTimeoutRef.current);
             retryTimeoutRef.current = null;
         }
+        // Sprint role-degradation C3 — precisión A del PO. Reset a 'ok' en
+        // logout voluntario, por si el toast quedó de la sesión anterior.
+        // (El hydrateFromSession(null) subsecuente en case SIGNED_OUT
+        // también resetea — cinturón y tirantes.)
+        setHydrationState('ok');
         setUser(null);
         setProfile(null);
         setProveedorRow(null);
@@ -708,6 +766,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             hasSeekerProfile,
             providerStatus,
             onboardingStatus,
+            hydrationState,
             isLoading,
             isAuthenticated: !!user,
             activateProviderMode,

@@ -20,6 +20,7 @@ import FeedbackWidget from "../components/Shared/FeedbackWidget";
 import { FeedbackProvider } from "../contexts/FeedbackContext";
 import ConsentScripts from "../components/ConsentScripts";
 import CookieBanner from "../components/CookieBanner";
+import HydrationToast from "../components/Shared/HydrationToast";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -97,6 +98,13 @@ export default function MyApp({ Component, pageProps }: AppProps) {
           {showLayout && <Footer />}
           {showLayout && <FeedbackWidget />}
           <CookieBanner />
+          {/* Sprint role-degradation C3 — observa hydrationState del
+              UserContext y dispara toast sonner cuando queries de perfil
+              fallan sostenidamente. Sin UI propia — solo efectos. Fuera
+              del showLayout guard: el aviso importa incluso en rutas que
+              no tienen Header/Footer (ej. /completar-registro), porque
+              esas rutas también dependen del hydrate. */}
+          <HydrationToast />
         </div>
       </OnlineStatusProvider>
       </FeedbackProvider>
