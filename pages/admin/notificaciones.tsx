@@ -83,8 +83,23 @@ function AdminNotifications() {
             <div className="w-full pb-20">
                 {/* Header with Back Button */}
                 <div className="mb-8 flex items-center gap-4">
+                    {/* Volver — sprint volver-fix (2026-09-04). Mismo mecanismo
+                        que pages/proveedor/[id].tsx (referrer check + fallback
+                        contextual). Ver comentario extenso ahí para el POR QUÉ
+                        completo — resumen: router.back() puro saca del sitio
+                        cuando el user llegó sin historia previa dentro de
+                        Pawnecta. Superficie externa de /admin/notificaciones
+                        es baja (ruta protegida por RoleGuard, cero probable
+                        que alguien "llegue de Google") pero el mismo fix
+                        aplica igual — no dejar la mitad. Fallback contextual:
+                        /admin (hub padre), no /explorar. */}
                     <button
-                        onClick={() => router.back()}
+                        onClick={() => {
+                            const sameOrigin = typeof document !== 'undefined'
+                                && document.referrer.startsWith(window.location.origin);
+                            if (sameOrigin) router.back();
+                            else router.push('/admin');
+                        }}
                         className="p-2 bg-white border-2 border-slate-300 rounded-full hover:bg-slate-50 transition-colors"
                     >
                         <ArrowLeft size={20} className="text-slate-600" />

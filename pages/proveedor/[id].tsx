@@ -204,9 +204,63 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
             )}
 
             <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-5">
-                {/* Volver */}
+                {/* Volver — sprint volver-fix (2026-09-04).
+                    ═══════════════════════════════════════════════════════════
+                    POR QUÉ este chequeo de referrer y no `router.back()` directo:
+
+                    `router.back()` (Next.js) es wrapper de `window.history.back()`
+                    → navega al entry anterior del stack de historia del navegador.
+                    Cuando el user llegó a esta página SIN historia previa dentro
+                    de Pawnecta (búsqueda externa desde Google, link compartido,
+                    URL escrita a mano, pestaña nueva con Ctrl+T), el stack tiene
+                    UN solo entry (esta página) → `router.back()` sale del sitio
+                    al entry anterior del navegador (Google, about:blank, o el
+                    origen del referrer externo).
+
+                    IMPACTO: el perfil público del proveedor es una página que
+                    recibe tráfico externo por diseño (SEO, links compartidos,
+                    referencias). El botón "Volver" con router.back() puro EXPULSA
+                    justamente al tráfico de más valor — leads de SEO / referidos
+                    que están mirando el perfil por primera vez y tocan "Volver"
+                    esperando ver más opciones. Es camino de salida en una página
+                    de conversión. Reportado en producción por PO 2026-09-04
+                    (reproducido: pestaña nueva → URL directa → Volver → salida
+                    del sitio).
+
+                    REGLA APLICADA:
+                    - Referrer del MISMO ORIGEN (navegación interna Pawnecta) →
+                      `router.back()`. Restaura la página anterior con TODO su
+                      estado del navegador: query params de filtros de /explorar
+                      (categoria, comuna, pagina, orden, etc. — todos viven en
+                      URL, ver pages/explorar.tsx:253), scroll position (Next 15
+                      default), form values. Vía feliz completa.
+                    - Referrer VACÍO o de origen DISTINTO → fallback
+                      `router.push('/explorar')`. Ruta padre natural — donde hay
+                      más proveedores para mirar.
+
+                    CASO REFERRER VACÍO ES DELIBERADO — no es descuido a arreglar.
+                    El referrer puede venir vacío por:
+                      - privacy policies del navegador (`referrer-policy: no-referrer`,
+                        default de algunas versiones móviles).
+                      - cambio HTTPS↔HTTP en la cadena de navegación.
+                      - algunos redirects internos que resetean el referrer.
+                      - configs del user (Do Not Track, extensiones anti-tracking).
+                    En cualquiera de esos casos, caer a /explorar es correcto:
+                    cero riesgo de expulsar al user. TRADE-OFF ASUMIDO: pérdida
+                    de filtros/scroll (el user re-aplica en 2s) vs lead retenido
+                    (mucho más valioso). Ver ACTA_VOLVER_FIX.md.
+
+                    NO REMOVER el chequeo pensando que es defensa exagerada — el
+                    caso vacío del referrer está atendido por diseño, no por
+                    olvido. Removerlo reintroduce el bug del PO 2026-09-04.
+                    ═══════════════════════════════════════════════════════════ */}
                 <button
-                    onClick={() => router.back()}
+                    onClick={() => {
+                        const sameOrigin = typeof document !== 'undefined'
+                            && document.referrer.startsWith(window.location.origin);
+                        if (sameOrigin) router.back();
+                        else router.push('/explorar');
+                    }}
                     className="flex items-center gap-1.5 text-sm font-medium text-slate-500 hover:text-accent-600 transition-colors mb-2"
                 >
                     <ChevronLeft size={16} /> Volver
