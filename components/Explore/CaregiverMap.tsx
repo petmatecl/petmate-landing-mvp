@@ -107,8 +107,29 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
         </div>
     );
 
+    // Sprint z-index-maps (2026-09-04) — `isolate` + `zIndex: 0` crean
+    // stacking context propio del wrapper, conteniendo los z-index internos
+    // de Leaflet (tile-pane=200, marker-pane=600, popup-pane=700,
+    // control=800). Sin esto, esos valores escapan al context superior y
+    // ganan contra el Header sticky (z-40) → el mapa tapa la navegación
+    // + los CTAs "Soy tutor" / "Soy proveedor" al scrollear. Y los divIcon
+    // de precio (Marker con HTML custom) escapan visualmente del wrapper
+    // por la derecha en la baseline del PO.
+    //
+    // Fix es transcripción literal del patrón que LocationMap ya aplicaba
+    // (línea 38). No es diseño nuevo. Cero cambio funcional interno del
+    // mapa — los z-index internos siguen ordenándose entre sí dentro del
+    // stacking context (popup encima de marker, marker encima de tile).
+    //
+    // Consecuencia esperada (asumida por PO al aterrizar): burbujas de
+    // precio (divIcon markers) cerca del borde pasan a recortarse por
+    // `overflow-hidden` que ahora sí funciona. Trade-off aceptado —
+    // recorte de burbuja cerca del borde es infinitamente menor que
+    // tapar navegación + CTAs. Fix incremental (padding interno,
+    // ajuste de iconAnchor) queda como sprint aparte si el recorte
+    // resulta feo en smoke.
     return (
-        <div className="h-[580px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative bg-slate-50">
+        <div className="h-[580px] w-full rounded-2xl overflow-hidden border border-slate-200 shadow-sm relative bg-slate-50 isolate" style={{ zIndex: 0 }}>
             <MapContainer
                 center={CENTER_SANTIAGO}
                 zoom={11}

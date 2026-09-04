@@ -140,7 +140,16 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                 }}
             />
 
-            <div className="relative h-[280px] w-full rounded-xl overflow-hidden border border-slate-200">
+            {/* Sprint z-index-maps (2026-09-04) — `isolate` + `zIndex: 0`
+                crean stacking context propio del wrapper. Sin esto, los
+                z-index internos de Leaflet escapan al context superior y
+                el mapa se monta sobre la barra fija "Guardar Cambios"
+                (z-30) del dashboard, tapando el botón principal. Y se
+                extiende visualmente hacia la izquierda cubriendo items
+                del menú lateral en la baseline del PO.
+                Fix es transcripción literal del wrapper de LocationMap.
+                Ver comentario extenso equivalente en CaregiverMap. */}
+            <div className="relative h-[280px] w-full rounded-xl overflow-hidden border border-slate-200 isolate" style={{ zIndex: 0 }}>
                 <MapContainer
                     center={initialCenter}
                     zoom={zoom}
