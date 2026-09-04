@@ -7,7 +7,7 @@ import {
     ArrowLeft, Search, CheckCircle2, XCircle, Clock, AlertTriangle,
     Eye, ShieldCheck, User as UserIcon, Briefcase, Star, MapPin
 } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 type EstadoProveedor = 'todos' | 'pendiente' | 'aprobado' | 'suspendido' | 'rechazado' | 'placeholder';
 type OrdenType = 'fecha_desc' | 'fecha_asc' | 'nombre' | 'estado';
@@ -637,7 +637,9 @@ function GestionProveedores() {
 
                 </div>
             )}
-            <Toaster position="top-center" richColors />
+            {/* Sprint toast-fix (2026-09-04) — Toaster local removido.
+                Sonner es global: los toast() se enrutan al canonico
+                de pages/_app.tsx:80. NO REAGREGAR (crea duplicado). */}
         </div>
     );
 }

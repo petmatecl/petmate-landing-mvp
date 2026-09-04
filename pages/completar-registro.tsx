@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { Loader2, Search, Briefcase } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 import { useUser } from '../contexts/UserContext';
@@ -339,7 +339,12 @@ export default function CompletarRegistroPage() {
                     </form>
                 </div>
             </div>
-            <Toaster position="top-center" richColors />
+            {/* Sprint toast-fix (2026-09-04) — Toaster local removido.
+                Sonner es global: los toast() de este archivo se enrutan
+                al <Toaster/> canonico de pages/_app.tsx:80 con paleta
+                pawnecta. Ver ACTA_TOAST_FIX.md. NO REAGREGAR — sumar
+                otro Toaster crea duplicado (bug reportado por PO en
+                sprint z-index-maps, cerrado con este sprint). */}
         </>
     );
 }

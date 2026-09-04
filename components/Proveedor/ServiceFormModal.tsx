@@ -2685,12 +2685,38 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     </button>
                 </div>
             </div>
-            {/* Ola 2 fix Toaster duplicado (2026-08-18): el <Toaster/> global
-                vive en pages/_app.tsx:48 con la misma config exacta
-                (position="top-center" richColors). Este local era redundante,
-                los toast() de este modal ya se enrutaban al global. Eliminado
-                para evitar el doble mount que puede duplicar el auto-dismiss
-                timer + z-index conflicts al abrir/cerrar el modal. */}
+            {/* Sprint toast-fix (2026-09-04) — TRABAJO COMPLETADO recién ahora.
+                El comentario original de este bloque (Ola 2 fix 2026-08-18)
+                afirmaba que el Toaster duplicado estaba resuelto porque se
+                había eliminado ESTE local — pero el sprint Ola 2 solo removió
+                este archivo y dejó los OTROS 5 locales activos
+                (completar-registro, proveedor/index, admin/servicios,
+                admin/evaluaciones, admin/proveedores). Bug reportado por PO
+                en sprint z-index-maps (2026-09-04) con 3 casos confirmados
+                en 2 pantallas + 2 entornos. Sprint toast-fix (2026-09-04)
+                eliminó los 5 locales restantes.
+
+                CORRECCIÓN DE HISTORIA: el comentario original decía "config
+                exacta (position='top-center' richColors)" — no era exacta.
+                El Toaster global de pages/_app.tsx:80 (línea actual, no la
+                48 histórica) usa `classNames` custom con paleta pawnecta,
+                NO `richColors`. Los 5 locales SÍ usaban richColors, esa
+                divergencia de config es lo que producía las 2 variantes
+                visuales que veía el PO (blanco/check negro pawnecta vs
+                verde/check verde richColors saturado).
+
+                Es el mismo antipatrón que el corolario P8 corrigió en el
+                sprint default-privs: un comentario que afirma más de lo
+                que hizo, y queda vivo mintiendo hasta que otro sprint
+                lo detecta.
+
+                REGLA CANÓNICA aterrizada por este sprint: NO agregar
+                Toaster locales en ningún componente/página. Cualquier
+                caller `toast()` de sonner se enruta al Toaster global
+                de pages/_app.tsx automáticamente. Agregar un local
+                reintroduce el bug reportado 3 veces en 2026-09-04.
+                Verificable con grep del tag Toaster sobre todo el
+                proyecto = exactamente 1 match en pages/_app.tsx. */}
         </div>
     );
 }

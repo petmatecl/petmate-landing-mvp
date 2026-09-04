@@ -32,7 +32,7 @@ import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntua
 import FichaMascota from '../../components/Mascota/FichaMascota';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../../lib/formatDireccion';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
@@ -2709,7 +2709,9 @@ export default function ProveedorDashboard() {
                 onConfirm={confirmDialog.onConfirm}
                 onCancel={closeConfirm}
             />
-            <Toaster position="top-center" richColors />
+            {/* Sprint toast-fix (2026-09-04) — Toaster local removido.
+                Sonner es global: los toast() se enrutan al canonico
+                de pages/_app.tsx:80. NO REAGREGAR (crea duplicado). */}
         </>
     );
 }

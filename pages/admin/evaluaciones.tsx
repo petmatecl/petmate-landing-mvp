@@ -8,7 +8,7 @@ import {
     ArrowLeft, Search, Star, MessageSquareWarning,
     CheckCircle2, XCircle, Clock, ShieldCheck, Filter, UserIcon, AlertTriangle
 } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 
 type EstadoReview = 'todas' | 'pendiente' | 'aprobado' | 'rechazado';
 type EstrellasFilter = 'todas' | 1 | 2 | 3 | 4 | 5;
@@ -462,7 +462,9 @@ function GestionEvaluaciones() {
                 </div>
             )}
 
-            <Toaster position="top-center" richColors />
+            {/* Sprint toast-fix (2026-09-04) — Toaster local removido.
+                Sonner es global: los toast() se enrutan al canonico
+                de pages/_app.tsx:80. NO REAGREGAR (crea duplicado). */}
         </div>
     );
 }

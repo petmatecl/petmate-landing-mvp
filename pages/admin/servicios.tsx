@@ -7,7 +7,7 @@ import {
     ArrowLeft, Search, Briefcase, Eye, EyeOff, CheckCircle2,
     XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Tag
 } from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { toast } from 'sonner';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 
 type FiltroEstadoType = 'todos' | 'activos' | 'inactivos';
@@ -493,7 +493,9 @@ function GestionServicios() {
                 loading={actionLoading}
             />
 
-            <Toaster position="top-center" richColors />
+            {/* Sprint toast-fix (2026-09-04) — Toaster local removido.
+                Sonner es global: los toast() se enrutan al canonico
+                de pages/_app.tsx:80. NO REAGREGAR (crea duplicado). */}
         </div>
     );
 }
