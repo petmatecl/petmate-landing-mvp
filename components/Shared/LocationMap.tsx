@@ -34,12 +34,24 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
     const center: [number, number] = [lat, lng];
     const zoom = approximate ? 14 : 15;
 
+    // Sprint carto-key (2026-09-04) — fix estructural de layout.
+    // El div de attribution debajo del MapContainer NO se renderizaba
+    // visible porque el padre tenía `height:300px + overflow:hidden` y
+    // el MapContainer con `height:100%` ocupaba TODO el padre → el div
+    // hermano quedaba empujado fuera del área visible + recortado. Bug
+    // PREEXISTENTE al sprint (desde 8f1d766 dic 2025 cuando se creó el
+    // componente). No lo introdujimos, el sprint lo hizo visible porque
+    // el texto pasa a ser requisito contractual con la key CARTO.
+    // Fix: `flex flex-col` en el padre + `flex-1` en el MapContainer
+    // (en vez de height:100%). Attribution ocupa su altura natural
+    // debajo (~24px con font-size 10px + padding), MapContainer ocupa
+    // lo que sobra. Ambos visibles siempre.
     return (
-        <div className="isolate" style={{ height, width: '100%', borderRadius: '1rem', overflow: 'hidden', position: 'relative', zIndex: 0 }}>
+        <div className="isolate flex flex-col" style={{ height, width: '100%', borderRadius: '1rem', overflow: 'hidden', position: 'relative', zIndex: 0 }}>
             <MapContainer
                 center={center}
                 zoom={zoom}
-                style={{ height: '100%', width: '100%' }}
+                style={{ width: '100%', flex: 1 }}
                 scrollWheelZoom={false}
                 attributionControl={false}
             >
