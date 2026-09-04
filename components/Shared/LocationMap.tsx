@@ -43,8 +43,33 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                 scrollWheelZoom={false}
                 attributionControl={false}
             >
+                {/* Sprint carto-key (2026-09-04) — tiles CARTO Voyager con
+                    API key. Sin key, CARTO devolvía marca de agua "API KEY
+                    REQUIRED" atravesando el fondo (política 2024/2025).
+                    Con key limpio.
+
+                    URL preserva el {r} placeholder de Leaflet (expande a
+                    "@2x" en pantallas retina). Verificado empíricamente
+                    contra CARTO 2026-09-04: tanto `.png?key=` como
+                    `@2x.png?key=` responden 200 OK — CARTO soporta retina
+                    con key. Doc oficial CARTO omite {r} por simplificación
+                    pero la infra lo sirve.
+
+                    ATRIBUCIÓN CARTO + OSM es requisito CONTRACTUAL del
+                    free tier — "keeping CARTO and OpenStreetMap attribution
+                    visible". NO REMOVER ninguna de las 2. Ver el div
+                    debajo del MapContainer.
+
+                    Fallback `?? ''` para que el build no rompa si la env
+                    var falta en un clon local sin .env — degrada al modo
+                    "marca de agua" (el estado pre-sprint), no crashea.
+
+                    Trigger deuda futura anotada en BACKLOG: CARTO está
+                    retirando raster tiles. Cuando anuncien deprecation,
+                    la rama `map-tiles` (SHA caf3972) tiene la migración a
+                    OSM lista para mergear como plan B. */}
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    url={`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_TILES_KEY ?? ''}`}
                 />
                 <ChangeView center={center} zoom={zoom} />
 
@@ -63,8 +88,14 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                     <Marker position={center} />
                 )}
             </MapContainer>
+            {/* Sprint carto-key (2026-09-04) — atribución OpenStreetMap +
+                CARTO. Requisito CONTRACTUAL del free tier CARTO ("keeping
+                CARTO and OpenStreetMap attribution visible"). NO REMOVER
+                ninguno de los 2 créditos. Actualizado a "© CARTO" desde
+                "© CartoDB" para alinear con formato oficial CARTO 2026
+                (CartoDB era el nombre histórico). */}
             <div className="text-[10px] text-slate-400 text-right bg-slate-50 px-2 py-1 border-t">
-                © OpenStreetMap contributors, © CartoDB
+                © OpenStreetMap contributors, © CARTO
             </div>
         </div>
     );

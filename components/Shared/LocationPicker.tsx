@@ -147,9 +147,14 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                     scrollWheelZoom={false}
                     style={{ height: '100%', width: '100%' }}
                 >
+                    {/* Sprint carto-key (2026-09-04) — misma migración que
+                        LocationMap. Ver comentario extenso ahí. Attribution
+                        con coma entre créditos alineado con formato oficial
+                        CARTO 2026. NO REMOVER ninguno de los 2 créditos
+                        (requisito contractual free tier). */}
                     <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                        url={`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_TILES_KEY ?? ''}`}
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                     />
                     <RecenterMap center={mapCenter} zoom={zoom} />
                     <ClickToPlace
