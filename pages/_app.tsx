@@ -61,8 +61,25 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               (pasan AAA con holgura); border vs ground compensado por
               shadow + ícono + título dark que dan la separación visual.
               Ver acta ACTA_OLA_2_B4.md para detalles. */}
+          {/* Sprint role-degradation C3-ajustes (2026-09-04) — dos overrides:
+
+              (A) offset={80} baja el toast top-center desde el default 32px
+              a 80px del top. Motivo: en /explorar el toast a 32px tapaba
+              el heading "Explorar en tu zona". Con 80px el toast queda por
+              debajo del Header sticky (que sin franja lanzamiento en users
+              logueados mide ~64px) y no compite con el primer título de
+              la página. Efecto para todos los toasts sonner del proyecto —
+              aceptable, los otros son avisos cortos que también respiran
+              mejor con el offset.
+
+              (B) closeButton `!left-auto !right-2` mueve la X del default
+              sonner (izquierda) a la derecha. En español la X va a la
+              derecha por convención — se busca ahí. `!` es Tailwind
+              important para ganarle al CSS inline de sonner que setea
+              `left` explícito. */}
           <Toaster
             position="top-center"
+            offset={80}
             toastOptions={{
               classNames: {
                 toast:        'group rounded-xl border shadow-md',
@@ -70,7 +87,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                 description:  'text-xs opacity-90 mt-1',
                 actionButton: 'font-semibold text-xs px-3 py-1.5 rounded-lg',
                 cancelButton: 'text-xs px-3 py-1.5 rounded-lg border',
-                closeButton:  'text-slate-400 hover:text-slate-600',
+                closeButton:  '!left-auto !right-2 text-slate-400 hover:text-slate-600',
                 success: 'bg-success-50 border-success-100 text-success-900',
                 info:    'bg-info-50 border-info-100 text-info-900',
                 warning: 'bg-warning-50 border-warning-100 text-warning-900',

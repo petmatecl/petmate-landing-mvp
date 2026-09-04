@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 
 // Sprint email-landing session-timeout fix (2026-08-25) — `isOrphanSafeRoute`
 // migrado a `lib/authTransitRoutes.ts` como constante compartida con
@@ -186,13 +187,16 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     //    es cinturón adicional para el edge case donde el timeout ya
     //    disparó pero la callback todavía no corrió.
     //
-    // OBSERVABILIDAD (TEMPORAL, remover antes del merge a main):
-    //   console.log/error con prefix `[UserContext hydrate]` en cada
-    //   attempt, retry schedule y exhaustion. Le permite al smoke ver
-    //   exactamente qué attempt está corriendo. Sprint role-degradation
-    //   C4 (Sentry) reemplaza estos logs con captureMessage + tag para
-    //   filtrar en dashboard prod. Los console.log se sacan cuando C4
-    //   aterrice.
+    // OBSERVABILIDAD (aterrizada en C4 2026-09-04):
+    //   Sentry.addBreadcrumb en cada attempt fallido (category 'hydrate',
+    //   level 'warning', con attempt + error_message + error_name en data).
+    //   Sentry.captureMessage al exhausted con tag `role_degradation:true`
+    //   (filtrable/agrupable en dashboard prod) + contexto con attempts
+    //   totales, último error, userId masked, route. Level warning porque
+    //   user sigue logueado y funcional degradado — no es error final.
+    //   Los console.log/error del sprint C2 (temporales para el smoke)
+    //   fueron removidos en C4 — cero rastro en devtools; debugging va
+    //   via Sentry dashboard.
     // ═══════════════════════════════════════════════════════════════════════
     const MAX_RETRIES = 3;
     const RETRY_BACKOFF_MS = [500, 2000, 8000] as const;
@@ -519,10 +523,24 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // MAX_RETRIES y retryTimeoutRef. Sacar el setTimeout de acá reabre el
             // deadlock (regla P10). Limpiar el hydratedUserIdRef acá reabre el
             // loop del SIGNED_IN silente (sprint deadlock-fix PIEZA 2).
-            console.error(
-                `[UserContext hydrate] attempt ${attempt} failed:`,
-                err?.message ?? err
-            );
+            //
+            // Sprint role-degradation C4 (2026-09-04) — observabilidad via
+            // Sentry breadcrumbs por cada attempt fallido + captureMessage al
+            // exhausted. Los console.log/error del sprint C2 se removieron:
+            // Sentry cubre el diagnóstico agregado en el dashboard prod, y
+            // los breadcrumbs entran en el contexto de cualquier otro evento
+            // Sentry que ocurra en la misma sesión. Cero rastro en devtools.
+            Sentry.addBreadcrumb({
+                category: 'hydrate',
+                level: 'warning',
+                message: `attempt ${attempt} failed`,
+                data: {
+                    attempt,
+                    error_message: err?.message ?? String(err),
+                    error_name: err?.name ?? undefined,
+                },
+            });
+
             setProfile(null);
             setProveedorRow(null);
             setHasSeekerProfile(false);
@@ -530,9 +548,6 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
             if (attempt < MAX_RETRIES) {
                 const backoffMs = RETRY_BACKOFF_MS[attempt];
-                console.log(
-                    `[UserContext hydrate] scheduling retry ${attempt + 1}/${MAX_RETRIES} in ${backoffMs}ms`
-                );
                 // Sprint role-degradation C3 — attempt >= 1 significa que ya
                 // falló al menos 2 veces (initial=0 + retry #1=1). Mostrar
                 // aviso "reintentando" al 2º fallo, no antes (el 1er retry
@@ -554,12 +569,39 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     hydrateFromSession(session, attempt + 1);
                 }, backoffMs);
             } else {
-                console.log(
-                    `[UserContext hydrate] exhausted after ${attempt + 1} attempts — user stays degraded until manual reload`
-                );
                 // Sprint role-degradation C3 — 4 attempts agotados, el toast
                 // pasa de 'retrying' a 'failed' con botón "Recargar".
                 setHydrationState('failed');
+                // Sprint role-degradation C4 — Sentry captureMessage con tag
+                // filtrable en dashboard. Permite responder por primera vez
+                // "¿esto pasa una vez por mes o veinte veces por día?" en
+                // prod. Level warning (no error): user sigue logueado,
+                // funcional degradado, no roto. Tag `role_degradation:true`
+                // + contexto con attempts + path para permitir filter/group
+                // en el dashboard Sentry. userId masked por privacidad
+                // (mismo patrón que lib/apiAuth.ts maskUid).
+                const userIdMasked = session?.user?.id
+                    ? session.user.id.slice(0, 8) + '…'
+                    : '<none>';
+                Sentry.captureMessage(
+                    '[UserContext] hydrate exhausted — user stays degraded until manual reload',
+                    {
+                        level: 'warning',
+                        tags: {
+                            role_degradation: 'true',
+                            subsystem: 'user-context-hydrate',
+                        },
+                        contexts: {
+                            role_degradation: {
+                                attempts_total: attempt + 1,
+                                last_error: err?.message ?? String(err),
+                                error_name: err?.name ?? undefined,
+                                user_id_masked: userIdMasked,
+                                route: router.asPath,
+                            },
+                        },
+                    }
+                );
             }
         } finally {
             setIsLoading(false);
