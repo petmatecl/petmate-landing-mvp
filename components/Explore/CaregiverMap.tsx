@@ -205,11 +205,19 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                 <Popup className="custom-popup" closeButton={false} offset={[0, -32]} maxWidth={220}>
                                     <div className="min-w-[200px]">
                                         {coverImage && (
+                                            /* Sprint popup-fix (2026-09-04) — h-28 (112px) → h-32 (128px).
+                                               Motivo: aspect ratio del contenedor era ~2:1 (220x112), muy
+                                               horizontal para fotos típicas de mascotas (3:2 o 4:3). Con
+                                               object-cover default center, foto quedaba muy recortada
+                                               arriba y abajo. h-32 mejora aspect ratio a ~1.7:1 — más
+                                               cerca de fotos típicas, menos recorte. Iterar a h-36 si
+                                               en smoke sigue apretado. Sin object-position — que la
+                                               evidencia del smoke decida si conviene agregar. */
                                             /* eslint-disable-next-line @next/next/no-img-element */
                                             <img
                                                 src={coverImage}
                                                 alt={s.titulo}
-                                                className="w-full h-28 object-cover rounded-t-xl -mx-4 -mt-4 mb-3"
+                                                className="w-full h-32 object-cover rounded-t-xl -mx-4 -mt-4 mb-3"
                                                 style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }}
                                             />
                                         )}
@@ -230,9 +238,32 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                             <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
                                         </div>
 
+                                        {/* Sprint popup-fix (2026-09-04) — `!text-white` con Tailwind
+                                            `!` prefix (= `color: white !important` en CSS).
+                                            Motivo: Leaflet incluye en su CSS default el selector
+                                            `.leaflet-container a { color: #0078A8 }` (verificado por
+                                            PO en DevTools de prod 2026-09-04 — regla visible en el
+                                            panel de estilos del inspector con selector real `.leaflet-container a`,
+                                            no `.leaflet-popup-content a` como estimé inicialmente).
+                                            Especificidad `(0,0,1,1)` de Leaflet > `(0,0,1,0)` de
+                                            `.text-white` de Tailwind → Leaflet ganaba silente y el
+                                            botón renderea azul-verdoso apagado sobre fondo verde
+                                            (bg-accent-600) → efecto "verde apenas más claro" que
+                                            reportó el PO. `text-white` estaba en la clase pero NO
+                                            se aplicaba.
+                                            `!important` (via Tailwind `!`) supera especificidad —
+                                            gana sobre el default de Leaflet. Cero cambio en el resto
+                                            del botón. Fix quirúrgico.
+                                            El selector `.leaflet-container a` es amplio (cubre TODOS
+                                            los links dentro del mapa, incluyendo los del attribution
+                                            control "OpenStreetMap" y "CARTO"). Esos otros links viven
+                                            sobre fondo blanco/transparente del control Leaflet — el
+                                            azul de Leaflet ahí funciona (contraste aceptable), no
+                                            necesitan el override. Solo este CTA sobre fondo verde
+                                            sufría el bug. Verificado por auditor 2026-09-04. */}
                                         <Link
                                             href={`/proveedor/${s.proveedor_id}`}
-                                            className="block w-full py-2 bg-accent-600 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
+                                            className="block w-full py-2 bg-accent-600 !text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
                                         >
                                             Ver perfil completo
                                         </Link>
