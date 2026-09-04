@@ -45,6 +45,22 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Fix probable**: revisar la clase del texto del botón en el HTML del popup (JSX del `<Popup>` en `components/Explore/CaregiverMap.tsx` ~línea 169+). Reemplazar `text-white/N`, opacity reducida, o token de color equivocado por `text-white` pleno. Cero cambio funcional, solo tokens.
   - **Al abrir, verificar también**: si el mismo problema (verde-sobre-verde, texto claro sobre fondo verde) aparece en otros botones del sitio. Grep de patrones `text-white/\d+`, `text-emerald`, `text-accent` sobre `bg-emerald`/`bg-accent` en botones. Si aparece en varios sitios, es sprint de higiene de sistema de diseño más amplio, no fix puntual.
 
+- **[abierto — prioridad media, ¿duplicación o intencional?] Auditoría rutas `/admin` — hub con pestañas vs 4 subrutas separadas** — detectado por PO 2026-09-04 al smokear toasts en `/admin/proveedores`. El PO observó que `/admin` (hub) y `/admin/proveedores` son **páginas distintas con interfaces distintas** para el mismo dominio (proveedores).
+  - **Estructura real del proyecto** (verificado por auditor 2026-09-04):
+    - `pages/admin.tsx` — hub con pestañas: **Métricas**, **Conversión**, **Moderación** (usa `ProveedorApprovalList`), **Proveedores**, **Feedback**. Cada pestaña renderiza componente distinto de `components/Admin/`.
+    - `pages/admin/evaluaciones.tsx` — página aparte, moderación de evaluaciones (columnas propias).
+    - `pages/admin/notificaciones.tsx` — página aparte.
+    - `pages/admin/proveedores.tsx` — página aparte (usa `GestionProveedores`), columnas comuna/fecha/RUT + botones "Marcar placeholder" y "Suspender".
+    - `pages/admin/servicios.tsx` — página aparte, moderación de servicios.
+  - **Observación del PO**: `/admin` tab Proveedores muestra email + teléfono + servicios activos + estado. `/admin/proveedores` muestra comuna + fecha + RUT + botones distintos. **Son 2 herramientas para lo mismo con vistas y acciones distintas**.
+  - **Pregunta central abierta**: ¿intencional (dos vistas del mismo dominio, cada una con su propósito operativo — moderación de aprobaciones vs gestión de existentes) o **legacy** (una es la vieja de cuando el admin era una sola página, y la nueva es el hub `/admin` con pestañas que absorbió la funcionalidad sin retirar las viejas)?
+  - **Al abrir, verificar**:
+    - Historial git de cada archivo (`pages/admin.tsx` vs `pages/admin/proveedores.tsx`) — cuál nació primero, si el hub se agregó después dejando huérfanas las subrutas.
+    - Enlaces internos del sitio: ¿el sidebar del `/admin` linkea a las subrutas o quedaron huérfanas de navegación (solo accesibles escribiendo la URL)?
+    - Overlap funcional: ¿la funcionalidad de `/admin/proveedores` está también dentro de una pestaña de `/admin`? Si sí, es redundancia.
+    - Decisión de producto: mantener las 4 subrutas por especialización operativa (más columnas, más acciones), o consolidar todo en pestañas de `/admin` para superficie única.
+  - **NO tocar en el sprint toast-fix** — PO pidió solo anotar. Sprint chico dedicado post-viaje PO.
+
 - **[abierto — prioridad baja, encuadre imagen] Foto del servicio en el popup del mapa `/explorar` queda mal encuadrada** — detectado por PO 2026-09-04 durante smoke z-index-maps al ampliar la imagen del popup del marker de $50k. La foto del servicio en el popup se ve **recortada arriba y abajo**, y el sujeto (hombre con perro en el caso observado) queda **descentrado hacia la derecha**. Probable causa: `object-position` por defecto (`object-center` default centra la imagen, no el sujeto) o relación de aspecto del contenedor que no calza con la de las fotos subidas.
   - **HTML actual del popup** ([components/Explore/CaregiverMap.tsx:171-178](components/Explore/CaregiverMap.tsx#L171-L178)): `<img className="w-full h-28 object-cover rounded-t-xl -mx-4 -mt-4 mb-3" style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }} />` — `h-28` (112px) fija + `object-cover` recorta al centro sin importar dónde está el sujeto.
   - **Al abrir, verificar**: si pasa con **todas** las fotos (problema del contenedor — h-28 corto para fotos horizontales de personas de cuerpo entero) o **solo con algunas** (problema del crop de origen — foto no centrada). Determina el fix.
