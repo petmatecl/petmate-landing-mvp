@@ -41,6 +41,16 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **A verificar al abrir**: en qué componente vive el botón (grep `Volver` + `router.back` en `pages/proveedor/[id].tsx` + componentes que renderea), y si el mismo patrón está en otras páginas del sitio (perfil de servicio, ficha de reserva, etc). Si sí, generalizar el fix.
   - **Sprint chico** (~30 min-1h). Prioridad media-alta por el impacto en tráfico orgánico + los 9 proveedores publicados con actividad real que se están mirando desde Google.
 
+- **[abierto — PRIORIDAD MEDIA — decisión de diseño] Burbujas de precio del mapa `/explorar` se superponen entre sí en zonas densas** — descubierto por PO 2026-09-04 durante smoke del sprint z-index-maps. En la zona céntrica de Santiago con varios servicios cerca, las burbujas `$100k`, `$50k`, `$15k` (divIcon markers en [components/Explore/CaregiverMap.tsx:133-145](components/Explore/CaregiverMap.tsx#L133-L145)) quedan encimadas y no se leen bien. **Con 17 resultados ya se nota**; con más proveedores va a empeorar.
+  - **NO es del fix del z-index** — el fix cerró la superposición del mapa contra el header/menú. Este es un problema distinto: superposición interna de markers entre sí cuando comparten coordenadas o están muy cerca. Reproducible sin el fix del z-index también, solo era menos visible antes porque otros problemas ocupaban la atención.
+  - **Contexto técnico**: cada marker se posiciona con `iconSize: [56, 40] + iconAnchor: [28, 40]`. Sin lógica de decolisión, dos markers con lat/lng cercanos se pintan uno encima de otro. Los `hover:z-50` del divIcon HTML solo suben el que hoverea — no resuelven la lectura estática ni el orden inicial.
+  - **Requiere decisión de diseño**, no es fix técnico directo. Opciones evaluables al abrir:
+    - **Agrupar markers cercanos** (clustering) con [leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster) o similar → un marker "cluster" con contador (ej. "5") que se expande al hacer zoom. Estándar en la industria (Google Maps, Airbnb).
+    - **Desplazar markers cercanos** (spider/spread) → al haber colisión, abrir los markers en abanico visible.
+    - **Mostrar un contador** en vez del precio cuando hay densidad → click revela lista de precios.
+    - **Reducir el iconSize** en zoom lejano y crecer al acercar → cero clustering pero menos overlap.
+  - Cada opción tiene trade-offs de UX y de esfuerzo de implementación. Sprint dedicado post-viaje PO. **Trigger para arrancar**: cuando el volumen de proveedores publicados supere ~30 (hoy 17) o cuando el PO/tráfico real reporten confusión con las burbujas superpuestas.
+
 - **[abierto — PRIORIDAD MEDIA] Mapa en la ficha de servicio según modalidad** — pedido de PO **2026-09-04** (durante sprint carto-key, mirando el sitio en general). Hoy el mapa vive solo en `/proveedor/[id]`. Las fichas de servicio (`/servicio/[id]`) no lo tienen. **La respuesta correcta no es "sí" ni "no" — es "depende de quién se traslada"**.
   - **Casos analizados por PO**:
     - **CASO 1 — servicio a domicilio** (ej. fotografía de mascotas, servicio `52a6e060`): muestra "Zona de cobertura" con comunas (Las Condes, Vitacura, Lo Barnechea, Providencia, Ñuñoa). El proveedor va donde está el tutor → lo que importa es "¿me cubre?". Lista de comunas responde eso mejor que un mapa. **Mapa NO hace falta**.
