@@ -202,71 +202,104 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                 position={[s.lat, s.lng]}
                                 icon={priceIcon}
                             >
+                                {/* Sprint popup-fix commit 2 (2026-09-04) — reestructuración del JSX
+                                    del popup para arreglar el bug de imagen recortada a la derecha.
+
+                                    MECANISMO DEL BUG (verificado empíricamente por PO en consola de prod):
+                                      - .leaflet-popup-content-wrapper (padre): 253px de ancho (Leaflet
+                                        calcula dinámicamente basado en content).
+                                      - .leaflet-popup-content (con override margin: 16px uniforme): 221px
+                                        de ancho (253 - 32 de margin). Confirmado por
+                                        `getComputedStyle(...).margin` = "16px".
+                                      - <img w-full>: 221px de ancho (100% del content). Confirmado por
+                                        Leaflet inline `width: 221px` en el content.
+                                      - Hack anterior: `w-full` + `style={{ width: 'calc(100% + 32px)' }}`
+                                        + `marginLeft: -16px`. Intención: imagen 253px alineada al borde
+                                        izquierdo del wrapper.
+                                      - Bug: **Tailwind reset aplica `img { max-width: 100% }`** por
+                                        default. Confirmado por PO con
+                                        `getComputedStyle('.leaflet-popup-content img').maxWidth` = "100%".
+                                        El `calc(100% + 32px)` intenta pedir 253px pero max-width limita
+                                        a 221px. **La imagen NO crece**. Sí se corre 16px a la izquierda
+                                        (marginLeft aplica sin restricción), pero sin crecer.
+                                      - Resultado: imagen de 221px corrida 16px a la izquierda cubre desde
+                                        `-16px` hasta `205px`. Wrapper mide 253px. **Franja blanca de
+                                        48-60px sin cubrir a la derecha** (48 en cálculo estricto, ~60 en
+                                        percepción del PO por bordes redondeados).
+
+                                    LO CONFUSO ERA QUE EL HACK FUNCIONABA A MEDIAS: el desplazamiento
+                                    izquierdo sí (margin negativo sin límite), el ensanchamiento NO
+                                    (limitado por max-width). Si ninguna hubiera funcionado, la imagen
+                                    estaría centrada y nadie habría notado nada.
+
+                                    FIX ESTRUCTURAL (Opción R, aprobada por PO 2026-09-04):
+                                    - CSS override: `.leaflet-popup-content { margin: 0 }` (era 16px).
+                                      Content pasa a ocupar todo el wrapper (253px de content).
+                                    - JSX: imagen SIN hacks negativos ni width extendido — solo `w-full
+                                      h-32 object-cover`. Al 100% del content nuevo (253px), llega
+                                      naturalmente a los dos bordes del wrapper.
+                                    - Div interno `p-4` (padding 16px, equivalente al margin original)
+                                      contiene solo el texto — reemplaza el "aire" que daba el margin
+                                      del content, pero sin afectar la imagen.
+
+                                    ROBUSTEZ: cero número hardcodeado en el hack de la imagen. Un upgrade
+                                    de Leaflet que cambie el padding default del content NO rompe nada —
+                                    la imagen sigue al 100% del content, que sigue ocupando el wrapper.
+                                    El único CSS override que sigue dependiendo del layout de Leaflet es
+                                    el `margin: 0` del content, pero es una assertion clara y auditable
+                                    ("queremos que el content ocupe el wrapper entero"), no un hack de
+                                    valor mágico.
+                                    ═══════════════════════════════════════════════════════════════════ */}
                                 <Popup className="custom-popup" closeButton={false} offset={[0, -32]} maxWidth={220}>
                                     <div className="min-w-[200px]">
                                         {coverImage && (
-                                            /* Sprint popup-fix (2026-09-04) — h-28 (112px) → h-32 (128px).
-                                               Motivo: aspect ratio del contenedor era ~2:1 (220x112), muy
-                                               horizontal para fotos típicas de mascotas (3:2 o 4:3). Con
-                                               object-cover default center, foto quedaba muy recortada
-                                               arriba y abajo. h-32 mejora aspect ratio a ~1.7:1 — más
-                                               cerca de fotos típicas, menos recorte. Iterar a h-36 si
-                                               en smoke sigue apretado. Sin object-position — que la
-                                               evidencia del smoke decida si conviene agregar. */
                                             /* eslint-disable-next-line @next/next/no-img-element */
                                             <img
                                                 src={coverImage}
                                                 alt={s.titulo}
-                                                className="w-full h-32 object-cover rounded-t-xl -mx-4 -mt-4 mb-3"
-                                                style={{ width: 'calc(100% + 32px)', marginLeft: '-16px', marginTop: '-16px' }}
+                                                className="w-full h-32 object-cover"
                                             />
                                         )}
-                                        <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">{s.categoria_nombre}</p>
-                                        <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
-                                        <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
+                                        <div className="p-4">
+                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">{s.categoria_nombre}</p>
+                                            <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
+                                            <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
 
-                                        <div className="flex items-center gap-1.5 mb-3">
-                                            <div className="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                <span className="text-accent-600 mr-1">★</span>
-                                                {Number(s.rating_promedio).toFixed(1)}
+                                            <div className="flex items-center gap-1.5 mb-3">
+                                                <div className="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                                                    <span className="text-accent-600 mr-1">★</span>
+                                                    {Number(s.rating_promedio).toFixed(1)}
+                                                </div>
+                                                <span className="text-xs text-slate-400">({s.total_evaluaciones} reseñas)</span>
                                             </div>
-                                            <span className="text-xs text-slate-400">({s.total_evaluaciones} reseñas)</span>
-                                        </div>
 
-                                        <div className="flex items-baseline gap-1 mb-3">
-                                            <span className="font-semibold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
-                                            <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
-                                        </div>
+                                            <div className="flex items-baseline gap-1 mb-3">
+                                                <span className="font-semibold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
+                                                <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
+                                            </div>
 
-                                        {/* Sprint popup-fix (2026-09-04) — `!text-white` con Tailwind
-                                            `!` prefix (= `color: white !important` en CSS).
-                                            Motivo: Leaflet incluye en su CSS default el selector
-                                            `.leaflet-container a { color: #0078A8 }` (verificado por
-                                            PO en DevTools de prod 2026-09-04 — regla visible en el
-                                            panel de estilos del inspector con selector real `.leaflet-container a`,
-                                            no `.leaflet-popup-content a` como estimé inicialmente).
-                                            Especificidad `(0,0,1,1)` de Leaflet > `(0,0,1,0)` de
-                                            `.text-white` de Tailwind → Leaflet ganaba silente y el
-                                            botón renderea azul-verdoso apagado sobre fondo verde
-                                            (bg-accent-600) → efecto "verde apenas más claro" que
-                                            reportó el PO. `text-white` estaba en la clase pero NO
-                                            se aplicaba.
-                                            `!important` (via Tailwind `!`) supera especificidad —
-                                            gana sobre el default de Leaflet. Cero cambio en el resto
-                                            del botón. Fix quirúrgico.
-                                            El selector `.leaflet-container a` es amplio (cubre TODOS
-                                            los links dentro del mapa, incluyendo los del attribution
-                                            control "OpenStreetMap" y "CARTO"). Esos otros links viven
-                                            sobre fondo blanco/transparente del control Leaflet — el
-                                            azul de Leaflet ahí funciona (contraste aceptable), no
-                                            necesitan el override. Solo este CTA sobre fondo verde
-                                            sufría el bug. Verificado por auditor 2026-09-04. */}
-                                        <Link
-                                            href={`/proveedor/${s.proveedor_id}`}
-                                            className="block w-full py-2 bg-accent-600 !text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
-                                        >
-                                            Ver perfil completo
-                                        </Link>
+                                            {/* Sprint popup-fix commit 1 (2026-09-04) — `!text-white` con
+                                                Tailwind `!` prefix (= `color: white !important` en CSS).
+                                                Motivo: Leaflet incluye `.leaflet-container a { color:
+                                                #0078A8 }` en su CSS default. Verificado por PO en DevTools
+                                                de prod 2026-09-04 — selector real `.leaflet-container a`
+                                                (no `.leaflet-popup-content a` como estimé inicialmente).
+                                                Especificidad `(0,0,1,1)` > `.text-white` `(0,0,1,0)` →
+                                                Leaflet ganaba silente y el botón renderea azul-verdoso
+                                                sobre fondo verde → efecto "verde apenas más claro".
+                                                `!important` (via `!`) supera especificidad → text-white
+                                                efectivo. El selector `.leaflet-container a` cubre TODOS
+                                                los links del mapa (incluyendo attribution "OpenStreetMap"
+                                                y "CARTO"), pero esos viven sobre fondo blanco donde el
+                                                azul funciona — solo este CTA sobre fondo verde sufría
+                                                el bug. */}
+                                            <Link
+                                                href={`/proveedor/${s.proveedor_id}`}
+                                                className="block w-full py-2 bg-accent-600 !text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
+                                            >
+                                                Ver perfil completo
+                                            </Link>
+                                        </div>
                                     </div>
                                 </Popup>
                             </Marker>
@@ -282,8 +315,13 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                     overflow: hidden;
                     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.15);
                 }
+                /* Sprint popup-fix commit 2 (2026-09-04) — margin 0 (era 16px).
+                   El content ahora llena todo el wrapper. Ver comentario extenso
+                   en el JSX del <Popup> arriba para el mecanismo completo del
+                   bug y por qué esto (más p-4 en div interno de texto + imagen
+                   sin hacks negativos) es el fix estructural. */
                 .leaflet-popup-content {
-                    margin: 16px;
+                    margin: 0;
                 }
                 .leaflet-popup-tip-container {
                     display: none;
