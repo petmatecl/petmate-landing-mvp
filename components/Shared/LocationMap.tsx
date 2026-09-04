@@ -43,8 +43,24 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                 scrollWheelZoom={false}
                 attributionControl={false}
             >
+                {/* Sprint map-tiles (2026-09-04) — migrado de CARTO Voyager
+                    a OpenStreetMap directo. Motivo: CARTO cambió su política
+                    en 2024/2025 exigiendo API key para basemaps públicos
+                    (marca de agua "API KEY REQUIRED" atravesando el mapa)
+                    y está retirando los raster tiles. OSM se elige por (a)
+                    consistencia con CaregiverMap que ya lo usa, (b) sin
+                    dependencia de key, (c) estable a mediano plazo. Ver
+                    ACTA_MAP_TILES.md.
+                    URL sin `{r}` retina — OSM no lo soporta con el mismo
+                    pattern. Pérdida de resolución en pantallas retina
+                    aceptable, verificado con /explorar en prod (mismo
+                    tile provider hoy) por PO 2026-09-04.
+                    Trigger post-launch para migrar a proveedor comercial
+                    con free tier + API key (Stadia/Mapbox/CARTO): OSM
+                    Tile Usage Policy limita a 2 req/sec/user + uso
+                    comercial pesado no permitido. Ver BACKLOG. */}
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
                 <ChangeView center={center} zoom={zoom} />
 
@@ -64,7 +80,7 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                 )}
             </MapContainer>
             <div className="text-[10px] text-slate-400 text-right bg-slate-50 px-2 py-1 border-t">
-                © OpenStreetMap contributors, © CartoDB
+                © OpenStreetMap contributors
             </div>
         </div>
     );

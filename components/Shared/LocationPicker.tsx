@@ -147,9 +147,17 @@ export default function LocationPicker({ lat, lng, comuna, onChange }: Props) {
                     scrollWheelZoom={false}
                     style={{ height: '100%', width: '100%' }}
                 >
+                    {/* Sprint map-tiles (2026-09-04) — migrado de CARTO Voyager
+                        a OpenStreetMap directo. Ver comentario extenso en
+                        LocationMap.tsx del mismo sprint + ACTA_MAP_TILES.md.
+                        Attribution en el TileLayer prop (patrón control
+                        default Leaflet) — se renderea en esquina inferior
+                        derecha del mapa. Copiado verbatim de CaregiverMap
+                        (línea 121-122) para consistencia entre los 3
+                        mapas del sitio. */}
                     <TileLayer
-                        url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     />
                     <RecenterMap center={mapCenter} zoom={zoom} />
                     <ClickToPlace
