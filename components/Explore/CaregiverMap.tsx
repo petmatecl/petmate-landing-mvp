@@ -138,9 +138,24 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                 className="leaflet-container"
                 zoomControl={false}
             >
+                {/* Sprint z-index-maps commit 2 (2026-09-04) — migrado de
+                    OpenStreetMap directo a CARTO Voyager con API key.
+                    Motivo: unifica estilo visual con LocationMap +
+                    LocationPicker (los 3 mapas del sitio quedan iguales).
+                    La divergencia OSM/CARTO se notaba a ojo tras el cierre
+                    de carto-key. Attribution con AMBOS créditos (requisito
+                    contractual free tier CARTO).
+                    subdomains 'abcd' + maxZoom 20 siguen la doc oficial
+                    CARTO (mejor reparto de carga sobre 4 subdominios vs
+                    3 default Leaflet; zoom 20 habilitado que CARTO
+                    soporta y el default Leaflet 18 recortaba).
+                    Env var NEXT_PUBLIC_CARTO_TILES_KEY ya en Vercel
+                    Prod/Preview/Dev desde sprint carto-key. */}
                 <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                    url={`https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${process.env.NEXT_PUBLIC_CARTO_TILES_KEY ?? ''}`}
+                    subdomains="abcd"
+                    maxZoom={20}
+                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 />
                 <ZoomControl position="topleft" />
                 <MapUpdater services={services} />
