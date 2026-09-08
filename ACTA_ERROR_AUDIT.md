@@ -85,15 +85,62 @@ Ver `BACKLOG.md > PEDIDOS DIRECTOS DEL PO > Hallazgos colaterales del sprint err
 - (d) Código muerto por retiro de `/usuario` (`pages/usuario.tsx`, `DashboardContent.tsx`, comentarios stale en `RoleSelectionInterceptor.tsx:29`).
 - (e) Caso 6 `signup.ts:220` — server-side, no reproducible con smoke estándar.
 
-## 4. Casos pendientes al momento de esta actualización
+## 4. Casos 2 + 1 — RoleGuard admin + RoleGuard proveedor
 
-En orden de ejecución acordado con el PO:
+**SHA**: `3aeb627`. **Aterrizado en `main`**: 2026-09-08 (post-smoke verde del PO en desktop).
 
-- **Casos 2 + 1** (RoleGuard admin + RoleGuard proveedor): en curso al momento de este documento. Un solo commit sobre el mismo archivo (`RoleGuard.tsx`). Case 1 sin caller activo hoy (import muerto), pero se arregla por consistencia del archivo — dejar la mitad arreglada sería peor.
-- **Caso 3** (`pages/admin.tsx:103`).
+### 4.1 Bug antes del fix (idéntico en ambas ramas)
+
+La query fallback a `proveedores` (líneas 39 rama proveedor + 61 rama admin del `RoleGuard.tsx` pre-fix) destructuraba solo `{ data }`. Ante fallo transitorio de red (bloqueo, drop, RLS glitch): `data` era null → el código caía al mismo `router.push('/login')` que "no tiene el rol". **Admin real con drop de red se veía expulsado a login sin explicación, indistinguible de un tutor que legítimamente no tiene el rol**.
+
+### 4.2 Fix estructural
+
+Destructuring `{ data, error }` en ambas ramas. Si `error` truthy:
+- `Sentry.captureMessage('roleguard_verify_failed', { level: 'warning', tags: { subsystem: 'roleguard', route, requiredRole, errorCode }, extra: {...} })`.
+- Nuevo estado `'error'` en el discriminated union `authState`.
+- Sin redirect — user se queda en la ruta con estado explícito.
+
+Render nuevo: título "No pudimos verificar tu acceso" + sublínea "Revisa tu conexión y vuelve a intentar." + botón "Reintentar". Retry incrementa `retryTrigger` que está en las deps del useEffect → re-corre `verifyAccess`.
+
+**Case 1 (proveedor) sin caller vivo hoy** — `grep -rn '<RoleGuard requiredRole="proveedor"' components/ pages/` retorna 0. Se aplica fix estructural por consistencia del archivo (dejar la mitad arreglada es peor).
+
+**P10**: `verifyAccess` corre dentro de `useEffect` y llama `supabase.from()` directo. NO dentro de `onAuthStateChange` callback ni del lock del SDK Auth. Sesión llega via `useUser()` context ya hidratado. Cero riesgo de deadlock.
+
+### 4.3 Smoke verde en preview 2026-09-08 (SHA `3aeb627`)
+
+Setup: desktop viewport, bloqueo con pattern exacto `https://jmtadvdkicyylcwjcmcl.supabase.co/rest/v1/proveedores*` (staging Supabase).
+
+- **Control positivo**: Aldo sin bloqueo en `/admin/servicios` renderea normal.
+- **Parte 1 gesto 1** (con bloqueo): estado "No pudimos verificar tu acceso / Revisa tu conexión y vuelve a intentar / Reintentar". Query `proveedores` en `(blocked)`. Sin redirect a `/login`.
+- **Parte 1 gesto 2** (Reintentar con bloqueo activo): repite el estado. Requests bloqueados suman `4 → 7 → 8 affected`, confirma que retry re-ejecuta la query.
+- **Parte 1 gesto 3** (bloqueo apagado + Reintentar): renderea panel admin en la misma página. `proveedores` 200. Cero regresión del camino feliz post-retry.
+- **Parte 2** (sin bloqueo, otra subruta): Aldo en `/admin/proveedores` carga normal.
+- **Parte 3** (control negativo): Camila (tutora sin rol admin), sin bloqueo, en `/admin/servicios` → cae en `/login` por el flujo de no-autorizado preexistente. **La pantalla de error NO aparece** — el fix distingue correctamente error de red vs no-autorizado.
+
+### 4.4 Checklist Sentry post-prod (pendiente al momento de este documento)
+
+Sentry cliente **gated a producción** — `enabled: NEXT_PUBLIC_VERCEL_ENV === 'production'` en [instrumentation-client.ts:30](instrumentation-client.ts#L30). Los eventos client-side desde preview NO llegan al dashboard. Verificación end-to-end diferida a prod post-merge.
+
+**Checklist a correr por PO tras deploy prod**:
+1. Login como admin en `https://www.pawnecta.com`.
+2. DevTools → Network → Request blocking → pattern: `*.supabase.co/rest/v1/proveedores*`.
+3. Address bar → `/admin/servicios`.
+4. Verificar estado UI (título "No pudimos verificar tu acceso" + sublínea + botón Reintentar).
+5. Sentry dashboard → Issues → filtro `environment:production` + búsqueda `roleguard_verify_failed`:
+   - **Debe aparecer**: 1 evento level=warning con tags `subsystem=roleguard`, `route=/admin/servicios`, `requiredRole=admin`, `errorCode=<código real>`.
+   - **Extra debe contener**: `errorMessage`, `errorDetails`, `errorHint`.
+6. Click "Reintentar" con bloqueo activo → **debe aparecer un 2° evento** con mismos tags. Confirma que retry re-invoca en prod.
+
+Resultado del checklist: pendiente PO.
+
+## 5. Casos pendientes al momento de esta actualización
+
+En orden de ejecución acordado:
+
+- **Caso 3** (`pages/admin.tsx:103`) — en análisis. Ver Ronda 2 previa. Confirmar si el hub queda cubierto por RoleGuard 3aeb627 o si necesita fix propio.
 - **Caso 4** (`pages/login.tsx:132`).
 - **Caso 5 líneas 40+51** (`ClientLayout.tsx` — `fetchClientProfile` ignora `.error`).
-- **Caso 6** (`pages/api/auth/signup.ts:220`) — **NO se arregla en este sprint**, va a BACKLOG por no ser reproducible con el smoke estándar (server-side).
+- **Caso 6** (`pages/api/auth/signup.ts:220`) — **NO se arregla en este sprint**, ya en BACKLOG.
 
 ## 5. Metadata del tag
 
