@@ -4,6 +4,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from "../lib/supabaseClient";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
 
@@ -129,11 +130,35 @@ export default function LoginPage() {
         window.location.replace(redirect);
       } else {
         // Check if user is a provider
-        const { data: provData } = await supabase
+        // Sprint error-audit Case 4 (2026-09-08) — destructurar .error para
+        // no confundir "fallo de red" con "sin fila en proveedores" (los dos
+        // devuelven data:null). Con provError truthy caemos al /explorar
+        // seguro por la lógica preexistente (data:null → if(provData) false).
+        // NO redirigir a /proveedor ante la duda: expulsaría a tutores a un
+        // panel que no les corresponde. /explorar es la ruta pública neutra
+        // — proveedor real puede llegar a su panel desde el link del header.
+        const { data: provData, error: provError } = await supabase
           .from('proveedores')
           .select('id, estado')
           .eq('auth_user_id', data.user.id)
           .maybeSingle();
+
+        if (provError) {
+          console.warn('[login] role lookup failed:', provError);
+          Sentry.captureMessage('login_role_lookup_failed', {
+            level: 'warning',
+            tags: {
+              subsystem: 'login',
+              route: router.pathname,
+              errorCode: provError.code || 'unknown',
+            },
+            extra: {
+              errorMessage: provError.message,
+              errorDetails: provError.details,
+              errorHint: provError.hint,
+            },
+          });
+        }
 
         if (provData) {
           window.location.replace('/proveedor');
