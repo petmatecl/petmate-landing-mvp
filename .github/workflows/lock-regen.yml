@@ -1,0 +1,67 @@
+# .github/workflows/lock-regen.yml
+# ---------------------------------------------------------------------------
+# Sprint chore-lock-linux-regen (2026-09-08) — workflow ONE-SHOT.
+#
+# Objetivo: regenerar package-lock.json en Linux (ubuntu-latest) para que
+# incluya las entradas @rollup/rollup-linux-* (~10 opcionales platform-
+# specific) que el lock generado en Windows omite. Cierra el workaround
+# `npm install --no-audit --no-fund` aplicado en PR #3 y restaura `npm ci`
+# estricto.
+#
+# Trigger: workflow_dispatch únicamente. NO se dispara en push/PR.
+#
+# Output: package-lock.json regenerado como artefacto de build. El PO lo
+# descarga, revisa el diff (criterio de aceptación: solo entradas
+# @rollup/rollup-* y metadatos estructurales), commitea al repo si limpio.
+#
+# Este archivo se BORRA en el mismo PR que commitea el lock regenerado.
+# Vida útil esperada: 1 ejecución + 1 commit de borrado. Ver BACKLOG
+# entrada "chore-lock-linux-regen".
+# ---------------------------------------------------------------------------
+
+name: lock-regen (one-shot)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  regen:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          # Misma versión que ci.yml (20.x) para asegurar que el lock
+          # generado sea compatible con el runtime de los otros workflows.
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Regenerate package-lock.json (Linux platform)
+        # --package-lock-only: solo regenera el lock, cero side effects en
+        # node_modules. Al correr en Linux, npm resuelve las optional deps
+        # rollup-linux-* y las incluye en el lock.
+        run: npm install --package-lock-only
+
+      - name: Verify lock includes @rollup/rollup-linux-x64-gnu
+        # Assertion crítica: si el lock regenerado NO incluye la entrada
+        # linux-x64-gnu (la que fallaba en CI original), el workflow es
+        # inútil. Falla el step con mensaje claro.
+        run: |
+          if grep -q '"@rollup/rollup-linux-x64-gnu":' package-lock.json; then
+            echo "OK — lock incluye @rollup/rollup-linux-x64-gnu"
+            grep -c '"@rollup/rollup-' package-lock.json | xargs echo "Total entries @rollup/rollup-*:"
+          else
+            echo "FAIL — lock regenerado NO incluye @rollup/rollup-linux-x64-gnu"
+            exit 1
+          fi
+
+      - name: Upload package-lock.json as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-lock-regen-${{ github.run_id }}
+          path: package-lock.json
+          retention-days: 7
