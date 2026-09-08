@@ -1,10 +1,10 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/router';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
 import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
+import RoleGuard from '../components/Shared/RoleGuard';
 
 const AdminMetrics = dynamic(() => import('../components/Admin/AdminMetrics'), { ssr: false });
 const ProveedorApprovalList = dynamic(() => import('../components/Admin/ProveedorApprovalList'), { ssr: false });
@@ -25,16 +25,33 @@ const RateLimitBadge = dynamic(() => import('../components/Admin/RateLimitBadge'
 // viendo esta semana). Ver components/Admin/FeedbackList.tsx.
 const FeedbackList = dynamic(() => import('../components/Admin/FeedbackList'), { ssr: false });
 
+// Sprint error-audit Case 3 (2026-09-08) — hub /admin ahora gated por RoleGuard
+// (mismo mecanismo que las 4 subrutas /admin/*). Antes tenía su propio checkAuth
+// inline con el mismo antipatrón que Cases 2+1 en RoleGuard.tsx pre-fix:
+// destructuraba `{ data }` ignorando `.error` → fallo de red mostraba
+// "Acceso restringido" con login form embebido a admins reales.
+//
+// Post-Opción 2: cero código de auth en este archivo. Los 5 puntos admin
+// (hub + 4 subrutas) usan el mismo gate. Fixes futuros al error-handling
+// del gate se hacen en un solo lugar (RoleGuard).
+//
+// Cambio de comportamiento intencional: admin sin sesión en /admin ahora
+// va a /login estándar (mismo comportamiento que /admin/servicios etc.),
+// en vez de ver el login form embebido en /admin.
+//
+// Split en 2 componentes: AdminDashboard (wrap RoleGuard) + AdminDashboardInner
+// (contiene state + effects). Los useEffect de contadores solo se disparan
+// cuando RoleGuard autoriza — sino AdminDashboardInner no se monta y las
+// queries no corren para no-admins (evita ruido de RLS + tráfico inútil).
 export default function AdminDashboard() {
-    const router = useRouter();
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [loading, setLoading] = useState(true);
+    return (
+        <RoleGuard requiredRole="admin">
+            <AdminDashboardInner />
+        </RoleGuard>
+    );
+}
 
-    const [adminEmail, setAdminEmail] = useState('');
-    const [adminPassword, setAdminPassword] = useState('');
-    const [loginLoading, setLoginLoading] = useState(false);
-    const [loginError, setLoginError] = useState('');
-
+function AdminDashboardInner() {
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
 
@@ -44,10 +61,10 @@ export default function AdminDashboard() {
     // futuro aparece un pendiente (suspensión manual, cuenta legacy que
     // el admin re-active, etc.). Query barata: HEAD count sobre
     // proveedores.estado='pendiente' con filtro es_ejemplo. Corre una
-    // sola vez al aterrizar el admin verificado.
+    // sola vez al montar (RoleGuard ya autorizó — el effect solo dispara
+    // cuando el gate dejó pasar).
     const [aprobacionesPendientesCount, setAprobacionesPendientesCount] = useState<number | null>(null);
     useEffect(() => {
-        if (!isAdmin) return;
         let cancelled = false;
         (async () => {
             const { count, error } = await supabase
@@ -64,16 +81,15 @@ export default function AdminDashboard() {
             setAprobacionesPendientesCount(count ?? 0);
         })();
         return () => { cancelled = true; };
-    }, [isAdmin]);
+    }, []);
 
     // Sprint admin-visibilidad (2026-08-27) — count de feedback con estado
     // 'nuevo' para badge del tab. Mismo patrón que aprobacionesPendientesCount:
-    // HEAD count barato, corre una vez al aterrizar el admin verificado. Sin
-    // este badge Aldo declaró explícitamente que va a olvidar revisar el tab.
-    // RLS de feedback_submissions ya filtra a admin — cero RPC necesario.
+    // HEAD count barato, corre una vez al montar. Sin este badge Aldo declaró
+    // explícitamente que va a olvidar revisar el tab. RLS de
+    // feedback_submissions ya filtra a admin — cero RPC necesario.
     const [feedbackNuevosCount, setFeedbackNuevosCount] = useState<number | null>(null);
     useEffect(() => {
-        if (!isAdmin) return;
         let cancelled = false;
         (async () => {
             const { count, error } = await supabase
@@ -89,120 +105,7 @@ export default function AdminDashboard() {
             setFeedbackNuevosCount(count ?? 0);
         })();
         return () => { cancelled = true; };
-    }, [isAdmin]);
-
-    const checkAuth = React.useCallback(async () => {
-        try {
-            const { data: { session }, error } = await supabase.auth.getSession();
-
-            if (error || !session) {
-                throw new Error('No session');
-            }
-
-            // Verificación por rol en la base de datos (única fuente de verdad)
-            const { data: profile } = await supabase
-                .from('proveedores')
-                .select('roles, estado')
-                .eq('auth_user_id', session.user.id)
-                .maybeSingle();
-
-            const roles = Array.isArray(profile?.roles) ? profile.roles : [];
-            const hasAdminAccess = roles.includes('admin') && profile?.estado === 'aprobado';
-
-            setIsAdmin(!!hasAdminAccess);
-        } catch (error) {
-            console.error('Error checking auth:', error);
-            setIsAdmin(false);
-        } finally {
-            setLoading(false);
-        }
     }, []);
-
-
-    useEffect(() => {
-        checkAuth();
-    }, [checkAuth]);
-
-    const handleAdminLogin = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setLoginError('');
-        setLoginLoading(true);
-
-        try {
-            const { data, error } = await supabase.auth.signInWithPassword({
-                email: adminEmail,
-                password: adminPassword,
-            });
-
-            if (error) {
-                const msg = error.message.toLowerCase();
-                if (msg.includes('email not confirmed')) {
-                    setLoginError('Debes confirmar tu correo antes de ingresar. Revisa tu bandeja de entrada.');
-                } else if (msg.includes('invalid login credentials') || msg.includes('invalid')) {
-                    setLoginError('El correo o la contraseña no son correctos.');
-                } else {
-                    setLoginError(`Error de autenticación: ${error.message}`);
-                }
-                setLoginLoading(false);
-                return;
-            }
-
-            if (!data.user) {
-                setLoginError('No se pudo obtener la sesión. Intenta nuevamente.');
-                setLoginLoading(false);
-                return;
-            }
-
-            // Verificar rol admin en DB (sin filtrar por estado para dar mejor feedback)
-            const { data: proveedorData, error: queryError } = await supabase
-                .from('proveedores')
-                .select('roles, estado')
-                .eq('auth_user_id', data.user.id)
-                .maybeSingle();
-
-            if (queryError) {
-                console.error('Admin query error:', queryError);
-                await supabase.auth.signOut();
-                setLoginError('Error al verificar permisos. Contacta al administrador.');
-                setLoginLoading(false);
-                return;
-            }
-
-            if (!proveedorData) {
-                await supabase.auth.signOut();
-                setLoginError('Esta cuenta no tiene un perfil de proveedor asociado.');
-                setLoginLoading(false);
-                return;
-            }
-
-            const roles = Array.isArray(proveedorData.roles) ? proveedorData.roles : [];
-            const hasAdminRole = roles.includes('admin');
-            const isApproved = proveedorData.estado === 'aprobado';
-
-            if (!hasAdminRole) {
-                await supabase.auth.signOut();
-                setLoginError('Esta cuenta no tiene permisos de administrador.');
-                setLoginLoading(false);
-                return;
-            }
-
-            if (!isApproved) {
-                await supabase.auth.signOut();
-                setLoginError(`Tu perfil de proveedor tiene estado "${proveedorData.estado}". Debe estar aprobado para acceder al admin.`);
-                setLoginLoading(false);
-                return;
-            }
-
-            // Admin verificado → activar directamente sin reload
-            setIsAdmin(true);
-            setLoginLoading(false);
-
-        } catch (err: any) {
-            console.error('Admin login error:', err);
-            setLoginError('Error al iniciar sesión. Intenta nuevamente.');
-            setLoginLoading(false);
-        }
-    };
 
     // Tab Aprobaciones se oculta cuando el contador de pendientes es 0
     // (auto-aprobación sprint badge-f1). Reaparece automáticamente si
@@ -250,78 +153,7 @@ export default function AdminDashboard() {
         // Re-measure after a short delay (banner may close)
         const t = setTimeout(measure, 500);
         return () => { window.removeEventListener('resize', measure); clearTimeout(t); };
-    }, [isAdmin]);
-
-    if (loading) {
-        return (
-            <>
-                <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent-600"></div>
-                </div>
-            </>
-        );
-    }
-
-    if (!isAdmin) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-slate-900">
-                <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-sm">
-                    <div className="text-center mb-8">
-                        <div className="w-12 h-12 bg-slate-900 rounded-xl flex items-center justify-center mx-auto mb-4">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                            </svg>
-                        </div>
-                        <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Acceso restringido</h1>
-                    </div>
-
-                    <form onSubmit={handleAdminLogin}>
-                        <div className="space-y-4">
-                            <input
-                                type="email"
-                                placeholder="Correo"
-                                value={adminEmail}
-                                onChange={e => setAdminEmail(e.target.value)}
-                                required
-                                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                            />
-                            <input
-                                type="password"
-                                placeholder="Contraseña"
-                                value={adminPassword}
-                                onChange={e => setAdminPassword(e.target.value)}
-                                required
-                                className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-slate-900"
-                            />
-                            {loginError && (
-                                <p role="alert" aria-live="polite" className="text-danger-500 text-sm text-center">{loginError}</p>
-                            )}
-                            <button
-                                type="submit"
-                                disabled={loginLoading}
-                                className="w-full bg-slate-900 text-white font-medium tracking-wide py-3 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60"
-                            >
-                                {loginLoading && (
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                                        style={{ animation: "spin 0.8s linear infinite" }}>
-                                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
-                                    </svg>
-                                )}
-                                {loginLoading ? 'Verificando...' : 'Ingresar'}
-                            </button>
-                        </div>
-                    </form>
-                </div>
-
-                <style jsx>{`
-                    @keyframes spin {
-                        from { transform: rotate(0deg); }
-                        to { transform: rotate(360deg); }
-                    }
-                `}</style>
-            </div>
-        );
-    }
+    }, []);
 
     return (
         <div className="min-h-screen bg-[#F8FAFC] font-sans">
