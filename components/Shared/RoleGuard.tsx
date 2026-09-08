@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import * as Sentry from '@sentry/nextjs';
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from '../../lib/supabaseClient';
 
@@ -8,10 +9,28 @@ interface RoleGuardProps {
     requiredRole: "usuario" | "proveedor" | "admin";
 }
 
+// Sprint error-audit Cases 2 + 1 (2026-09-08) — distinguir "error de red al
+// verificar el rol" de "sin rol para acceder". Antes, ambos casos caían al
+// mismo `router.push('/login')`: un fallo transitorio de red expulsaba a
+// admins/proveedores reales igual que a un tutor que legítimamente no tiene
+// el rol. Ahora:
+//   - error truthy en la query de rol → estado 'error' con "Reintentar",
+//     sin redirect + Sentry.captureMessage con contexto (ruta, rol, código).
+//   - sin error y sin fila (o rol/estado que no cumple) → 'unauthorized' con
+//     redirect (comportamiento previo intacto).
+// El branch requiredRole="proveedor" no tiene caller vivo hoy (grep 0), se
+// aplica la misma corrección estructural por consistencia del archivo:
+// dejar la mitad arreglada es peor que arreglarlo entero.
+//
+// P10: verifyAccess corre dentro de un useEffect y llama a supabase.from(...)
+// directo. NO se ejecuta dentro de onAuthStateChange callback ni dentro del
+// lock interno del SDK Auth. La sesión llega via useUser() context, que
+// expone state ya hidratado. Cero riesgo de deadlock.
 export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     const router = useRouter();
     const { isAuthenticated, isLoading, user, providerStatus, roles } = useUser();
-    const [authState, setAuthState] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
+    const [authState, setAuthState] = useState<'loading' | 'authorized' | 'unauthorized' | 'error'>('loading');
+    const [retryTrigger, setRetryTrigger] = useState(0);
 
     useEffect(() => {
         const verifyAccess = async () => {
@@ -36,11 +55,30 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                 }
 
                 // Fallback check in DB just in case context is lagging
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('proveedores')
                     .select('estado')
                     .eq('auth_user_id', user.id)
                     .maybeSingle();
+
+                if (error) {
+                    Sentry.captureMessage('roleguard_verify_failed', {
+                        level: 'warning',
+                        tags: {
+                            subsystem: 'roleguard',
+                            route: router.pathname,
+                            requiredRole,
+                            errorCode: error.code || 'unknown',
+                        },
+                        extra: {
+                            errorMessage: error.message,
+                            errorDetails: error.details,
+                            errorHint: error.hint,
+                        },
+                    });
+                    setAuthState('error');
+                    return;
+                }
 
                 if (!data) {
                     setAuthState('unauthorized');
@@ -48,7 +86,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     return;
                 }
 
-                if (data?.estado === 'aprobado') {
+                if (data.estado === 'aprobado') {
                     setAuthState('authorized');
                 } else {
                     setAuthState('unauthorized');
@@ -58,11 +96,30 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
             }
 
             if (requiredRole === 'admin') {
-                const { data } = await supabase
+                const { data, error } = await supabase
                     .from('proveedores')
                     .select('roles, estado')
                     .eq('auth_user_id', user.id)
                     .maybeSingle();
+
+                if (error) {
+                    Sentry.captureMessage('roleguard_verify_failed', {
+                        level: 'warning',
+                        tags: {
+                            subsystem: 'roleguard',
+                            route: router.pathname,
+                            requiredRole,
+                            errorCode: error.code || 'unknown',
+                        },
+                        extra: {
+                            errorMessage: error.message,
+                            errorDetails: error.details,
+                            errorHint: error.hint,
+                        },
+                    });
+                    setAuthState('error');
+                    return;
+                }
 
                 if (data?.roles && Array.isArray(data.roles) && data.roles.includes('admin') && data.estado === 'aprobado') {
                     setAuthState('authorized');
@@ -75,7 +132,12 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
         };
 
         verifyAccess();
-    }, [isLoading, isAuthenticated, requiredRole, user, providerStatus, roles, router]);
+    }, [isLoading, isAuthenticated, requiredRole, user, providerStatus, roles, router, retryTrigger]);
+
+    const handleRetry = () => {
+        setAuthState('loading');
+        setRetryTrigger(prev => prev + 1);
+    };
 
     if (authState === 'loading') {
         return (
@@ -83,6 +145,25 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                 <div className="flex flex-col items-center gap-4">
                     <div className="w-8 h-8 border-4 border-accent-600 border-t-transparent rounded-full animate-spin"></div>
                     <p className="text-slate-500 text-sm animate-pulse">Verificando acceso...</p>
+                </div>
+            </div>
+        );
+    }
+
+    if (authState === 'error') {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+                <div className="flex flex-col items-center gap-4 text-center max-w-sm px-4">
+                    <div>
+                        <p className="text-slate-900 font-semibold text-sm">No pudimos verificar tu acceso</p>
+                        <p className="text-slate-500 text-xs mt-1">Revisa tu conexión y vuelve a intentar.</p>
+                    </div>
+                    <button
+                        onClick={handleRetry}
+                        className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-accent-600 hover:bg-accent-700 text-white text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2"
+                    >
+                        Reintentar
+                    </button>
                 </div>
             </div>
         );
