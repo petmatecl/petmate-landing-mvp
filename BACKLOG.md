@@ -543,7 +543,17 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
     4. Si el diff es limpio: commit del lock nuevo + revertir `npm install --no-audit --no-fund` a `npm ci` en los 2 workflows + borrar el workflow one-shot.
     5. **Criterio de aceptación final**: los 2 workflows (CI y e2e-error-audit) pasan verde con `npm ci` estricto.
   - **NO recomendable — verificado en PR #3**: regenerar el lock local en Windows con `npm install` completo trae bump masivo de ~50+ dependencias (diff de 4925 líneas, 1684 adds + 1895 removes, decenas de paquetes transitivos con versiones bumpeadas dentro de rangos semver). Requeriría auditoría de dependency changes que excede el alcance del sprint.
-  - **Trigger de reapertura**: la deuda queda técnicamente en el mismo estado hasta ejecutar. No hay urgencia hoy (workaround funciona), pero re-visitar en sprint dedicado post-launch para recuperar el `npm ci` estricto.
+  - **INTENTO 1 (2026-09-08, run 34284251713) — DETENIDO por criterio de aceptación fallado**: workflow `.github/workflows/lock-regen.yml` ejecutado en `ubuntu-latest` via `workflow_dispatch`, generó `package-lock.json` regenerado (13431 líneas vs 13031 originales). Artefacto descargado ok. Assertion `grep '@rollup/rollup-linux-x64-gnu'` pasa (25 entries de plataforma rollup presentes, incluyendo la que fallaba en CI). **Pero el diff toca 275 paquetes NO-rollup**: `@babel/core`, `@opentelemetry/*`, `@playwright/test`, `@swc/core`, `ajv`, `bufferutil`, `cssnano`, `esbuild`, `eslint`, `lightningcss`, `semver`, decenas de `node_modules/@babel/*`, etc. Diff total: 26464 líneas, 10495 adds, 10175 removes. **`npm install --package-lock-only` no puede aislar solo las entradas rollup — resuelve TODA la árbol de deps a las versiones más recientes dentro de rangos semver del `package.json`**. Regla P8 acordada con PO ("cualquier bump no-rollup → DETENTE") aterrizada: lock descartado local, cero push a `chore/lock-regen`, cero PR #7. Workaround `npm install --no-audit --no-fund` sigue vigente.
+  - **Estado post-INTENTO 1**:
+    - Workflow `.github/workflows/lock-regen.yml` queda en `main` (registrado en `45f6c25`, requerido por GH Actions para poder gatillar). Inert (solo `workflow_dispatch`, cero triggers automáticos). Reutilizable si se retoma con estrategia distinta.
+    - Branch `chore/lock-regen` en origin con `52adcb6` (workflow YAML solo — mismo contenido que ahora vive en main). Puede borrarse sin pérdida.
+  - **Estrategias alternativas para retomar (fuera de alcance hoy)**:
+    - (a) Editar el lock a mano insertando solo las ~10 entradas `@rollup/rollup-linux-*` — frágil, difícil de mantener a través de bumps de rollup.
+    - (b) Agregar `optionalDependencies` explícitas en `package.json` con los `@rollup/rollup-linux-*` — invasivo pero determinístico.
+    - (c) Regenerar en Linux + accept el bump masivo con auditoría de cambios como sprint dedicado (~medio día de trabajo).
+    - (d) Fija versiones exactas de todas las deps en `package.json` (sacar los `^`) — cambio grande, pierde flexibilidad de patch bumps.
+    - (e) Esperar a que npm resuelva el bug upstream — [npm/cli#4828](https://github.com/npm/cli/issues/4828) tracks el issue.
+  - **Trigger de reapertura**: sprint dedicado con decisión de PO entre (b), (c), (d), (e). Prioridad sigue MEDIA — el workaround funciona.
 
 ### Sprint sentry-bot-noise (2026-09-08) — mini-fix cerrado
 
