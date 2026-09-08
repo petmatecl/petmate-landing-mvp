@@ -528,6 +528,23 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Lección operativa**: cuando se diseña una tabla + RLS + trigger con intención admin, agendar en el mismo sprint (o el inmediato siguiente) la superficie UI que la consume. Sin superficie, la infraestructura es un compromiso de mantenimiento sin retorno de valor — la deuda queda invisible hasta que aparece una necesidad ("necesito ver los feedbacks") y descubrimos que faltó lo último.
   - **Regla candidata para CLAUDE.md**: cualquier `migrations/*.sql` que cree tabla + policy admin-only debe acompañarse (mismo commit o siguiente sprint documentado) con el componente/tab admin que la lee. Si el sprint aterriza infra pero pospone la UI, dejarlo **explícito en el commit** ("infra + policies aterrizados; UI de consumo pendiente sprint X") para no perder la deuda. Este patrón vale sumarlo a los corolarios P8 como 12ª instancia — no es exactamente P8 (output/efecto), es la variante "compromiso silente sin efecto". Pendiente decisión del PO de si vale la regla formal o solo memoria operativa.
 
+### Sprint sentry-bot-noise (2026-09-08) — mini-fix cerrado
+
+- **[cerrado 2026-09-08 `d36f1cf`] JAVASCRIPT-NEXTJS-3 (Error · Rejected, unhandled, `/explorar`)** — diagnosticado y fixeado como mini-sprint post-cierre error-audit.
+  - **Diagnóstico** (PO 2026-09-08 leyendo JSON del evento `d836cddd` en Sentry):
+    - `exception.value: "Rejected"`, `exception.mechanism: onunhandledrejection`.
+    - Stack completo en `node_modules/workbox-window/build/workbox-window.prod.es5.mjs`; último frame in-app: `navigator.serviceWorker.register`.
+    - User-Agent: `"Mozilla/5.0 (Linux; Android 10; K) ... Chrome/138.0.0.0 Mobile Safari/537.36 (compatible; Google-Read-Aloud; +https://support.google.com/webmasters/answer/1061943)"` — bot de Google.
+    - `user.geo: US`, `culture.timezone: America/Los_Angeles`, `locale: en-US`.
+    - 5 eventos en 2 semanas, 0 usuarios identificados, url reparte entre `/explorar` y `/proveedor`.
+    - **Conclusión**: bot Google-Read-Aloud carga la página → workbox-window intenta registrar el SW → entorno del bot rechaza el registro → promesa queda sin catch. Cero impacto en usuarios reales — ruido que ensucia el dashboard y consume cuota.
+  - **Fix (SHA `d36f1cf`)** — doble defensa:
+    - `lib/sentryScrub.ts` (beforeSend): filtro por User-Agent con regex `bot|crawler|spider|Google-Read-Aloud|facebookexternalhit|LinkedInBot|Twitterbot` + filtro por stack (`isSwRegisterRejection` detecta `exception.value === 'Rejected'` + stack con `workbox-window` o `serviceWorker.register`). Dropea antes del ingest.
+    - `instrumentation-client.ts`: listener global `unhandledrejection` registrado ANTES de `Sentry.init` → match por stack/message con workbox/SW register → `event.preventDefault()` + `console.warn('[sw-register] rejected (swallowed):', reason)`. "Nunca sea unhandled" incluso para navegadores reales sin soporte SW.
+  - **Verificación**: preview no envía (gate a prod). Verificación real diferida a prod: la issue debe dejar de recibir eventos en 7 días. PO marca Resolved en Sentry post-deploy.
+  - **Trigger de reapertura**: (a) eventos nuevos en la issue `JAVASCRIPT-NEXTJS-3` después del deploy, o (b) cualquier evento con el mismo stack (`workbox-window` / `serviceWorker.register`) desde un UA que NO sea bot — indicaría que el filtro por stack está fallando en algún navegador real con SW no soportado.
+  - **Sin tag propio** — decisión PO 2026-09-08. Mini-fix aterrizado en main sobre `d36f1cf` sin ceremonia de tag.
+
 ### Hallazgos colaterales del sprint error-audit (2026-09-08)
 
 Anotados durante la ejecución del sprint. No forman parte del alcance directo (auditoría de callers que ignoran `.error`) pero surgieron al leer código adjacente. Cada uno es candidato a sprint chico post-launch — cero bloqueante.
