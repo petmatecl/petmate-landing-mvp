@@ -115,6 +115,110 @@ Los screenshots se guardan en el scratchpad de la sesión con nombre `smoke-<nom
 - Ejercer escrituras en prod "porque ya lo hicimos antes" — cada acción irreversible es su propia decisión, requiere GO del turno.
 - Cerrar un smoke como "verde" sin evidencia observable — el auditor firma solo lo que vio, no lo que "debería haber pasado según el código".
 
+## MCPs requeridos
+
+Este skill depende de MCPs cargados en la sesión. Sin ellos el skill NO puede operar — reportar al PO en vez de improvisar.
+
+**Obligatorios**:
+- `mcp__playwright__browser_*` — ~20 tools bajo este prefijo (navigate, click, type, snapshot, evaluate, wait_for, take_screenshot, network_requests, console_messages, close, etc.). El plugin Playwright de Anthropic-verified los inyecta al arranque de la sesión. Si `ToolSearch` retorna vacío para `select:mcp__playwright__browser_navigate`, el plugin no está cargado — parar y reportar.
+
+**Recomendados** (dependen del smoke específico):
+- `mcp__supabase-staging__execute_sql` — read-only sobre proyecto staging (`--read-only` flag). Necesario para queries de verificación (contar filas, cross-check con tabla, verificar bucket via storage.objects). Contra prod NO existe: el MCP prod no está configurado por diseño, coherente con la regla dura de escrituras.
+
+**No usar en un smoke** (aunque estén disponibles):
+- MCPs de escritura contra prod (si algún día se cargaran). La regla dura los excluye salvo GO explícito.
+- Vercel MCP mutantes (redeploy, env vars). El skill valida behavior de una URL; no muta infra.
+
+**Fallback cuando un MCP falta**:
+- Playwright ausente: cero smoke posible desde este skill. Escalar al PO — puede levantar el plugin o correr él manual.
+- Supabase MCP ausente: smokes que dependen de la BD (bucket count, contadores) degradan a "verificable solo con acceso separado". Reportar como parcial.
+
+## Suite e2e Playwright
+
+Complementaria a los smokes MCP: los mismos casos que este skill smokea manualmente están en `e2e/specs/error-audit/` (y otras subcarpetas por sprint) como tests automatizados. Cuando existe spec para el caso, el smoke MCP es innecesario — dejarlo para casos NUEVOS aún no automatizados o para verificaciones que la suite no cubre (ver "Cuándo sigue siendo necesario un smoke manual" abajo).
+
+### Correr la suite local
+
+Desde la raíz del repo:
+```bash
+# Suite completa (todos los projects, todos los sprints)
+npm run test:e2e
+
+# Sub-carpeta específica de un sprint (más rápido, focus del día)
+npx playwright test e2e/specs/error-audit/ --reporter=list
+
+# Un solo spec
+npx playwright test e2e/specs/error-audit/c3-admin-hub.spec.ts --reporter=list
+
+# Contra un preview URL específico (útil cuando staging branch está detrás
+# del código a probar — ej. probar main con una rama nueva)
+PLAYWRIGHT_BASE_URL="https://pawnecta-landing-mvp-git-<branch>-petmatecls-projects.vercel.app" \
+  npx playwright test e2e/specs/error-audit/ --reporter=list
+```
+
+Requisitos locales:
+- `e2e/.env.test` gitignoreado con `E2E_STAGING_*`, `E2E_STAGING_TUTOR_*`, `PLAYWRIGHT_BYPASS`, `E2E_SUPABASE_URL`, `E2E_SUPABASE_ANON_KEY`.
+- Browsers Playwright instalados (`npx playwright install chromium`).
+
+Reporter útil para debugging:
+```bash
+# UI mode interactivo
+npm run test:e2e:ui
+
+# HTML report tras un run
+npm run test:e2e:report
+```
+
+### Correr en CI + leer fallos con gh
+
+CI corre bajo `.github/workflows/e2e-error-audit.yml` — triggers `pull_request` a main (con path filters) + `workflow_dispatch` manual. Compone `e2e/.env.test` desde 7 GH Secrets (mismos nombres que las variables locales).
+
+**Cuando un check falla en un PR**:
+
+```bash
+# Estado general de los checks
+gh pr checks <PR_number>
+
+# Los últimos runs de la rama activa
+gh run list --branch <branch> --limit 5
+
+# Log del job fallado (más informativo que ver el UI de GH)
+gh run view --log-failed --job <job_id>
+
+# Descargar los artifacts (HTML report, screenshots, videos)
+gh run download <run_id>
+```
+
+Los uploads del workflow:
+- `playwright-report-<run_id>` — HTML report siempre.
+- `playwright-test-results-<run_id>` — solo en fallo. Contiene `test-results/*/error-context.md` (mensaje + snapshot del DOM al fallar) + `test-failed-1.png` (screenshot) + `video.webm` + `trace.zip` (usable con `npx playwright show-trace <path>`).
+
+Patrón canónico para diagnosticar un fail rápido:
+1. `gh pr checks <n>` → identificar el `job_id` del rojo.
+2. `gh run view --log-failed --job <job_id>` → leer los últimos ~40 logs del step que falló.
+3. Si el mensaje pinta a red o env o compose (falla temprana, <30s), es setup del workflow — corregir el workflow o secrets. Si es dentro del test (falla tarde, >60s), es aserción real — descargar artifacts.
+4. Si es aserción real: `gh run download <run_id> --name playwright-test-results-<run_id>` y leer `error-context.md`.
+
+### Cuándo sigue siendo necesario un smoke manual (no reemplazable por spec)
+
+Los tests automatizados cubren la mayoría de los casos determinísticos con datos de staging + browser. **Pero hay categorías donde el smoke manual con este skill sigue siendo el único camino honesto**:
+
+1. **Escrituras contra producción real** — validar comportamiento con el proyecto Supabase prod (`ouezpeeiwjwawauidrqq`) requiere GO explícito del PO en el turno y datos reales. La suite e2e tiene guards anti-prod (`e2e/setup/guard.ts`) que rechazan cualquier baseURL con host de prod: correr contra prod requeriría comentar/borrar los guards, que es imposible por accidente. Todo test contra prod es smoke manual del PO, no test automatizado.
+
+2. **Verificación de buzón real de email** — el auditor no tiene MCP de Gmail autenticado. Cuando un smoke necesita confirmar que un email llegó (asunto exacto, contenido, timestamp), el spec puede verificar hasta el borde del sistema (endpoint 200, log en Resend dashboard si hay MCP), pero **el buzón lo confirma el PO manualmente**. Es la split de responsabilidad del skill: auditor firma lo observable en el sistema propio, PO firma el efecto downstream.
+
+3. **Criterio de producto subjetivo** — "¿la copy suena bien?", "¿el color contrasta lo suficiente?", "¿este flow es intuitivo?". Los specs verifican asserts binarios sobre texto/DOM/network; no juzgan calidad UX. Cualquier duda de producto va a smoke manual + decisión del PO.
+
+4. **Casos con setup complejo no reproducible en test** — ejemplo: reproducir un race condition real, verificar comportamiento con un dataset específico de producción, validar interacción con un servicio de terceros que no responde en staging. Cuando el setup del spec supera al valor de la aserción, smoke manual gana.
+
+5. **Verificaciones únicas post-deploy (checklist Sentry, verificación de tag)** — verificar que un evento nuevo llega al dashboard Sentry en prod es one-shot post-deploy, no rutinario. El skill Sentry post-prod checklist en las actas es el patrón para esto.
+
+**Regla operativa**: si el caso encaja en alguna de las 5 categorías → smoke manual con este skill. Si es determinístico + browser-verifiable + staging-friendly → spec Playwright bajo `e2e/specs/`.
+
+### Convención de aterrizaje
+
+**Todo fix Tipo A/B futuro entra con su spec en el mismo PR**. La regla nueva del proyecto (acordada 2026-09-08 con PO en cierre e2e-error-audit): un fix del backlog Tipo A o Tipo B se merge junto con el spec Playwright que valida el fix, no en PRs separados. Motivación: evitar que el spec quede en backlog indefinido tras el merge del fix (patrón observado con los 5 Tipo A del sprint error-audit, que necesitaron sprint dedicado para automatizarse). Excepción: fixes de docs / typos / config sin superficie funcional no requieren spec.
+
 ## Auto-invocación
 
 Este skill se invoca cuando el PO pide un smoke de UI ("corre el smoke de X", "verifica el flujo de reserva en staging", etc.). Fuera de eso, la ejecución manual mediante `mcp__playwright__browser_*` sin el protocolo anterior está permitida para exploración (mirar cómo se ve una pantalla, entender un flow), pero cualquier verificación reportada como evidencia debe seguir el protocolo del skill.
