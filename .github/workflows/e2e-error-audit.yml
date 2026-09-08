@@ -64,7 +64,9 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        # Ver comentario en .github/workflows/ci.yml — misma razón (rollup
+        # 4.x optional deps cross-platform).
+        run: npm install --no-audit --no-fund
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
