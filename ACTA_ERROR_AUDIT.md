@@ -385,7 +385,7 @@ Refuerza la entrada BACKLOG "Triple UI de recuperación" — hay 3 mecanismos in
 
 ## 13. Hotfix `admin-redirect` — RoleGuard preserva ruta de origen en /login
 
-**Tag**: `error-audit-prod-20260908-hotfix`. **SHA final**: `7df7a1b`. **Aterrizado en `main`**: 2026-09-08.
+**Tag**: `error-audit-prod-20260908-hotfix`. **Apunta a**: `e71f571` (este mismo commit del acta). **Fecha del tag**: 2026-09-08 14:27:13 -0300. **SHA de código**: `7df7a1b` (fix del RoleGuard). **Aterrizado en `main`**: 2026-09-08 vía FF merge desde branch `admin-redirect`.
 
 ### 13.1 Regresión observada en prod (post-cierre error-audit)
 
