@@ -77,6 +77,42 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
         try {
             if (!event.target.files || event.target.files.length === 0) return;
             const file = event.target.files[0];
+
+            // ORDEN CRÍTICO: verificar el rol ANTES de subir el archivo.
+            // Motivo:
+            //   1. Sin saber el rol, cualquier UPDATE cae en una tabla con
+            //      WHERE que no matchea 0 filas. PostgREST NO reporta esto
+            //      como error → mentira silenciosa al user + data no
+            //      persistida ("¡Foto actualizada!" verde, F5 borra la foto).
+            //   2. Si el upload sucede antes de saber el rol y el flujo se
+            //      corta después (rol es tutor → alert "no disponible" +
+            //      return; o rolError → toast + return), el archivo queda
+            //      HUÉRFANO en el bucket avatars sin referencia desde BD.
+            //      El bug del camino tutor era 100% reproducible en cada
+            //      intento de subida antes del reorden (sprint error-audit).
+            // NO mover el .storage.upload() más arriba pensando que "es más
+            // eficiente subir primero mientras se resuelve el rol" — ambos
+            // bugs vuelven de inmediato. Verificar antes de escribir.
+            const { data: esBuscador, error: rolError } = await supabase
+                .from('usuarios_buscadores')
+                .select('id')
+                .eq('auth_user_id', userId)
+                .maybeSingle();
+
+            if (rolError) {
+                showAlert('No pudimos guardar la foto', 'Vuelve a intentar.', 'error');
+                return;
+            }
+
+            // usuarios_buscadores no tiene columna foto_perfil (solo proveedores
+            // la tiene). Feature de foto de perfil para tutores queda pendiente
+            // (requiere agregar la columna).
+            if (esBuscador) {
+                showAlert('No disponible aún', 'La foto de perfil todavía no está habilitada para tutores.', 'info');
+                return;
+            }
+
+            // Rol confirmado como proveedor: recién ahora subimos el archivo.
             const fileExt = file.name.split('.').pop();
             const fileName = `${userId}-${Math.random()}.${fileExt}`;
 
@@ -88,21 +124,6 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
             const { data: { publicUrl } } = supabase.storage
                 .from('avatars')
                 .getPublicUrl(fileName);
-
-            const { data: esBuscador } = await supabase
-                .from('usuarios_buscadores')
-                .select('id')
-                .eq('auth_user_id', userId)
-                .maybeSingle();
-
-            // usuarios_buscadores no tiene columna foto_perfil (solo proveedores
-            // la tiene). El UPDATE viejo intentaba escribir en la tabla del
-            // rol activo y para tutores tiraba 42703. Feature de foto de perfil
-            // para tutores queda pendiente (requiere agregar la columna).
-            if (esBuscador) {
-                showAlert('No disponible aún', 'La foto de perfil todavía no está habilitada para tutores.', 'info');
-                return;
-            }
 
             const { error: updateError } = await supabase
                 .from('proveedores')
