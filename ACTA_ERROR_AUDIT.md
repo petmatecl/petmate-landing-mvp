@@ -117,28 +117,75 @@ Setup: desktop viewport, bloqueo con pattern exacto `https://jmtadvdkicyylcwjcmc
 - **Parte 2** (sin bloqueo, otra subruta): Aldo en `/admin/proveedores` carga normal.
 - **Parte 3** (control negativo): Camila (tutora sin rol admin), sin bloqueo, en `/admin/servicios` → cae en `/login` por el flujo de no-autorizado preexistente. **La pantalla de error NO aparece** — el fix distingue correctamente error de red vs no-autorizado.
 
-### 4.4 Checklist Sentry post-prod (pendiente al momento de este documento)
+## 5. Caso 3 — hub `/admin` bajo `<RoleGuard requiredRole="admin">`
+
+**SHA**: `c564728`. **Aterrizado en `main`**: 2026-09-08 (post-smoke verde del PO).
+
+### 5.1 Análisis previo — Opción 1 vs Opción 2
+
+`pages/admin.tsx` NO estaba wrapeado en RoleGuard — hacía su propio `checkAuth` inline en línea 103 con el mismo antipatrón que Cases 2+1 pre-fix (destructuraba `{ data }` ignorando `.error`). Fallo de red mostraba "Acceso restringido" con **login form embebido** al admin real logueado.
+
+Dos opciones evaluadas:
+- **Opción 1** — fix in-place en admin.tsx (~30 líneas nuevas, duplica el patrón error-state de RoleGuard).
+- **Opción 2** — wrap en RoleGuard (~80 líneas eliminadas de auth inline, ~5 agregadas de wrap, consistencia arquitectural con las 4 subrutas).
+
+**PO aprobó Opción 2** por 2 razones estructurales: cero duplicación del error-state pattern + consistencia total de los 5 puntos admin.
+
+### 5.2 Verificaciones pre-code
+
+**Paridad de criterio de acceso — 100%**. `checkAuth` hub y RoleGuard admin evalúan misma tabla + WHERE + `roles.includes('admin') && estado === 'aprobado'`. Cero email allowlist, cero conditions extra. Cero admin real pierde acceso, cero no-admin lo gana.
+
+**Lógica exclusiva de `handleAdminLogin` — nada que migrar**. Grep `pawnecta_active_mode|activeMode|activeRole|localStorage|useUser|switchRole|refreshProfile` = 0 matches. `handleAdminLogin` era `signInWithPassword` + query rol + `signOut` defensivo + `setIsAdmin`. Sin persistencia de modo/rol, sin side-effects globales.
+
+### 5.3 Fix estructural
+
+Split del componente en 2:
+- **`AdminDashboard`** (default export): wrap en `<RoleGuard requiredRole="admin">`. 3 líneas.
+- **`AdminDashboardInner`**: contiene todo el state + effects + JSX previo. Los `useEffect` de contadores (aprobaciones + feedback) solo se disparan cuando RoleGuard autoriza — sino `AdminDashboardInner` no se monta y las queries no corren para no-admins (evita ruido RLS + tráfico inútil).
+
+Eliminado: `checkAuth` (25 líneas), su `useEffect` (3 líneas), `handleAdminLogin` (80 líneas), render branch `!isAdmin` con login form embebido (60 líneas), 4 states del form (`adminEmail/Password/loginLoading/loginError`), `isAdmin` + `loading` states, render branch `if(loading)` (9 líneas), imports muertos (`useCallback`, `useRef`).
+
+**Diff neto: −168 líneas** (−202 +34).
+
+### 5.4 Cambio de comportamiento intencional
+
+Admin sin sesión activa en `/admin` ahora va a `/login` estándar (mismo comportamiento que `/admin/servicios` y las otras 3 subrutas), en vez de ver el login form embebido en `/admin`. Aceptado por PO — la inline form era comodidad menor.
+
+### 5.5 Smoke verde en preview 2026-09-08 (SHA `c564728`)
+
+Setup: bloqueo con pattern exacto `https://jmtadvdkicyylcwjcmcl.supabase.co/rest/v1/proveedores*`.
+
+- **Control positivo**: hub con pestañas Métricas/Conversión/Moderación/Proveedores/Feedback (badge Feedback=1), contadores 14/0/14/7.
+- **Parte 1** (con bloqueo): estado "No pudimos verificar tu acceso" + botón Reintentar. **Sin form "Acceso restringido"** (comportamiento nuevo). Reintentar con bloqueo repite el estado y suma bloqueados (`4 → 5 → 7 → 9`). Bloqueo apagado + Reintentar → hub carga en la misma página con los mismos contadores y badge.
+- **Parte 2** (sin bloqueo): hub normal como admin, todas las consultas de contadores 200.
+- **Parte 3** (control negativo): Camila (sin rol admin) → `/login` estándar, sin pantalla de error.
+
+## 6. Checklist Sentry post-prod (pendiente al momento de este documento)
 
 Sentry cliente **gated a producción** — `enabled: NEXT_PUBLIC_VERCEL_ENV === 'production'` en [instrumentation-client.ts:30](instrumentation-client.ts#L30). Los eventos client-side desde preview NO llegan al dashboard. Verificación end-to-end diferida a prod post-merge.
+
+**Cobertura del checklist**: `roleguard_verify_failed` puede dispararse desde CUALQUIERA de los 5 puntos admin (hub `/admin` + 4 subrutas `/admin/*`) — todos usan el mismo RoleGuard. El checklist verifica 2 muestras: una subruta (`/admin/servicios`) + el hub (`/admin`).
 
 **Checklist a correr por PO tras deploy prod**:
 1. Login como admin en `https://www.pawnecta.com`.
 2. DevTools → Network → Request blocking → pattern: `*.supabase.co/rest/v1/proveedores*`.
-3. Address bar → `/admin/servicios`.
+3. **Prueba 1 — subruta**: address bar → `/admin/servicios`.
 4. Verificar estado UI (título "No pudimos verificar tu acceso" + sublínea + botón Reintentar).
-5. Sentry dashboard → Issues → filtro `environment:production` + búsqueda `roleguard_verify_failed`:
-   - **Debe aparecer**: 1 evento level=warning con tags `subsystem=roleguard`, `route=/admin/servicios`, `requiredRole=admin`, `errorCode=<código real>`.
-   - **Extra debe contener**: `errorMessage`, `errorDetails`, `errorHint`.
-6. Click "Reintentar" con bloqueo activo → **debe aparecer un 2° evento** con mismos tags. Confirma que retry re-invoca en prod.
+5. **Prueba 2 — hub**: address bar → `/admin`.
+6. Verificar mismo estado UI (idéntico — el gate es el mismo componente).
+7. Sentry dashboard → Issues → filtro `environment:production` + búsqueda `roleguard_verify_failed`:
+   - **Deben aparecer 2 eventos** level=warning con tags `subsystem=roleguard`, `requiredRole=admin`, `errorCode=<código real>`.
+   - Uno con `route=/admin/servicios`, otro con `route=/admin`.
+   - **Extra debe contener** en ambos: `errorMessage`, `errorDetails`, `errorHint`.
+8. Click "Reintentar" con bloqueo activo en cualquiera → **debe aparecer un 3° evento** con los mismos tags de esa ruta. Confirma que retry re-invoca en prod.
 
 Resultado del checklist: pendiente PO.
 
-## 5. Casos pendientes al momento de esta actualización
+## 7. Casos pendientes al momento de esta actualización
 
 En orden de ejecución acordado:
 
-- **Caso 3** (`pages/admin.tsx:103`) — en análisis. Ver Ronda 2 previa. Confirmar si el hub queda cubierto por RoleGuard 3aeb627 o si necesita fix propio.
-- **Caso 4** (`pages/login.tsx:132`).
+- **Caso 4** (`pages/login.tsx:132`) — próximo, diff mínimo (destructurar error + Sentry + fallback intacto).
 - **Caso 5 líneas 40+51** (`ClientLayout.tsx` — `fetchClientProfile` ignora `.error`).
 - **Caso 6** (`pages/api/auth/signup.ts:220`) — **NO se arregla en este sprint**, ya en BACKLOG.
 
