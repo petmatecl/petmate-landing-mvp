@@ -25,6 +25,38 @@ import { scrubSentryEvent } from './lib/sentryScrub';
 
 const IS_PROD = process.env.NEXT_PUBLIC_VERCEL_ENV === 'production';
 
+// Sprint sentry-bot-noise (2026-09-08) — silencia rejections del register
+// del service worker (workbox-window auto-inyectado por @ducanh2912/next-pwa).
+// Sucede en bots crawlers y en algunos navegadores sin soporte SW o con
+// worker restringido. Cero impacto funcional — el SW es progressive
+// enhancement, no bloqueante para la app.
+//
+// Registrado ANTES de Sentry.init: los listeners fire en orden de registro
+// para el mismo event type, así que este handler llama preventDefault ANTES
+// de que Sentry.globalHandlersIntegration procese el evento. Combinado con
+// el filtro por stack en scrubSentryEvent (lib/sentryScrub.ts) da doble
+// defensa: acá para navegadores reales sin soporte, allá para bots + como
+// fallback si algún registro futuro reordena los listeners.
+//
+// Ver issue JAVASCRIPT-NEXTJS-3 diagnóstico completo en ACTA_ERROR_AUDIT.md
+// sección 12 y BACKLOG entrada del sprint.
+if (typeof window !== 'undefined') {
+    window.addEventListener('unhandledrejection', (event) => {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const reason = event.reason as any;
+        const stack = String(reason?.stack ?? '');
+        const message = String(reason?.message ?? reason ?? '');
+        if (
+            stack.includes('workbox-window') ||
+            /serviceWorker\.register/i.test(stack) ||
+            /serviceWorker\.register/i.test(message)
+        ) {
+            console.warn('[sw-register] rejected (swallowed):', reason);
+            event.preventDefault();
+        }
+    });
+}
+
 Sentry.init({
     dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
     enabled: IS_PROD,

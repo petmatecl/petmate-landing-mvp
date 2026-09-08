@@ -69,11 +69,58 @@ function scrubDeep(value: unknown, depth = 0): unknown {
 }
 
 /**
+ * Sprint sentry-bot-noise (2026-09-08) — dropea eventos de bots crawlers para
+ * no ensuciar el dashboard. Google-Read-Aloud, Googlebot, bingbot y variantes
+ * disparan rejections al intentar registrar el service worker de la PWA
+ * (workbox-window en entorno bot falla, promise no atrapada). Verificado en
+ * issue JAVASCRIPT-NEXTJS-3 (Error · Rejected, unhandled, /explorar):
+ * exception.mechanism='onunhandledrejection', stack en
+ * node_modules/workbox-window/build/workbox-window.prod.es5.mjs, User-Agent
+ * "Google-Read-Aloud". Cero impacto en usuarios reales.
+ */
+const BOT_UA_RE = /bot|crawler|spider|Google-Read-Aloud|facebookexternalhit|LinkedInBot|Twitterbot/i;
+
+/**
+ * Sprint sentry-bot-noise (2026-09-08) — dropea el SW register rejection
+ * independiente del UA (navegadores reales sin soporte SW, entornos
+ * restringidos, extensiones que bloquean workers). Cross-check por stack
+ * frames del evento: si el rejection viene del workbox-window auto-register
+ * de next-pwa, es ruido no accionable. Defensa complementaria al listener
+ * global de instrumentation-client.ts.
+ */
+function isSwRegisterRejection(event: ErrorEvent): boolean {
+    const values = event.exception?.values;
+    if (!values || values.length === 0) return false;
+    const first = values[0];
+    if (first.value !== 'Rejected') return false;
+    const frames = first.stacktrace?.frames ?? [];
+    for (const f of frames) {
+        const filename = f.filename ?? '';
+        const fn = f.function ?? '';
+        if (filename.includes('workbox-window') || fn.includes('serviceWorker.register')) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * Hook beforeSend de Sentry. Aplica scrubbing sobre las superficies del evento
- * que aceptan strings arbitrarios. Retorna null solo si algo grave —
- * por ahora nunca dropeamos.
+ * que aceptan strings arbitrarios. Retorna null cuando el evento es ruido de
+ * bots crawlers o rejection del SW register auto-inyectado por next-pwa
+ * (sprint sentry-bot-noise 2026-09-08).
  */
 export function scrubSentryEvent(event: ErrorEvent, _hint: EventHint): ErrorEvent | null {
+    // Drop antes de scrubbing — cero costo si el evento no va a enviarse.
+    const headers = event.request?.headers as Record<string, string> | undefined;
+    const ua = headers?.['User-Agent'] || headers?.['user-agent'];
+    if (typeof ua === 'string' && BOT_UA_RE.test(ua)) {
+        return null;
+    }
+    if (isSwRegisterRejection(event)) {
+        return null;
+    }
+
     if (event.message) event.message = scrubString(event.message);
 
     if (event.breadcrumbs) {
