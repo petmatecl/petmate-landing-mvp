@@ -36,6 +36,16 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         : '';
     await page.goto(`/login${bypassQuery}`);
 
+    // Sprint e2e-error-audit (2026-09-08) — esperar hidratación de React
+    // antes del click al submit. En previews frescos de Vercel (primera
+    // carga tras deploy), el fill+click puede ejecutarse antes de que
+    // React vincule el onSubmit del <form>. Sin este handler bound, el
+    // click dispara la submisión default como GET → aterriza en
+    // /login?email=X&password=Y (credenciales en query string) y el
+    // waitForURL abajo timeouta buscando un redirect que nunca sucede.
+    // networkidle espera 500ms sin requests → indicador confiable de
+    // que los JS chunks + hidratación completaron.
+    await page.waitForLoadState('networkidle');
     await page.locator('#email').fill(opts.email);
     await page.locator('#password').fill(opts.password);
     await page.getByRole('button', { name: /Ingresar/i }).click();

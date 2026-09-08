@@ -1,0 +1,141 @@
+# .github/workflows/e2e-error-audit.yml
+# ---------------------------------------------------------------------------
+# Suite Playwright del sprint e2e-error-audit — valida en CI los fixes del
+# sprint error-audit (Cases Tipo A) contra preview URL de Vercel.
+#
+# Triggers:
+#   - pull_request a main → corre contra el preview URL de la PR.
+#     (Requiere que la PR tenga un preview URL válido; Vercel lo genera
+#     automáticamente para cualquier PR abierta.)
+#   - workflow_dispatch → correr manual con URL custom (ej. re-run contra
+#     un preview específico para debugging).
+#
+# NO se dispara en push a main. Main = prod y los guards de e2e/setup/guard.ts
+# rechazan cualquier baseURL de prod (pawnecta.com/pawnecta.cl). Los tests
+# solo tienen sentido contra previews.
+#
+# Secrets requeridos (7, cargados en repo Settings → Secrets and variables →
+# Actions):
+#   E2E_STAGING_EMAIL         — cuenta admin+proveedor staging (Aldo)
+#   E2E_STAGING_PASSWORD      — password de la anterior
+#   E2E_STAGING_TUTOR_EMAIL   — cuenta tutora pura staging (Camila)
+#   E2E_STAGING_TUTOR_PASSWORD
+#   PLAYWRIGHT_BYPASS         — Vercel Deployment Protection token
+#   E2E_SUPABASE_URL          — https://<staging-ref>.supabase.co
+#   E2E_SUPABASE_ANON_KEY     — anon JWT del proyecto staging (empieza eyJ)
+# ---------------------------------------------------------------------------
+
+name: e2e-error-audit
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'e2e/specs/error-audit/**'
+      - 'components/Shared/RoleGuard.tsx'
+      - 'components/Client/ClientLayout.tsx'
+      - 'pages/admin.tsx'
+      - 'pages/login.tsx'
+      - '.github/workflows/e2e-error-audit.yml'
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: 'Preview URL de Vercel para correr los tests (default: staging URL del branch staging)'
+        required: false
+        default: 'https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app'
+
+concurrency:
+  group: e2e-error-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    name: Playwright suite error-audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        # Ver comentario en .github/workflows/ci.yml — misma razón (rollup
+        # 4.x optional deps cross-platform).
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Compose e2e/.env.test from secrets
+        # La suite lee env de e2e/.env.test (gitignoreado). En CI lo generamos
+        # desde los GH Secrets. NO se sube al repo — vive solo en el runner.
+        run: |
+          mkdir -p e2e
+          cat > e2e/.env.test <<EOF
+          E2E_STAGING_EMAIL=${{ secrets.E2E_STAGING_EMAIL }}
+          E2E_STAGING_PASSWORD=${{ secrets.E2E_STAGING_PASSWORD }}
+          E2E_STAGING_TUTOR_EMAIL=${{ secrets.E2E_STAGING_TUTOR_EMAIL }}
+          E2E_STAGING_TUTOR_PASSWORD=${{ secrets.E2E_STAGING_TUTOR_PASSWORD }}
+          PLAYWRIGHT_BYPASS=${{ secrets.PLAYWRIGHT_BYPASS }}
+          E2E_SUPABASE_URL=${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY=${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          EOF
+
+      - name: Resolve preview URL
+        id: preview
+        # Para pull_request usamos el preview URL de Vercel construido por
+        # convención de rama: pawnecta-landing-mvp-git-<branch>-petmatecls-
+        # projects.vercel.app. Para workflow_dispatch usamos el input.
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "url=${{ inputs.preview_url }}" >> "$GITHUB_OUTPUT"
+          else
+            BRANCH="${{ github.head_ref }}"
+            # Vercel normaliza el branch name (lowercase, replace non-alnum)
+            # pero como convención respetamos el ref-name tal cual — si algún
+            # branch tiene chars raros ajustar acá.
+            echo "url=https://pawnecta-landing-mvp-git-${BRANCH}-petmatecls-projects.vercel.app" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Wait for preview to be Ready (best effort)
+        # Vercel puede tardar ~2-3 min en construir el preview de una PR
+        # recién abierta. Damos hasta 5 min de retry con curl a la raíz.
+        run: |
+          URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
+          for i in $(seq 1 30); do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$URL" || echo "000")
+            if [ "$STATUS" = "200" ]; then
+              echo "Preview Ready (HTTP $STATUS) after ${i}0s"
+              exit 0
+            fi
+            echo "Preview no Ready aún (HTTP $STATUS), esperando 10s (attempt $i/30)..."
+            sleep 10
+          done
+          echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
+
+      - name: Run Playwright suite (error-audit only)
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
+          CI: 'true'
+        run: npx playwright test --project=chromium e2e/specs/error-audit/ --reporter=list
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: e2e/.report
+          retention-days: 7
+
+      - name: Upload test-results (traces + screenshots + videos)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-${{ github.run_id }}
+          path: test-results
+          retention-days: 7

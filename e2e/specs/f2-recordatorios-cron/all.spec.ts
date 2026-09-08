@@ -400,7 +400,9 @@ test.describe.serial('S4 — no elegibles (fuera ventana + estado != confirmada)
         const sampleIds = new Set(
             (body.sample as Array<{ agendamientoId: string }>).map(s => s.agendamientoId),
         );
-        for (const id of misIds) {
+        // Array.from() para iterar Set — tsconfig target es5 sin
+        // downlevelIteration rechaza `for (const x of set)` directo.
+        for (const id of Array.from(misIds)) {
             expect(sampleIds.has(id), `agendamiento ${id} NO debe ser elegible`).toBe(false);
         }
 

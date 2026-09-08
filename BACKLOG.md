@@ -528,6 +528,23 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Lección operativa**: cuando se diseña una tabla + RLS + trigger con intención admin, agendar en el mismo sprint (o el inmediato siguiente) la superficie UI que la consume. Sin superficie, la infraestructura es un compromiso de mantenimiento sin retorno de valor — la deuda queda invisible hasta que aparece una necesidad ("necesito ver los feedbacks") y descubrimos que faltó lo último.
   - **Regla candidata para CLAUDE.md**: cualquier `migrations/*.sql` que cree tabla + policy admin-only debe acompañarse (mismo commit o siguiente sprint documentado) con el componente/tab admin que la lee. Si el sprint aterriza infra pero pospone la UI, dejarlo **explícito en el commit** ("infra + policies aterrizados; UI de consumo pendiente sprint X") para no perder la deuda. Este patrón vale sumarlo a los corolarios P8 como 12ª instancia — no es exactamente P8 (output/efecto), es la variante "compromiso silente sin efecto". Pendiente decisión del PO de si vale la regla formal o solo memoria operativa.
 
+### Sprint chore-lock-linux-regen (abierto 2026-09-08) — restaurar `npm ci` estricto
+
+- **[abierto — chore-lock-linux-regen, prioridad MEDIA — deuda de higiene] Regenerar `package-lock.json` en Linux para restaurar `npm ci` estricto** — descubierto durante PR #3 (e2e-error-audit → main, 2026-09-08, mergeado en `72e0a5c`). El lock actual, generado en Windows, no incluye las entradas `@rollup/rollup-linux-*` (~10 opcionales platform-specific). En Linux, `npm ci` exige esas entradas y falla con `Missing: @rollup/rollup-linux-x64-gnu from lock file`. CI en main rojo desde hace días por esto (invisible porque Vercel usa su propio installer).
+  - **Workaround aplicado en PR #3** (`6c98d8e`): `npm ci` → `npm install --no-audit --no-fund` en `.github/workflows/ci.yml` y `.github/workflows/e2e-error-audit.yml`. Desbloquea CI a costa de reproducibility (versiones resueltas on-demand cada run, dentro de rangos semver del `package.json`).
+  - **Fix real — sprint chico dedicado**, enfoque acordado con PO 2026-09-08:
+    1. Workflow nuevo de un solo uso, gatillado con `workflow_dispatch`, ejecuta en `ubuntu-latest`:
+       - `git checkout main`
+       - `npm install --package-lock-only`
+       - Verificación con `grep '"@rollup/rollup-linux-x64-gnu":' package-lock.json` (falla el step si no aparece)
+       - Sube `package-lock.json` como artefacto de build O commitea a rama `chore/lock-regen`.
+    2. PO baja el lock regenerado a local, revisa el diff.
+    3. **Criterio de aceptación del diff**: cambios LIMITADOS a entries `@rollup/rollup-*` + metadatos de estructura del lock — cero bumps de versiones de paquetes no-rollup.
+    4. Si el diff es limpio: commit del lock nuevo + revertir `npm install --no-audit --no-fund` a `npm ci` en los 2 workflows + borrar el workflow one-shot.
+    5. **Criterio de aceptación final**: los 2 workflows (CI y e2e-error-audit) pasan verde con `npm ci` estricto.
+  - **NO recomendable — verificado en PR #3**: regenerar el lock local en Windows con `npm install` completo trae bump masivo de ~50+ dependencias (diff de 4925 líneas, 1684 adds + 1895 removes, decenas de paquetes transitivos con versiones bumpeadas dentro de rangos semver). Requeriría auditoría de dependency changes que excede el alcance del sprint.
+  - **Trigger de reapertura**: la deuda queda técnicamente en el mismo estado hasta ejecutar. No hay urgencia hoy (workaround funciona), pero re-visitar en sprint dedicado post-launch para recuperar el `npm ci` estricto.
+
 ### Sprint sentry-bot-noise (2026-09-08) — mini-fix cerrado
 
 - **[cerrado 2026-09-08 `d36f1cf`] JAVASCRIPT-NEXTJS-3 (Error · Rejected, unhandled, `/explorar`)** — diagnosticado y fixeado como mini-sprint post-cierre error-audit.

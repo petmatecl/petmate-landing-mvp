@@ -58,7 +58,10 @@ expect(
     'busqueda_realizada dispara al dataLayer (con GA_TRACKING_ID + window.gtag)',
     calls.length === 1
       && calls[0].nombre === 'busqueda_realizada'
-      && calls[0].params?.categoria === 'paseos',
+      // params tipado como unknown en Array<{...}> — cast puntual para el
+      // assert. Este test valida el shape esperado, no la existencia del
+      // typing en el catálogo (esa validación la hace tsc en producción).
+      && (calls[0].params as { categoria?: string })?.categoria === 'paseos',
     // El resultado real depende de GA_TRACKING_ID en tiempo de import.
     // En el proceso de test NEXT_PUBLIC_APP_ENV no está seteado → GA_TRACKING_ID
     // = null → early return. Este assert espera FALSE (el helper NO dispara
