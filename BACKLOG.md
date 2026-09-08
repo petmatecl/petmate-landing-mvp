@@ -550,18 +550,70 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
   - **`components/Auth/RoleSelectionInterceptor.tsx:29`** — comentarios stale: `"If we are here, we might be on / or /usuario (protected)"` + `"Login page redirects to /usuario or /sitter"`. El archivo asume una arquitectura donde `/usuario` seguía vivo. Actualizar los comentarios (no funcional, solo doc de código) o eliminarlos.
   - Sprint chico de limpieza post-launch. Cero urgencia — cero costo en runtime, solo peso de mantenimiento.
 
-- **[abierto — hallazgo colateral error-audit — UX inconsistente entre RoleGuard y HydrationToast] Doble UI de recuperación ante fallo de queries a `proveedores`** — conviven 2 mecanismos que reaccionan al mismo tipo de fallo (query a `proveedores` fallando por red/RLS) con UI y estado desincronizados:
+- **[abierto — hallazgo colateral error-audit — UX inconsistente entre 3 mecanismos] Triple UI de recuperación ante fallo de queries a perfil / roles** — conviven ahora 3 mecanismos independientes que reaccionan al mismo tipo de fallo (query a `proveedores` / `usuarios_buscadores` fallando por red/RLS) con estado desincronizado:
   - **Toast del header** (sprint role-degradation, `HydrationToast`): "No pudimos cargar todos tus datos" + botón Recargar. Se dispara desde `UserContext` cuando la hidratación falla sostenidamente.
-  - **Estado del RoleGuard** (sprint error-audit Cases 2+1, SHA `3aeb627`): "No pudimos verificar tu acceso / Revisa tu conexión y vuelve a intentar" + botón Reintentar. Se dispara cuando la query fallback de rol falla.
-  - **Problema observado**: si el admin activa el fallo en `/admin/servicios`, entra al estado del RoleGuard. Click Reintentar re-invoca la query del guard, pero **NO rehidrata el rol del UserContext** — el header sigue mostrando "Usuario" (rol degradado) hasta que el user recarga la página manualmente. Los dos mecanismos son independientes.
-  - **Opciones de fix**: (a) unificar el mecanismo — el retry del RoleGuard también dispara `refreshProfile()` del UserContext (importar el context, hacer `await refreshProfile()` antes de re-run verify); (b) mantener dos mecanismos pero coordinar visualmente — el toast del header desaparece cuando el user está en el estado del RoleGuard, para no mostrar dos avisos superpuestos.
-  - Sprint chico post-launch. Cero urgencia — el user recupera el acceso con Reintentar del RoleGuard; el header queda mal-etiquetado hasta F5, pero no bloquea funcionalidad.
+  - **Estado del RoleGuard** (sprint error-audit Cases 2+1, SHA `3aeb627`): "No pudimos verificar tu acceso" + Reintentar. Se dispara cuando la query fallback de rol falla.
+  - **Banner del ClientLayout** (sprint error-audit Case 5-perfil, SHA `da06fbc`): "No pudimos cargar tu perfil" + Reintentar. Se dispara cuando `fetchClientProfile` falla en el layout de `/usuario/mascotas`.
+  - **Problemas observados** (acumulados 2026-09-08):
+    - Retry del RoleGuard NO rehidrata el rol del `UserContext` — el header sigue mostrando "Usuario" hasta F5.
+    - **Retry exitoso de RoleGuard o de ClientLayout NO cierra el toast del header** — el toast queda pegado hasta cierre manual del user, aunque el problema esté resuelto. Efecto: user ve "reintentar exitoso" en el gate/layout pero el header sigue afirmando "no pudimos cargar tus datos", contradicción visual.
+  - **Opciones de fix**: (a) **unificar** — un solo mecanismo compartido (context) que otros componentes consulten; retry en cualquier punto rehidrata todos los estados y descarta el toast; (b) **coordinar visualmente** — cada mecanismo notifica a los otros de retry exitoso; toast del header escucha eventos "profile_hydration_succeeded" / "role_verify_succeeded" y se auto-descarta.
+  - Sprint chico post-launch. Impacto: friccion UX, no funcionalidad — user recupera acceso con cualquier Reintentar; solo el header queda con mensaje stale hasta F5.
 
 - **[abierto — hallazgo colateral error-audit — UX inconsistente en no-autorizado con sesión activa] Usuario logueado sin rol redirigido a `/login`** — RoleGuard cuando la verificación devuelve "sin rol" (`!data` o rol/estado que no cumple) hace `router.push('/login')`. Un usuario **logueado** sin el rol requerido ve la página de login con su nombre en el header — pantalla mensajera incoherente (¿por qué me pide login si estoy logueado?). Observado en Parte 3 del smoke de Cases 2+1 (control negativo intencional): Camila logueada + `/admin/servicios` → aterriza en `/login` mostrando su avatar y nombre en el header.
   - **Fixes propuestos**:
     - **Opción A** (mínima): redirect a `/explorar` (ruta pública neutra) en vez de `/login`, con toast de "No tienes permiso para esa página".
     - **Opción B** (dedicada): página nueva `/403` o similar, mensaje "No tienes permiso" + CTA "Ir al panel" (contextual según rol) o "Ir a inicio". Mismo patrón que otros sitios usan para no-autorizado con sesión activa.
   - **NO se cambió en el sprint error-audit** por decisión explícita: era el control negativo del smoke (verifica que el fix distingue error de red vs no-autorizado). Cambiar el destino de no-autorizado invalidaría el control negativo. Se anota acá para sprint futuro.
+
+- **[abierto — hallazgo colateral error-audit — bug de layout mobile] `/explorar` mobile: botón "Mapa" tapado por selector "Mejor coincidencia" a anchos angostos** — observado por PO durante smoke error-audit 2026-09-08 a ancho 348 px. La barra de controles superior de `/explorar` en mobile tiene el toggle Lista/Mapa a la izquierda y el selector de ordenamiento "Mejor coincidencia" a la derecha; cuando el ancho de viewport baja de ~360 px, el selector se superpone visualmente sobre el botón "Mapa" y bloquea el click. Anchos a verificar sistemáticamente: 348, 360, 390 px (los dispositivos más comunes en el rango angosto — iPhone SE, iPhone 12/13 mini, Pixel 5). Fix probable: layout con `flex-wrap` explícito + gap adecuado, o mover el selector a un menú overflow ("⋮") cuando el ancho es < 400 px. Sprint chico UX post-launch. Cero urgencia hasta que aparezca un porcentaje relevante de tráfico mobile en esa banda de anchos (verificable via GA4 breakdown por viewport).
+
+- **[abierto — hallazgo colateral error-audit — auditoría completa de destructurings ignorando `.error`] Lista línea a línea de los 62 callers Tipo B/C/D restantes** — el sprint error-audit cerró los 6 Tipo A + 5 tests excluidos. Resto (62 callers en ~28 archivos) queda documentado acá para que el próximo sprint arranque sin re-auditar. Clasificación provisional del auditor — el próximo sprint puede reclasificar en la apertura si algún caller tiene impacto distinto al que le atribuí.
+
+  **Tipo B (~39 líneas, moderate — degradación user-facing de features)**:
+    - `lib/apiAuth.ts:67` — `isAdmin()` server-side, fail-closed silente (retorna false ante error).
+    - `lib/authService.ts:50, 72` — auth utilities.
+    - `lib/profileUtils.ts:19, 28` — profile utilities compartidas.
+    - `lib/hooks/useFavoritos.ts:63` — hook de favoritos.
+    - `lib/useProveedorStats.ts:47, 114` — stats de proveedor en dashboard.
+    - `contexts/UserContext.tsx:749` — query DB del context (no confundir con :739 que es `auth.getSession`).
+    - `pages/favoritos.tsx:57, 75, 102` — page de favoritos (silent empty state ante error).
+    - `pages/index.tsx:705, 760, 789, 802` — home landing (silent empty state).
+    - `pages/admin/notificaciones.tsx:41, 51` — listado admin de notifs.
+    - `pages/proveedor/[id].tsx:816, 826, 836` — perfil público (servicios, evaluaciones, certificaciones).
+    - `pages/proveedor/index.tsx:450, 457` — dashboard proveedor.
+    - `pages/servicio/[id].tsx:109` — reviews globales del proveedor en ficha (128 es RPC — Tipo C).
+    - `components/Client/DashboardContent.tsx:87, 181, 191, 203` — dashboard content (partners, evals, clicks, extras).
+    - `components/Shared/UnreadBadge.tsx:16` — badge (silent 0 count ante error).
+    - `components/Service/PreguntasSection.tsx:36` — preguntas del servicio.
+    - `components/Service/ReviewList.tsx:64` — lista de reviews (join proveedores).
+    - `components/Proveedor/CertificacionesSection.tsx:25` — certificaciones.
+    - `components/Servicio/ServiceDetailView.tsx:186, 292, 330, 340, 421, 432` — ficha de servicio (varios paths de contacto, favoritos, evaluaciones, chat).
+
+  **Tipo C (~5 líneas, low — SEO/landing/metrics con impacto bajo)**:
+    - `pages/explorar.tsx:410` — RPC `buscar_servicios` fallback (path secundario, principal ya maneja error).
+    - `pages/[categoria]/[comuna].tsx:226, 237` — SEO landing por categoría+comuna (server-side SSR).
+    - `pages/servicio/[id].tsx:128` — RPC `buscar_servicios` para "servicios similares" (silent empty section).
+    - `components/Admin/ConversionMetrics.tsx:86, 96` — métricas admin (silent 0 count).
+
+  **Tipo D (~16 líneas, nil — server crons + auth session + notify server-to-server)**:
+    - `pages/api/evaluaciones/auto-moderar.ts:83, 144, 155` — server moderation.
+    - `pages/api/notifications/new-message.ts:74` — `auth.admin.getUserById` (server-side).
+    - `pages/api/referidos/generar-codigo.ts:28` — server.
+    - `pages/api/cron/recordatorio-onboarding.ts:42, 60, 91, 102` — server cron (mail).
+    - `pages/api/cron/recordatorio-mensajes.ts:71, 74` — server cron (mail).
+    - `pages/api/cron/invitacion-resenas.ts:131, 180` — server cron (mail).
+    - `pages/api/admin/proveedores-pendientes.ts:58` — server admin endpoint.
+    - `pages/email-confirmado.tsx:143` — `auth.getSession` (auth API, distinto de `.from()`).
+    - `contexts/UserContext.tsx:739` — `auth.getSession` (auth API, distinto de :749).
+
+  **Tests excluidos (5 líneas, fuera del sprint por convención — tests son código de assertion)**:
+    - `e2e/specs/f2-recordatorios-cron/all.spec.ts:418`
+    - `e2e/specs/f2-3/s7-cancelacion-fuera-ventana.spec.ts:130`
+    - `e2e/specs/f2-3/s8-bypass-rls-cerrado.spec.ts:96`
+    - `e2e/specs/f2-3/s9-regresion-F1.spec.ts:130`
+
+  **Metodología de verificación** para el próximo sprint: correr el mismo grep con el que se generó esta lista (`const\s*\{\s*data(\s*:\s*\w+)?\s*\}\s*=\s*await\s+supabase` sobre `**/*.{ts,tsx}`) y cruzar contra los archivos+líneas de arriba. Divergencias = callers nuevos introducidos entre este sprint y el siguiente (nuevos a auditar) o callers ya cerrados (chequear en git blame quién los cerró).
 
 - **[abierto — hallazgo colateral error-audit — NO REPRODUCIBLE con smoke estándar] Caso 6 — `pages/api/auth/signup.ts:220`** — query post-INSERT server-side que resuelve el ID del proveedor recién creado para pasarlo al endpoint `notify-nueva-solicitud`. Con fallo de la query: `newProv === null` → skipea el fetch → **el admin NO recibe email de "nueva solicitud pendiente"**. Silente completo — proveedor no ve nada mal, admin no se entera. Es Tipo D disfrazado de A: nadie lo nota. Pero puede llevar a que solicitudes queden sin revisar.
   - **No se arregla en el sprint error-audit** por criterio de PO: "no reproducible con el smoke estándar (DevTools blocking client-side) → no lo tocamos a ciegas".

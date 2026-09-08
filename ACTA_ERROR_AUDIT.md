@@ -226,17 +226,118 @@ Setup: bloqueo con pattern `https://jmtadvdkicyylcwjcmcl.supabase.co/rest/v1/pro
 
 **Implicación operativa para diagnósticos futuros**: cuando se ve `errorCode=unknown` en el dashboard filtrando por `login_role_lookup_failed`, cross-referenciar con `extra.errorMessage` para distinguir "fallo de red del cliente" (`TypeError: Failed to fetch`) de otros errores sin código (`AbortError` de fetch cancelado, etc.).
 
-## 8. Casos pendientes al momento de esta actualización
+## 8. Caso 5 líneas 40+51 — `fetchClientProfile` en `ClientLayout.tsx`
 
-En orden de ejecución acordado:
+**SHA**: `da06fbc`. **Aterrizado en `main`**: 2026-09-08 (post-smoke verde del PO).
 
-- **Caso 5 líneas 40+51** (`ClientLayout.tsx` — `fetchClientProfile` ignora `.error`) — próximo, en curso.
-- **Caso 6** (`pages/api/auth/signup.ts:220`) — **NO se arregla en este sprint**, ya en BACKLOG.
+### 8.1 Bug antes del fix
 
-## 5. Metadata del tag
+Las 2 queries de `fetchClientProfile` (usuarios_buscadores + proveedores) destructuraban solo `{ data }`. Fallo de red en cualquiera → `data:null` (indistinguible de "no hay fila"). Fallthrough silente al final del flujo con `clientProfile` en null.
 
-**Pendiente**. Se completa al cierre del sprint con todos los casos aterrizados.
+**Consecuencias visibles al tutor**:
+- Avatar mobile: icono genérico gris `<User />` (como si no tuviera foto).
+- **Badge "Usuario Verificado" (línea 187 previa)**: texto FIJO renderizado igual → **afirmación falsa** (se mostraba aunque no cargamos ningún dato del perfil).
+- Children (mascotas, etc.): rendering aparte con sus propios fetches.
+- Cero indicador de que el perfil no se cargó. Degradación silente.
+
+### 8.2 Fix — banner no bloqueante + Sentry + badge condicionado
+
+Diseño aprobado por PO con un ajuste obligatorio del último round: eliminar la afirmación falsa del badge condicionándolo a `clientProfile !== null`.
+
+- Destructurar `{ data, error }` en ambas queries.
+- Si ANY `.error`: `console.warn` (convención del proyecto) + `Sentry.captureMessage('profile_fetch_failed', ...)` con tags `subsystem=client_layout`, `route`, `table`, `errorCode` + extra `errorMessage/Details/Hint` + `setProfileError` + return early (no proceder a la siguiente query).
+- 2 nuevos states: `profileError` + `retryTrigger`.
+- Nuevo `useEffect` deps `[userId, retryTrigger]` — retry incrementa `retryTrigger` → re-fetch corre en próximo tick.
+- `handleRetryProfile`: `setProfileError(null) + setRetryTrigger(prev + 1)`.
+- **Banner** en el header del layout cuando `profileError` truthy:
+  - Título: **"No pudimos cargar tu perfil"**
+  - Sublínea: **"Revisa tu conexión y vuelve a intentar."**
+  - Botón: **"Reintentar"** (verde accent, mismo estilo que RoleGuard).
+  - **NO bloquea children** — el layout es chrome, no gate. El user puede tener trabajo pendiente en la página.
+- **Badge "Usuario Verificado"** condicionado a `clientProfile && (...)`. Copy y estilo intactos, solo cambia la condición de render. Con `profileError` o con perfil aún cargando → badge NO aparece (no afirmar sin verificar).
+
+**Diff neto**: **+101 líneas** (+108 −7).
+
+### 8.3 Control negativo "sin perfil legítimo" — no verificado en runtime
+
+Ambas queries succeed sin data → comportamiento previo preservado: `clientProfile` queda null, `profileError` NO se dispara, banner NO aparece. **Verificado por lectura del diff**, NO ejercitado en runtime — escenario edge difícil de construir (requiere `auth_user_id` sin fila en ninguna de las 2 tablas). Documentado explícito en el commit y en el comentario in-code.
+
+### 8.4 Smoke verde en preview 2026-09-08 (SHA `da06fbc`)
+
+Setup: viewport mobile, Camila logueada, `/usuario/mascotas`, bloqueo pattern `https://jmtadvdkicyylcwjcmcl.supabase.co/rest/v1/usuarios_buscadores*`.
+
+| Escenario | Banner | Badge "Usuario Verificado" | Children |
+|---|---|---|---|
+| Control positivo (sin bloqueo) | ausente | **presente** | lista mascotas normal |
+| Gesto 1 con bloqueo | presente | **AUSENTE** | siguen renderando |
+| Gesto 2 Reintentar con bloqueo | presente | ausente | idem |
+| Gesto 3 bloqueo apagado + Reintentar | desaparece | **aparece** | idem |
+| Parte 2 (regresión check) | ausente | presente | sin destello del banner al mount |
+
+Console evidencia: `console.warn "[client_layout] fetch usuarios_buscadores failed: {message: 'TypeError: Failed to fetch', code: ''}"`. Traza desde `hydrateRoot` en gesto 1 (mount) y desde el handler de click en gestos 2 (retry). Requests bloqueados suman `3 → 5 → 6` entre gesto 1 y 2 — retry re-ejecuta la query.
 
 ---
 
-**Estado del documento**: EN CURSO. Actualizar al aterrizar cada caso adicional.
+## 9. Cierre del sprint — resumen final
+
+### 9.1 Cifras finales
+
+**Universo real**: **68 llamadas** que destructuran respuestas de supabase-js ignorando `.error`, en **34 archivos**. Cifra corregida de la Ronda 1 (26 en 12) que salió de un grep de universo estrecho (`components/*` + `pages/*.tsx` top-level, sin `pages/api/*` ni `lib/*` ni subrutas).
+
+**44% del código** que destructura respuestas supabase-js ignora `.error` (68 sobre ~154 destructurings totales). No es excepción, es convención rota que este sprint empezó a corregir.
+
+### 9.2 Casos Tipo A — los 6 completos
+
+| Caso | Archivo:línea | SHA | Estado | Smoke |
+|---|---|---|---|---|
+| 5-L92 | `components/Client/ClientLayout.tsx:92` (handlePhotoUpload) | `f40f499` | ✅ prod | ✅ verde 2026-09-08 |
+| 2 + 1 | `components/Shared/RoleGuard.tsx:39, 61` | `3aeb627` | ✅ prod | ✅ verde 2026-09-08 (Case 1 sin caller vivo — fix estructural por consistencia) |
+| 3 | `pages/admin.tsx:103` (wrap RoleGuard, −168 líneas) | `c564728` | ✅ prod | ✅ verde 2026-09-08 |
+| 4 | `pages/login.tsx:132` | `5da5289` | ✅ prod | ✅ verde 2026-09-08 |
+| 5-perfil | `components/Client/ClientLayout.tsx:40, 51` (fetchClientProfile) + badge condicionado | `da06fbc` | ✅ prod | ✅ verde 2026-09-08 |
+| 6 | `pages/api/auth/signup.ts:220` | — | ⏭ BACKLOG (server-side, no reproducible con smoke estándar) | — |
+
+### 9.3 Lecciones P8 de esta ronda
+
+Tres lecciones nuevas anotadas durante el sprint. Todas variantes del meta-patrón "una verificación corrió y el auditor la leyó como conclusión sin cross-check".
+
+1. **Reporte de conteos**: cuando el auditor reporta un número (26 llamadas), debe decir **sobre qué universo se corrió**. "26 llamadas en components + pages top-level" ≠ "26 llamadas en el proyecto". Priorización con el número mal-atribuido subestima el ancho del problema.
+
+2. **Negativo con grep de universo estrecho no descarta nada**. En la investigación de `/usuario → /explorar`, el auditor grepeó `router.push('/explorar')` solo dentro de `pages/usuario.tsx` y concluyó "no hay redirect". Realidad: redirect server-side en [next.config.js:206-210](next.config.js#L206-L210) (intencional desde commit `4d0f42d` de abril 2026). **Regla operativa**: cuando el auditor busca un efecto observado, enumerar las capas donde puede originarse (server config, middleware, vercel.json, contexts, hooks globales) ANTES del grep, y grepear cada una con su patrón específico. Si alguna capa no se cubrió, el negativo no vale como conclusión.
+
+3. **`errorCode=unknown` en Sentry es esperado para fallos de red del cliente**. `PostgrestError.code` viene vacío string (`code: ''`) cuando el request nunca sale del browser (bloqueo devtools, offline, DNS drop). Los códigos PostgREST (`PGRST116`, `42501`, etc.) solo aparecen cuando la request llega al backend. **Implicación operativa**: al ver `errorCode=unknown` en dashboard, cross-referenciar con `extra.errorMessage` (`"TypeError: Failed to fetch"` vs otros) para distinguir tipos de fallo.
+
+### 9.4 Casos NO cubiertos en este sprint
+
+Ver `BACKLOG.md > Hallazgos colaterales del sprint error-audit`:
+
+- **Caso 6** (Tipo A server-side, no reproducible).
+- **Tipo B (~39 líneas)** — degradación de features user-facing (favoritos, dashboard, home landing, perfil público, notifs admin, etc.).
+- **Tipo C (~5 líneas)** — SEO/landing/metrics con impacto bajo.
+- **Tipo D (~16 líneas)** — server crons + auth.getSession + notify server-to-server. Silente sin superficie user.
+- **5 destructurings en `e2e/**` tests** — excluidos del sprint por convención (tests son código de assertion, no de app).
+
+Lista completa por archivo:línea en el BACKLOG para que el próximo sprint arranque sin re-auditar.
+
+## 10. Checklist Sentry post-prod completo — pendiente PO
+
+Ver §6 arriba (consolidado con los 3 eventos que este sprint agregó al proyecto):
+
+- `roleguard_verify_failed` (rutas `/admin/*` incluida `/admin`).
+- `login_role_lookup_failed` (ruta `/login`).
+- `profile_fetch_failed` (rutas `/usuario`, `/usuario/mascotas`).
+
+Todos level `warning`, filtro `environment:production` en el dashboard.
+
+## 11. Metadata del tag
+
+- **Tag anotado**: `error-audit-prod-20260908`
+- **Apunta a**: SHA del commit final tras merge FF + este acta — completar tras push.
+- **Fecha del tag** (`git for-each-ref --format='%(creatordate:iso)' refs/tags/error-audit-prod-20260908`): completar.
+- **Fecha del commit apuntado**: completar.
+
+Fechas separadas por regla del proyecto — no usar `git log --format=%ci -1 <tag>` para timestamp de deploy: el tag anotado tiene su propia fecha (`creatordate`), distinta de la fecha del commit al que apunta.
+
+---
+
+**Estado del documento**: **CERRADO**. Sprint 100% ejecutado en producción, smoke verde por PO en las 5 rondas de casos Tipo A. Case 6 y clasificaciones B/C/D anotadas al BACKLOG con listado línea a línea para el próximo sprint.
