@@ -338,6 +338,51 @@ Todos level `warning`, filtro `environment:production` en el dashboard.
 
 Fechas separadas por regla del proyecto — no usar `git log --format=%ci -1 <tag>` para timestamp de deploy: el tag anotado tiene su propia fecha (`creatordate`), distinta de la fecha del commit al que apunta.
 
+## 12. Resultado del checklist Sentry post-prod
+
+Corrido por PO 2026-09-08 en `https://www.pawnecta.com`.
+
+### 12.1 Deploy prod Ready confirmado
+
+`https://www.pawnecta.com/admin` renderea bajo RoleGuard, **sin form embebido** (post-Case 3 wrap). Confirma que el deploy de `ed34a69` está vivo en prod.
+
+### 12.2 Reproducción verificada — `roleguard_verify_failed` en `/admin`
+
+**Setup**: admin logueado, DevTools → Network → Request blocking sobre `https://ouezpeeiwjwawauidrqq.supabase.co/rest/v1/proveedores` (host de producción). Address bar → `/admin`.
+
+**Flujo observado**:
+1. Estado UI: **"No pudimos verificar tu acceso"** con Reintentar (idéntico al preview).
+2. **Un Reintentar** con bloqueo activo repite el estado.
+3. Bloqueo apagado + Reintentar → hub carga normal.
+4. Requests bloqueados totales: **4 → 7**.
+
+**Evento capturado en Sentry** (proyecto `javascript-nextjs`, All Envs, 14D):
+- Issue **`roleguard_verify_failed`** (`JAVASCRIPT-NEXTJS-4`).
+- Route: `/admin`.
+- **2 eventos** en la ventana (mount + retry).
+- Estado: **New**, hace ~3 min a las ~14:0x -03.
+- Confirma: (a) el gate `enabled: NEXT_PUBLIC_VERCEL_ENV === 'production'` deja pasar los eventos client-side, (b) los tags `subsystem/route/requiredRole/errorCode` llegan al dashboard.
+
+### 12.3 Eventos NO reproducidos en prod (cobertos por el mismo gate + SDK)
+
+- **`login_role_lookup_failed`** (Case 4): no reproducido en prod para no forzar logins repetidos con cuentas reales.
+- **`profile_fetch_failed`** (Case 5-perfil): no reproducido en prod por no tener cuenta tutora de prueba en producción.
+
+**Ambos se dan por cubiertos indirectamente**: comparten el mismo gate (`instrumentation-client.ts:30`), la misma librería (`@sentry/nextjs`), y el mismo path de captura (`Sentry.captureMessage` con tags/extra). Si `roleguard_verify_failed` llegó al dashboard con la config actual, los otros dos también llegarán cuando se disparen en producción real. Aceptado como equivalencia estructural — no se fuerza reproducción manual.
+
+### 12.4 Colateral confirmado — `[UserContext] hydrate exhausted`
+
+Issue **`JAVASCRIPT-NEXTJS-5`** (`[UserContext] hydrate exhausted`), route `/admin`, **1 evento** en la misma ventana del smoke.
+
+Este es el mecanismo del sprint `role-degradation` reportando correctamente cuando la hidratación del context falla sostenidamente. Evidencia útil de que **ambos sistemas de recuperación loguean en paralelo**:
+
+- `roleguard_verify_failed` (2 eventos) — desde el gate del RoleGuard, con Reintentar directo.
+- `[UserContext] hydrate exhausted` (1 evento) — desde el retry chain del context.
+
+Refuerza la entrada BACKLOG "Triple UI de recuperación" — hay 3 mecanismos independientes disparándose para el mismo tipo de fallo. Cada uno tiene su UI (banner, toast, estado del guard) y su Sentry log. La deuda del sprint de unificación queda mejor documentada con esta evidencia empírica.
+
+---
+
 **SHAs de código aterrizados dentro de este tag** (todos ya en `main` en el orden de merge):
 
 | SHA | Sprint / Case | Efecto |
