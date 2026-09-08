@@ -383,6 +383,50 @@ Refuerza la entrada BACKLOG "Triple UI de recuperación" — hay 3 mecanismos in
 
 ---
 
+## 13. Hotfix `admin-redirect` — RoleGuard preserva ruta de origen en /login
+
+**Tag**: `error-audit-prod-20260908-hotfix`. **SHA final**: `7df7a1b`. **Aterrizado en `main`**: 2026-09-08.
+
+### 13.1 Regresión observada en prod (post-cierre error-audit)
+
+PO observó tras el cierre del sprint: admin sin sesión entra a `www.pawnecta.com/admin` → RoleGuard lo manda a `/login` → tras autenticarse, `login.tsx` lo despacha por rol y, como la cuenta admin también es proveedor, aterriza en `/proveedor`. **Antes del sprint el form embebido del hub lo dejaba en `/admin`.** Con el wrap del Case 3 se perdió el destino de origen. Mismo problema en las 4 subrutas `/admin/*` que ya usaban RoleGuard desde antes.
+
+### 13.2 Investigación pre-code (una línea)
+
+`login.tsx` **ya honra** `?redirect=<path>` — [pages/login.tsx:51-52](pages/login.tsx#L51-L52) lee `router.query.redirect`, valida via `safeRedirectFromQuery` (`new URL()` con origen actual como base, rechaza open-redirect: URL debe resolverse al mismo origen, path debe empezar con `/` y NO con `//`, retorna solo `pathname+search+hash`), y en línea 129-130 `if (redirect) { window.location.replace(redirect); }` tiene **precedencia absoluta** sobre la decisión por rol.
+
+Nombre del parámetro: **`redirect`**. Mecánica en el sitio desde el **finding [78] del Sweep #1**. El aviso contextual del banner (`getRedirectMessage` con copy "Ingresa para acceder al panel admin" para `/admin*`) también existe desde ese mismo sweep. Cero cambio a login.tsx en este hotfix — la infraestructura estaba, RoleGuard nunca la usó.
+
+### 13.3 Fix
+
+Los 4 sitios de RoleGuard que redirigen a `/login` ahora incluyen `?redirect=<router.asPath>` via object form del router API (auto-encode):
+
+- Línea 41 (unauth): `router.replace({ pathname: '/login', query: { redirect: router.asPath } })`
+- Línea 85 (proveedor sin fila): `router.push` idem
+- Línea 93 (proveedor estado != aprobado): `router.push` idem
+- Línea 128 (admin sin permiso): `router.push` idem
+
+**Diff neto**: **+19 líneas** (+23 −4). Cero cambio a login.tsx.
+
+### 13.4 Caveat conocido aceptado por PO
+
+Loop edge: user autenticado sin el rol requerido (ej. Camila logueada visita `/admin/servicios`) → `/login?redirect=/admin/servicios` con sesión activa. Si **reenvía** credenciales de su rol tutor en el form (edge — típicamente navega en vez de re-submit), post-auth el redirect param gana → vuelve al gate → gate deniega → vuelve a `/login` → loop. El destino `/login` para no-autorizado con sesión activa está en BACKLOG entrada b (fix estructural separado: página `/403` o redirect a `/explorar` con toast). El redirect param no agrava el problema de fondo, solo lo hereda cuando el user re-submitea. **Parte 4 del smoke no se ejercitó** — el loop queda documentado, no verificado en runtime.
+
+### 13.5 Smoke verde en preview 2026-09-08 (SHA `7df7a1b`)
+
+- **Parte 1**: sin sesión → `/admin` → **`/login?redirect=%2Fadmin`** con el aviso contextual **"Ingresa para acceder al panel admin"** → login Aldo → **aterriza en `/admin`** con el hub cargado.
+- **Parte 2**: sin sesión → `/admin/servicios` → **`/login?redirect=%2Fadmin%2Fservicios`** → login Aldo → **aterriza en `/admin/servicios`**.
+- **Parte 3 (control positivo, sin regresión)**: login directo en `/login` sin parámetro → Aldo → `/proveedor`, Camila → `/explorar`. Sin cambios en el comportamiento por-rol cuando no hay redirect.
+- **Parte 4 (loop edge)**: no ejercitada por diseño — documentado en §13.4.
+
+Preview URL: `https://pawnecta-landing-mvp-git-admin-redirect-petmatecls-projects.vercel.app` (branch rebaseada sobre main tras sección 12, SHA final del rebase).
+
+### 13.6 Verificación en producción — pendiente PO
+
+Smoke que PO va a correr en `https://www.pawnecta.com`: logout → `/admin` → login como admin real → aterrizar en `/admin` (no en `/proveedor`). Resultado se anexa acá cuando esté.
+
+---
+
 **SHAs de código aterrizados dentro de este tag** (todos ya en `main` en el orden de merge):
 
 | SHA | Sprint / Case | Efecto |
