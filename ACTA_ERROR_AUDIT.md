@@ -164,7 +164,9 @@ Setup: bloqueo con pattern exacto `https://jmtadvdkicyylcwjcmcl.supabase.co/rest
 
 Sentry cliente **gated a producción** — `enabled: NEXT_PUBLIC_VERCEL_ENV === 'production'` en [instrumentation-client.ts:30](instrumentation-client.ts#L30). Los eventos client-side desde preview NO llegan al dashboard. Verificación end-to-end diferida a prod post-merge.
 
-**Cobertura del checklist**: `roleguard_verify_failed` puede dispararse desde CUALQUIERA de los 5 puntos admin (hub `/admin` + 4 subrutas `/admin/*`) — todos usan el mismo RoleGuard. El checklist verifica 2 muestras: una subruta (`/admin/servicios`) + el hub (`/admin`).
+**Cobertura del checklist**: 2 eventos distintos a verificar en prod:
+- `roleguard_verify_failed` — desde CUALQUIERA de los 5 puntos admin (hub `/admin` + 4 subrutas `/admin/*`) usando el mismo RoleGuard. Se verifica en 2 muestras: subruta (`/admin/servicios`) + hub (`/admin`).
+- `login_role_lookup_failed` — desde `/login` post-submit con bloqueo activo.
 
 **Checklist a correr por PO tras deploy prod**:
 1. Login como admin en `https://www.pawnecta.com`.
@@ -178,15 +180,57 @@ Sentry cliente **gated a producción** — `enabled: NEXT_PUBLIC_VERCEL_ENV === 
    - Uno con `route=/admin/servicios`, otro con `route=/admin`.
    - **Extra debe contener** en ambos: `errorMessage`, `errorDetails`, `errorHint`.
 8. Click "Reintentar" con bloqueo activo en cualquiera → **debe aparecer un 3° evento** con los mismos tags de esa ruta. Confirma que retry re-invoca en prod.
+9. **Prueba 3 — Case 4 login**: logout → `/login` con el mismo bloqueo activo → login como admin real con credenciales válidas → aterrizaje en `/explorar` (fallback seguro).
+10. Sentry dashboard → filtro `environment:production` + búsqueda `login_role_lookup_failed`:
+    - **Debe aparecer 1 evento** level=warning con tags `subsystem=login`, `route=/login`, `errorCode=<código real o 'unknown' si fallo de red puro>`.
+    - **Extra debe contener** `errorMessage`. Cross-referenciar con `errorMessage` cuando `errorCode=unknown` para distinguir fallo de red (`"TypeError: Failed to fetch"`) de otros errores sin código (ver §7.4).
 
 Resultado del checklist: pendiente PO.
 
-## 7. Casos pendientes al momento de esta actualización
+## 7. Caso 4 — `pages/login.tsx:132` (destino /explorar seguro cuando falla role lookup)
+
+**SHA**: `5da5289`. **Aterrizado en `main`**: 2026-09-08 (post-smoke verde del PO).
+
+### 7.1 Bug antes del fix
+
+Post-login exitoso el cliente hacía query a `proveedores` para decidir `/proveedor` vs `/explorar`. Destructuraba solo `{ data: provData }` — ignoraba `.error`. Fallo de red → `provData` null (indistinguible de "tutor legítimo sin fila") → cae al `else` → `/explorar`. Proveedor real con drop de red aterriza en `/explorar` en vez de `/proveedor`. Fricción menor observable (puede navegar manual desde el link del header), pero silente — cero señal de que la query falló.
+
+### 7.2 Fix mínimo — cero cambio de UI, cero cambio de destinos
+
+Decisión previa del PO: `/explorar` es el destino seguro cuando no se sabe el rol; solo detectar el error, log Sentry, seguir el redirect actual. Cero riesgo de expulsar a tutores a un panel que no les corresponde.
+
+- Destructurar `{ data: provData, error: provError }`.
+- Si `provError` truthy: `console.warn` (convención del proyecto, ver `admin.tsx:60`, `admin.tsx:85`) + `Sentry.captureMessage('login_role_lookup_failed', ...)` con tags `subsystem=login`, `route`, `errorCode`.
+- **Sin cambio en el redirect**: con `provError` truthy, `provData` es null → cae al `else` → `/explorar` (comportamiento previo intacto, ahora documentado con comentario del porqué).
+
+**Diff neto**: **+25 líneas** (+26 −1).
+
+### 7.3 Smoke verde en preview 2026-09-08 (SHA `5da5289`)
+
+Setup: bloqueo con pattern `https://jmtadvdkicyylcwjcmcl.supabase.co/rest/v1/proveedores*` activo ANTES del submit.
+
+- **Control positivo (sin bloqueo)**: Aldo → `/proveedor`, Camila → `/explorar`.
+- **Parte 1 con bloqueo, login Aldo**: aterriza en `/explorar` sin mensaje al user. En Network la query `proveedores?select=id,estado` del login queda en `(blocked)`. En Console con "Preserve log upon navigation" activo, aparece el `console.warn`:
+  ```
+  [login] role lookup failed: {message: 'TypeError: Failed to fetch',
+   details: '...', hint: '', code: ''}
+  ```
+- **Recuperación**: con bloqueo apagado, el header resuelve el rol y ofrece "Panel de proveedor" (Aldo puede navegar manual sin más fricción).
+- **Parte 2 sin bloqueo**: cero regresión en ninguno de los dos destinos.
+
+### 7.4 Nota sobre `errorCode=unknown` en el evento Sentry
+
+**Observación del PO durante el smoke**: en fallos de red puros (browser bloquea el request), el `PostgrestError.code` viene vacío string (`code: ''`), no un código PostgREST (que sería tipo `PGRST116`, `42501`, etc.). El helper `provError.code || 'unknown'` toma el fallback → tag `errorCode=unknown` en Sentry.
+
+**Es el escenario esperado, no defecto del fix**: los códigos PostgREST solo aparecen cuando la request llega al backend y la BD responde con un error semántico. Cuando el request nunca sale (bloqueo devtools, offline, DNS drop), el SDK devuelve el TypeError como PostgrestError con `code: ''`. Sentry sigue capturando el evento con toda la info útil en `extra.errorMessage` (`"TypeError: Failed to fetch"`) — solo el tag `errorCode` queda genérico.
+
+**Implicación operativa para diagnósticos futuros**: cuando se ve `errorCode=unknown` en el dashboard filtrando por `login_role_lookup_failed`, cross-referenciar con `extra.errorMessage` para distinguir "fallo de red del cliente" (`TypeError: Failed to fetch`) de otros errores sin código (`AbortError` de fetch cancelado, etc.).
+
+## 8. Casos pendientes al momento de esta actualización
 
 En orden de ejecución acordado:
 
-- **Caso 4** (`pages/login.tsx:132`) — próximo, diff mínimo (destructurar error + Sentry + fallback intacto).
-- **Caso 5 líneas 40+51** (`ClientLayout.tsx` — `fetchClientProfile` ignora `.error`).
+- **Caso 5 líneas 40+51** (`ClientLayout.tsx` — `fetchClientProfile` ignora `.error`) — próximo, en curso.
 - **Caso 6** (`pages/api/auth/signup.ts:220`) — **NO se arregla en este sprint**, ya en BACKLOG.
 
 ## 5. Metadata del tag
