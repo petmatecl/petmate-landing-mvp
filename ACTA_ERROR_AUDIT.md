@@ -332,11 +332,21 @@ Todos level `warning`, filtro `environment:production` en el dashboard.
 ## 11. Metadata del tag
 
 - **Tag anotado**: `error-audit-prod-20260908`
-- **Apunta a**: SHA del commit final tras merge FF + este acta — completar tras push.
-- **Fecha del tag** (`git for-each-ref --format='%(creatordate:iso)' refs/tags/error-audit-prod-20260908`): completar.
-- **Fecha del commit apuntado**: completar.
+- **Apunta a**: `d645907` (commit `docs(error-audit): cierre del sprint — acta final + BACKLOG consolidado`).
+- **Fecha del tag** (`git for-each-ref --format='%(creatordate:iso)' refs/tags/error-audit-prod-20260908`): **2026-09-08 13:52:35 -0300**.
+- **Fecha del commit apuntado**: **2026-09-08 13:52:14 -0300**.
 
 Fechas separadas por regla del proyecto — no usar `git log --format=%ci -1 <tag>` para timestamp de deploy: el tag anotado tiene su propia fecha (`creatordate`), distinta de la fecha del commit al que apunta.
+
+**SHAs de código aterrizados dentro de este tag** (todos ya en `main` en el orden de merge):
+
+| SHA | Sprint / Case | Efecto |
+|---|---|---|
+| `f40f499` | error-audit Case 5-L92 | `handlePhotoUpload` verificar rol antes de upload (evita write con WHERE que no matchea + huérfanos en avatars). |
+| `3aeb627` | error-audit Cases 2+1 | RoleGuard distinguir error de red vs no-autorizado; nuevo estado `'error'` + Reintentar + Sentry log. |
+| `c564728` | error-audit Case 3 | Hub `/admin` wrap en `<RoleGuard requiredRole="admin">`. Elimina auth inline duplicada, −168 líneas. |
+| `5da5289` | error-audit Case 4 | `login.tsx` role lookup destructura `.error` + Sentry log; `/explorar` como fallback seguro documentado. |
+| `da06fbc` | error-audit Case 5-perfil | `ClientLayout.fetchClientProfile` distingue error de red vs "sin perfil"; banner no bloqueante + badge "Usuario Verificado" condicionado a `clientProfile !== null`. |
 
 ---
 
