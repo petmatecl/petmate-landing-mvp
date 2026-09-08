@@ -26,6 +26,25 @@ interface RoleGuardProps {
 // directo. NO se ejecuta dentro de onAuthStateChange callback ni dentro del
 // lock interno del SDK Auth. La sesión llega via useUser() context, que
 // expone state ya hidratado. Cero riesgo de deadlock.
+//
+// Sprint admin-redirect (2026-09-08 hotfix post-error-audit) — los 4 sitios
+// que mandan a /login ahora incluyen `?redirect=<router.asPath>` (object form
+// del router API, auto-encode). Motivación: el wrap del hub /admin en
+// RoleGuard (Case 3) eliminó el login form embebido; sin redirect, admin sin
+// sesión aterriza en /login y post-auth pierde el destino de origen (login.tsx
+// lo despacha por rol → cae en /proveedor si tiene rol proveedor). login.tsx
+// YA honra ?redirect= con validación estricta anti-open-redirect
+// (safeRedirectFromQuery via new URL() + check de origin + rechazo de //).
+// Cero cambio a login.tsx.
+//
+// Caveat conocido (loop en escenario edge): un user autenticado sin el rol
+// requerido (ej. Camila en /admin/servicios) va a /login?redirect=... con
+// sesión activa. Si REENVÍA credenciales de su rol tutor en el form (edge —
+// típicamente navega en vez de re-submit), post-auth el redirect param gana,
+// vuelve al gate, gate deniega, vuelve a /login → loop. Aceptado por PO:
+// destino /login para no-autorizado con sesión está en BACKLOG (fix estructural
+// separado — página /403 o redirect a /explorar con toast). El redirect param
+// no agrava el problema de fondo, solo lo hereda cuando el user re-submitea.
 export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     const router = useRouter();
     const { isAuthenticated, isLoading, user, providerStatus, roles } = useUser();
@@ -38,7 +57,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
 
             if (!isAuthenticated || !user) {
                 setAuthState('unauthorized');
-                router.replace("/login");
+                router.replace({ pathname: '/login', query: { redirect: router.asPath } });
                 return;
             }
 
@@ -82,7 +101,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
 
                 if (!data) {
                     setAuthState('unauthorized');
-                    router.push('/login');
+                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
                     return;
                 }
 
@@ -90,7 +109,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     setAuthState('authorized');
                 } else {
                     setAuthState('unauthorized');
-                    router.push('/login');
+                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
                 }
                 return;
             }
@@ -125,7 +144,7 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     setAuthState('authorized');
                 } else {
                     setAuthState('unauthorized');
-                    router.push('/login');
+                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
                 }
                 return;
             }
