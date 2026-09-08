@@ -32,10 +32,14 @@ on:
     branches: [main]
     paths:
       - 'e2e/specs/error-audit/**'
+      - 'e2e/specs/form-post/**'
       - 'components/Shared/RoleGuard.tsx'
       - 'components/Client/ClientLayout.tsx'
       - 'pages/admin.tsx'
       - 'pages/login.tsx'
+      - 'pages/forgot-password.tsx'
+      - 'pages/reset-password.tsx'
+      - 'pages/api/noop.ts'
       - '.github/workflows/e2e-error-audit.yml'
   workflow_dispatch:
     inputs:
@@ -118,11 +122,16 @@ jobs:
           done
           echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
 
-      - name: Run Playwright suite (error-audit only)
+      - name: Run Playwright suites (error-audit + form-post)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
-        run: npx playwright test --project=chromium e2e/specs/error-audit/ --reporter=list
+        # Sprint form-post (2026-09-08) — ampliado para correr también
+        # e2e/specs/form-post/. Cero --project filter: cada spec declara
+        # su project via testMatch de playwright.config.ts (chromium /
+        # chromium-tutor-mobile para error-audit; sin project filter
+        # necesario para form-post que crea sus propios contexts).
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ --reporter=list
 
       - name: Upload Playwright HTML report
         if: always()

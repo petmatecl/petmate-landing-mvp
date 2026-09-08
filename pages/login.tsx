@@ -224,7 +224,10 @@ export default function LoginPage() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-5" noValidate>
+            {/* Sprint form-post (2026-09-08) — method="post" + action="/api/noop"
+                para bloquear leak de credenciales en URL si el user submitea
+                antes de que React hidrate onSubmit. Ver pages/api/noop.ts. */}
+            <form onSubmit={handleSubmit} method="post" action="/api/noop" className="flex flex-col gap-5" noValidate>
 
               {/* Email */}
               <div className="flex flex-col gap-1.5">

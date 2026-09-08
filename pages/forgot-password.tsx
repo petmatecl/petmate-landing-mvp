@@ -80,7 +80,8 @@ export default function ForgotPasswordPage() {
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Sprint form-post (2026-09-08) — ver pages/api/noop.ts. */}
+            <form onSubmit={handleSubmit} method="post" action="/api/noop" className="flex flex-col gap-4">
               <div className="flex flex-col gap-1">
                 <label htmlFor="email" className="text-sm font-medium text-slate-700 block">
                   Correo
