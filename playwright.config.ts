@@ -195,7 +195,10 @@ export default defineConfig({
             // Specs default corren como proveedor, EXCEPTO los de f2-3 (tutor)
             // y los de f2-recordatorios-cron (API tests, project propio abajo).
             // Nota: zonab-1 corre bajo este project (proveedor con rol admin).
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2)[\\/]/,
+            // error-audit/c5-* (c5-perfil, c5-l92) tienen partes tutor+mobile
+            // que corren bajo `chromium-tutor-mobile` (project nuevo, ver abajo).
+            // El resto de error-audit (c2-c1, c3, c4) sigue en chromium (admin).
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -208,6 +211,29 @@ export default defineConfig({
             // dispara si el spec matchea; sin specs matcheados, el setup-tutor
             // sigue corriendo pero es no-op eficaz.
             testMatch: /specs[\\/](f2-3|producto-2)[\\/].*\.spec\.ts$/,
+        },
+        {
+            // Sprint e2e-error-audit-2 (2026-09-08) — project nuevo para specs
+            // que necesitan viewport mobile + storageState de tutor. Los c5-*
+            // de error-audit ejercen la superficie tutor en `/usuario/mascotas`
+            // donde el avatar-upload trigger y el badge "Usuario Verificado"
+            // son `md:hidden` (mobile-only por diseño). Sin viewport mobile los
+            // elementos no rendean y los tests no pueden verificarlos.
+            //
+            // Decisión PO 2026-09-08: crear project separado (en lugar de
+            // ampliar testMatch de chromium-tutor con viewport override) porque
+            // el mobile va a reutilizarse en más specs futuros del tutor.
+            //
+            // Pixel 5: 393x851, dpr 2.75, mobile chrome — matchea el rango de
+            // dispositivos donde el avatar se renderea (< 768px = tailwind md
+            // breakpoint).
+            name: 'chromium-tutor-mobile',
+            use: {
+                ...devices['Pixel 5'],
+                storageState: 'e2e/.auth/tutor.json',
+            },
+            dependencies: ['setup-tutor'],
+            testMatch: /specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$/,
         },
         {
             // Suite API del tren Recordatorios (R6). No usa browser — todos
