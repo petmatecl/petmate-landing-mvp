@@ -75,8 +75,11 @@ test.describe('form-post — pre-hidratación no puede meter credenciales en URL
         test('submit nativo → 405 en /api/noop sin creds en URL', async ({ page }) => {
             await page.goto(`/login${bypassQuery}`);
 
-            // Verificar que el form llegó con los atributos del fix.
-            const formLocator = page.locator('form').first();
+            // Verificar que el form del login llegó con los atributos del fix.
+            // CSS `:has()` para targeting específico — `form:first` matcheaba
+            // el <form> de QuickSearch en el header (renderea primero en DOM
+            // order y no tiene method attr, causando falso fail del assert).
+            const formLocator = page.locator('form:has(#email):has(#password)');
             const formMethod = await formLocator.getAttribute('method');
             const formAction = await formLocator.getAttribute('action');
             expect(formMethod?.toLowerCase(), `form debe tener method="post" — vio: ${formMethod}`).toBe('post');
