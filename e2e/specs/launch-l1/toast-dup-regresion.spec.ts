@@ -70,22 +70,7 @@ test.describe.serial('L1-1 · Toast duplicado — regresión estructural', () =>
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
-    test('exactamente un [data-sonner-toaster] montado en el DOM', async ({ page }) => {
-        await page.goto('/proveedor');
-        // Sonner monta el <ol data-sonner-toaster> perezoso — al primer
-        // toast, no al mount. Disparamos uno mínimo desde consola para
-        // materializarlo, luego contamos. Alternativa: verificar en el
-        // JSX del árbol de React con evaluate, pero contar el <ol> es
-        // el efecto observable directo y menos dependiente de detalles
-        // internos de sonner.
-        await page.evaluate(async () => {
-            const sonner = await import('sonner');
-            sonner.toast('marker-regresion-l1');
-        });
-        await expect(page.locator('[data-sonner-toaster]')).toHaveCount(1, { timeout: 5_000 });
-    });
-
-    test('acción desde modal dispara UN solo li[data-sonner-toast] (guard descripción)', async ({ page }) => {
+    test('acción desde modal dispara UN solo Toaster + UN solo toast (guard descripción)', async ({ page }) => {
         await abrirEditorServicio(page, servicio.titulo);
         const textarea = page.locator('#servicio-descripcion');
         await expect(textarea).toBeVisible();
@@ -98,11 +83,22 @@ test.describe.serial('L1-1 · Toast duplicado — regresión estructural', () =>
         // simultáneos con el mismo texto. Este assert lo captura.
         await clickGuardar(page);
 
-        // Filtro por texto único de este toast para no colisionar con
-        // cualquier otro toast pendiente de otra acción concurrente.
+        // (a) Filtro por texto único de este toast para no colisionar con
+        //     cualquier otro toast pendiente. Este assert es el efecto
+        //     observable directo del bug: 2 Toasters montados ⇒ 2 toasts
+        //     con este mismo texto simultáneamente.
         const toastsMatching = page.locator('li[data-sonner-toast]', {
             hasText: /al menos 100 caracteres/i,
         });
         await expect(toastsMatching).toHaveCount(1, { timeout: 5_000 });
+
+        // (b) Assert estructural: aunque sonner monta el viewport
+        //     <ol data-sonner-toaster> perezoso al primer toast, ya
+        //     disparamos uno arriba entonces debe existir exactamente 1.
+        //     Segundo canal defensivo por si algún futuro monta un
+        //     segundo Toaster que se mantiene "silencioso" (mismo texto
+        //     matchado por el (a) igual — pero acá cubre incluso el
+        //     caso donde el segundo Toaster está en otra rama del DOM).
+        await expect(page.locator('[data-sonner-toaster]')).toHaveCount(1);
     });
 });
