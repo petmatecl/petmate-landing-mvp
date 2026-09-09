@@ -196,6 +196,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     // detecto la fricción: min/max noches y blackouts.
     const [minNochesError, setMinNochesError] = useState<string | null>(null);
     const [maxNochesError, setMaxNochesError] = useState<string | null>(null);
+    // Sprint f2-ci-fix (2026-09-09) — mismo patron aplicado al guard de
+    // descripción-100. Fundamento: el guard existe desde sprint panel-prov-
+    // fixes (2026-08-27) pero solo emitía `toast.error(...)`. En la sesión
+    // MCP del diagnóstico, tras Guardar con descripción de 55 chars y wait
+    // 18s, no había señal visible ni el toast (sonner default dura ~4s, mi
+    // wait fue mayor). Aunque el toast SÍ se dispara y renderiza, un solo
+    // canal efímero deja al proveedor sin feedback si no está mirando
+    // arriba en el momento. Ahora: inline + scroll + focus + toast.
+    const [descripcionError, setDescripcionError] = useState<string | null>(null);
     // blackoutErrors indexado por indice de la fila. Map en vez de array
     // para poder .delete(i) sin gastar en un array del tamaño de blackouts.
     const [blackoutErrors, setBlackoutErrors] = useState<Record<number, string>>({});
@@ -598,6 +607,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         setMinNochesError(null);
         setMaxNochesError(null);
         setBlackoutErrors({});
+        setDescripcionError(null);
 
         // Helper local: scroll al primer campo con error tras el paint. El
         // requestAnimationFrame garantiza que el DOM ya refleje el mensaje
@@ -622,7 +632,30 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         // (iii) qué la diferencia. 100 es "una oración descriptiva con
         // detalle mínimo" — piso razonable. Copy accionable, dice QUÉ
         // escribir (no solo que falta), respetando requisito PO.
-        if (descripcion.trim().length < 100) return toast.error("La descripción debe tener al menos 100 caracteres. Cuenta con qué incluye y cómo lo haces.");
+        //
+        // Sprint f2-ci-fix (2026-09-09) — extender al patrón F2-2B-B (inline
+        // + scroll + focus + toast). Antes solo emitía toast → señal frágil
+        // (sonner dura ~4s; si el user no mira arriba se pierde). Ahora
+        // deja mensaje persistente bajo el textarea + scroll y focus para
+        // que el cursor caiga en el campo listo para editar.
+        if (descripcion.trim().length < 100) {
+            const msg = 'La descripción debe tener al menos 100 caracteres. Cuenta con qué incluye y cómo lo haces.';
+            setDescripcionError(msg);
+            // Foco PRIMERO con preventScroll:true (no dispara scroll propio
+            // del focus, evita competir con el scrollIntoView de abajo).
+            // Luego scrollIntoView smooth para centrar visualmente el
+            // textarea + su mensaje de error. Ambos con requestAnimation
+            // Frame para que el DOM ya haya pintado el inline error antes
+            // de mover cámara/cursor. Orden importa: si el scroll suave
+            // llega ANTES del focus, el scroll animation puede robar el
+            // foco al body en algunos browsers.
+            requestAnimationFrame(() => {
+                const el = document.getElementById('servicio-descripcion') as HTMLTextAreaElement | null;
+                el?.focus({ preventScroll: true });
+                el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            return toast.error(msg);
+        }
         if (descripcion.length > 500) return toast.error("La descripción es muy larga (máx. 500 caracteres).");
         if (!precioDesde) return toast.error("El precio desde es obligatorio.");
         if (!perros && !gatos && !otras) return toast.error("Selecciona al menos un tipo de mascota aceptada.");
@@ -1566,12 +1599,36 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             name="servicio-descripcion"
                                             autoComplete="off"
                                             value={descripcion}
-                                            onChange={e => setDescripcion(e.target.value)}
+                                            onChange={e => {
+                                                setDescripcion(e.target.value);
+                                                // Sprint f2-ci-fix (2026-09-09) — limpiar error
+                                                // inline al primer typeo para no dejar el mensaje
+                                                // rojo bajo un campo que el user ya está corrigiendo.
+                                                if (descripcionError) setDescripcionError(null);
+                                            }}
                                             maxLength={500}
                                             rows={3}
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
-                                            className="w-full px-3 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                            aria-invalid={!!descripcionError}
+                                            aria-describedby={descripcionError ? 'servicio-descripcion-error' : undefined}
+                                            className={`w-full px-3 py-2.5 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white placeholder:text-slate-400 transition-colors resize-none ${
+                                                descripcionError
+                                                    ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
+                                                    : 'border-slate-200 focus:ring-accent-600 focus:border-accent-600'
+                                            }`}
                                         />
+                                        {/* Sprint f2-ci-fix (2026-09-09) — inline error bajo el
+                                            textarea + border danger + aria-invalid. Persistente
+                                            hasta el próximo typeo (limpieza en onChange arriba). */}
+                                        {descripcionError && (
+                                            <p
+                                                id="servicio-descripcion-error"
+                                                role="alert"
+                                                className="text-xs text-danger-600 mt-1 font-medium"
+                                            >
+                                                {descripcionError}
+                                            </p>
+                                        )}
                                         <div className={`text-right text-xs mt-1 ${descripcion.trim().length < 100 ? 'text-warning-700 font-medium' : 'text-slate-500'}`}>
                                             {descripcion.length}/500
                                             {descripcion.trim().length < 100 && (
