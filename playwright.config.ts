@@ -198,7 +198,11 @@ export default defineConfig({
             // error-audit/c5-* (c5-perfil, c5-l92) tienen partes tutor+mobile
             // que corren bajo `chromium-tutor-mobile` (project nuevo, ver abajo).
             // El resto de error-audit (c2-c1, c3, c4) sigue en chromium (admin).
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$/,
+            // Sprint tipo-b lote 2 (2026-09-09) — specs tipo-b con "tutor" en
+            // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
+            // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
+            // acá porque tiene "proveedor" en el filename.
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -207,10 +211,12 @@ export default defineConfig({
                 storageState: 'e2e/.auth/tutor.json',
             },
             dependencies: ['setup-tutor'],
-            // Solo specs del tutor: F2-3 (reserva + cancelacion). El auth-tutor
-            // dispara si el spec matchea; sin specs matcheados, el setup-tutor
-            // sigue corriendo pero es no-op eficaz.
-            testMatch: /specs[\\/](f2-3|producto-2)[\\/].*\.spec\.ts$/,
+            // Solo specs del tutor: F2-3 (reserva + cancelacion) + tipo-b
+            // lote 2+ (dashboard tutor, favoritos). Convención: specs tipo-b
+            // que ejercen surface tutor deben tener "tutor" en el filename
+            // (ej. `lote-2-tutor-panel.spec.ts`). Auth-tutor dispara si
+            // matchea; sin specs matcheados, el setup-tutor es no-op eficaz.
+            testMatch: /specs[\\/](f2-3|producto-2)[\\/].*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             // Sprint e2e-error-audit-2 (2026-09-08) — project nuevo para specs
