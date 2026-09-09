@@ -47,8 +47,40 @@ on:
         default: 'https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app'
 
 concurrency:
-  group: e2e-error-audit-${{ github.ref }}
-  cancel-in-progress: true
+  # Sprint L1-1 (2026-09-09) — serialización cross-PR contra staging.
+  #
+  # Group fijo `e2e-staging` (NO por `github.ref`) → solo 1 run de esta
+  # suite toca el proyecto Supabase staging + el bypass de Vercel a la
+  # vez, sin importar de qué PR viene. Los demás quedan encolados en
+  # `pending` y arrancan al terminar el actual.
+  #
+  # `cancel-in-progress: false` → cancelar el run activo al llegar uno
+  # nuevo destrozaría el cleanup de servicios efímeros a mitad y
+  # dejaría huérfanos en staging. Preferimos cola con espera al riesgo
+  # de aumentar la contención por half-cleanup.
+  #
+  # Motivo del cambio: con `${{ github.ref }}` cada PR tenía su cola
+  # independiente y múltiples PRs corrían en paralelo sobre la misma
+  # base de datos → `beforeAll` timeouts en f2-3 por saturación de
+  # Supabase (verificado empíricamente en PR #15 con 4 reruns, subset
+  # de tests fallando cambiaba entre reruns).
+  #
+  # Único workflow del repo que toca staging (verificado 2026-09-09):
+  # ci.yml es typecheck+build sin backend, lock-regen es one-shot cero
+  # e2e. Si en algún futuro aparece otro workflow que hitea Supabase
+  # staging, meterlo en este mismo group `e2e-staging` o justificar
+  # por qué no.
+  #
+  # Trade-off aceptado: en épocas de muchos PRs concurrentes, la suite
+  # espera en cola en vez de correr al instante → posible cola de 10-15
+  # min si 3-4 PRs están abiertos simultáneamente. Preferible a rojo
+  # falso por contención.
+  #
+  # Typecheck no queda en este grupo — vive en `.github/workflows/ci.yml`
+  # con su propio concurrency por-ref, entonces sigue corriendo en
+  # paralelo entre PRs sin bloqueo.
+  group: e2e-staging
+  cancel-in-progress: false
 
 jobs:
   e2e:
@@ -138,7 +170,7 @@ jobs:
         # algún momento este tiempo trepa (más specs F2 o crons más
         # pesados), evaluar dividir en jobs paralelos por project (uno
         # por role/mobile) o usar `--shard` de Playwright.
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/f2-2b/ e2e/specs/f2-3/ e2e/specs/f2-recordatorios-cron/ --reporter=list
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/f2-2b/ e2e/specs/f2-3/ e2e/specs/f2-recordatorios-cron/ e2e/specs/launch-l1/ --reporter=list
 
       - name: Upload Playwright HTML report
         if: always()

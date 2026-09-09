@@ -33,6 +33,7 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
     const hastaDay = 22;
 
     test.beforeAll(async () => {
+        test.setTimeout(90_000); // L1-1 sprint launch-l1: subido de 60s default por saturacion Supabase staging bajo workers=2 concurrentes. Los beforeAll hacen INSERT + wait de servicio + reserva pre-poblada — 60s roza al maximo cuando 2 specs paralelos hitean Supabase.
         const supabase = getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
