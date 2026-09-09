@@ -528,6 +528,19 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Lección operativa**: cuando se diseña una tabla + RLS + trigger con intención admin, agendar en el mismo sprint (o el inmediato siguiente) la superficie UI que la consume. Sin superficie, la infraestructura es un compromiso de mantenimiento sin retorno de valor — la deuda queda invisible hasta que aparece una necesidad ("necesito ver los feedbacks") y descubrimos que faltó lo último.
   - **Regla candidata para CLAUDE.md**: cualquier `migrations/*.sql` que cree tabla + policy admin-only debe acompañarse (mismo commit o siguiente sprint documentado) con el componente/tab admin que la lee. Si el sprint aterriza infra pero pospone la UI, dejarlo **explícito en el commit** ("infra + policies aterrizados; UI de consumo pendiente sprint X") para no perder la deuda. Este patrón vale sumarlo a los corolarios P8 como 12ª instancia — no es exactamente P8 (output/efecto), es la variante "compromiso silente sin efecto". Pendiente decisión del PO de si vale la regla formal o solo memoria operativa.
 
+### Sprint chore-tipo-b-ssr-audit (abierto 2026-09-09) — política error-handling para callers server-side reclassificados de Tipo B
+
+- **[abierto — chore-tipo-b-ssr-audit, prioridad BAJA — deuda post-launch] Política para 9 callers server-side reclassificados de Tipo B → Tipo C** — durante Fase 0 del sprint tipo-b (2026-09-09), se aplicó la stop condition del PO ("caller server-side o de cron es Tipo C/D, no lo toques") y se reclassificaron 9 líneas listadas originalmente como Tipo B en la auditoría error-audit:
+  - `lib/apiAuth.ts:67` — helper `isAdmin()` con SERVICE_ROLE_KEY (fail-closed silente es intencional).
+  - `pages/index.tsx:705, 760, 789, 802` — dentro de `getStaticProps` (home stats build-time).
+  - `pages/proveedor/[id].tsx:816, 826, 836` — dentro de `getServerSideProps` (perfil público SSR).
+  - `pages/servicio/[id].tsx:109` — dentro de `getServerSideProps`.
+  - **Situación**: estos callers ignoran `.error` pero el fix Tipo B (banner + Reintentar client-side) no aplica — no hay vista client-side donde poner el retry. Requieren política diferente:
+    - Log Sentry con context similar al Tipo B (subsystem/table/route/errorCode).
+    - Decidir para SSR: (a) mostrar "última actualización HH:MM" cuando falla el SSR (fallback a último snapshot known-good), (b) log solo y aceptar la degradación silente (home muestra `0` counts en cifras cuando cuenta falla), o (c) reintentar N veces con backoff antes de degradar.
+  - Sprint dedicado post-launch. Prioridad BAJA — el sprint principal error-audit (tag `error-audit-prod-20260908`) ya cubre los 5 Tipo A críticos + el hotfix admin-redirect. Los 9 SSR reclassificados están en la misma clase de riesgo que la deuda de home stats vieja (silent 0 en getStaticProps).
+  - **Ver también**: `TIPO_B_INVENTARIO.md` §Reclassifications para el detalle completo.
+
 ### Sprint chore-lock-linux-regen (abierto 2026-09-08) — restaurar `npm ci` estricto
 
 - **[abierto — chore-lock-linux-regen, prioridad BAJA (bajada de MEDIA 2026-09-09 tras INTENTO 1) — deuda de higiene] Regenerar `package-lock.json` en Linux para restaurar `npm ci` estricto** — descubierto durante PR #3 (e2e-error-audit → main, 2026-09-08, mergeado en `72e0a5c`). El lock actual, generado en Windows, no incluye las entradas `@rollup/rollup-linux-*` (~10 opcionales platform-specific). En Linux, `npm ci` exige esas entradas y falla con `Missing: @rollup/rollup-linux-x64-gnu from lock file`. CI en main rojo desde hace días por esto (invisible porque Vercel usa su propio installer).
