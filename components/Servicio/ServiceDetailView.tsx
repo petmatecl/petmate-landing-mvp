@@ -1429,12 +1429,16 @@ export default function ServiceDetailView({
                                 <ReviewSummary servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} bare />
                             </div>
 
-                            {totalReviews > 0 ? (
-                                <div>
-                                    {/* Lista de Reviews */}
-                                    <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
-                                </div>
-                            ) : null}
+                            {/* Lista de Reviews. Sprint tipo-b lote 3 (2026-09-09) —
+                                antes había un guard `totalReviews > 0` (leyendo el
+                                snapshot SSR) que impedía a ReviewList mostrar su
+                                propio estado de error si el fetch client fallaba.
+                                Ahora siempre montada — ReviewList decide: (a) null
+                                si sin reviews sin error (comportamiento previo),
+                                (b) EstadoError banner si el fetch falla. */}
+                            <div>
+                                <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
+                            </div>
 
                             {/* Badge "ya evaluaste" — feedback de esta seccion,
                                 no una seccion propia. Integrado adentro del card
