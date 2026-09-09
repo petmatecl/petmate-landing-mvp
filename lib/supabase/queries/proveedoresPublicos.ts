@@ -1,4 +1,5 @@
 import { supabase } from '../../supabaseClient';
+import { runReadQuery } from '../../supabaseReadQuery';
 import type { ProveedorPublico } from '../../types/proveedorPublico';
 
 /**
@@ -30,10 +31,17 @@ import type { ProveedorPublico } from '../../types/proveedorPublico';
  *           proveedor: provMap.get(r.servicios_publicados.proveedor_id) ?? null,
  *       } : r.servicios_publicados,
  *   }));
+ *
+ * Sprint tipo-b lote 2 (2026-09-09) — el helper ahora usa runReadQuery
+ * internamente. Si la query falla, se loguea a Sentry con tags
+ * subsystem='proveedores_publicos', table='proveedores_publicos' y devuelve
+ * un Map vacío (mismo comportamiento previo). Retrocompat total con los 6
+ * callers; el error se surface via Sentry, no via API change.
  */
 export async function fetchProveedoresPublicosByIds(
     ids: Array<string | null | undefined>,
     select: string = '*',
+    route?: string,
 ): Promise<Map<string, ProveedorPublico>> {
     // dedup sin spread sobre Set (tsconfig target es5 no soporta el spread)
     const seen: Record<string, true> = {};
@@ -43,16 +51,13 @@ export async function fetchProveedoresPublicosByIds(
     }
     if (cleanIds.length === 0) return new Map();
 
-    const { data, error } = await supabase
-        .from('proveedores_publicos')
-        .select(select)
-        .in('id', cleanIds);
-
-    if (error) {
-        // eslint-disable-next-line no-console
-        console.error('[fetchProveedoresPublicosByIds]', error.message);
-        return new Map();
-    }
+    const { data } = await runReadQuery<any[]>(
+        () => supabase
+            .from('proveedores_publicos')
+            .select(select)
+            .in('id', cleanIds),
+        { subsystem: 'proveedores_publicos', table: 'proveedores_publicos', route },
+    );
 
     return new Map((data ?? []).map((p: any) => [p.id, p as ProveedorPublico]));
 }

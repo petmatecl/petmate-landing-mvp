@@ -1,10 +1,12 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from "../../lib/supabaseClient";
+import { runReadQuery } from "../../lib/supabaseReadQuery";
 import { fetchProveedoresPublicosByIds } from "../../lib/supabase/queries/proveedoresPublicos";
 import Link from "next/link";
 import { MessagesSquare, Search, Heart, X, Star } from "lucide-react";
 import ReviewModal from "../Service/ReviewModal";
+import { EstadoError } from "../Shared/EstadoError";
 
 // --- Tipos de Datos ---
 interface ConversationPreview {
@@ -34,6 +36,19 @@ interface PendingReview {
     proveedor_nombre: string;
 }
 
+// Sprint tipo-b lote 2 (2026-09-09) — dashboard del tutor con estado de error
+// por sección independiente:
+//   * Mensajes (conversations query) → banner "No pudimos cargar tus mensajes"
+//     dentro del box de la sidebar.
+//   * Servicios consultados (conversations con embed servicios_publicados) →
+//     banner "No pudimos cargar tus servicios consultados" reemplaza el empty
+//     state + el listado.
+//   * Reseñas pendientes (evaluaciones + eventos_tracking + servicios) → silent
+//     + log Sentry. Es un bloque de nudge condicional (`pendingReviews.length >
+//     0`); no afirma ausencia cuando falla — simplemente no renderiza el bloque.
+//   * Hidratación de proveedores_publicos (nombres) → silent via helper (log
+//     Sentry). Fallback textual "Proveedor" ya cubierto en el mapeo.
+
 export default function DashboardContent() {
     const { user, profile } = useUser();
 
@@ -47,6 +62,203 @@ export default function DashboardContent() {
     const [isLoadingConversations, setIsLoadingConversations] = useState(true);
     const [showBanner, setShowBanner] = useState(false);
 
+    // Error states por sección (Lote 2 tipo-b). Ninguno afecta el resto de la
+    // pantalla — cada sección resuelve su propio banner.
+    const [mensajesError, setMensajesError] = useState<string | null>(null);
+    const [serviciosError, setServiciosError] = useState<string | null>(null);
+
+    // 1. Fetch Conversaciones. El embed proveedores!fk(...) se reemplaza
+    //    por hidratacion via vista publica (post-RLS fix junio 2026).
+    //    sitter_id en conversations es auth_user_id directo del proveedor
+    //    (no proveedor.id), asi que hidratamos por auth_user_id no por id.
+    const loadConversations = useCallback(async (userId: string) => {
+        setIsLoadingConversations(true);
+        setMensajesError(null);
+
+        const convResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('conversations')
+                .select(`
+                    id,
+                    updated_at,
+                    sitter_id,
+                    messages(
+                        content,
+                        created_at
+                    )
+                `)
+                .eq('client_id', userId)
+                .order('updated_at', { ascending: false })
+                .limit(5),
+            { subsystem: 'dashboard_tutor', table: 'conversations', route: '/usuario' },
+        );
+        if (convResult.error) {
+            setMensajesError('No pudimos cargar tus mensajes');
+            setIsLoadingConversations(false);
+            return;
+        }
+        const data = convResult.data ?? [];
+
+        // Hidratar partner desde vista por auth_user_id (sitter_id es FK a
+        // auth.users). Falla silenciosa + log via runReadQuery en el helper.
+        // Fallback textual "Proveedor" ya presente en el map.
+        const partnerAuthIds = data.map((c: any) => c.sitter_id).filter(Boolean);
+        const partnersResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('proveedores_publicos')
+                .select('auth_user_id, nombre, apellido_p, foto_perfil')
+                .in('auth_user_id', partnerAuthIds),
+            { subsystem: 'dashboard_tutor', table: 'proveedores_publicos', route: '/usuario' },
+        );
+        const partners = partnersResult.data ?? [];
+        const partnerMap = new Map<string, any>(partners.map((p: any) => [p.auth_user_id, p]));
+
+        const parsed = data.map((conv: any) => {
+            const partner = partnerMap.get(conv.sitter_id) ?? null;
+            const msgs = conv.messages || [];
+            const lastMsg = msgs.length > 0
+                ? msgs.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b)?.content
+                : 'Sin mensajes';
+
+            return {
+                id: conv.id,
+                partnerName: partner ? `${partner.nombre || 'Proveedor'} ${partner.apellido_p ? partner.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor Eliminado',
+                partnerPhoto: partner?.foto_perfil,
+                lastMessage: lastMsg || '',
+                updatedAt: conv.updated_at,
+            };
+        });
+        setConversations(parsed);
+        setIsLoadingConversations(false);
+    }, []);
+
+    // 3. Fetch Servicios consultados (DISTINCT por servicio, últimos 6).
+    //    Embed nested proveedores!inner se reemplaza por hidratacion desde
+    //    vista publica (post-RLS fix). Embed a servicios_publicados se
+    //    mantiene intacto (tabla no tocada por el fix).
+    const loadContactedServices = useCallback(async (userId: string) => {
+        setServiciosError(null);
+
+        const result = await runReadQuery<any[]>(
+            () => supabase
+                .from('conversations')
+                .select(`
+                    id,
+                    created_at,
+                    servicios_publicados!inner(
+                        id, titulo, fotos, precio_desde, unidad_precio, proveedor_id
+                    )
+                `)
+                .eq('client_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(20),
+            { subsystem: 'dashboard_tutor', table: 'conversations', route: '/usuario' },
+        );
+        if (result.error) {
+            setServiciosError('No pudimos cargar tus servicios consultados');
+            return;
+        }
+        const data = result.data ?? [];
+
+        // Hidratar proveedor anidado dentro de cada servicio (silent + log).
+        const provIds = data
+            .map((c: any) => {
+                const sp = c.servicios_publicados;
+                return Array.isArray(sp) ? sp[0]?.proveedor_id : sp?.proveedor_id;
+            })
+            .filter(Boolean);
+        const provMap = await fetchProveedoresPublicosByIds(
+            provIds,
+            'id,nombre,apellido_p,foto_perfil',
+            '/usuario',
+        );
+
+        const seen = new Set<string>();
+        const unique: ContactedService[] = [];
+        for (const conv of data) {
+            const sp = conv.servicios_publicados as any;
+            if (!sp?.id || seen.has(sp.id)) continue;
+            seen.add(sp.id);
+            const prov = provMap.get(sp.proveedor_id) ?? null;
+            unique.push({
+                conversation_id: conv.id,
+                servicio_id: sp.id,
+                proveedor_id: sp.proveedor_id ?? '',
+                titulo: sp.titulo,
+                foto: sp.fotos?.[0] || null,
+                precio_desde: sp.precio_desde,
+                unidad_precio: sp.unidad_precio,
+                proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
+            });
+            if (unique.length >= 6) break;
+        }
+        setContactedServices(unique);
+    }, []);
+
+    // 4. Fetch reseñas pendientes — bloque de nudge condicional. Cualquier
+    //    fallo se loguea a Sentry (via runReadQuery) y el bloque simplemente
+    //    no aparece (no afirma ausencia porque el heading + copy están
+    //    encadenados al `pendingReviews.length > 0` guard).
+    const loadPendingReviews = useCallback(async (userId: string) => {
+        // 1. IDs con evaluación aprobada de este usuario.
+        const evalsResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('evaluaciones')
+                .select('servicio_id')
+                .eq('usuario_id', userId)
+                .eq('estado', 'aprobado'),
+            { subsystem: 'dashboard_tutor', table: 'evaluaciones', route: '/usuario' },
+        );
+        if (evalsResult.error) return;
+        const evSet = new Set((evalsResult.data ?? []).map((e: any) => e.servicio_id));
+        setEvaluadosSet(evSet);
+
+        // 2. IDs de servicios con click de contacto últimos 30 días.
+        const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const clicksResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('eventos_tracking')
+                .select('servicio_id')
+                .eq('user_id', userId)
+                .in('tipo', ['click_whatsapp', 'click_telefono', 'click_email', 'click_web', 'click_instagram'])
+                .gte('created_at', since),
+            { subsystem: 'dashboard_tutor', table: 'eventos_tracking', route: '/usuario' },
+        );
+        if (clicksResult.error) return;
+        const clickIds = Array.from(new Set((clicksResult.data ?? []).map((c: any) => c.servicio_id).filter(Boolean)));
+
+        // 3. Servicios de clicks que no han sido evaluados (máx 3).
+        const pendingIds = clickIds.filter(id => !evSet.has(id)).slice(0, 3);
+        if (pendingIds.length === 0) return;
+
+        const extrasResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('servicios_publicados')
+                .select('id, titulo, fotos, proveedor_id')
+                .in('id', pendingIds),
+            { subsystem: 'dashboard_tutor', table: 'servicios_publicados', route: '/usuario' },
+        );
+        if (extrasResult.error) return;
+        const extras = extrasResult.data ?? [];
+
+        const provMap = await fetchProveedoresPublicosByIds(
+            extras.map((s: any) => s.proveedor_id),
+            'id,nombre,apellido_p',
+            '/usuario',
+        );
+        const mapped: PendingReview[] = extras.map((s: any) => {
+            const prov = provMap.get(s.proveedor_id) ?? null;
+            return {
+                servicio_id: s.id,
+                proveedor_id: s.proveedor_id ?? '',
+                titulo: s.titulo,
+                foto: s.fotos?.[0] || null,
+                proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
+            };
+        });
+        setPendingReviews(mapped);
+    }, []);
+
     useEffect(() => {
         if (!user) return;
 
@@ -56,185 +268,10 @@ export default function DashboardContent() {
             setShowBanner(true);
         }
 
-        let isMounted = true;
-
-        // 1. Fetch Conversaciones. El embed proveedores!fk(...) se reemplaza
-        //    por hidratacion via vista publica (post-RLS fix junio 2026).
-        //    sitter_id en conversations es auth_user_id directo del proveedor
-        //    (no proveedor.id), asi que hidratamos por auth_user_id no por id.
-        const loadConversations = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('conversations')
-                    .select(`
-                        id,
-                        updated_at,
-                        sitter_id,
-                        messages(
-                            content,
-                            created_at
-                        )
-                    `)
-                    .eq('client_id', user.id)
-                    .order('updated_at', { ascending: false })
-                    .limit(5);
-
-                if (error) throw error;
-
-                if (isMounted && data) {
-                    // Hidratar partner desde vista por auth_user_id (sitter_id es FK a auth.users).
-                    const partnerAuthIds = data.map((c: any) => c.sitter_id).filter(Boolean);
-                    const { data: partners } = await supabase
-                        .from('proveedores_publicos')
-                        .select('auth_user_id, nombre, apellido_p, foto_perfil')
-                        .in('auth_user_id', partnerAuthIds);
-                    const partnerMap = new Map<string, any>((partners ?? []).map((p: any) => [p.auth_user_id, p]));
-
-                    const parsed = data.map((conv: any) => {
-                        const partner = partnerMap.get(conv.sitter_id) ?? null;
-                        const msgs = conv.messages || [];
-                        const lastMsg = msgs.length > 0
-                            ? msgs.reduce((a: any, b: any) => new Date(a.created_at) > new Date(b.created_at) ? a : b)?.content
-                            : 'Sin mensajes';
-
-                        return {
-                            id: conv.id,
-                            partnerName: partner ? `${partner.nombre || 'Proveedor'} ${partner.apellido_p ? partner.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor Eliminado',
-                            partnerPhoto: partner?.foto_perfil,
-                            lastMessage: lastMsg || '',
-                            updatedAt: conv.updated_at
-                        };
-                    });
-                    setConversations(parsed);
-                }
-            } catch (err) {
-                console.error("Error cargando conversaciones:", err);
-            } finally {
-                if (isMounted) setIsLoadingConversations(false);
-            }
-        };
-
-        // Favoritos: feature movido a /favoritos. El dashboard solo linkea.
-
-        // 3. Fetch Servicios consultados (DISTINCT por servicio, últimos 6).
-        //    Embed nested proveedores!inner se reemplaza por hidratacion desde
-        //    vista publica (post-RLS fix). Embed a servicios_publicados se
-        //    mantiene intacto (tabla no tocada por el fix).
-        const loadContactedServices = async () => {
-            try {
-                const { data, error } = await supabase
-                    .from('conversations')
-                    .select(`
-                        id,
-                        created_at,
-                        servicios_publicados!inner(
-                            id, titulo, fotos, precio_desde, unidad_precio, proveedor_id
-                        )
-                    `)
-                    .eq('client_id', user.id)
-                    .order('created_at', { ascending: false })
-                    .limit(20);
-
-                if (!error && data) {
-                    // Hidratar proveedor anidado dentro de cada servicio.
-                    const provIds = data
-                        .map((c: any) => {
-                            const sp = c.servicios_publicados;
-                            return Array.isArray(sp) ? sp[0]?.proveedor_id : sp?.proveedor_id;
-                        })
-                        .filter(Boolean);
-                    const provMap = await fetchProveedoresPublicosByIds(
-                        provIds,
-                        'id,nombre,apellido_p,foto_perfil',
-                    );
-
-                    const seen = new Set<string>();
-                    const unique: ContactedService[] = [];
-                    for (const conv of data) {
-                        const sp = conv.servicios_publicados as any;
-                        if (!sp?.id || seen.has(sp.id)) continue;
-                        seen.add(sp.id);
-                        const prov = provMap.get(sp.proveedor_id) ?? null;
-                        unique.push({
-                            conversation_id: conv.id,
-                            servicio_id: sp.id,
-                            proveedor_id: sp.proveedor_id ?? '',
-                            titulo: sp.titulo,
-                            foto: sp.fotos?.[0] || null,
-                            precio_desde: sp.precio_desde,
-                            unidad_precio: sp.unidad_precio,
-                            proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
-                        });
-                        if (unique.length >= 6) break;
-                    }
-                    if (isMounted) setContactedServices(unique);
-                }
-            } catch (err) {
-                console.error('Error cargando servicios consultados:', err);
-            }
-        };
-
-        // 4. Fetch reseñas pendientes (servicios contactados sin evaluar)
-        const loadPendingReviews = async () => {
-            try {
-                // 1. IDs con evaluación aprobada de este usuario
-                const { data: evals } = await supabase
-                    .from('evaluaciones')
-                    .select('servicio_id')
-                    .eq('usuario_id', user.id)
-                    .eq('estado', 'aprobado');
-                const evSet = new Set((evals || []).map((e: any) => e.servicio_id));
-                if (isMounted) setEvaluadosSet(evSet);
-
-                // 2. IDs de servicios con click de contacto últimos 30 días
-                const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-                const { data: clicks } = await supabase
-                    .from('eventos_tracking')
-                    .select('servicio_id')
-                    .eq('user_id', user.id)
-                    .in('tipo', ['click_whatsapp', 'click_telefono', 'click_email', 'click_web', 'click_instagram'])
-                    .gte('created_at', since);
-                const clickIds = Array.from(new Set((clicks || []).map((c: any) => c.servicio_id).filter(Boolean)));
-
-                // 3. Servicios de clicks que no han sido evaluados (máx 3)
-                const pendingIds = clickIds.filter(id => !evSet.has(id)).slice(0, 3);
-
-                if (pendingIds.length > 0) {
-                    const { data: extras } = await supabase
-                        .from('servicios_publicados')
-                        .select('id, titulo, fotos, proveedor_id')
-                        .in('id', pendingIds);
-
-                    if (isMounted && extras) {
-                        // Hidratar proveedores desde vista publica (post-RLS fix).
-                        const provMap = await fetchProveedoresPublicosByIds(
-                            extras.map((s: any) => s.proveedor_id),
-                            'id,nombre,apellido_p',
-                        );
-                        const mapped: PendingReview[] = extras.map((s: any) => {
-                            const prov = provMap.get(s.proveedor_id) ?? null;
-                            return {
-                                servicio_id: s.id,
-                                proveedor_id: s.proveedor_id ?? '',
-                                titulo: s.titulo,
-                                foto: s.fotos?.[0] || null,
-                                proveedor_nombre: prov ? `${prov.nombre} ${prov.apellido_p ? prov.apellido_p.charAt(0) + '.' : ''}` : 'Proveedor',
-                            };
-                        });
-                        setPendingReviews(mapped);
-                    }
-                }
-            } catch (err) {
-                console.error('Error cargando reseñas pendientes:', err);
-            }
-        };
-
-        loadConversations();
-        loadContactedServices();
-        loadPendingReviews();
-
-        return () => { isMounted = false; };
-    }, [user]);
+        loadConversations(user.id);
+        loadContactedServices(user.id);
+        loadPendingReviews(user.id);
+    }, [user, loadConversations, loadContactedServices, loadPendingReviews]);
 
     const dismissBanner = () => {
         if (user && typeof window !== 'undefined') {
@@ -341,7 +378,12 @@ export default function DashboardContent() {
                 <section className="lg:col-span-2 space-y-4">
                     <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Servicios que has consultado</h2>
 
-                    {contactedServices.length > 0 ? (
+                    {serviciosError ? (
+                        <EstadoError
+                            titulo={serviciosError}
+                            onRetry={() => user && loadContactedServices(user.id)}
+                        />
+                    ) : contactedServices.length > 0 ? (
                         <div className="overflow-x-auto pb-2">
                             <div className="flex gap-4" style={{ minWidth: 'max-content' }}>
                                 {contactedServices.map(item => (
@@ -411,7 +453,12 @@ export default function DashboardContent() {
                         </h2>
 
                         <div className="bg-white rounded-2xl p-5 border border-slate-100 shadow-sm space-y-4">
-                            {isLoadingConversations ? (
+                            {mensajesError ? (
+                                <EstadoError
+                                    titulo={mensajesError}
+                                    onRetry={() => user && loadConversations(user.id)}
+                                />
+                            ) : isLoadingConversations ? (
                                 <div className="space-y-4">
                                     {[1, 2].map(i => (
                                         <div key={i} className="flex gap-3 items-center animate-pulse">
