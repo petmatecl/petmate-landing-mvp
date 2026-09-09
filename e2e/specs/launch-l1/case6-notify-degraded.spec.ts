@@ -37,7 +37,7 @@ const INTERNAL_SECRET = process.env.INTERNAL_API_SECRET || 'pawnecta-internal';
 
 test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
     test('POST con fallback (sin proveedorId) → 200 + mode:degraded', async ({ request, baseURL }) => {
-        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud`, {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'x-internal-secret': INTERNAL_SECRET,
@@ -64,7 +64,7 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
         // Uso un UUID inexistente para forzar el path "proveedor no
         // encontrado" (200 skipped). El endpoint acepta y responde sin
         // el prop `mode` (que es exclusivo del degradado).
-        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud`, {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'x-internal-secret': INTERNAL_SECRET,
@@ -81,7 +81,7 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
     });
 
     test('POST vacío (ni proveedorId ni fallback) → 400', async ({ request, baseURL }) => {
-        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud`, {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'x-internal-secret': INTERNAL_SECRET,
@@ -94,7 +94,7 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
     test('POST fallback incompleto (sin email) → 400', async ({ request, baseURL }) => {
         // El endpoint requiere al menos email + nombre en el fallback.
         // Sin email cae al `if (!proveedorId ...)` → 400.
-        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud`, {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
                 'x-internal-secret': INTERNAL_SECRET,
@@ -110,7 +110,7 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
     });
 
     test('POST sin `x-internal-secret` → 403', async ({ request, baseURL }) => {
-        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud`, {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
             },
