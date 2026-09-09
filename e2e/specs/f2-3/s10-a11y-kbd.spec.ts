@@ -23,7 +23,7 @@ import {
     type ServicioCuidadoListo,
 } from '../../fixtures/servicio-cuidado-listo';
 import { borrarServicioResiliente } from '../../fixtures/servicio-efimero';
-import { abrirModalReservaEstadia, irAMisSolicitudes } from '../../fixtures/panel-tutor';
+import { abrirModalReservaEstadia, irAMisSolicitudes, ensureLoggedInAsTutor } from '../../fixtures/panel-tutor';
 
 function chileMidnightUtcIso(ymd: string): string {
     const [y, m, d] = ymd.split('-').map(Number);
@@ -82,6 +82,18 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
         if (!servicio) return;
         const supabase = getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
+    });
+
+    // Sprint f2-ci-fix (2026-09-09) — guard contra cross-fire de storageState
+    // observado 1 vez en corrida cross-project (workers=2): Camila aterrizaba
+    // como guest en la ficha del servicio y el click en "Reservar" abría el
+    // LoginRequiredModal en vez del SolicitarAgendamientoModal. `ensureLogged
+    // InAsTutor` re-persiste el storageState si detecta guest — descrito en
+    // detalle en el propio helper. Alternativa "workers: 1 para chromium-tutor"
+    // descartada porque penaliza a los 7 tests f2-3 estables cuando el único
+    // inestable era s10.
+    test.beforeEach(async ({ page }) => {
+        await ensureLoggedInAsTutor(page);
     });
 
     test('SolicitarAgendamientoModal: role=dialog + aria-modal + Escape cierra', async ({ page }) => {
