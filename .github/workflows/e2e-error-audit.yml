@@ -117,14 +117,24 @@ jobs:
           done
           echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
 
-      - name: Run Playwright suites (error-audit + form-post + tipo-b)
+      - name: Run Playwright suites (error-audit + form-post + tipo-b + F2 full)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
         # Sprint tipo-b lote 1 (2026-09-09) — agregado e2e/specs/tipo-b/.
-        # Cero --project filter: cada spec declara su project via
-        # testMatch de playwright.config.ts.
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ --reporter=list
+        # Sprint f2-ci-fix (2026-09-09) — agregados e2e/specs/f2-2b/, f2-3/
+        # y f2-recordatorios-cron/. Los 3 traen sus propios projects
+        # (chromium, chromium-tutor, chromium-cron) declarados via testMatch
+        # en playwright.config.ts — cero --project filter necesario.
+        #
+        # Tiempo total esperado en CI (ubuntu-latest, 2 workers): ~4-5 min
+        # sumado a la suite existente. Baseline local con 2 workers para
+        # solo F2: ~1m 20s; agregado a ~2 min de la suite ya presente da
+        # ~3-4 min. Bajo el umbral 8 min, sin sharding necesario. Si en
+        # algún momento este tiempo trepa (más specs F2 o crons más
+        # pesados), evaluar dividir en jobs paralelos por project (uno
+        # por role/mobile) o usar `--shard` de Playwright.
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/f2-2b/ e2e/specs/f2-3/ e2e/specs/f2-recordatorios-cron/ --reporter=list
 
       - name: Upload Playwright HTML report
         if: always()
