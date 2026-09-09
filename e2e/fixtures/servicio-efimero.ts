@@ -84,7 +84,18 @@ async function crearServicioEfimero(
             proveedor_id: proveedorId,
             categoria_id: categoriaId,
             titulo,
-            descripcion: 'Servicio efímero de e2e — se elimina automáticamente.',
+            // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
+            // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
+            // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
+            // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
+            // toast.error silencioso y test que esperaba éxito falla. Copy en
+            // tuteo, explica su rol de fixture y que se auto-elimina, sin
+            // pretender ser un servicio real ofertado.
+            descripcion:
+                'Servicio efímero generado por la suite e2e para probar el ' +
+                'flujo del editor y de reservas del proveedor. Se elimina ' +
+                'automáticamente al terminar cada test — no lo publiques ni ' +
+                'lo contactes, es solo de prueba.',
             precio_desde: 15000,
             unidad_precio: opts.unidadPrecio,
             acepta_perros: true,
