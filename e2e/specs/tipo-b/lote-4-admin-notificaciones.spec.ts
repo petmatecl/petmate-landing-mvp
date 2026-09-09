@@ -26,7 +26,12 @@ test.describe('tipo-b lote 4 — admin notificaciones', () => {
     test('2) negativo: bloqueo proveedores* → compacto "—" en pendientes + banner de actividad', async ({ page }) => {
         // Bloquear proveedores* rompe: (a) count proveedoresPendientes,
         // (b) recentProveedores del feed. Espero ambos síntomas.
-        await page.route('**/rest/v1/proveedores*', async (route: Route) => {
+        // Regex específico: matchea la query del dashboard notificaciones
+        // (`es_ejemplo` filter) pero NO la del RoleGuard admin (que filtra
+        // por `auth_user_id`). Sin este anclaje, bloquear proveedores*
+        // rompe también el RoleGuard → redirect a /login antes de rendear
+        // el dashboard.
+        await page.route(/\/rest\/v1\/proveedores.*es_ejemplo/, async (route: Route) => {
             await route.abort('failed');
         });
         await page.goto('/admin/notificaciones');
@@ -35,18 +40,22 @@ test.describe('tipo-b lote 4 — admin notificaciones', () => {
         await expect(page.getByText('—').first()).toBeVisible({ timeout: 15_000 });
         // Banner de actividad (una de las 2 queries del feed falló).
         await expect(page.getByText('No pudimos cargar la actividad reciente')).toBeVisible({ timeout: 15_000 });
-        await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
+        // exact:true para distinguir del button del compacto "—" cuya
+        // aria-label ("No pudimos cargar este dato. Recarga para
+        // reintentar.") contiene la palabra "reintentar" y matchea con
+        // el selector no-exact.
+        await expect(page.getByRole('button', { name: 'Reintentar', exact: true })).toBeVisible();
     });
 
     test('3) recuperación: desbloquear + Reintentar del banner → banner desaparece', async ({ page }) => {
         const handler = async (route: Route) => await route.abort('failed');
-        await page.route('**/rest/v1/proveedores*', handler);
+        await page.route(/\/rest\/v1\/proveedores.*es_ejemplo/, handler);
         await page.goto('/admin/notificaciones');
         await expect(page.getByText('No pudimos cargar la actividad reciente')).toBeVisible({ timeout: 15_000 });
-        await page.unroute('**/rest/v1/proveedores*', handler);
+        await page.unroute(/\/rest\/v1\/proveedores.*es_ejemplo/, handler);
         // Reintentar del banner refetchea todo (fetchData). El compacto
         // también se limpia porque comparten fetchData.
-        await page.getByRole('button', { name: 'Reintentar' }).click();
+        await page.getByRole('button', { name: 'Reintentar', exact: true }).click();
         await expect(page.getByText('No pudimos cargar la actividad reciente')).not.toBeVisible({ timeout: 15_000 });
     });
 
