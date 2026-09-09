@@ -1,22 +1,44 @@
 # .github/workflows/lock-regen.yml
 # ---------------------------------------------------------------------------
-# Sprint chore-lock-linux-regen (2026-09-08) — workflow ONE-SHOT.
+# ⚠️ NO DISPARAR — workflow INERTE conservado como referencia.
 #
-# Objetivo: regenerar package-lock.json en Linux (ubuntu-latest) para que
-# incluya las entradas @rollup/rollup-linux-* (~10 opcionales platform-
-# specific) que el lock generado en Windows omite. Cierra el workaround
-# `npm install --no-audit --no-fund` aplicado en PR #3 y restaura `npm ci`
+# INTENTO 1 (2026-09-08, run 34284251713) DETENIDO: el output del workflow
+# (npm install --package-lock-only en ubuntu-latest) trae bump masivo de
+# ~275 paquetes NO-rollup (26464 líneas de diff), incumpliendo el criterio
+# de aceptación original "solo entradas @rollup/rollup-* y metadatos".
+#
+# ESTRATEGIA ELEGIDA POR PO 2026-09-09 = alternativa (c):
+# regenerar en Linux + aceptar el bump masivo con auditoría de dependency
+# changes en sprint dedicado post-lanzamiento. Alternativas (a), (b), (d),
+# (e) descartadas. Ver BACKLOG.md > "chore-lock-linux-regen" para el
+# detalle completo del análisis + estrategia.
+#
+# El workflow queda en main para no re-autorlo cuando el sprint dedicado
+# se abra. Prioridad BAJA — no bloquea nada; el workaround
+# `npm install --no-audit --no-fund` en ci.yml + e2e-error-audit.yml
+# funciona, y la suite e2e (17 tests error-audit + form-post) cubre
+# regressions de código que un bump podría introducir.
+#
+# NO DISPARAR VÍA gh workflow run / UI hasta que el sprint dedicado esté
+# abierto explícitamente — un disparo accidental genera un artefacto que
+# no se puede aterrizar sin auditoría de deps.
+# ---------------------------------------------------------------------------
+#
+# HISTORIA (para el sprint dedicado cuando se abra):
+# Sprint chore-lock-linux-regen (2026-09-08) — workflow ONE-SHOT diseñado
+# para regenerar package-lock.json en Linux (ubuntu-latest) e incluir las
+# entradas @rollup/rollup-linux-* (~10 opcionales platform-specific) que
+# el lock generado en Windows omite. Objetivo original: cerrar el workaround
+# `npm install --no-audit --no-fund` aplicado en PR #3 y restaurar `npm ci`
 # estricto.
 #
 # Trigger: workflow_dispatch únicamente. NO se dispara en push/PR.
 #
-# Output: package-lock.json regenerado como artefacto de build. El PO lo
-# descarga, revisa el diff (criterio de aceptación: solo entradas
-# @rollup/rollup-* y metadatos estructurales), commitea al repo si limpio.
-#
-# Este archivo se BORRA en el mismo PR que commitea el lock regenerado.
-# Vida útil esperada: 1 ejecución + 1 commit de borrado. Ver BACKLOG
-# entrada "chore-lock-linux-regen".
+# Output: package-lock.json regenerado como artefacto de build. En el
+# sprint dedicado: PO descarga el artefacto, corre auditoría de dependency
+# changes (matriz de bumps por paquete, cross-check contra changelogs de
+# breaking changes conocidos, suite e2e verde contra preview del lock
+# nuevo), commitea si la auditoría es limpia.
 # ---------------------------------------------------------------------------
 
 name: lock-regen (one-shot)

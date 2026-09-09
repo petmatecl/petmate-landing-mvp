@@ -530,7 +530,7 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 ### Sprint chore-lock-linux-regen (abierto 2026-09-08) — restaurar `npm ci` estricto
 
-- **[abierto — chore-lock-linux-regen, prioridad MEDIA — deuda de higiene] Regenerar `package-lock.json` en Linux para restaurar `npm ci` estricto** — descubierto durante PR #3 (e2e-error-audit → main, 2026-09-08, mergeado en `72e0a5c`). El lock actual, generado en Windows, no incluye las entradas `@rollup/rollup-linux-*` (~10 opcionales platform-specific). En Linux, `npm ci` exige esas entradas y falla con `Missing: @rollup/rollup-linux-x64-gnu from lock file`. CI en main rojo desde hace días por esto (invisible porque Vercel usa su propio installer).
+- **[abierto — chore-lock-linux-regen, prioridad BAJA (bajada de MEDIA 2026-09-09 tras INTENTO 1) — deuda de higiene] Regenerar `package-lock.json` en Linux para restaurar `npm ci` estricto** — descubierto durante PR #3 (e2e-error-audit → main, 2026-09-08, mergeado en `72e0a5c`). El lock actual, generado en Windows, no incluye las entradas `@rollup/rollup-linux-*` (~10 opcionales platform-specific). En Linux, `npm ci` exige esas entradas y falla con `Missing: @rollup/rollup-linux-x64-gnu from lock file`. CI en main rojo desde hace días por esto (invisible porque Vercel usa su propio installer).
   - **Workaround aplicado en PR #3** (`6c98d8e`): `npm ci` → `npm install --no-audit --no-fund` en `.github/workflows/ci.yml` y `.github/workflows/e2e-error-audit.yml`. Desbloquea CI a costa de reproducibility (versiones resueltas on-demand cada run, dentro de rangos semver del `package.json`).
   - **Fix real — sprint chico dedicado**, enfoque acordado con PO 2026-09-08:
     1. Workflow nuevo de un solo uso, gatillado con `workflow_dispatch`, ejecuta en `ubuntu-latest`:
@@ -547,13 +547,13 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   - **Estado post-INTENTO 1**:
     - Workflow `.github/workflows/lock-regen.yml` queda en `main` (registrado en `45f6c25`, requerido por GH Actions para poder gatillar). Inert (solo `workflow_dispatch`, cero triggers automáticos). Reutilizable si se retoma con estrategia distinta.
     - Branch `chore/lock-regen` en origin con `52adcb6` (workflow YAML solo — mismo contenido que ahora vive en main). Puede borrarse sin pérdida.
-  - **Estrategias alternativas para retomar (fuera de alcance hoy)**:
-    - (a) Editar el lock a mano insertando solo las ~10 entradas `@rollup/rollup-linux-*` — frágil, difícil de mantener a través de bumps de rollup.
-    - (b) Agregar `optionalDependencies` explícitas en `package.json` con los `@rollup/rollup-linux-*` — invasivo pero determinístico.
-    - (c) Regenerar en Linux + accept el bump masivo con auditoría de cambios como sprint dedicado (~medio día de trabajo).
-    - (d) Fija versiones exactas de todas las deps en `package.json` (sacar los `^`) — cambio grande, pierde flexibilidad de patch bumps.
-    - (e) Esperar a que npm resuelva el bug upstream — [npm/cli#4828](https://github.com/npm/cli/issues/4828) tracks el issue.
-  - **Trigger de reapertura**: sprint dedicado con decisión de PO entre (b), (c), (d), (e). Prioridad sigue MEDIA — el workaround funciona.
+  - **Estrategia elegida por PO 2026-09-09 (post-INTENTO 1) — alternativa (c)**: regenerar en Linux + aceptar el bump masivo con auditoría de cambios en sprint dedicado post-lanzamiento. Justificación explícita del PO: la suite e2e (17 tests bajo `e2e/specs/error-audit/` + `e2e/specs/form-post/`) + `typecheck-and-build` en CI cubren regressions funcionales de bumps de versión — reducen el riesgo de un bump-audit accidental. Aceptable pagar la auditoría de deps una vez con red de tests debajo.
+  - **Alternativas descartadas** (decisión PO 2026-09-09):
+    - ~~(a) Editar el lock a mano insertando solo las ~10 entradas `@rollup/rollup-linux-*`~~ — frágil, difícil de mantener a través de bumps de rollup.
+    - ~~(b) Agregar `optionalDependencies` explícitas en `package.json`~~ — invasivo al modelo de deps del proyecto.
+    - ~~(d) Fijar versiones exactas de todas las deps en `package.json` (sacar los `^`)~~ — cambio grande, pierde flexibilidad de patch bumps.
+    - ~~(e) Esperar a que npm resuelva el bug upstream~~ — timeline indefinido, [npm/cli#4828](https://github.com/npm/cli/issues/4828) tracks el issue pero sin ETA.
+  - **Trigger de reapertura**: sprint dedicado post-lanzamiento con auditoría de dependency changes. Prioridad BAJA — el workaround `npm install --no-audit --no-fund` funciona, no bloquea nada, y la suite e2e cubre la mayoría de regressions que el bump masivo podría introducir.
 
 ### Sprint sentry-bot-noise (2026-09-08) — mini-fix cerrado
 
