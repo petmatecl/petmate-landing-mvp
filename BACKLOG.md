@@ -628,25 +628,29 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
 - **[abierto — hallazgo colateral error-audit — auditoría completa de destructurings ignorando `.error`] Lista línea a línea de los 62 callers Tipo B/C/D restantes** — el sprint error-audit cerró los 6 Tipo A + 5 tests excluidos. Resto (62 callers en ~28 archivos) queda documentado acá para que el próximo sprint arranque sin re-auditar. Clasificación provisional del auditor — el próximo sprint puede reclasificar en la apertura si algún caller tiene impacto distinto al que le atribuí.
 
   **Tipo B (~39 líneas, moderate — degradación user-facing de features)**:
-  > **Estado sprint tipo-b (arrancado 2026-09-09)**: Fase 0 base compartida + inventario cerrados en PR #7 (`runReadQuery` / `runCountQuery` + `<EstadoError>` + `<EstadoErrorCompacto>` + helper spec `runTipoBSmoke`). Lote 1 (dashboard proveedor) cerrado en PR #8 SHA `ae3dbef`. Ver detalle línea por línea abajo.
+  > **Estado sprint tipo-b (arrancado 2026-09-09)**: Fase 0 base compartida + inventario cerrados en PR #7 (`runReadQuery` / `runCountQuery` + `<EstadoError>` + `<EstadoErrorCompacto>` + helper spec `runTipoBSmoke`). Lote 1 (dashboard proveedor) cerrado en PR #8 SHA `ae3dbef`. Lote 2 (tutor panel — favoritos + hallazgo dashboard dead-code) cerrado en PR #9 SHA `adece0b`. Ver detalle línea por línea abajo.
     - `lib/apiAuth.ts:67` — `isAdmin()` server-side, fail-closed silente (retorna false ante error). **[reclassificado Tipo C en Fase 0 tipo-b, sprint chore-tipo-b-ssr-audit]**
     - `lib/authService.ts:50, 72` — auth utilities. → Lote 5 (helpers + context).
     - `lib/profileUtils.ts:19, 28` — profile utilities compartidas. → Lote 5.
     - `lib/hooks/useFavoritos.ts:63` — hook de favoritos. → Lote 5 (silent + log Sentry por decisión PO — corazón en card).
     - `lib/useProveedorStats.ts:47, 114` — stats de proveedor en dashboard. **[cerrado — Lote 1 SHA `ae3dbef`, 6 queries del hook cubiertas con banner + EstadoErrorCompacto]**
     - `contexts/UserContext.tsx:749` — query DB del context (no confundir con :739 que es `auth.getSession`). → Lote 5.
-    - `pages/favoritos.tsx:57, 75, 102` — page de favoritos (silent empty state ante error). → Lote 2 (tutor panel).
+    - `pages/favoritos.tsx:57, 75, 102` — page de favoritos (silent empty state ante error). **[cerrado — Lote 2 SHA `adece0b`, banner "No pudimos cargar tus favoritos" + retry sobre grilla]**
     - `pages/index.tsx:705, 760, 789, 802` — home landing (silent empty state). **[reclassificado Tipo C en Fase 0 tipo-b — SSR getStaticProps]**
     - `pages/admin/notificaciones.tsx:41, 51` — listado admin de notifs. → Lote 4 (admin).
     - `pages/proveedor/[id].tsx:816, 826, 836` — perfil público (servicios, evaluaciones, certificaciones). **[reclassificado Tipo C en Fase 0 tipo-b — SSR getServerSideProps]**
     - `pages/proveedor/index.tsx:450, 457` — dashboard proveedor. **[cerrado — Lote 1 SHA `ae3dbef`, tabs servicios + evaluaciones con banner + retry]**
     - `pages/servicio/[id].tsx:109` — reviews globales del proveedor en ficha (128 es RPC — Tipo C). **[reclassificado Tipo C en Fase 0 tipo-b — SSR]**
-    - `components/Client/DashboardContent.tsx:87, 181, 191, 203` — dashboard content (partners, evals, clicks, extras). → Lote 2 (tutor panel).
+    - `components/Client/DashboardContent.tsx:87, 181, 191, 203` — dashboard content (partners, evals, clicks, extras). **[cerrado — Lote 2 SHA `adece0b` COMO DEAD CODE: importer único (`pages/usuario.tsx`) tiene redirect 307 en `next.config.js:207-210` `/usuario → /explorar`. Los cambios a runReadQuery + EstadoError aterrizaron igual como diseño futuro correcto. Hallazgo trackeado abajo en ítem "cleanup pages/usuario.tsx + DashboardContent.tsx".]**
     - `components/Shared/UnreadBadge.tsx:16` — badge (silent 0 count ante error). → Lote 5.
     - `components/Service/PreguntasSection.tsx:36` — preguntas del servicio. → Lote 3 (explorar/fichas).
     - `components/Service/ReviewList.tsx:64` — lista de reviews (join proveedores). → Lote 3 (silent placeholder + log Sentry por decisión PO — fotos secundarias).
     - `components/Proveedor/CertificacionesSection.tsx:25` — certificaciones. **[cerrado — Lote 1 SHA `ae3dbef`, banner + retry sobre lista de certificaciones]**
     - `components/Servicio/ServiceDetailView.tsx:186, 292, 330, 340, 421, 432` — ficha de servicio (varios paths de contacto, favoritos, evaluaciones, chat). → Lote 3.
+
+- **[abierto — hallazgo colateral tipo-b lote 2 (2026-09-09)] Cleanup `pages/usuario.tsx` + `components/Client/DashboardContent.tsx` (dead code por redirect)** — el par de archivos está inalcanzable en runtime: `next.config.js:207-210` tiene un redirect `{ source: '/usuario', destination: '/explorar', permanent: false }` que fuerza 307 antes de que `pages/usuario.tsx` renderice. Verificado por `curl -I /usuario` en el preview (respuesta HTTP 307 + Location: /explorar). Los cambios de código a `runReadQuery` + `<EstadoError>` en `DashboardContent.tsx` aterrizaron con el Lote 2 igual, con el fin de dejar el diseño correcto documentado si el redirect se levanta.
+  - **Decisión pendiente al PO**: (i) housekeeping — borrar los 2 archivos + el redirect en `next.config.js`, o (ii) levantar el redirect y ejercer la superficie tutor (implica retomar el spec dashboard tutor droppeado en Lote 2). Sin acción no hay riesgo — code correcto, surface muerta.
+  - **Contexto histórico útil**: el redirect es `permanent: false` (307 temporary). Fecha de introducción y motivación no documentadas en git blame legible al auditor; el PO tendrá el contexto vivo.
 
   **Tipo C (~5 líneas, low — SEO/landing/metrics con impacto bajo)**:
     - `pages/explorar.tsx:410` — RPC `buscar_servicios` fallback (path secundario, principal ya maneja error).
