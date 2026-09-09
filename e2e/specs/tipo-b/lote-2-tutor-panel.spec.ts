@@ -1,35 +1,45 @@
 // e2e/specs/tipo-b/lote-2-tutor-panel.spec.ts
 // ---------------------------------------------------------------------------
-// Sprint tipo-b lote 2 (2026-09-09) — 4 callers del panel tutor cubiertos
-// con EstadoError:
+// Sprint tipo-b lote 2 (2026-09-09) — tutor panel.
 //
+// Alcance efectivo cubierto acá:
 //   1. /favoritos — tab Servicios: 3 queries encadenadas (favoritos +
 //      servicios_publicados + hidratación proveedores). Cualquier fallo
 //      en favoritos o servicios_publicados dispara banner "No pudimos
 //      cargar tus favoritos" reemplazando la grilla.
 //   2. /favoritos — tab Proveedores: 2 queries (favoritos + proveedores_
 //      publicos). Mismo banner.
-//   3. /usuario (DashboardContent) — sección Mensajes: query conversations
-//      con embed messages. Banner "No pudimos cargar tus mensajes" dentro
-//      del box de la sidebar.
-//   4. /usuario — sección Servicios consultados: query conversations con
-//      embed servicios_publicados!inner. Banner "No pudimos cargar tus
-//      servicios consultados" reemplaza el empty state + listado.
 //
-// Reseñas pendientes: no probamos aquí — es bloque condicional (nudge) y
-// aplica silent + log Sentry por diseño (no afirma ausencia).
+// Alcance NO cubierto (hallazgo del lote):
+//   * DashboardContent.tsx (imported solo desde pages/usuario.tsx) es DEAD
+//     CODE en runtime: next.config.js:207-210 redirige 307 /usuario →
+//     /explorar antes de que la página renderice. Los 4 callers Tipo B
+//     listados en el BACKLOG (`components/Client/DashboardContent.tsx:87,
+//     181, 191, 203`) están inalcanzables. Los cambios de código a
+//     runReadQuery + EstadoError en ese archivo aterrizan en este PR de
+//     todas formas por dos razones: (a) el diseño futuro correcto queda
+//     documentado si el redirect se levanta; (b) el helper compartido
+//     `fetchProveedoresPublicosByIds` gana logging Sentry aprovechando la
+//     revisión. Reporte al PO en el body del PR para decidir: (i) borrar
+//     el par pages/usuario.tsx + components/Client/DashboardContent.tsx en
+//     un sprint housekeeping, o (ii) levantar el redirect y ejercer la
+//     superficie tutor. Sin tests acá — no hay surface accesible desde el
+//     browser para hacerlos verdes.
 //
-// Todos corren bajo project `chromium-tutor` (Camila = tutor storageState).
-// Routing configurado en playwright.config.ts:213 via filename convention
-// (`*tutor*.spec.ts` → chromium-tutor project).
+// Todos los tests corren bajo project `chromium-tutor` (Camila = tutor
+// storageState). Routing configurado en playwright.config.ts:213 via
+// filename convention (`*tutor*.spec.ts` → chromium-tutor project).
 // ---------------------------------------------------------------------------
 import { test, expect, type Route } from '@playwright/test';
 
 test.describe('tipo-b lote 2 — tutor panel', () => {
 
-    // 1+2. /favoritos — banner cubre ambos tabs con el mismo copy.
-    //      Bloqueamos `favoritos*` (primera query siempre corre — ambos tabs
-    //      la ejercen). Verificamos por tab que arrancó el fetch.
+    // /favoritos — 4 tests cubren tab Servicios + Proveedores.
+    //
+    // Bloqueamos `favoritos*` (primera query siempre corre — ambos tabs la
+    // ejercen). El banner es único para toda la vista; el título y las
+    // tabs no dependen del fetch, siguen visibles bajo error state
+    // (regla de diseño Fase 0 sprint tipo-b).
     test.describe('/favoritos', () => {
         test('1) control positivo tab Servicios: sin bloqueo → tabs visibles, sin banner', async ({ page }) => {
             await page.goto('/favoritos');
@@ -66,48 +76,6 @@ test.describe('tipo-b lote 2 — tutor panel', () => {
             await page.goto('/favoritos?tipo=proveedor');
             await expect(page.getByText('No pudimos cargar tus favoritos')).toBeVisible({ timeout: 15_000 });
             await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
-        });
-    });
-
-    // 3. /usuario dashboard — sección Mensajes (conversations query).
-    //    Bloquear conversations* rompe también la sección Servicios consultados
-    //    (misma tabla en 2 queries distintas). Ambas secciones muestran su
-    //    propio banner por diseño (error state por sección independiente).
-    test.describe('dashboard tutor — mensajes + servicios consultados', () => {
-        test('1) control positivo: sin bloqueo → sin banners', async ({ page }) => {
-            await page.goto('/usuario');
-            await expect(page.getByRole('heading', { name: /Servicios que has consultado/i })).toBeVisible({ timeout: 15_000 });
-            await expect(page.getByText('No pudimos cargar tus mensajes')).not.toBeVisible();
-            await expect(page.getByText('No pudimos cargar tus servicios consultados')).not.toBeVisible();
-        });
-
-        test('2) negativo: bloqueo conversations* → ambos banners visibles', async ({ page }) => {
-            await page.route('**/rest/v1/conversations*', async (route: Route) => {
-                await route.abort('failed');
-            });
-            await page.goto('/usuario');
-            await expect(page.getByText('No pudimos cargar tus mensajes')).toBeVisible({ timeout: 15_000 });
-            await expect(page.getByText('No pudimos cargar tus servicios consultados')).toBeVisible();
-            // Ambos banners tienen su propia sublinea + Reintentar.
-            const sublineas = page.getByText('Revisa tu conexión y vuelve a intentar.');
-            await expect(sublineas.first()).toBeVisible();
-            const reintentarBtns = page.getByRole('button', { name: 'Reintentar' });
-            await expect(reintentarBtns.first()).toBeVisible();
-        });
-
-        test('3) recuperación mensajes: desbloquear + Reintentar en el banner de mensajes → ese banner desaparece', async ({ page }) => {
-            const handler = async (route: Route) => await route.abort('failed');
-            await page.route('**/rest/v1/conversations*', handler);
-            await page.goto('/usuario');
-            await expect(page.getByText('No pudimos cargar tus mensajes')).toBeVisible({ timeout: 15_000 });
-            await page.unroute('**/rest/v1/conversations*', handler);
-            // Cada sección tiene su propio Reintentar. Click en el banner de
-            // mensajes (segunda ocurrencia — el primer Reintentar es de la
-            // sección servicios consultados, arriba en el DOM order).
-            // Alternativa robusta: locator del banner específico + botón anidado.
-            const bannerMensajes = page.locator('div', { hasText: 'No pudimos cargar tus mensajes' }).first();
-            await bannerMensajes.getByRole('button', { name: 'Reintentar' }).click();
-            await expect(page.getByText('No pudimos cargar tus mensajes')).not.toBeVisible({ timeout: 15_000 });
         });
     });
 });
