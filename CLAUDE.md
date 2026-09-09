@@ -679,28 +679,30 @@ Mantener fidelidad prod ↔ staging es manual. Cualquier migration aplicada a un
 
 ## Staging environment
 
+**Reescrita 2026-09-09** para reflejar el flujo real vigente desde el tren F2 (julio 2026). El flujo previo "cambios estructurales pasan por staging primero" quedó obsoleto — la práctica real es PR-a-main con Vercel Preview como el entorno de prueba, y la rama `staging` mantiene un rol pasivo (mirror de `main` + apunta al proyecto Supabase staging para tests e2e).
+
 **Branches**:
 - `main` → deploy automático a producción (`pawnecta.com`).
-- `staging` → deploy automático a staging (URL Vercel branch — `pawnecta-landing-mvp-git-staging-*.vercel.app` o subdominio custom si se configura).
+- `staging` → mirror de `main`; deploy automático a la URL `pawnecta-landing-mvp-git-staging-*.vercel.app`. Su razón de existir es hostear una URL estable apuntada al proyecto Supabase staging (BD de pruebas) para la suite e2e y para smokes ad-hoc que necesiten data no-prod.
 
-**Flow básico**:
-1. Hacer cambios en una feature branch o directamente en `staging`.
-2. `git checkout staging && git push` → deploy automático a staging URL.
-3. Validar en staging (visual + funcional, contra Supabase staging).
-4. Promover a prod: `git checkout main && git merge staging && git push`.
+**Flow real**:
+1. Feature branch desde `main` (ej. `sprint-X`, `tipo-b-lote-N`, `ci-Y`).
+2. Push del branch → Vercel construye preview automático (`pawnecta-landing-mvp-git-<branch>-*.vercel.app`). El preview apunta a la misma Supabase que declaran las env vars del branch — hoy prod para cambios de código puro, staging cuando el branch necesita explicitar Supabase distinto (raro, requiere override manual en Vercel).
+3. Validar en el preview: la suite e2e corre contra ese preview via `PLAYWRIGHT_BASE_URL`; smokes manuales del PO también.
+4. PR contra `main`. Los 4 checks (Vercel deployment, Vercel Preview Comments, `typecheck-and-build`, `Playwright suite error-audit`) corren automáticamente. Con los 4 verdes + review pasado → merge (`gh pr merge <n> --merge --delete-branch`).
+5. `main` autodeploya a producción.
+6. Sincronizar `staging` con `main` **cuando corresponda** (housekeeping o antes de una corrida e2e que necesite paridad total con prod): `git checkout staging && git merge main --ff-only && git push origin staging`. Es fast-forward puro porque `staging` no genera commits propios en este flujo.
 
-**Diferencias entre entornos**:
-- Supabase: prod (`ouezpeeiwjwawauidrqq`) vs staging (`jmtadvdkicyylcwjcmcl`).
-- Emails: prod manda real; staging redirige todos a `AUDIT_INBOX` con subject prefijado `[STAGING] (orig: <email>) ...` (lógica en `lib/resend.ts`).
-- Crons (`vercel.json` los schedulea en cualquier deploy con el archivo): solo ejecutan en producción. Gated por `skipIfNonProd()` en `lib/cronGuard.ts` — chequea `NEXT_PUBLIC_APP_ENV === 'production' || VERCEL_ENV === 'production'`. En staging responden `{ skipped: true, env }` sin tocar BD.
+**Diferencias entre entornos** (todas siguen vigentes):
+- Supabase: prod (`ouezpeeiwjwawauidrqq`) vs staging (`jmtadvdkicyylcwjcmcl`). El apuntamiento de un preview a uno u otro depende de las env vars efectivas en Vercel para ese branch — por default los previews de branches nuevos toman las env vars de Preview scope, que HOY apuntan a Supabase staging (verificar en Vercel Settings → Environment Variables si cambia).
+- Emails: prod manda real; staging + previews redirigen todos a `AUDIT_INBOX` con subject prefijado `[STAGING] (orig: <email>) ...` (lógica en `lib/resend.ts`).
+- Crons (`vercel.json` los schedulea en cualquier deploy con el archivo): solo ejecutan en producción. Gated por `skipIfNonProd()` en `lib/cronGuard.ts` — chequea `NEXT_PUBLIC_APP_ENV === 'production' || VERCEL_ENV === 'production'`. En staging + previews responden `{ skipped: true, env }` sin tocar BD.
 - VAPID keys (push notifications): propias en cada environment para no cross-contaminate subscriptions.
 - Auth SMTP de Supabase: staging debe usar defaults Supabase (`noreply@mail.supabase.com`), no custom SMTP apuntando a Resend con dominio de prod. Verificar en dashboard staging `Auth → SMTP Settings`.
 
-**Cambios triviales** (typos, copy menor): pueden ir directo a `main`. **Cambios estructurales** (features, schema, security, deps): pasan por `staging` primero.
+**Schema sync prod ↔ staging**: manual via Management API dumps o SQL Editor. Documentado en `staging-setup/STAGING_PROJECT.md` (file local, no committeado). Cualquier migration aplicada a prod debe replicarse en staging para que la suite e2e y los smokes sean fieles.
 
-**Schema sync prod → staging**: manual via Management API dumps. Documentado en `staging-setup/STAGING_PROJECT.md` (file local, no committeado). Cualquier migration aplicada a prod debe replicarse en staging para que los tests sean fieles.
-
-**Promoción a prod NO es fast-forward automático**: el merge `staging → main` puede generar conflictos si hubo hotfixes directos a main. Lo esperado: hotfixes urgentes a main + mirror a staging via `git checkout staging && git merge main`. Resto de cambios siempre staging-first.
+**Hotfixes directos a `main`**: mismo flujo que el resto — feature branch → PR → merge. La única regla extra es que un hotfix urgente puede ir en un branch de vida corta (`hf-<slug>`) con review acelerado del PO, pero nunca commit directo a `main` sin PR. El sync `staging → main` que la doc vieja mencionaba como "conflicto por hotfixes" ya no aplica: `staging` no lleva commits propios.
 
 ### Plan Vercel
 
