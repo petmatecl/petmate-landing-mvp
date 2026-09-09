@@ -4,6 +4,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
+import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
@@ -183,12 +184,19 @@ export default function ServiceDetailView({
         let cancelled = false;
         const timers: ReturnType<typeof setTimeout>[] = [];
         (async () => {
-            const { data } = await supabase
-                .from('agendamientos')
-                .select('id')
-                .eq('id', resenarId)
-                .eq('servicio_id', service.id)
-                .maybeSingle();
+            // Sprint tipo-b lote 3 (2026-09-09) — deep-link a "resenar" via
+            // ?resenar=<id>. Efecto de scroll cosmético; fallo silencioso
+            // (usuario ya lee la ficha, si el scroll no se ejecuta no
+            // afirma nada engañoso). Log Sentry via runReadQuery.
+            const { data } = await runReadQuery<any>(
+                () => supabase
+                    .from('agendamientos')
+                    .select('id')
+                    .eq('id', resenarId)
+                    .eq('servicio_id', service.id)
+                    .maybeSingle(),
+                { subsystem: 'ficha_servicio', table: 'agendamientos', route: '/servicio/[id]' },
+            );
             if (cancelled || !data) return;
             const targetRef =
                 miReviewEstado === 'pendiente' ? pendingBannerRef :
@@ -288,27 +296,48 @@ export default function ServiceDetailView({
             });
 
             // Look for existing conversation (sitter_id = auth_user_id, not proveedores.id)
+            // Sprint tipo-b lote 3 (2026-09-09) — antes: si esta query fallaba
+            // (data null por network error, no por "no encontró"), el flujo
+            // caía a crear una conv nueva → duplicados. Ahora fail-close con
+            // toast: no creamos conv nueva si no pudimos verificar que ya
+            // existe. Log Sentry vía runReadQuery.
             const proveedorAuthId = proveedor.auth_user_id;
-            const { data: existingConv } = await supabase
-                .from('conversations')
-                .select('id')
-                .eq('client_id', userId)
-                .eq('sitter_id', proveedorAuthId)
-                .eq('servicio_id', service.id)
-                .maybeSingle();
-
-            if (existingConv) {
-                router.push(`/mensajes?id=${existingConv.id}`);
+            const existingResult = await runReadQuery<any>(
+                () => supabase
+                    .from('conversations')
+                    .select('id')
+                    .eq('client_id', userId)
+                    .eq('sitter_id', proveedorAuthId)
+                    .eq('servicio_id', service.id)
+                    .maybeSingle(),
+                { subsystem: 'ficha_servicio_chat', table: 'conversations', route: '/servicio/[id]' },
+            );
+            if (existingResult.error) {
+                toast.error('No pudimos abrir tu chat. Recarga y vuelve a intentar.');
+                return;
+            }
+            if (existingResult.data) {
+                router.push(`/mensajes?id=${existingResult.data.id}`);
                 return;
             }
 
-            // Rate limit: max 10 new conversations per 24h
+            // Rate limit: max 10 new conversations per 24h.
+            // Sprint tipo-b lote 3: fail-close si el count query falla —
+            // bypasearlo abriría el rate limit sin verificación.
             const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { count: convCount } = await supabase
-                .from('conversations')
-                .select('id', { count: 'exact', head: true })
-                .eq('client_id', userId)
-                .gte('created_at', since24h);
+            const countResult = await runCountQuery(
+                () => supabase
+                    .from('conversations')
+                    .select('id', { count: 'exact', head: true })
+                    .eq('client_id', userId)
+                    .gte('created_at', since24h),
+                { subsystem: 'ficha_servicio_chat', table: 'conversations', route: '/servicio/[id]' },
+            );
+            if (countResult.error) {
+                toast.error('No pudimos abrir tu chat. Recarga y vuelve a intentar.');
+                return;
+            }
+            const convCount = countResult.count;
 
             const CONV_LIMIT = Number(process.env.NEXT_PUBLIC_CONV_DAILY_LIMIT ?? 10);
             if ((convCount ?? 0) >= CONV_LIMIT) {
@@ -325,31 +354,37 @@ export default function ServiceDetailView({
             // otra cosa. Fire-and-forget en la escritura: si el lookup falla,
             // agendamiento_id queda null y el punto 1 lo settea en la
             // proxima solicitud del tutor.
+            // Sprint tipo-b lote 3 (2026-09-09) — hidratación cosmética (el
+            // vínculo se usa para mostrar chip de mascota, no bloquea el chat).
+            // Fallo silencioso + log Sentry via runReadQuery; el punto 1
+            // resetea el vínculo en la próxima solicitud del tutor.
             let vinculoAgendamientoId: string | null = null;
-            try {
-                const { data: buscadorRow } = await supabase
+            const buscadorResult = await runReadQuery<any>(
+                () => supabase
                     .from('usuarios_buscadores')
                     .select('id')
                     .eq('auth_user_id', userId)
-                    .maybeSingle();
-                if (buscadorRow?.id) {
-                    // agendamientos.tutor_id referencia usuarios_buscadores.id
-                    // (no auth.users.id) — necesitamos el buscador.id para el
-                    // lookup. El scope (tutor + proveedor + servicio) matchea
-                    // exactamente el scope de la conv (per-servicio).
-                    const { data: recent } = await supabase
+                    .maybeSingle(),
+                { subsystem: 'ficha_servicio_chat', table: 'usuarios_buscadores', route: '/servicio/[id]' },
+            );
+            if (buscadorResult.data?.id) {
+                // agendamientos.tutor_id referencia usuarios_buscadores.id
+                // (no auth.users.id) — necesitamos el buscador.id para el
+                // lookup. El scope (tutor + proveedor + servicio) matchea
+                // exactamente el scope de la conv (per-servicio).
+                const recentResult = await runReadQuery<any>(
+                    () => supabase
                         .from('agendamientos')
                         .select('id')
-                        .eq('tutor_id', buscadorRow.id)
+                        .eq('tutor_id', buscadorResult.data!.id)
                         .eq('proveedor_id', proveedor.id)
                         .eq('servicio_id', service.id)
                         .order('created_at', { ascending: false })
                         .limit(1)
-                        .maybeSingle();
-                    vinculoAgendamientoId = recent?.id ?? null;
-                }
-            } catch (vinculoErr) {
-                console.warn('[handleChatClick] vinculo lookup falló:', vinculoErr);
+                        .maybeSingle(),
+                    { subsystem: 'ficha_servicio_chat', table: 'agendamientos', route: '/servicio/[id]' },
+                );
+                vinculoAgendamientoId = recentResult.data?.id ?? null;
             }
 
             // Create new conversation (sitter_id must be auth.users.id)
@@ -416,28 +451,49 @@ export default function ServiceDetailView({
             return;
         }
 
-        // Verificar si ha contactado al proveedor (por chat)
-        // sitter_id references auth.users.id, not proveedores.id
-        const { data: conv } = await supabase
-            .from('conversations')
-            .select('id')
-            .eq('client_id', session.user.id)
-            .eq('sitter_id', proveedor.auth_user_id)
-            .limit(1)
-            .maybeSingle();
+        // Sprint tipo-b lote 3 (2026-09-09) — distinguir error de red vs "no
+        // encontrado". Antes: si ambas queries fallaban con network error,
+        // `!conv && !hasWs` era true → toast "Solo puedes evaluar a
+        // proveedores contactados" — mensajero engañoso: el sistema NO
+        // verificó, no que el user no contactó. Ahora fallo de red → toast
+        // dedicado + fail-close (no abre el modal de review).
+        // Verificar si ha contactado al proveedor (por chat).
+        // sitter_id references auth.users.id, not proveedores.id.
+        const convResult = await runReadQuery<any>(
+            () => supabase
+                .from('conversations')
+                .select('id')
+                .eq('client_id', session.user.id)
+                .eq('sitter_id', proveedor.auth_user_id)
+                .limit(1)
+                .maybeSingle(),
+            { subsystem: 'ficha_servicio_review_gate', table: 'conversations', route: '/servicio/[id]' },
+        );
+        if (convResult.error) {
+            toast.error('No pudimos verificar tu contacto. Recarga y vuelve a intentar.');
+            return;
+        }
+        const conv = convResult.data;
 
-        // Verificar si clickeó WhatsApp (si aplica)
+        // Verificar si clickeó WhatsApp (si aplica).
         let hasWs = false;
         if (!conv) {
-            const { data: ws } = await supabase
-                .from('eventos_tracking')
-                .select('id')
-                .eq('tipo', 'click_whatsapp')
-                .eq('user_id', session.user.id)
-                .eq('servicio_id', service.id)
-                .limit(1)
-                .maybeSingle();
-            hasWs = !!ws;
+            const wsResult = await runReadQuery<any>(
+                () => supabase
+                    .from('eventos_tracking')
+                    .select('id')
+                    .eq('tipo', 'click_whatsapp')
+                    .eq('user_id', session.user.id)
+                    .eq('servicio_id', service.id)
+                    .limit(1)
+                    .maybeSingle(),
+                { subsystem: 'ficha_servicio_review_gate', table: 'eventos_tracking', route: '/servicio/[id]' },
+            );
+            if (wsResult.error) {
+                toast.error('No pudimos verificar tu contacto. Recarga y vuelve a intentar.');
+                return;
+            }
+            hasWs = !!wsResult.data;
         }
 
         if (!conv && !hasWs) {
@@ -1373,12 +1429,16 @@ export default function ServiceDetailView({
                                 <ReviewSummary servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} bare />
                             </div>
 
-                            {totalReviews > 0 ? (
-                                <div>
-                                    {/* Lista de Reviews */}
-                                    <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
-                                </div>
-                            ) : null}
+                            {/* Lista de Reviews. Sprint tipo-b lote 3 (2026-09-09) —
+                                antes había un guard `totalReviews > 0` (leyendo el
+                                snapshot SSR) que impedía a ReviewList mostrar su
+                                propio estado de error si el fetch client fallaba.
+                                Ahora siempre montada — ReviewList decide: (a) null
+                                si sin reviews sin error (comportamiento previo),
+                                (b) EstadoError banner si el fetch falla. */}
+                            <div>
+                                <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
+                            </div>
 
                             {/* Badge "ya evaluaste" — feedback de esta seccion,
                                 no una seccion propia. Integrado adentro del card

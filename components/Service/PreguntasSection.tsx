@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { runReadQuery } from '../../lib/supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
 import { MessageCircle, Loader2, ChevronDown } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { EstadoError } from '../Shared/EstadoError';
 
 interface Props {
     servicioId: string;
@@ -18,6 +20,10 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
     const { user } = useUser();
     const [preguntas, setPreguntas] = useState<any[]>([]);
     const [loading, setLoading] = useState(!isExample);
+    // Sprint tipo-b lote 3 (2026-09-09) — error state para distinguir "sin
+    // preguntas" real de "fallo query". Banner reemplaza SOLO la lista Q&A;
+    // el heading + subheading + form para preguntar siguen visibles.
+    const [error, setError] = useState<string | null>(null);
     const [pregunta, setPregunta] = useState('');
     const [submitting, setSubmitting] = useState(false);
     const [showAll, setShowAll] = useState(false);
@@ -30,15 +36,28 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
     useEffect(() => {
         if (isExample) return;
         fetchPreguntas();
+        // fetchPreguntas es estable con respecto a servicioId (usa el prop
+        // vía closure); no lo listamos para evitar re-runs innecesarios
+        // por reference change de la función. Warning pre-existente al lote.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [servicioId, isExample]);
 
     const fetchPreguntas = async () => {
-        const { data } = await supabase
-            .from('preguntas')
-            .select('*')
-            .eq('servicio_id', servicioId)
-            .order('created_at', { ascending: false });
-        setPreguntas(data || []);
+        setError(null);
+        const result = await runReadQuery<any[]>(
+            () => supabase
+                .from('preguntas')
+                .select('*')
+                .eq('servicio_id', servicioId)
+                .order('created_at', { ascending: false }),
+            { subsystem: 'ficha_servicio', table: 'preguntas', route: '/servicio/[id]' },
+        );
+        if (result.error) {
+            setError('No pudimos cargar las preguntas');
+            setLoading(false);
+            return;
+        }
+        setPreguntas(result.data || []);
         setLoading(false);
     };
 
@@ -129,8 +148,11 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                 </form>
             )}
 
-            {/* Q&A List */}
-            {preguntas.length === 0 ? (
+            {/* Q&A List — error state reemplaza SOLO la lista + empty state.
+                El form para preguntar sigue visible (no depende del fetch). */}
+            {error ? (
+                <EstadoError titulo={error} onRetry={fetchPreguntas} />
+            ) : preguntas.length === 0 ? (
                 <p className="text-sm text-slate-400 text-center py-4">
                     {isProveedor ? 'Aún no te han hecho preguntas.' : 'Sé el primero en preguntar.'}
                 </p>
