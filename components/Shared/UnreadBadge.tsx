@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
 
 interface Props {
     userId: string;
@@ -11,33 +12,41 @@ export default function UnreadBadge({ userId, className }: Props) {
 
     const fetchUnreadCount = useCallback(async () => {
         if (!userId) return;
-        try {
-            // 1. Obtener las conversaciones del usuario (como cliente o proveedor)
-            const { data: convs } = await supabase
+        // Sprint tipo-b lote 5 (2026-09-09) — silent + log Sentry via
+        // runReadQuery / runCountQuery. UnreadBadge es icono monocromo
+        // (círculo con "3") en el header sin espacio para banner ni
+        // compacto "—" — ademas devolver null en fallo mantiene el
+        // count previo (no lo pisamos a 0 si la query falló). Cuando
+        // count = 0 el componente renderiza null (guard L82) → no
+        // afirma ausencia visualmente ("no tienes mensajes" no se
+        // muestra; simplemente el badge no aparece).
+        const convsResult = await runReadQuery<any[]>(
+            () => supabase
                 .from('conversations')
                 .select('id')
-                .or(`client_id.eq.${userId},proveedor_auth_id.eq.${userId}`);
+                .or(`client_id.eq.${userId},proveedor_auth_id.eq.${userId}`),
+            { subsystem: 'unread_badge', table: 'conversations' },
+        );
+        if (convsResult.error) return; // preserva count previo, log ya emitido
+        const convs = convsResult.data ?? [];
+        if (convs.length === 0) {
+            setCount(0);
+            return;
+        }
+        const convIds = convs.map((c: any) => c.id);
 
-            if (!convs || convs.length === 0) {
-                setCount(0);
-                return;
-            }
-
-            const convIds = convs.map((c: any) => c.id);
-
-            // 2. Contar mensajes no leidos en esas conversaciones, enviados por otros
-            const { count: unreadCount, error } = await supabase
+        // 2. Contar mensajes no leidos en esas conversaciones, enviados por otros
+        const unreadResult = await runCountQuery(
+            () => supabase
                 .from('messages')
                 .select('*', { count: 'exact', head: true })
                 .in('conversation_id', convIds)
                 .eq('read', false)
-                .neq('sender_id', userId);
-
-            if (error) throw error;
-            setCount(unreadCount || 0);
-        } catch (error) {
-            console.error('Error fetching unread messages:', error);
-        }
+                .neq('sender_id', userId),
+            { subsystem: 'unread_badge', table: 'messages' },
+        );
+        if (unreadResult.error) return;
+        setCount(unreadResult.count ?? 0);
     }, [userId]);
 
     useEffect(() => {

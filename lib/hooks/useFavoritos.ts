@@ -10,6 +10,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { supabase } from '../supabaseClient';
+import { runReadQuery } from '../supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
 
 export type EntidadTipo = 'servicio' | 'proveedor';
@@ -59,24 +60,26 @@ export function useFavoritos({
         let cancelled = false;
         setLoading(true);
         (async () => {
-            try {
-                const { data } = await supabase
+            // Sprint tipo-b lote 5 (2026-09-09) — silent + log Sentry via
+            // runReadQuery. Decisión PO: el corazón está inline en <ServiceCard>
+            // sin espacio para banner ni compacto. Ante error de hidratación
+            // caemos a `isFavorito = false` (el toggle post-click ejercita
+            // la escritura real; si el usuario quiere favoritear, click y
+            // el INSERT resolverá). Log preserva la traza.
+            const result = await runReadQuery<any>(
+                () => supabase
                     .from('favoritos')
                     .select('id')
                     .eq('user_id', user.id)
                     .eq('entidad_tipo', entidad_tipo)
                     .eq('entidad_id', entidad_id)
                     .limit(1)
-                    .maybeSingle();
-                if (cancelled) return;
-                setIsFavorito(!!data);
-            } catch (err) {
-                if (cancelled) return;
-                console.warn('[useFavoritos] hidratación falló:', err);
-                setIsFavorito(false);
-            } finally {
-                if (!cancelled) setLoading(false);
-            }
+                    .maybeSingle(),
+                { subsystem: 'favoritos_hook', table: 'favoritos' },
+            );
+            if (cancelled) return;
+            setIsFavorito(!!result.data);
+            setLoading(false);
         })();
 
         return () => {
