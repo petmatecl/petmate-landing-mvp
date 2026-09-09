@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { runReadQuery } from '../../lib/supabaseReadQuery';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Flag } from 'lucide-react';
 import ReportModal from '../Shared/ReportModal';
+import { EstadoError } from '../Shared/EstadoError';
 
 interface ReviewListProps {
     servicioId?: string;
@@ -14,7 +16,77 @@ interface ReviewListProps {
 export default function ReviewList({ servicioId, proveedorId, reviewsOverride }: ReviewListProps) {
     const [reviews, setReviews] = useState<any[]>(reviewsOverride ?? []);
     const [loading, setLoading] = useState(!reviewsOverride);
+    // Sprint tipo-b lote 3 (2026-09-09) — error state para distinguir "sin
+    // reseñas" real de "fallo query principal". Banner reemplaza la lista.
+    // Fotos de perfil son hidratación cosmética — silent + log Sentry
+    // (fallback avatar-inicial ya cubre visualmente).
+    const [error, setError] = useState<string | null>(null);
     const [reportTarget, setReportTarget] = useState<string | null>(null);
+
+    const fetchReviews = useCallback(async () => {
+        if (!servicioId && !proveedorId) {
+            setLoading(false);
+            return;
+        }
+        setError(null);
+
+        let baseQuery = supabase
+            .from('evaluaciones')
+            .select('id, rating, comentario, created_at, respuesta_proveedor, respuesta_at, usuario_id, nombre_autor')
+            .eq('estado', 'aprobado')
+            .order('created_at', { ascending: false });
+
+        if (servicioId) baseQuery = baseQuery.eq('servicio_id', servicioId);
+        else if (proveedorId) baseQuery = baseQuery.eq('proveedor_id', proveedorId);
+
+        const evalsResult = await runReadQuery<any[]>(
+            () => baseQuery,
+            { subsystem: 'evaluaciones_lista', table: 'evaluaciones', route: servicioId ? '/servicio/[id]' : '/proveedor/[id]' },
+        );
+        if (evalsResult.error) {
+            setError('No pudimos cargar las evaluaciones');
+            setLoading(false);
+            return;
+        }
+        const evals = evalsResult.data ?? [];
+        if (evals.length === 0) {
+            setReviews([]);
+            setLoading(false);
+            return;
+        }
+
+        // Nombre publico: viene denormalizado en `evaluaciones.nombre_autor`
+        // (poblado al INSERT desde ReviewForm — formato "Nombre I.").
+        // NO se hace lookup a `usuarios_buscadores` por RLS (tabla privada
+        // con RUT/email — solo el owner lee su fila; cross-user reads
+        // fallan silenciosamente).
+        //
+        // Foto de perfil: solo posible cuando el reseñador es proveedor
+        // (usuarios_buscadores no tiene `foto_perfil`). Consultamos
+        // `proveedores_publicos` (view publica) para no fallar por RLS
+        // — devuelve null si el reviewer es solo tutor y se cae al
+        // avatar-inicial estilizado. Sprint tipo-b lote 3: fallo en esta
+        // hidratación es silent + log (via runReadQuery); avatar-inicial
+        // ya provee fallback visual, no afirmamos absence si falla.
+        const userIds = Array.from(new Set(evals.map(e => e.usuario_id).filter(Boolean)));
+        const fotoMap = new Map<string, string | null>();
+        if (userIds.length > 0) {
+            const fotosResult = await runReadQuery<any[]>(
+                () => supabase
+                    .from('proveedores_publicos')
+                    .select('auth_user_id, foto_perfil')
+                    .in('auth_user_id', userIds),
+                { subsystem: 'evaluaciones_lista', table: 'proveedores_publicos', route: servicioId ? '/servicio/[id]' : '/proveedor/[id]' },
+            );
+            (fotosResult.data || []).forEach((p: any) => fotoMap.set(p.auth_user_id, p.foto_perfil));
+        }
+
+        setReviews(evals.map(e => ({
+            ...e,
+            _foto_perfil: fotoMap.get(e.usuario_id) || null,
+        })));
+        setLoading(false);
+    }, [servicioId, proveedorId]);
 
     useEffect(() => {
         // Override mode: use passed-in reviews directly, skip fetch
@@ -23,65 +95,8 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
             setLoading(false);
             return;
         }
-
-        const fetchReviews = async () => {
-            if (!servicioId && !proveedorId) {
-                setLoading(false);
-                return;
-            }
-
-            try {
-                let query = supabase
-                    .from('evaluaciones')
-                    .select('id, rating, comentario, created_at, respuesta_proveedor, respuesta_at, usuario_id, nombre_autor')
-                    .eq('estado', 'aprobado')
-                    .order('created_at', { ascending: false });
-
-                if (servicioId) {
-                    query = query.eq('servicio_id', servicioId);
-                } else if (proveedorId) {
-                    query = query.eq('proveedor_id', proveedorId);
-                }
-
-                const { data: evals, error } = await query;
-                if (error) throw error;
-                if (!evals || evals.length === 0) { setReviews([]); return; }
-
-                // Nombre publico: viene denormalizado en `evaluaciones.nombre_autor`
-                // (poblado al INSERT desde ReviewForm — formato "Nombre I.").
-                // NO se hace lookup a `usuarios_buscadores` por RLS (tabla privada
-                // con RUT/email — solo el owner lee su fila; cross-user reads
-                // fallan silenciosamente).
-                //
-                // Foto de perfil: solo posible cuando el reseñador es proveedor
-                // (usuarios_buscadores no tiene `foto_perfil`). Consultamos
-                // `proveedores_publicos` (view publica) para no fallar por RLS
-                // — devuelve null si el reviewer es solo tutor y se cae al
-                // avatar-inicial estilizado.
-                const userIds = Array.from(new Set(evals.map(e => e.usuario_id).filter(Boolean)));
-                const fotoMap = new Map<string, string | null>();
-                if (userIds.length > 0) {
-                    const { data: provs } = await supabase
-                        .from('proveedores_publicos')
-                        .select('auth_user_id, foto_perfil')
-                        .in('auth_user_id', userIds);
-                    (provs || []).forEach(p => fotoMap.set(p.auth_user_id, p.foto_perfil));
-                }
-
-                setReviews(evals.map(e => ({
-                    ...e,
-                    _foto_perfil: fotoMap.get(e.usuario_id) || null,
-                })));
-
-            } catch (err) {
-                console.error("Error cargando lista de evaluaciones:", err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchReviews();
-    }, [servicioId, proveedorId, reviewsOverride]);
+    }, [reviewsOverride, fetchReviews]);
 
     if (loading) {
         return (
@@ -91,6 +106,10 @@ export default function ReviewList({ servicioId, proveedorId, reviewsOverride }:
                 ))}
             </div>
         );
+    }
+
+    if (error) {
+        return <EstadoError titulo={error} onRetry={fetchReviews} />;
     }
 
     if (!reviews || reviews.length === 0) {
