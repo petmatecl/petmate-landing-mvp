@@ -1,11 +1,22 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { supabase } from "../../lib/supabaseClient";
+import { runReadQuery, runCountQuery } from "../../lib/supabaseReadQuery";
 import Link from "next/link";
 import { ArrowLeft, Bell, ChevronRight, User } from "lucide-react";
 import AdminLayout from "../../components/Admin/AdminLayout";
 import RoleGuard from "../../components/Shared/RoleGuard";
+import { EstadoError, EstadoErrorCompacto } from "../../components/Shared/EstadoError";
+
+// Sprint tipo-b lote 4 (2026-09-09) — 4 queries client-side migradas a
+// runReadQuery / runCountQuery. Error states por sección:
+//   * Stats (2 counters) — EstadoErrorCompacto "—" en cada card cuando el
+//     count query falla; el heading + link a "Revisar solicitudes" o "Ver
+//     servicios" siguen visibles (no dependen del fetch, admin sigue
+//     navegando).
+//   * Actividad reciente (2 queries encadenadas: proveedores + usuarios) —
+//     banner "No pudimos cargar la actividad reciente" reemplaza el listado.
 
 function AdminNotifications() {
     const router = useRouter();
@@ -15,64 +26,89 @@ function AdminNotifications() {
         contactosEstaSemana: 0
     });
     const [activities, setActivities] = useState<any[]>([]);
+    // Errores por sección — independientes: si stats falla y actividad ok,
+    // el usuario ve "—" arriba + listado abajo.
+    const [statsPendientesError, setStatsPendientesError] = useState(false);
+    const [statsContactosError, setStatsContactosError] = useState(false);
+    const [activityError, setActivityError] = useState<string | null>(null);
 
+    const fetchData = useCallback(async () => {
+        setLoading(true);
+        setStatsPendientesError(false);
+        setStatsContactosError(false);
+        setActivityError(null);
 
-    const fetchData = async () => {
-        // 1. Stats Counters
-        const { count: proveedoresPendientes } = await supabase
-            .from("proveedores")
-            .select("*", { count: "exact", head: true })
-            .eq("estado", "pendiente")
-            .eq("es_ejemplo", false);
+        // 1. Stats Counters — cada uno reporta su propio error.
+        const pendientesResult = await runCountQuery(
+            () => supabase
+                .from("proveedores")
+                .select("*", { count: "exact", head: true })
+                .eq("estado", "pendiente")
+                .eq("es_ejemplo", false),
+            { subsystem: 'admin_notifs', table: 'proveedores', route: '/admin/notificaciones' },
+        );
+        setStatsPendientesError(!!pendientesResult.error);
 
         const hace7dias = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-        const { count: contactosEstaSemana } = await supabase
-            .from("eventos_tracking")
-            .select("*", { count: "exact", head: true })
-            .eq("tipo", "whatsapp_click")
-            .gte("created_at", hace7dias);
+        const contactosResult = await runCountQuery(
+            () => supabase
+                .from("eventos_tracking")
+                .select("*", { count: "exact", head: true })
+                .eq("tipo", "whatsapp_click")
+                .gte("created_at", hace7dias),
+            { subsystem: 'admin_notifs', table: 'eventos_tracking', route: '/admin/notificaciones' },
+        );
+        setStatsContactosError(!!contactosResult.error);
 
         setStats({
-            proveedoresPendientes: proveedoresPendientes || 0,
-            contactosEstaSemana: contactosEstaSemana || 0
+            proveedoresPendientes: pendientesResult.count ?? 0,
+            contactosEstaSemana: contactosResult.count ?? 0,
         });
 
-        // 2. Recent Activity — combinar proveedores y usuarios recientes
-        const { data: recentProveedores } = await supabase
-            .from('proveedores')
-            .select('id, nombre, apellido_p, created_at, estado')
-            .eq('es_ejemplo', false)
-            .order('created_at', { ascending: false })
-            .limit(10);
-
+        // 2. Recent Activity — combinar proveedores y usuarios recientes.
+        // Si cualquiera de las 2 queries falla → banner (no distinguimos
+        // por tipo; el listado es un feed unificado y afirmar "sin
+        // registros" con 1 query rota sería mensajero engañoso).
+        const provsResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('proveedores')
+                .select('id, nombre, apellido_p, created_at, estado')
+                .eq('es_ejemplo', false)
+                .order('created_at', { ascending: false })
+                .limit(10),
+            { subsystem: 'admin_notifs', table: 'proveedores', route: '/admin/notificaciones' },
+        );
         // usuarios_buscadores solo tiene `nombre` (full name concatenado);
         // apellido_p vive solo en proveedores. El render de abajo maneja
         // ambos casos con filter(Boolean).join(' ').
-        const { data: recentBuscadores } = await supabase
-            .from('usuarios_buscadores')
-            .select('id, nombre, created_at')
-            .order('created_at', { ascending: false })
-            .limit(10);
+        const buscResult = await runReadQuery<any[]>(
+            () => supabase
+                .from('usuarios_buscadores')
+                .select('id, nombre, created_at')
+                .order('created_at', { ascending: false })
+                .limit(10),
+            { subsystem: 'admin_notifs', table: 'usuarios_buscadores', route: '/admin/notificaciones' },
+        );
 
-        const combined = [
-            ...(recentProveedores || []).map(p => ({ ...p, tipo: 'proveedor' })),
-            ...(recentBuscadores || []).map(b => ({ ...b, tipo: 'usuario', estado: null })),
-        ]
-            .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-            .slice(0, 20);
-
-        setActivities(combined);
-    };
+        if (provsResult.error || buscResult.error) {
+            setActivityError('No pudimos cargar la actividad reciente');
+            setActivities([]);
+        } else {
+            const combined = [
+                ...(provsResult.data || []).map(p => ({ ...p, tipo: 'proveedor' })),
+                ...(buscResult.data || []).map(b => ({ ...b, tipo: 'usuario', estado: null })),
+            ]
+                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .slice(0, 20);
+            setActivities(combined);
+        }
+        setLoading(false);
+    }, []);
 
     // Auth gating delegado a <RoleGuard requiredRole="admin"> en el wrapper.
     useEffect(() => {
-        (async () => {
-            setLoading(true);
-            await fetchData();
-            setLoading(false);
-        })();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        void fetchData();
+    }, [fetchData]);
 
     return (
         <AdminLayout>
@@ -128,7 +164,13 @@ function AdminNotifications() {
                                         </div>
                                         <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Proveedores Pendientes</p>
                                     </div>
-                                    <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.proveedoresPendientes}</p>
+                                    {statsPendientesError ? (
+                                        <div className="text-4xl font-bold text-slate-900 tracking-tight">
+                                            <EstadoErrorCompacto onRetry={fetchData} />
+                                        </div>
+                                    ) : (
+                                        <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.proveedoresPendientes}</p>
+                                    )}
                                     <Link href="/admin/proveedores?estado=pendiente" className="mt-4 text-warning-600 font-medium text-sm hover:underline flex items-center gap-1">
                                         Revisar solicitudes <ChevronRight size={14} />
                                     </Link>
@@ -144,7 +186,13 @@ function AdminNotifications() {
                                         </div>
                                         <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Contactos esta semana</p>
                                     </div>
-                                    <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.contactosEstaSemana}</p>
+                                    {statsContactosError ? (
+                                        <div className="text-4xl font-bold text-slate-900 tracking-tight">
+                                            <EstadoErrorCompacto onRetry={fetchData} />
+                                        </div>
+                                    ) : (
+                                        <p className="text-4xl font-bold text-slate-900 tracking-tight">{stats.contactosEstaSemana}</p>
+                                    )}
                                     <Link href="/admin/servicios" className="mt-4 text-accent-700 font-medium text-sm hover:underline flex items-center gap-1">
                                         Ver servicios <ChevronRight size={14} />
                                     </Link>
@@ -158,52 +206,58 @@ function AdminNotifications() {
                                 <Bell className="text-slate-400" size={20} />
                                 <h3 className="font-semibold text-lg text-slate-900">Últimos Registros</h3>
                             </div>
-                            <div className="divide-y divide-slate-100">
-                                {activities.map((user) => (
-                                    <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
-                                        {/* Par de CATEGORIA de usuario con tokens semanticos:
-                                              success = proveedor (rol activo que genera valor en la plataforma)
-                                              info    = usuario   (rol consumidor, categoria neutra)
-                                            No es un par "positivo/negativo" como aprobar/rechazar — es distincion
-                                            de tipo. Success/info se eligen porque son las familias del sistema
-                                            que mejor codifican "categoria primaria/creador" vs "categoria
-                                            neutra/consumidor". */}
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm uppercase shrink-0
-                                            ${user.tipo === 'proveedor' ? 'bg-success-100 text-success-600' : 'bg-info-100 text-info-600'}
-                                        `}>
-                                            {user.nombre?.[0] || "?"}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-slate-900 truncate">
-                                                <span className="font-semibold">{[user.nombre, user.apellido_p].filter(Boolean).join(' ')}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
-                                            </p>
-                                            <p className="text-xs text-slate-500">
-                                                {new Date(user.created_at).toLocaleString('es-CL')}
-                                            </p>
-                                        </div>
+                            {activityError ? (
+                                <div className="p-6">
+                                    <EstadoError titulo={activityError} onRetry={fetchData} />
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-slate-100">
+                                    {activities.map((user) => (
+                                        <div key={user.id} className="p-4 flex items-center gap-4 hover:bg-slate-50 transition-colors">
+                                            {/* Par de CATEGORIA de usuario con tokens semanticos:
+                                                  success = proveedor (rol activo que genera valor en la plataforma)
+                                                  info    = usuario   (rol consumidor, categoria neutra)
+                                                No es un par "positivo/negativo" como aprobar/rechazar — es distincion
+                                                de tipo. Success/info se eligen porque son las familias del sistema
+                                                que mejor codifican "categoria primaria/creador" vs "categoria
+                                                neutra/consumidor". */}
+                                            <div className={`h-10 w-10 rounded-full flex items-center justify-center font-semibold text-sm uppercase shrink-0
+                                                ${user.tipo === 'proveedor' ? 'bg-success-100 text-success-600' : 'bg-info-100 text-info-600'}
+                                            `}>
+                                                {user.nombre?.[0] || "?"}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-slate-900 truncate">
+                                                    <span className="font-semibold">{[user.nombre, user.apellido_p].filter(Boolean).join(' ')}</span> se registró como {user.tipo === 'proveedor' ? 'Proveedor' : 'Usuario'}.
+                                                </p>
+                                                <p className="text-xs text-slate-500">
+                                                    {new Date(user.created_at).toLocaleString('es-CL')}
+                                                </p>
+                                            </div>
 
-                                        {/* Par de ESTADO con tokens semanticos: success=aprobado, warning=pendiente.
-                                            Misma semantica de moderacion que T2/T3 (proveedores.tsx). El chip
-                                            info=usuario del else externo mantiene la codificacion de tipo del div
-                                            del avatar (proveedor=success, usuario=info). */}
-                                        {user.tipo === 'proveedor' ? (
-                                            user.estado === 'aprobado' ? (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-success-100 text-success-600 uppercase tracking-widest">
-                                                    Aprobado
-                                                </span>
+                                            {/* Par de ESTADO con tokens semanticos: success=aprobado, warning=pendiente.
+                                                Misma semantica de moderacion que T2/T3 (proveedores.tsx). El chip
+                                                info=usuario del else externo mantiene la codificacion de tipo del div
+                                                del avatar (proveedor=success, usuario=info). */}
+                                            {user.tipo === 'proveedor' ? (
+                                                user.estado === 'aprobado' ? (
+                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-success-100 text-success-600 uppercase tracking-widest">
+                                                        Aprobado
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-warning-100 text-warning-700 uppercase tracking-widest">
+                                                        Pendiente
+                                                    </span>
+                                                )
                                             ) : (
-                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-warning-100 text-warning-700 uppercase tracking-widest">
-                                                    Pendiente
+                                                <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-info-100 text-info-700 uppercase tracking-widest">
+                                                    Usuario
                                                 </span>
-                                            )
-                                        ) : (
-                                            <span className="px-2.5 py-1 rounded-full text-[10px] font-medium bg-info-100 text-info-700 uppercase tracking-widest">
-                                                Usuario
-                                            </span>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                     </div>
