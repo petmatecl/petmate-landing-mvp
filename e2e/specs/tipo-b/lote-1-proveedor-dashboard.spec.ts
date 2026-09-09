@@ -16,8 +16,26 @@
 //      tus certificaciones". Bloqueamos certificaciones*.
 //
 // Todos corren bajo project chromium (Aldo = proveedor+admin storageState).
+//
+// **Nota operativa**: navegar con `?tab=X` cambia `activeTab` (URL sync)
+// pero NO llama a `loadTabData` — bug preexistente del app. Los tests
+// hacen click en el tab del sidebar para disparar el fetch real (ruta
+// del usuario). Idem sub-tab de Perfil.
 // ---------------------------------------------------------------------------
-import { test, expect, type Route } from '@playwright/test';
+import { test, expect, type Page, type Route } from '@playwright/test';
+
+/**
+ * Abre /proveedor y navega al tab pedido via click en el sidebar (que
+ * dispara handleTabClick → loadTabData). Espera a que el sidebar esté
+ * visible antes de clickear.
+ */
+async function abrirTabProveedor(page: Page, label: RegExp) {
+    await page.goto('/proveedor');
+    // Sidebar tiene 2 variantes (desktop + mobile scrollable). getByRole
+    // 'button' con nombre matchea cualquiera de las 2 — nth(0) desambigua.
+    await expect(page.getByRole('button', { name: label }).first()).toBeVisible({ timeout: 15_000 });
+    await page.getByRole('button', { name: label }).first().click();
+}
 
 test.describe('tipo-b lote 1 — proveedor dashboard', () => {
 
@@ -25,9 +43,8 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
     //    fuerza el error path; las 5 queries previas pasan ok (secuencial).
     test.describe('estadísticas (useProveedorStats)', () => {
         test('1) control positivo: sin bloqueo → cards con números reales', async ({ page }) => {
-            await page.goto('/proveedor?tab=estadisticas');
+            await abrirTabProveedor(page, /Estadísticas/i);
             await expect(page.getByRole('heading', { name: /Tus Resultados en Pawnecta/i })).toBeVisible({ timeout: 15_000 });
-            // Banner de error NO debe aparecer.
             await expect(page.getByText('No pudimos cargar tus métricas')).not.toBeVisible();
         });
 
@@ -35,7 +52,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
             await page.route('**/rest/v1/evaluaciones*', async (route: Route) => {
                 await route.abort('failed');
             });
-            await page.goto('/proveedor?tab=estadisticas');
+            await abrirTabProveedor(page, /Estadísticas/i);
             await expect(page.getByText('No pudimos cargar tus métricas')).toBeVisible({ timeout: 15_000 });
             await expect(page.getByText('Revisa tu conexión y vuelve a intentar.')).toBeVisible();
             await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
@@ -44,7 +61,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         test('3) recuperación: desbloquear + Reintentar → banner desaparece', async ({ page }) => {
             const handler = async (route: Route) => await route.abort('failed');
             await page.route('**/rest/v1/evaluaciones*', handler);
-            await page.goto('/proveedor?tab=estadisticas');
+            await abrirTabProveedor(page, /Estadísticas/i);
             const reintentarBtn = page.getByRole('button', { name: 'Reintentar' });
             await expect(reintentarBtn).toBeVisible({ timeout: 15_000 });
             await page.unroute('**/rest/v1/evaluaciones*', handler);
@@ -53,12 +70,12 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         });
     });
 
-    // 2. Tab Servicios — query servicios_publicados.
+    // 2. Tab Servicios — carga por default al mount de /proveedor (loadTabData
+    //    llamado desde checkStatus). No requiere click adicional.
     test.describe('tab Servicios', () => {
         test('1) control positivo: sin bloqueo → tab carga', async ({ page }) => {
-            await page.goto('/proveedor?tab=servicios');
-            // Espera hasta que aparezca el heading de la sección o el
-            // contenido del tab (button "Publicar" o listado o empty state).
+            await page.goto('/proveedor');
+            await expect(page.getByRole('button', { name: /Mis Servicios/i }).first()).toBeVisible({ timeout: 15_000 });
             await expect(page.getByText('No pudimos cargar tus servicios')).not.toBeVisible();
         });
 
@@ -66,7 +83,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
             await page.route('**/rest/v1/servicios_publicados*', async (route: Route) => {
                 await route.abort('failed');
             });
-            await page.goto('/proveedor?tab=servicios');
+            await page.goto('/proveedor');
             await expect(page.getByText('No pudimos cargar tus servicios')).toBeVisible({ timeout: 15_000 });
             await expect(page.getByText('Revisa tu conexión y vuelve a intentar.')).toBeVisible();
             await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
@@ -75,7 +92,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         test('3) recuperación: desbloquear + Reintentar → banner desaparece', async ({ page }) => {
             const handler = async (route: Route) => await route.abort('failed');
             await page.route('**/rest/v1/servicios_publicados*', handler);
-            await page.goto('/proveedor?tab=servicios');
+            await page.goto('/proveedor');
             const reintentarBtn = page.getByRole('button', { name: 'Reintentar' });
             await expect(reintentarBtn).toBeVisible({ timeout: 15_000 });
             await page.unroute('**/rest/v1/servicios_publicados*', handler);
@@ -84,10 +101,10 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         });
     });
 
-    // 3. Tab Evaluaciones — query evaluaciones.
+    // 3. Tab Evaluaciones — requiere click en el tab del sidebar.
     test.describe('tab Evaluaciones', () => {
         test('1) control positivo: sin bloqueo → tab carga', async ({ page }) => {
-            await page.goto('/proveedor?tab=evaluaciones');
+            await abrirTabProveedor(page, /Evaluaciones/i);
             await expect(page.getByText('No pudimos cargar tus evaluaciones')).not.toBeVisible();
         });
 
@@ -95,7 +112,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
             await page.route('**/rest/v1/evaluaciones*', async (route: Route) => {
                 await route.abort('failed');
             });
-            await page.goto('/proveedor?tab=evaluaciones');
+            await abrirTabProveedor(page, /Evaluaciones/i);
             await expect(page.getByText('No pudimos cargar tus evaluaciones')).toBeVisible({ timeout: 15_000 });
             await expect(page.getByText('Revisa tu conexión y vuelve a intentar.')).toBeVisible();
             await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
@@ -104,7 +121,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         test('3) recuperación: desbloquear + Reintentar → banner desaparece', async ({ page }) => {
             const handler = async (route: Route) => await route.abort('failed');
             await page.route('**/rest/v1/evaluaciones*', handler);
-            await page.goto('/proveedor?tab=evaluaciones');
+            await abrirTabProveedor(page, /Evaluaciones/i);
             const reintentarBtn = page.getByRole('button', { name: 'Reintentar' });
             await expect(reintentarBtn).toBeVisible({ timeout: 15_000 });
             await page.unroute('**/rest/v1/evaluaciones*', handler);
@@ -113,10 +130,19 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         });
     });
 
-    // 4. Certificaciones (perfil > credenciales).
+    // 4. Certificaciones (perfil > credenciales) — CertificacionesSection
+    //    monta con useEffect que dispara fetchCerts al pasar proveedorId.
+    //    Basta con abrir el tab Perfil y sub-tab Credenciales.
     test.describe('perfil credenciales — certificaciones', () => {
+        async function abrirPerfilCredenciales(page: Page) {
+            await abrirTabProveedor(page, /Mi Perfil/i);
+            // Sub-tab Credenciales dentro de Perfil.
+            await expect(page.getByRole('button', { name: /Credenciales/i }).first()).toBeVisible({ timeout: 15_000 });
+            await page.getByRole('button', { name: /Credenciales/i }).first().click();
+        }
+
         test('1) control positivo: sin bloqueo → sección carga', async ({ page }) => {
-            await page.goto('/proveedor?tab=perfil&seccion=credenciales');
+            await abrirPerfilCredenciales(page);
             await expect(page.getByText('No pudimos cargar tus certificaciones')).not.toBeVisible();
         });
 
@@ -124,7 +150,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
             await page.route('**/rest/v1/certificaciones*', async (route: Route) => {
                 await route.abort('failed');
             });
-            await page.goto('/proveedor?tab=perfil&seccion=credenciales');
+            await abrirPerfilCredenciales(page);
             await expect(page.getByText('No pudimos cargar tus certificaciones')).toBeVisible({ timeout: 15_000 });
             await expect(page.getByText('Revisa tu conexión y vuelve a intentar.')).toBeVisible();
             await expect(page.getByRole('button', { name: 'Reintentar' })).toBeVisible();
@@ -133,7 +159,7 @@ test.describe('tipo-b lote 1 — proveedor dashboard', () => {
         test('3) recuperación: desbloquear + Reintentar → banner desaparece', async ({ page }) => {
             const handler = async (route: Route) => await route.abort('failed');
             await page.route('**/rest/v1/certificaciones*', handler);
-            await page.goto('/proveedor?tab=perfil&seccion=credenciales');
+            await abrirPerfilCredenciales(page);
             const reintentarBtn = page.getByRole('button', { name: 'Reintentar' });
             await expect(reintentarBtn).toBeVisible({ timeout: 15_000 });
             await page.unroute('**/rest/v1/certificaciones*', handler);
