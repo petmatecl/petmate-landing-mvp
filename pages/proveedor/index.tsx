@@ -6,6 +6,7 @@ import { useUser } from '../../contexts/UserContext';
 import { getProxyImageUrl } from '../../lib/utils';
 import { trackEvent } from '../../lib/gtag';
 import { useProveedorStats } from '../../lib/useProveedorStats';
+import { runReadQuery } from '../../lib/supabaseReadQuery';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
 import { prefetchCategorias } from '../../lib/catalogoCategorias';
@@ -15,6 +16,7 @@ import MessageThread from '../../components/Chat/MessageThread';
 import ReviewSummary from '../../components/Service/ReviewSummary';
 import EvaluacionesTab from '../../components/Proveedor/EvaluacionesTab';
 import CertificacionesSection from '../../components/Proveedor/CertificacionesSection';
+import { EstadoError, EstadoErrorCompacto } from '../../components/Shared/EstadoError';
 import ConfirmDialog from '../../components/Shared/ConfirmDialog';
 import UserInitialsAvatar from '../../components/Shared/UserInitialsAvatar';
 import dynamic from 'next/dynamic';
@@ -142,6 +144,11 @@ export default function ProveedorDashboard() {
     // Tab Data
     const [servicios, setServicios] = useState<any[]>([]);
     const [evaluaciones, setEvaluaciones] = useState<any[]>([]);
+    // Sprint tipo-b lote 1 (2026-09-09) — error state por tab para distinguir
+    // "0 items" real de "no pude cargar". Cada loadTabData branch setea su
+    // error correspondiente antes de setServicios/setEvaluaciones([]).
+    const [serviciosError, setServiciosError] = useState<string | null>(null);
+    const [evaluacionesError, setEvaluacionesError] = useState<string | null>(null);
     // Sprint 3 agendamiento — solicitudes recibidas por el proveedor.
     // Joins inline: usuario_buscador (tutor) y servicio publicado (titulo).
     // Se carga al hidratar el proveedor (no diferido al click del tab) para
@@ -158,7 +165,7 @@ export default function ProveedorDashboard() {
     const [motivoCancelacion, setMotivoCancelacion] = useState<Record<string, string>>({});
 
     // Stats via shared hook — uses proveedor.id once loaded
-    const { stats, refetch: fetchStats } = useProveedorStats(
+    const { stats, error: statsError, refetch: fetchStats } = useProveedorStats(
         proveedor?.id || '',
         proveedor?.auth_user_id || ''
     );
@@ -447,19 +454,36 @@ export default function ProveedorDashboard() {
 
     const loadTabData = async (tab: TabType, provId: string, authId: string) => {
         if (tab === 'servicios') {
-            const { data } = await supabase
-                .from('servicios_publicados')
-                .select(`*, categoria:categorias_servicio(nombre, icono, slug)`)
-                .eq('proveedor_id', provId)
-                .order('created_at', { ascending: false });
-            setServicios(data || []);
+            // Sprint tipo-b lote 1 — distinguir "sin servicios" real de fallo.
+            setServiciosError(null);
+            const result = await runReadQuery<any[]>(
+                () => supabase
+                    .from('servicios_publicados')
+                    .select(`*, categoria:categorias_servicio(nombre, icono, slug)`)
+                    .eq('proveedor_id', provId)
+                    .order('created_at', { ascending: false }),
+                { subsystem: 'proveedor_dashboard', table: 'servicios_publicados', route: '/proveedor' },
+            );
+            if (result.error) {
+                setServiciosError('No pudimos cargar tus servicios');
+                return;
+            }
+            setServicios(result.data || []);
         } else if (tab === 'evaluaciones') {
-            const { data } = await supabase
-                .from('evaluaciones')
-                .select(`*, servicio:servicios_publicados(titulo)`)
-                .eq('proveedor_id', provId)
-                .order('created_at', { ascending: false });
-            setEvaluaciones(data || []);
+            setEvaluacionesError(null);
+            const result = await runReadQuery<any[]>(
+                () => supabase
+                    .from('evaluaciones')
+                    .select(`*, servicio:servicios_publicados(titulo)`)
+                    .eq('proveedor_id', provId)
+                    .order('created_at', { ascending: false }),
+                { subsystem: 'proveedor_dashboard', table: 'evaluaciones', route: '/proveedor' },
+            );
+            if (result.error) {
+                setEvaluacionesError('No pudimos cargar tus evaluaciones');
+                return;
+            }
+            setEvaluaciones(result.data || []);
         } else if (tab === 'estadisticas') {
             await fetchStats();
         } else if (tab === 'solicitudes') {
@@ -1525,7 +1549,12 @@ export default function ProveedorDashboard() {
                                 </button>
                             </div>
 
-                            {servicios.length === 0 ? (
+                            {serviciosError ? (
+                                <EstadoError
+                                    titulo={serviciosError}
+                                    onRetry={() => proveedor?.id && loadTabData('servicios', proveedor.id, proveedor.auth_user_id)}
+                                />
+                            ) : servicios.length === 0 ? (
                                 <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
                                     <div className="w-16 h-16 bg-slate-50 text-slate-300 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Briefcase size={32} />
@@ -2271,7 +2300,14 @@ export default function ProveedorDashboard() {
 
                     {/* EVALUACIONES */}
                     {activeTab === 'evaluaciones' && (
-                        <EvaluacionesTab evaluaciones={evaluaciones} proveedorId={proveedor.id} />
+                        evaluacionesError ? (
+                            <EstadoError
+                                titulo={evaluacionesError}
+                                onRetry={() => proveedor?.id && loadTabData('evaluaciones', proveedor.id, proveedor.auth_user_id)}
+                            />
+                        ) : (
+                            <EvaluacionesTab evaluaciones={evaluaciones} proveedorId={proveedor.id} />
+                        )
                     )}
                     {activeTab === 'mensajes' && (
                         <div className="animate-in fade-in duration-300 h-[calc(100vh-140px)] min-h-[500px]">
@@ -2310,16 +2346,32 @@ export default function ProveedorDashboard() {
                         <div className="animate-in fade-in duration-300">
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-8">Tus Resultados en Pawnecta</h1>
 
+                            {/* Sprint tipo-b lote 1 (2026-09-09) — banner arriba
+                                del grid cuando el hook devuelve error. Adicionalmente
+                                cada card renderea <EstadoErrorCompacto /> en su valor
+                                para no afirmar "0" cuando hubo fallo (regla del PO
+                                "nunca afirmar ausencia cuando hubo error"). */}
+                            {statsError && (
+                                <div className="mb-6">
+                                    <EstadoError
+                                        titulo="No pudimos cargar tus métricas"
+                                        onRetry={fetchStats}
+                                    />
+                                </div>
+                            )}
+
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {/* STAT 1: Vistas */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><Eye size={20} /></div>
-                                    <h3 className="text-slate-900 text-3xl mb-1">{stats.vistas}</h3>
+                                    <h3 className="text-slate-900 text-3xl mb-1">
+                                        {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.vistas}
+                                    </h3>
                                     <p className="text-slate-600 text-sm font-medium mb-1">Vistas de Perfil (7 días)</p>
                                     {/* Par trend positivo/negativo con tokens semanticos: success = trend
                                         positivo o cero (mas vistas que el periodo anterior); danger = trend
                                         negativo (caida). Par bidireccional clasico del panel. */}
-                                    {stats.vistasTrend && (
+                                    {!statsError && stats.vistasTrend && (
                                         <p className={`text-xs font-semibold ${stats.vistasTrendValue >= 0 ? 'text-success-600' : 'text-danger-500'}`}>
                                             {stats.vistasTrend}
                                         </p>
@@ -2329,7 +2381,9 @@ export default function ProveedorDashboard() {
                                 {/* STAT 2: Conversaciones */}
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><MessageSquare size={20} /></div>
-                                    <h3 className="text-slate-900 text-3xl mb-1">{stats.consultas}</h3>
+                                    <h3 className="text-slate-900 text-3xl mb-1">
+                                        {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.consultas}
+                                    </h3>
                                     <p className="text-slate-600 text-sm font-medium">Nuevos mensajes (30 días)</p>
                                 </div>
 
@@ -2338,7 +2392,9 @@ export default function ProveedorDashboard() {
                                     <div className="w-10 h-10 bg-[#25D366]/10 text-[#25D366] rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" /></svg>
                                     </div>
-                                    <h3 className="text-slate-900 text-3xl mb-1">{stats.whatsappClicks}</h3>
+                                    <h3 className="text-slate-900 text-3xl mb-1">
+                                        {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.whatsappClicks}
+                                    </h3>
                                     <p className="text-slate-600 text-sm font-medium">Clics en WhatsApp (30 días)</p>
                                 </div>
 
@@ -2347,7 +2403,9 @@ export default function ProveedorDashboard() {
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                                     </div>
-                                    <h3 className="text-slate-900 text-3xl mb-1">{stats.contactosTotal}</h3>
+                                    <h3 className="text-slate-900 text-3xl mb-1">
+                                        {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.contactosTotal}
+                                    </h3>
                                     <p className="text-slate-600 text-sm font-medium">Contactos recibidos (30 días)</p>
                                     <p className="text-xs text-slate-500 mt-1">Mensajes + WhatsApp + Llamadas</p>
                                 </div>
@@ -2357,7 +2415,9 @@ export default function ProveedorDashboard() {
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3">
                                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                                     </div>
-                                    <h3 className="text-slate-900 text-3xl mb-1">{stats.conversionRate}</h3>
+                                    <h3 className="text-slate-900 text-3xl mb-1">
+                                        {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.conversionRate}
+                                    </h3>
                                     <p className="text-slate-600 text-sm font-medium">Tasa de conversión</p>
                                     <p className="text-xs font-semibold text-slate-500 mt-1">
                                         (Contactos / Vistas)
@@ -2368,12 +2428,18 @@ export default function ProveedorDashboard() {
                                 <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col pt-5">
                                     <div className="w-10 h-10 bg-accent-50 text-accent-600 rounded-lg flex items-center justify-center mb-3"><Star size={20} /></div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h3 className="text-slate-900 text-3xl">{stats.ratingAvg}</h3>
-                                        <div className="flex text-amber-400">
-                                            <Star size={20} fill="currentColor" />
-                                        </div>
+                                        <h3 className="text-slate-900 text-3xl">
+                                            {statsError ? <EstadoErrorCompacto onRetry={fetchStats} tooltip="No se pudo cargar" /> : stats.ratingAvg}
+                                        </h3>
+                                        {!statsError && (
+                                            <div className="flex text-amber-400">
+                                                <Star size={20} fill="currentColor" />
+                                            </div>
+                                        )}
                                     </div>
-                                    <p className="text-slate-600 text-sm font-medium">Rating promedio ({stats.evalCount} reseñas)</p>
+                                    <p className="text-slate-600 text-sm font-medium">
+                                        Rating promedio {statsError ? '' : `(${stats.evalCount} reseñas)`}
+                                    </p>
                                 </div>
                             </div>
 
