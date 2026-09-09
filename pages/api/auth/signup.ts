@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/nextjs';
 import { authLimiter } from '../../../lib/rateLimit';
 import { z } from 'zod';
 
@@ -214,27 +215,103 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //    proveedor. Fire-and-forget, no bloquea el flow del proveedor.
     //    Motivación: hallazgo PO 2026-08-11 de 8 solicitudes acumuladas 6
     //    semanas sin respuesta por ausencia de mecanismo de notificación.
+    //
+    //    Sprint L1-2 CASE-6 (2026-09-09) — antes: si el lookup del ID fallaba
+    //    silente (destructuring de `{ data: newProv }` sin `.error`), el
+    //    admin no recibía notificación NUNCA. Silent complete — Tipo D
+    //    disfrazado de A (BACKLOG L680). Ahora: destructurar `.error`,
+    //    Sentry captureMessage con tags, y disparar la notificación al
+    //    admin igual con los datos del signup en memoria (email + nombre)
+    //    marcada como DEGRADADA en el subject.
     if (rol === 'proveedor') {
       try {
         // Resolver el ID del proveedor recién insertado para pasarlo al endpoint.
-        const { data: newProv } = await supabaseAdmin
+        const { data: newProv, error: lookupErr } = await supabaseAdmin
           .from('proveedores')
           .select('id')
           .eq('auth_user_id', userId)
           .maybeSingle();
-        if (newProv?.id) {
-          // Fire-and-forget sin await — si el endpoint falla el signup ya
-          // terminó exitoso. El endpoint mismo tiene failure-handling graceful
-          // (200 skipped en errores no-fatales).
-          fetch(`${siteUrl}/api/admin/notify-nueva-solicitud`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
+
+        const notifyBase = {
+          method: 'POST' as const,
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
+          },
+        };
+
+        if (lookupErr) {
+          // Sentry breadcrumb — permite el diagnóstico de aparición de
+          // solicitudes sin notif normal en el futuro.
+          Sentry.captureMessage('signup_provider_lookup_failed', {
+            level: 'warning',
+            tags: {
+              subsystem: 'signup',
+              table: 'proveedores',
+              route: '/api/auth/signup',
+              errorCode: lookupErr.code || 'unknown',
             },
+            extra: {
+              errorMessage: lookupErr.message,
+              errorDetails: lookupErr.details,
+              errorHint: lookupErr.hint,
+            },
+          });
+          // Modo DEGRADADO: mandar la notif con datos del propio signup.
+          // El admin ve la solicitud sin providerId (puede resolverlo
+          // manualmente por email); mejor que cero notificación.
+          fetch(`${siteUrl}/api/admin/notify-nueva-solicitud`, {
+            ...notifyBase,
+            body: JSON.stringify({
+              fallback: {
+                email,
+                nombre,
+                apellido_p,
+                rut,
+                comuna,
+              },
+            }),
+          }).catch((err) => {
+            console.warn('[signup] notify DEGRADADO fire-and-forget failed:', err);
+          });
+        } else if (newProv?.id) {
+          // Modo NORMAL: fire-and-forget con providerId — el endpoint hace
+          // el enriquecimiento via FK/join.
+          fetch(`${siteUrl}/api/admin/notify-nueva-solicitud`, {
+            ...notifyBase,
             body: JSON.stringify({ proveedorId: newProv.id }),
           }).catch((err) => {
             console.warn('[signup] notify-nueva-solicitud fire-and-forget failed:', err);
+          });
+        } else {
+          // Sin error pero sin data — Supabase devuelve `{ data: null,
+          // error: null }` para `.maybeSingle()` cuando la query no
+          // matchea. Semánticamente: el INSERT del perfil que hicimos
+          // antes NO llegó (o llegó y no lo vemos por RLS / race). Es
+          // caso extremo — Sentry con tag distinto para poder mirar
+          // frecuencia separado del lookup fail.
+          Sentry.captureMessage('signup_provider_row_missing', {
+            level: 'warning',
+            tags: {
+              subsystem: 'signup',
+              table: 'proveedores',
+              route: '/api/auth/signup',
+            },
+          });
+          // Igual notifico al admin con degradado — mismo criterio.
+          fetch(`${siteUrl}/api/admin/notify-nueva-solicitud`, {
+            ...notifyBase,
+            body: JSON.stringify({
+              fallback: {
+                email,
+                nombre,
+                apellido_p,
+                rut,
+                comuna,
+              },
+            }),
+          }).catch((err) => {
+            console.warn('[signup] notify DEGRADADO (row missing) fire-and-forget failed:', err);
           });
         }
       } catch (notifyErr) {
