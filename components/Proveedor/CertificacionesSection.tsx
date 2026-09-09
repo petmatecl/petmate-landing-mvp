@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { Upload, Loader2, CheckCircle, Clock, XCircle, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { runReadQuery } from '../../lib/supabaseReadQuery';
+import { EstadoError } from '../Shared/EstadoError';
 
 interface Props {
     proveedorId: string;
@@ -10,6 +12,10 @@ interface Props {
 export default function CertificacionesSection({ proveedorId }: Props) {
     const [certs, setCerts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    // Sprint tipo-b lote 1 (2026-09-09) — error state para distinguir "sin
+    // certificaciones" real de "fallo query". Cuando error truthy renderea
+    // <EstadoError /> en lugar de vaciar la lista.
+    const [error, setError] = useState<string | null>(null);
     const [uploading, setUploading] = useState(false);
     const [titulo, setTitulo] = useState('');
     const [institucion, setInstitucion] = useState('');
@@ -22,12 +28,22 @@ export default function CertificacionesSection({ proveedorId }: Props) {
     }, [proveedorId]);
 
     const fetchCerts = async () => {
-        const { data } = await supabase
-            .from('certificaciones')
-            .select('*')
-            .eq('proveedor_id', proveedorId)
-            .order('created_at', { ascending: false });
-        setCerts(data || []);
+        setLoading(true);
+        setError(null);
+        const result = await runReadQuery<any[]>(
+            () => supabase
+                .from('certificaciones')
+                .select('*')
+                .eq('proveedor_id', proveedorId)
+                .order('created_at', { ascending: false }),
+            { subsystem: 'certificaciones', table: 'certificaciones', route: '/proveedor' },
+        );
+        if (result.error) {
+            setError('No pudimos cargar tus certificaciones');
+            setLoading(false);
+            return;
+        }
+        setCerts(result.data || []);
         setLoading(false);
     };
 
@@ -77,6 +93,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
     };
 
     if (loading) return <div className="h-20 bg-slate-50 rounded-xl animate-pulse" />;
+    if (error) return <EstadoError titulo={error} onRetry={fetchCerts} />;
 
     const statusBadge = (estado: string) => {
         if (estado === 'aprobado') return <span className="inline-flex items-center gap-1 text-[10px] font-medium uppercase tracking-widest text-accent-600 bg-accent-50 px-2 py-0.5 rounded-full"><CheckCircle size={10} /> Verificada</span>;

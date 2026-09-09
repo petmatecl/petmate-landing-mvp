@@ -28,19 +28,14 @@
 name: e2e-error-audit
 
 on:
+  # Sprint tipo-b lote 1 (2026-09-09) — path filters removidos por decisión
+  # PO. Motivación: la convención "todo fix Tipo A/B con su spec en el
+  # mismo PR" hace que la superficie de código relevante crezca — un fix
+  # en lib/, components/Shared/ o hooks/* también debe pasar por la suite.
+  # 2 minutos por PR es barato vs. riesgo de regression sin CI. El workflow
+  # corre en TODO pull_request a main, no en push.
   pull_request:
     branches: [main]
-    paths:
-      - 'e2e/specs/error-audit/**'
-      - 'e2e/specs/form-post/**'
-      - 'components/Shared/RoleGuard.tsx'
-      - 'components/Client/ClientLayout.tsx'
-      - 'pages/admin.tsx'
-      - 'pages/login.tsx'
-      - 'pages/forgot-password.tsx'
-      - 'pages/reset-password.tsx'
-      - 'pages/api/noop.ts'
-      - '.github/workflows/e2e-error-audit.yml'
   workflow_dispatch:
     inputs:
       preview_url:
@@ -122,16 +117,14 @@ jobs:
           done
           echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
 
-      - name: Run Playwright suites (error-audit + form-post)
+      - name: Run Playwright suites (error-audit + form-post + tipo-b)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
-        # Sprint form-post (2026-09-08) — ampliado para correr también
-        # e2e/specs/form-post/. Cero --project filter: cada spec declara
-        # su project via testMatch de playwright.config.ts (chromium /
-        # chromium-tutor-mobile para error-audit; sin project filter
-        # necesario para form-post que crea sus propios contexts).
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ --reporter=list
+        # Sprint tipo-b lote 1 (2026-09-09) — agregado e2e/specs/tipo-b/.
+        # Cero --project filter: cada spec declara su project via
+        # testMatch de playwright.config.ts.
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ --reporter=list
 
       - name: Upload Playwright HTML report
         if: always()

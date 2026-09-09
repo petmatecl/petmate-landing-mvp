@@ -40,6 +40,23 @@ export interface ReadQueryResult<T> {
     error: PostgrestError | null;
 }
 
+function logReadError(error: PostgrestError, opts: ReadQueryOptions) {
+    Sentry.captureMessage('supabase_read_failed', {
+        level: 'warning',
+        tags: {
+            subsystem: opts.subsystem,
+            table: opts.table,
+            route: opts.route ?? 'unknown',
+            errorCode: error.code || 'unknown',
+        },
+        extra: {
+            errorMessage: error.message,
+            errorDetails: error.details,
+            errorHint: error.hint,
+        },
+    });
+}
+
 /**
  * Ejecuta una query de lectura Supabase, registra en Sentry si falla,
  * y devuelve { data, error } tipado. El caller decide el fallback UI
@@ -51,21 +68,31 @@ export async function runReadQuery<T>(
 ): Promise<ReadQueryResult<T>> {
     const { data, error } = await query();
     if (error) {
-        Sentry.captureMessage('supabase_read_failed', {
-            level: 'warning',
-            tags: {
-                subsystem: opts.subsystem,
-                table: opts.table,
-                route: opts.route ?? 'unknown',
-                errorCode: error.code || 'unknown',
-            },
-            extra: {
-                errorMessage: error.message,
-                errorDetails: error.details,
-                errorHint: error.hint,
-            },
-        });
+        logReadError(error, opts);
         return { data: null, error };
     }
     return { data, error: null };
+}
+
+/**
+ * Variante para queries `count-only` (Supabase `select('*', { head: true,
+ * count: 'exact' })`): la respuesta trae `count` fuera de `data` (que
+ * queda null por diseño de PostgREST HEAD). Registra en Sentry si falla,
+ * devuelve `{ count, error }` tipado.
+ */
+export interface CountQueryResult {
+    count: number | null;
+    error: PostgrestError | null;
+}
+
+export async function runCountQuery(
+    query: () => PromiseLike<{ count: number | null; error: PostgrestError | null }>,
+    opts: ReadQueryOptions,
+): Promise<CountQueryResult> {
+    const { count, error } = await query();
+    if (error) {
+        logReadError(error, opts);
+        return { count: null, error };
+    }
+    return { count, error: null };
 }
