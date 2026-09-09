@@ -1,4 +1,5 @@
 import { supabase } from './supabaseClient';
+import { runReadQuery } from './supabaseReadQuery';
 
 export type Role = 'usuario' | 'proveedor' | 'admin';
 export type OnboardingStep = 'EMAIL_VERIFIED' | 'ROLE_SELECTED' | 'PROFILE_BASIC' | 'COMPLETE';
@@ -47,11 +48,21 @@ export const AuthService = {
      */
     async fetchProfile(userId: string): Promise<UserProfile | null> {
         try {
-            const { data: proveedorData } = await supabase
-                .from('proveedores')
-                .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado')
-                .eq('auth_user_id', userId)
-                .maybeSingle();
+            // Sprint tipo-b lote 5 (2026-09-09) — silent + log Sentry via
+            // runReadQuery. `fetchProfile` es helper de context/auth: los
+            // callers ya asumen null = "sin perfil" y toman su fallback
+            // (UserContext hidrata como guest, o dispara orphan guard).
+            // Un banner acá afirmaría "no encontramos tu perfil" cuando
+            // podría ser network error — no cabe UI aquí; mejor Sentry.
+            const proveedorResult = await runReadQuery<any>(
+                () => supabase
+                    .from('proveedores')
+                    .select('id, auth_user_id, nombre, apellido_p, apellido_m, roles, foto_perfil, estado')
+                    .eq('auth_user_id', userId)
+                    .maybeSingle(),
+                { subsystem: 'auth_service', table: 'proveedores' },
+            );
+            const proveedorData = proveedorResult.data;
 
             if (proveedorData) {
                 return {
@@ -69,11 +80,15 @@ export const AuthService = {
             // usuarios_buscadores solo tiene: id, auth_user_id, nombre, email,
             // rut, created_at, proveedor_id, codigo_referido. NO tiene
             // apellido_p / apellido_m / foto_perfil — pedirlas devuelve 42703.
-            const { data: buscadorData } = await supabase
-                .from('usuarios_buscadores')
-                .select('id, auth_user_id, nombre')
-                .eq('auth_user_id', userId)
-                .maybeSingle();
+            const buscadorResult = await runReadQuery<any>(
+                () => supabase
+                    .from('usuarios_buscadores')
+                    .select('id, auth_user_id, nombre')
+                    .eq('auth_user_id', userId)
+                    .maybeSingle(),
+                { subsystem: 'auth_service', table: 'usuarios_buscadores' },
+            );
+            const buscadorData = buscadorResult.data;
 
             if (buscadorData) {
                 return {

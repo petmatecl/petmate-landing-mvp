@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
+import { runReadQuery } from '../lib/supabaseReadQuery';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 
@@ -746,12 +747,23 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // otros estados sin necesidad. Si el user no esta logueado, no-op.
     const refreshProveedorRow = async () => {
         if (!user?.id) return;
-        const { data } = await supabase
-            .from('proveedores')
-            .select('*')
-            .eq('auth_user_id', user.id)
-            .maybeSingle();
-        setProveedorRow(data ?? null);
+        // Sprint tipo-b lote 5 (2026-09-09) — silent + log Sentry via
+        // runReadQuery. Refresh puntual del cache del context tras una
+        // mutación; el caller nunca inspecciona `.error` (solo el data
+        // resultante). Ante fallo, dejamos el proveedorRow como estaba
+        // (no forzamos a null, que borraría el estado tras un simple
+        // network hiccup).
+        const result = await runReadQuery<any>(
+            () => supabase
+                .from('proveedores')
+                .select('*')
+                .eq('auth_user_id', user.id)
+                .maybeSingle(),
+            { subsystem: 'user_context', table: 'proveedores' },
+        );
+        if (!result.error) {
+            setProveedorRow(result.data ?? null);
+        }
     };
 
     // softReset: limpia estado + localStorage + signOut SIN forzar redirect.
