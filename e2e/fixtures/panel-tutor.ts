@@ -7,6 +7,48 @@
 // Paralelo a panel-proveedor.ts (F2-2B) pero desde la perspectiva del tutor.
 // ---------------------------------------------------------------------------
 import { Page, expect } from '@playwright/test';
+import path from 'path';
+import { authenticate } from '../setup/authenticate';
+
+/**
+ * Verifica que la página tenga sesión activa como tutor. Si detecta guest,
+ * re-loguea reusando el helper `authenticate` del setup y re-persiste el
+ * storageState. Idempotente — no-op si ya hay sesión.
+ *
+ * Sprint f2-ci-fix (2026-09-09) — motivo. El spec `f2-3/s10-a11y-kbd.spec.ts`
+ * cayó una vez en la corrida cross-project (workers=2) con Camila aterrizando
+ * como guest en la ficha (yaml del error mostraba "Ingresar" link visible en
+ * el header). En 3 corridas seriales `--workers=1 --retries=0` no reprodujo,
+ * lo que apunta a un race de contexts cross-project que sobreescribe el
+ * storageState en disco (`e2e/.auth/tutor.json`) durante la ejecución
+ * paralela. La opción alternativa era forzar `workers: 1` para el project
+ * chromium-tutor entero — descartada porque penaliza al resto de la suite
+ * f2-3 (7 tests) con serialización cuando el único inestable era s10.
+ *
+ * Este helper aplica solo donde el guest→login sea aceptable como recovery
+ * (specs cortos, sin dependencia de session pre-existente). Llamarlo desde
+ * `beforeEach` de los describes afectados.
+ */
+export async function ensureLoggedInAsTutor(page: Page): Promise<void> {
+    // Sanity check en / (ruta pública neutra que renderiza el header).
+    await page.goto('/');
+    await page.waitForLoadState('domcontentloaded');
+    const menuUsuario = page.getByRole('button', { name: /Menu de usuario/i });
+    const yaLogueada = await menuUsuario.isVisible({ timeout: 3_000 }).catch(() => false);
+    if (yaLogueada) return;
+
+    // Guest detectado: re-loguear reusando el mismo flow del setup + persistir
+    // storageState (mismo path que `auth-tutor.setup.ts:25`).
+    const email = process.env.E2E_STAGING_TUTOR_EMAIL ?? '';
+    const password = process.env.E2E_STAGING_TUTOR_PASSWORD ?? '';
+    const storagePath = path.resolve(__dirname, '../.auth/tutor.json');
+    await authenticate(page, {
+        email,
+        password,
+        storageStatePath: storagePath,
+        roleName: 'tutor',
+    });
+}
 
 /**
  * Devuelve {ymd, day, month, year} para hoy + diasDesdeHoy. Se usa para

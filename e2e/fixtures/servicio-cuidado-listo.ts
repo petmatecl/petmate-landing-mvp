@@ -74,7 +74,17 @@ export async function crearServicioCuidadoConF2(
             proveedor_id: opts.proveedorId,
             categoria_id: categoriaId,
             titulo,
-            descripcion: 'Servicio efímero F2-3 e2e — se elimina automáticamente.',
+            // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
+            // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
+            // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
+            // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
+            // toast.error silencioso y test que esperaba éxito falla. Copy
+            // en tuteo, honesto sobre su naturaleza de fixture de agenda F2.
+            descripcion:
+                'Servicio efímero F2-3 generado por la suite e2e para probar ' +
+                'el picker de estadías y la ventana de cancelación. Se elimina ' +
+                'automáticamente al terminar cada test — no lo publiques ni ' +
+                'lo contactes, es solo de prueba.',
             precio_desde: 15000,
             unidad_precio: 'por noche',
             acepta_perros: true,
