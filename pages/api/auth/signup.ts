@@ -198,17 +198,37 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     //    Nota (sprint email-landing 2026-08-20): `siteUrl` ya se declaró
     //    arriba para el redirectTo del generateLink; reusamos el mismo
     //    binding acá para el self-fetch. No re-declarar.
-    try {
-      await fetch(`${siteUrl}/api/auth/welcome`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
+    // Sprint L1-2 (2026-09-09) — cero fallback literal en el header.
+    // Si INTERNAL_API_SECRET no está seteada, Sentry breadcrumb + skip
+    // del self-call. Antes: `|| 'pawnecta-internal'` era una llave por
+    // defecto en el codebase — cualquier adversario que la leyera podía
+    // usarla contra los endpoints internos si el env real nunca fue
+    // configurado en Vercel. Ahora sin env, cero self-call.
+    const internalSecret = process.env.INTERNAL_API_SECRET;
+    if (!internalSecret) {
+      Sentry.captureMessage('signup_internal_secret_missing', {
+        level: 'error',
+        tags: {
+          subsystem: 'signup',
+          route: '/api/auth/signup',
+          env: process.env.VERCEL_ENV || 'unknown',
         },
-        body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol, confirmationUrl }),
       });
-    } catch (welcomeErr) {
-      console.warn('Welcome email failed (non-blocking):', welcomeErr);
+    }
+
+    if (internalSecret) {
+      try {
+        await fetch(`${siteUrl}/api/auth/welcome`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-internal-secret': internalSecret,
+          },
+          body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol, confirmationUrl }),
+        });
+      } catch (welcomeErr) {
+        console.warn('Welcome email failed (non-blocking):', welcomeErr);
+      }
     }
 
     // 4. Sprint Ola-1 A3 (2026-08-14) — notify admin de nueva solicitud de
@@ -232,11 +252,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
           .eq('auth_user_id', userId)
           .maybeSingle();
 
+        // Sprint L1-2 (2026-09-09) — cero fallback literal. Si la env no
+        // está, ya emitimos Sentry arriba en el bloque welcome. Skip el
+        // fetch acá también en vez de mandar undefined header (que el
+        // endpoint rechazaría 403).
+        if (!internalSecret) {
+          console.warn('[signup] notify admin skip: INTERNAL_API_SECRET not set');
+          throw new Error('internal-secret-missing');
+        }
+
         const notifyBase = {
           method: 'POST' as const,
           headers: {
             'Content-Type': 'application/json',
-            'x-internal-secret': process.env.INTERNAL_API_SECRET || 'pawnecta-internal',
+            'x-internal-secret': internalSecret,
           },
         };
 

@@ -57,7 +57,6 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
     let reservaId: string;
 
     test.beforeAll(async () => {
-        test.setTimeout(90_000); // L1-1 sprint launch-l1: subido de 60s default por saturacion Supabase staging bajo workers=2 concurrentes. Los beforeAll hacen INSERT + wait de servicio + reserva pre-poblada — 60s roza al maximo cuando 2 specs paralelos hitean Supabase.
         test.skip(SKIP_UNTIL_DEPLOY, 'requiere deploy del sweep #2 en staging');
         const supabaseProv = getSupabaseAsProveedor();
         const supabaseTutor = getSupabaseAsTutor();

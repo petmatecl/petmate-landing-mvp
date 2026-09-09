@@ -50,7 +50,10 @@ interface RequestBody {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
-    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
+    // Sprint L1-2 (2026-09-09) — verifyInternalSecret ahora retorna 3 estados
+    // (missing-config=500 con Sentry, missing-header/invalid=403).
+    const auth = verifyInternalSecret(req);
+    if (!auth.ok) return res.status(auth.status).json({ error: auth.reason });
     if (!(await emailLimiter(req, res))) return;
 
     const { proveedorId, fallback } = (req.body || {}) as RequestBody;

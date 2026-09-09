@@ -109,7 +109,7 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
         expect(res.status()).toBe(400);
     });
 
-    test('POST sin `x-internal-secret` → 403', async ({ request, baseURL }) => {
+    test('POST sin `x-internal-secret` → 403 con reason:missing-header', async ({ request, baseURL }) => {
         const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -122,5 +122,29 @@ test.describe('L1-2 · CASE-6 · notify-nueva-solicitud modo degradado', () => {
             },
         });
         expect(res.status()).toBe(403);
+        const body = await res.json();
+        // Sprint L1-2 (2026-09-09): el helper ahora retorna reason tipado.
+        // Distingue este caso (auth failure — cliente sin header) del caso
+        // ambient roto (missing-config → 500) que se testea en unit
+        // (lib/apiAuth.test.ts).
+        expect(body).toHaveProperty('error', 'missing-header');
+    });
+
+    test('POST con `x-internal-secret` inválido → 403 con reason:invalid', async ({ request, baseURL }) => {
+        const res = await request.post(`${baseURL}/api/admin/notify-nueva-solicitud?x-vercel-protection-bypass=${encodeURIComponent(process.env.PLAYWRIGHT_BYPASS ?? '')}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'x-internal-secret': 'valor-random-que-no-matchea',
+            },
+            data: {
+                fallback: {
+                    email: 'x@x.cl',
+                    nombre: 'X',
+                },
+            },
+        });
+        expect(res.status()).toBe(403);
+        const body = await res.json();
+        expect(body).toHaveProperty('error', 'invalid');
     });
 });

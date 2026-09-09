@@ -1,18 +1,60 @@
 import { NextApiRequest } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
 /**
- * Verify internal API secret for server-to-server calls.
- * ALWAYS requires the env var to be set — no fallback.
+ * Sprint L1-2 (2026-09-09) — resultado tipado con 3 estados en vez del
+ * boolean previo. Motivo: el boolean colapsaba dos casos con severidades
+ * distintas (envconfig faltante vs auth inválida) que necesitan
+ * respuestas HTTP y observabilidad diferentes.
+ *
+ * - `missing-config` → **500** + Sentry captureMessage `internal_secret
+ *   _env_missing` con severity `error`. Refleja un ambient roto (env var
+ *   no seteada en Vercel/CI). Un caller con header correcto no debería
+ *   ver esto — pero si ocurre, Sentry lo muestra explícitamente y el
+ *   endpoint responde 500 (server error) en vez de 403 (auth failure),
+ *   así el operador ve la naturaleza real del problema.
+ * - `missing-header` / `invalid` → **403**. Auth failure genuina.
+ * - `ok: true` → paso a siguiente handler.
+ *
+ * Antes: si `INTERNAL_API_SECRET` no estaba, `expected` era undefined y
+ * el helper retornaba `false` sin distinguir. En el mismo commit
+ * signup.ts usaba fallback `|| 'pawnecta-internal'` como llave por
+ * defecto — un secreto conocido en el codebase que un adversario podría
+ * usar para llamar endpoints internos si nunca configuramos la env.
+ * Ambos vectores cerrados acá: sin env, servidor rechaza 500 loud + sin
+ * fallback en el caller.
  */
-export function verifyInternalSecret(req: NextApiRequest): boolean {
-    const secret = req.headers['x-internal-secret'] as string;
+export type InternalSecretResult =
+    | { ok: true }
+    | { ok: false; status: 500; reason: 'missing-config' }
+    | { ok: false; status: 403; reason: 'missing-header' | 'invalid' };
+
+export function verifyInternalSecret(req: NextApiRequest): InternalSecretResult {
+    const secret = req.headers['x-internal-secret'] as string | undefined;
     const expected = process.env.INTERNAL_API_SECRET;
-    if (!expected || !secret) return false;
-    return secret === expected;
+
+    if (!expected) {
+        // Ambient roto — la env var NO está seteada en el runtime.
+        // Sentry error para que dispare alerta en el dashboard. Endpoint
+        // responde 500 con reason explícita (no 403) para que el operador
+        // vea la naturaleza real.
+        Sentry.captureMessage('internal_secret_env_missing', {
+            level: 'error',
+            tags: {
+                subsystem: 'apiAuth',
+                route: req.url || 'unknown',
+                env: process.env.VERCEL_ENV || 'unknown',
+            },
+        });
+        return { ok: false, status: 500, reason: 'missing-config' };
+    }
+    if (!secret) return { ok: false, status: 403, reason: 'missing-header' };
+    if (secret !== expected) return { ok: false, status: 403, reason: 'invalid' };
+    return { ok: true };
 }
 
 /**
