@@ -558,9 +558,21 @@ async function enviarRecordatorio(
     const nombreOtro = esTutor ? e.proveedor.nombre : e.tutor.nombre;
     const panelPath = esTutor ? '/mis-reservas' : '/proveedor?tab=solicitudes';
     const panelUrl = `${siteUrl}${panelPath}`;
-    const subject = esTutor
+    // Sprint pan-1 PR-2 def 7 (2026-09-11) — separar subject del email
+    // (llega el día antes, "Mañana:" es correcto) del title in-app (se
+    // lee días después, "Mañana:" congelado sería falso). El panel de
+    // notificaciones renderiza fecha relativa dinámica desde
+    // metadata.tipo='recordatorio_dia_anterior' + fecha_preferida del
+    // agendamiento via formatFechaRelativa modo='evento' — ver
+    // components/Shared/NotificationBell.tsx:293-300 `fechaEvento()`.
+    // Cero backfill BD (la fecha se computa en render desde
+    // agendamientos.fecha_preferida via batch query del bell).
+    const emailSubject = esTutor
         ? `Mañana: tu reserva con ${nombreOtro}`
         : `Mañana: reserva de ${nombreOtro}`;
+    const notifTitle = esTutor
+        ? `Recordatorio: tu reserva con ${nombreOtro}`
+        : `Recordatorio: reserva de ${nombreOtro}`;
 
     // Copy de cancelación server-side según familia + ventana.
     //   F2 fuera de ventana: mensaje que dirige al chat.
@@ -583,7 +595,7 @@ async function enviarRecordatorio(
     await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to,
-        subject,
+        subject: emailSubject,
         react: RecordatorioReservaEmail({
             destinatario,
             familia: e.familia,
@@ -607,7 +619,7 @@ async function enviarRecordatorio(
     await supabaseAdmin.from('notifications').insert({
         user_id: esTutor ? e.tutor.authId : e.proveedor.authId,
         type: 'info',
-        title: subject,
+        title: notifTitle,
         // Notif in-app compacta: "Servicio — Fecha [· Hora si aplica]".
         message: e.horaLinea
             ? `${e.servicioTitulo} — ${e.fechaLinea} · ${e.horaLinea}`
