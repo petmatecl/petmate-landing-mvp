@@ -44,13 +44,18 @@ async function openBell(page: Page): Promise<void> {
 
 async function contarNotifsVisibles(page: Page): Promise<number> {
     const panel = page.getByRole(PANEL_SELECTOR, { name: PANEL_NAME });
-    // Esperar que aparezca la primera fila O el empty state — sin esta espera
-    // count() ejecuta antes de que setState del fetch complete → 0 filas
-    // aparente aunque BD tenga. Corte de race identificado en el diagnóstico.
-    const filaOEmpty = panel.locator(
-        '.divide-y > div, p:has-text("No tienes notificaciones")'
-    ).first();
-    await filaOEmpty.waitFor({ state: 'visible', timeout: 10_000 });
+    // Sprint pan-1 PR-3 — esperar que el loading state DESAPAREZCA. Antes
+    // esperaba primer fila O empty state, pero el empty state aparecía
+    // desde el primer render mientras `notifications=[]` inicial — el
+    // waitFor lo consumía como "cargó vacío" cuando en realidad el fetch
+    // aún no había corrido. Con el flag `loadingNotifs` del bell, el panel
+    // muestra "Cargando notificaciones..." mientras el fetch está en flight;
+    // desaparece cuando fetch completa (success o error). Esperar por su
+    // ausencia da un estado terminal fiable.
+    await panel.locator('[data-testid="notifs-loading"]').waitFor({
+        state: 'hidden',
+        timeout: 15_000,
+    });
     return await panel.locator('.divide-y > div').count();
 }
 

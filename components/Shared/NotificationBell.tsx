@@ -68,6 +68,16 @@ export default function NotificationBell() {
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
+    // Sprint pan-1 PR-3 (2026-09-11) — `loadingNotifs` distingue:
+    //   (a) fetch aún no corrió (initial mount, auth aún cargando) → true
+    //   (b) fetch en flight → true
+    //   (c) fetch completó (success o error) → false
+    // Sin este flag, el panel renderiza "No tienes notificaciones" desde el
+    // primer render mientras notifications=[] — el user ve "cero" cuando en
+    // realidad puede tener N (misinformation reportada por PO). Mismo patrón
+    // que la regla CLAUDE.md 2026-08-25: "Pantalla de estado no debe afirmar
+    // causa que no verificó" — decir "no tienes" antes de saberlo es falso.
+    const [loadingNotifs, setLoadingNotifs] = useState(true);
     // Sprint notifs-panel C4 (2026-09-01) — Render defensivo.
     // Set con refs que existen en BD, formato "prefijo:UUID". Poblado por el
     // batch query después de traer las notifs. Notifs cuyos refs NO están en
@@ -133,13 +143,17 @@ export default function NotificationBell() {
     useEffect(() => {
         // Esperar auth resuelto — evita fetch temprano con user null que
         // limpiaba el state cuando en realidad el auth aún estaba cargando.
+        // Mientras authLoading=true dejamos loadingNotifs=true (initial) para
+        // que el panel no muestre "No tienes notificaciones" antes de saberlo.
         if (authLoading) return;
         // Sin user (guest o logout) → limpiar state, cero fetch, cero channel.
+        // loadingNotifs=false porque ya sabemos el resultado (guest siempre 0).
         if (!user?.id) {
             setNotifications([]);
             setUnreadCount(0);
             setExistingRefs(new Set());
             setAgendaFechas(new Map());
+            setLoadingNotifs(false);
             return;
         }
 
@@ -204,6 +218,11 @@ export default function NotificationBell() {
     }, [user?.id, authLoading]);
 
     const fetchNotifications = async (uid: string) => {
+        // Sprint pan-1 PR-3 — flag ON al iniciar fetch. Cuando termine (success
+        // o error) volvemos a false en el `finally` implícito abajo (setter
+        // explícito antes de cada return path).
+        setLoadingNotifs(true);
+
         // Sprint pan-1 PR-3 (2026-09-11) — Opción B revisada del PO: unread
         // + últimas 10 read. Reemplaza D2 del sprint notifs-panel (que traía
         // solo unread — el user perdía visibilidad del histórico reciente
@@ -304,6 +323,9 @@ export default function NotificationBell() {
 
         setExistingRefs(nextRefs);
         setAgendaFechas(nextAgendaFechas);
+        // Sprint pan-1 PR-3 — fetch completó (success o parcial con errors
+        // manejados con warn); OK renderizar estado terminal (filas o empty).
+        setLoadingNotifs(false);
     };
 
     // Sprint notifs-panel C4 (2026-09-01) — Render defensivo.
@@ -471,6 +493,17 @@ export default function NotificationBell() {
                             reads (todas atendidas), sigue visible el histórico. */}
                         <div className="max-h-[60vh] overflow-y-auto">
                             {(() => {
+                                // Sprint pan-1 PR-3 — loadingNotifs distingue
+                                // "fetch en flight" de "fetch completó vacío".
+                                // Sin este check el user veía "No tienes"
+                                // antes de saber la respuesta (misinformation).
+                                if (loadingNotifs) {
+                                    return (
+                                        <div className="p-8 text-center text-slate-500 text-sm" data-testid="notifs-loading">
+                                            <p>Cargando notificaciones...</p>
+                                        </div>
+                                    );
+                                }
                                 const visibles = notifications;
                                 if (visibles.length === 0) {
                                     return (
