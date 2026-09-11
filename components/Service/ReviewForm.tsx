@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { useUser } from '../../contexts/UserContext';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -41,9 +42,13 @@ function formatearNombrePublico(
 }
 
 export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, onSuccess }: ReviewFormProps) {
-    // Auth
-    const [user, setUser] = useState<any>(null);
-    const [loadingAuth, setLoadingAuth] = useState(true);
+    // Sprint pan-1 PR-3b (2026-09-11) — Fix del patrón buggy que
+    // NotificationBell tenía. Antes: `useEffect(() => getSession()...,
+    // [])` con race del auth resolution → race dejaba `user=null` +
+    // `loadingAuth=false` → form mostraba "iniciá sesión" a user
+    // autenticado. Reemplazado por `useUser()` del contexto (source of
+    // truth) — `user.id` reactivo, `isLoading` esperando hidratación.
+    const { user, isLoading: loadingAuth } = useUser();
 
     // Conversation guard
     const [hasConversacion, setHasConversacion] = useState<boolean | null>(null);
@@ -56,15 +61,6 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
     const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-    useEffect(() => {
-        const checkUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user || null);
-            setLoadingAuth(false);
-        };
-        checkUser();
-    }, []);
 
     // Once user is known, check gate: conversation OR agendamiento confirmado
     // con fecha ya pasada. Cualquiera habilita el form (backwards-compat con
