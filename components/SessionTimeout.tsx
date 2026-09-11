@@ -129,36 +129,68 @@ export default function SessionTimeout() {
             }, INACTIVITY_LIMIT_MS);
         };
 
-        const init = async () => {
-            const expired = await checkInactivityOnMount();
-            if (!expired) {
-                resetTimer(); // Iniciar timer si no ha expirado
-            }
-        };
-
-        // Eventos a monitorear (interacción del user)
-        const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
-
-        // Agregar listeners
-        events.forEach((event) => {
-            window.addEventListener(event, resetTimer);
-        });
-
         // Fix (2) REVERTIDO 2026-08-25 — ver comentario ampliado arriba.
         // Reemplazado por lib/sessionTimeout.ts resetInactivityTimer()
         // llamado desde puntos de intención explícita del usuario, no
         // desde events del SDK cuya semántica no está garantizada por
         // contrato.
 
+        // Sprint session-timeout-fix (2026-08-27) — REORDER DE LISTENERS.
+        // Bug preexistente descubierto tras revert del fix 2: el path
+        // "F5 tras inactividad expulsa" NUNCA funcionó porque los event
+        // listeners de interacción (mousemove hipersensible, dispara con
+        // 1 píxel de movimiento del cursor) se registraban ANTES del
+        // check async. Cualquier movimiento del mouse post-F5 pisaba el
+        // marker antes de que checkInactivityOnMount lo leyera. Aldo
+        // detectó con smoke positivo-conocido (seteo marker a hace 20
+        // min, F5 en /proveedor debe expulsar → no expulsó, marker se
+        // pisó a NOW). Bug desde commit `840ef3e` (meses); el path del
+        // setTimeout de 10 min en tab abierto SÍ funciona (independiente
+        // del race del mount). Ver BACKLOG > "Timeout de inactividad
+        // por check-al-mount está roto desde su primer commit" y CLAUDE.md
+        // > "Guards de seguridad basados en check-al-mount no deben
+        // registrar listeners de interacción antes del check".
+        //
+        // FIX: mover el registro de listeners DENTRO de init(), DESPUÉS
+        // de que checkInactivityOnMount complete. Si expiró → init
+        // retorna, cero listeners registrados, handleLogout ya redirigió
+        // (o silenció por catch no-expulsivo). Si NO expiró → registrar
+        // listeners + resetTimer inicial. Cero race: el marker no se
+        // puede pisar antes de la verificación. Trade-off: ~200ms al
+        // inicio sin tracking (durante getSession interno) — es el
+        // mount, el user no está interactuando en ese instante.
+
+        // Eventos a monitorear (interacción del user) — declarados acá
+        // para que el cleanup los vea via closure. Registro efectivo
+        // se hace dentro de init() después del check.
+        const events = ["mousedown", "mousemove", "keydown", "scroll", "touchstart"];
+        let listenersRegistered = false;
+
+        const init = async () => {
+            const expired = await checkInactivityOnMount();
+            if (expired) return; // handleLogout ya redirigió (o silenció por catch)
+
+            // Solo llegar acá si NO expiró — ahora es seguro registrar
+            // listeners y iniciar el timer.
+            events.forEach((event) => {
+                window.addEventListener(event, resetTimer);
+            });
+            listenersRegistered = true;
+            resetTimer(); // Iniciar timer con marker fresh.
+        };
+
         // Iniciar
         init();
 
-        // Cleanup
+        // Cleanup — solo remover listeners si efectivamente fueron
+        // registrados (init puede haber retornado early por expiración).
         return () => {
             if (timeoutId) clearTimeout(timeoutId);
-            events.forEach((event) => {
-                window.removeEventListener(event, resetTimer);
-            });
+            if (listenersRegistered) {
+                events.forEach((event) => {
+                    window.removeEventListener(event, resetTimer);
+                });
+            }
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [router.pathname]);
