@@ -9,6 +9,7 @@
 // service role. Un proveedor solo puede crear/borrar sus propios servicios.
 // ---------------------------------------------------------------------------
 import { SupabaseClient } from '@supabase/supabase-js';
+import { timeMark } from './timing';
 
 export const E2E_TITULO_PREFIX = 'e2e-f2-2b-';
 
@@ -126,6 +127,8 @@ export async function borrarServicioResiliente(
     supabase: SupabaseClient,
     id: string,
 ): Promise<void> {
+    // Sprint estab-e2e (2026-09-11) — instrumentación timing.
+    const t0 = timeMark('borrarServicioResiliente.start');
     // Sprint L1-2 (2026-09-09) — medición del beforeAll de s6/s8 mostró
     // que este helper era el 95%+ del tiempo (42-52s por spec con 15-30
     // huérfanos acumulados). Dos bugs estructurales:
@@ -157,12 +160,16 @@ export async function borrarServicioResiliente(
             console.warn(`[servicio-efimero] delete ${tabla} ${id} error:`, (r.value as { error: { message: string } }).error.message);
         }
     });
+    timeMark('borrarServicioResiliente.hijos', t0);
     try {
+        const t1 = Date.now();
         const { error } = await supabase.from('servicios_publicados').delete().eq('id', id);
+        timeMark('borrarServicioResiliente.padre', t1);
         if (error) console.warn(`[servicio-efimero] DELETE servicios_publicados ${id} error:`, error.message);
     } catch (err) {
         console.warn(`[servicio-efimero] delete servicios_publicados ${id} falló:`, err);
     }
+    timeMark('borrarServicioResiliente.done', t0);
 }
 
 /**
