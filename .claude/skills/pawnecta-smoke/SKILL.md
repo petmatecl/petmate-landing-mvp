@@ -62,7 +62,9 @@ Superficies aceptables por tipo de smoke:
 - **BD staging**: SQL vía `mcp__supabase-staging-rw__execute_sql` (write-capable sobre proyecto `jmtadvdkicyylcwjcmcl`). El auditor aplica migraciones, corre checks, inserta data de prueba y limpia. Cada mutación se reporta en el turno con SQL exacto + count de filas afectadas + cleanup si el estado no queda limpio.
 - **BD prod**: SQL vía `mcp__supabase-prod-ro__execute_sql` (`--read-only` estricto sobre `ouezpeeiwjwawauidrqq`). Solo SELECT/EXPLAIN. Cualquier UPDATE/INSERT/DELETE/DDL cae con SQLSTATE 25006 en el server MCP — es un candado, no una convención. Las escrituras contra prod las ejecuta el PO manualmente con el bloque SQL exacto entregado por el auditor en el turno.
 - **Storage**: contar archivos en bucket con `SELECT count(*) FROM storage.objects WHERE bucket_id='<bucket>'` (via MCP staging).
-- **Emails / Dashboards externos**: el auditor no puede leer buzón de Gmail ni dashboard de Resend. Verificar el efecto observable más cercano en el sistema propio (llamada HTTP a Resend en Network con status 200, fila en tabla de notificaciones si existe), y **derivar al PO la confirmación del buzón**.
+- **Emails a `petmatecl@gmail.com`** (buzón del PO): verificar directamente con `mcp__claude_ai_Gmail__search_threads` + `get_thread`/`get_message`. Búsqueda canónica: `from:noreply@mail.supabase.com OR from:hola@pawnecta.com OR from:onboarding@resend.dev subject:"<asunto esperado>" newer_than:1d`. Confirmar (a) el subject exacto (staging trae prefix `[STAGING] (orig: <email>)`), (b) el body incluye link/token esperado, (c) timestamp coherente con el trigger del smoke (dentro de ~2 min post-request). **NO** apagar el label ni marcar como leído si el email es evidencia — el PO ve su bandeja igual. Aplica a: bienvenida signup, notify-nueva-solicitud, notify-proveedor, notify-tutor, recordatorios cron.
+- **Emails a otros buzones** (`acanocts+tutor@gmail.com` de Camila, `contacto@pawnecta.com` admin): el MCP Gmail solo ve la casilla autenticada (`petmatecl@gmail.com`). Para casillas ajenas: verificar el efecto observable en el sistema propio (POST a Resend con `status 200` + `id` en Network, fila en `notifications` si aplica), y derivar al PO la confirmación del buzón externo si necesitás certeza. Excepción staging: staging redirige todos los emails a `AUDIT_INBOX` (petmatecl@gmail.com) con subject prefijado — entonces smokes de staging SIEMPRE pueden verificar via Gmail MCP.
+- **Dashboards externos** (Sentry Issues, Resend Emails, GA4 Realtime): tratamiento clásico — dashboard = visor persistente, no assertion. Preferir señal síncrona propia (header, response field, RETURNING) que exhibe el efecto sin latencia externa (regla P8).
 
 **Antídoto P8 aplicado a este skill**: cuando el smoke reporta "cero X" (cero errors, cero requests, cero filas nuevas), la línea inmediatamente anterior del reporte debe reportar ">0 Y_conocido" con el mismo método — o el resultado negativo no vale como evidencia (puede ser fallo silente del método de verificación).
 
@@ -132,6 +134,7 @@ Este skill depende de MCPs cargados en la sesión. Sin ellos el skill NO puede o
 **Recomendados** (dependen del smoke específico):
 - `mcp__supabase-staging-rw__execute_sql` — write-capable sobre proyecto staging (`jmtadvdkicyylcwjcmcl`). El auditor aplica migraciones, corre checks (SELECT/INSERT/UPDATE/DELETE/DDL), inserta data de prueba, limpia tras el smoke. Cada mutación reportada en el turno con SQL + resultado.
 - `mcp__supabase-prod-ro__execute_sql` — read-only estricto sobre proyecto prod (`ouezpeeiwjwawauidrqq`, `--read-only`). Solo SELECT/EXPLAIN. UPDATE/INSERT/DELETE/DDL cae con SQLSTATE 25006 a nivel server MCP — es un candado, no una convención. Escrituras contra prod las ejecuta el PO manualmente con el bloque SQL exacto entregado por el auditor.
+- `mcp__claude_ai_Gmail__search_threads` + `get_thread` / `get_message` — autenticado sobre buzón del PO (`petmatecl@gmail.com`). Usar para confirmar correos emitidos por Pawnecta (bienvenida signup, notify-*, recordatorios cron) cuando el smoke depende de verificar que el email llegó, con qué subject, con qué body. Staging redirige emails al mismo buzón con subject prefijado `[STAGING] (orig: <email>)`, así que este MCP cubre smokes staging + smokes prod que gatilla el PO. Cero acceso a otros buzones (Camila, contacto@pawnecta.com); para ésos, derivar al PO.
 
 **No usar en un smoke** (aunque estén disponibles):
 - MCPs de escritura contra prod (si algún día se cargaran fuera del `supabase-prod-ro`). La regla dura los excluye salvo GO explícito.
@@ -141,6 +144,7 @@ Este skill depende de MCPs cargados en la sesión. Sin ellos el skill NO puede o
 - Playwright ausente: cero smoke posible desde este skill. Escalar al PO — puede levantar el plugin o correr él manual.
 - `mcp__supabase-staging-rw__` ausente: no puede aplicar migraciones ni cleanup en staging. Entregar SQL al PO para ejecución manual (mismo tratamiento que prod).
 - `mcp__supabase-prod-ro__` ausente: verificación read-only prod degrada a "PO ejecuta la query y pega el resultado". El smoke completa con evidencia trasladada.
+- Gmail MCP ausente: verificaciones de email regresan al patrón viejo — "derivar al PO la confirmación del buzón" para petmatecl@gmail.com. Todo lo demás sigue igual.
 
 ## Suite e2e Playwright
 
