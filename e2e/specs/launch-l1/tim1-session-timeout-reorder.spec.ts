@@ -1,29 +1,42 @@
 // e2e/specs/launch-l1/tim1-session-timeout-reorder.spec.ts
 // ---------------------------------------------------------------------------
-// L1-3 · TIM-1 · Regresión "SessionTimeout roto desde primer commit".
+// L1-3 · TIM-1 · Regresión "SessionTimeout expulsa tras inactividad".
 //
 // Bug preexistente descubierto por PO 2026-08-27 (BACKLOG L221):
 // el path "F5 tras inactividad de 10+ min expulsa a /security-logout"
 // NUNCA funcionó porque los event listeners de interacción se
-// registraban ANTES del check async, y cualquier mousemove post-F5
-// pisaba el marker antes de que checkInactivityOnMount lo leyera.
-// El smoke positivo-conocido del PO: seteo marker 20 min atrás, F5
-// en /proveedor debe expulsar → no expulsaba, marker se pisó a NOW.
+// registraban ANTES del check async, y cualquier mousemove disparado
+// durante la ventana [mount → check completion] pisaba el marker antes
+// de que checkInactivityOnMount lo leyera.
 //
 // Fix (L1-3): reorden de listeners — registro DENTRO de init(),
 // DESPUÉS del check async. Cero race con mousemove pre-check.
 //
-// Este spec fija el contrato con Playwright:
-//   1. Login como Aldo (setup default proveedor).
-//   2. Navego a /proveedor.
-//   3. Seteo marker de last_activity a 20 min atrás vía page.evaluate.
-//   4. Simulo mousemove (equivalente al gesto real que provocaba el
-//      race — el user movió el mouse para presionar F5). Con el fix
-//      correcto, el mousemove NO puede pisar el marker porque el
-//      handler todavía NO está registrado hasta que el check corra.
-//   5. F5 (page.reload).
-//   6. Verifico expulsión a /security-logout.
-//   7. Verifico marker limpio (handleLogout hace removeItem L98).
+// Alcance de este spec — decisión operativa 2026-09-11 (2ª iteración
+// tras dos fallos idénticos en CI del `mouse.move` previo):
+//
+//   El fix es una defensa contra un race condition de ~200ms entre
+//   mount de mount 2 (post-reload) y completion de checkInactivityOnMount.
+//   Reproducir ese race en Playwright requeriría inyectar un mousemove
+//   EXACTAMENTE dentro de esa ventana en mount 2, sin trigger en
+//   mount 1 — no hay API que garantice ese timing (page.mouse.move
+//   antes de page.reload dispara sobre los listeners ya activos de
+//   mount 1, pisando el marker ANTES del test — resultado: falso
+//   negativo repetible que ambos runs de PR #17 mostraron).
+//
+//   Este spec verifica el path OBSERVABLE que un usuario final ejerce:
+//   "vuelvo a la app tras 10+ min de inactividad, F5 me expulsa a
+//   /security-logout". Con marker viejo colocado directamente en
+//   localStorage y reload sin interferencia, ambas versiones del código
+//   (pre-fix y post-fix) deberían expulsar — el race del fix no es
+//   observable en este test, pero el comportamiento visible sí lo es,
+//   y esa señal se mantiene viva.
+//
+//   Si el bug del race vuelve a manifestarse (F5 con mouse en movimiento
+//   sobre la ventana no expulsa), se detectará por reporte del PO, no
+//   por esta suite — es limitación aceptada del testing e2e. Corolario
+//   P8 aplicado: no dejamos verificación instrumental que no valida lo
+//   que declara (mouse.move sobre mount 1 no valida reorder de mount 2).
 //
 // Corre bajo project `chromium` (Aldo proveedor). Sin browser-side
 // clock mock — usamos setItem con un timestamp real de 20 min atrás,
@@ -33,10 +46,9 @@
 import { test, expect } from '@playwright/test';
 
 const STORAGE_KEY = 'pawnecta_last_activity';
-const INACTIVITY_LIMIT_MS = 10 * 60 * 1000;
 
 test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => {
-    test('marker 20 min atrás + F5 con mousemove previo → expulsa a /security-logout', async ({ page }) => {
+    test('marker 20 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
         // 1. Arranco en /proveedor con la sesión de Aldo del storageState.
         await page.goto('/proveedor');
         await expect(page.getByRole('button', { name: /Mis Servicios/i }).first())
@@ -55,26 +67,20 @@ test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => 
         const markerAntes = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
         expect(markerAntes).toBe(String(veinte_min_atras));
 
-        // 3. Simulo mousemove ANTES del reload — mismo gesto que hacía
-        //    el user al mover el mouse para presionar F5. Con el bug
-        //    preexistente, el listener sync pisaría el marker antes del
-        //    check. Con el fix, el listener no está montado todavía en
-        //    ese instante (se registra dentro de init() post-check).
-        await page.mouse.move(100, 100);
-        await page.mouse.move(200, 200);
-        await page.mouse.move(300, 300);
-
-        // 4. F5 — dispara SessionTimeout useEffect en el mount fresh.
-        //    Con el fix: init() corre checkInactivityOnMount() PRIMERO,
-        //    detecta marker viejo (>10 min), llama handleLogout(),
-        //    redirige a /security-logout, cero listeners registrados.
+        // 3. F5 — dispara SessionTimeout useEffect en el mount fresh.
+        //    init() corre checkInactivityOnMount() PRIMERO, detecta
+        //    marker viejo (>10 min), llama handleLogout(), redirige a
+        //    /security-logout, cero listeners registrados en mount 2.
+        //    NO simulamos mousemove pre-reload — dispararía los listeners
+        //    de mount 1 (que ya completaron init) y pisaría el marker
+        //    antes del reload, falseando el test (ver comentario superior).
         await page.reload();
 
-        // 5. Verifico expulsión.
+        // 4. Verifico expulsión.
         await page.waitForURL(/\/security-logout/, { timeout: 15_000 });
         expect(page.url()).toContain('/security-logout');
 
-        // 6. Verifico que handleLogout limpió el marker (línea 98 del
+        // 5. Verifico que handleLogout limpió el marker (línea 98 del
         //    componente: localStorage.removeItem(STORAGE_KEY)).
         const markerDespues = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
         expect(markerDespues).toBeNull();
