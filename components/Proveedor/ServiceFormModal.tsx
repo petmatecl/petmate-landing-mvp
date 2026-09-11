@@ -1767,24 +1767,47 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 seccion de agenda real (F1) que sigue abajo. */}
                             <div className="border-t border-slate-100 py-6">
                                 <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Reservas</p>
-                                <label className="flex items-start gap-3 cursor-pointer">
-                                    <div className="relative shrink-0 mt-0.5">
-                                        <input
-                                            type="checkbox"
-                                            checked={agendamientoHabilitado}
-                                            onChange={e => setAgendamientoHabilitado(e.target.checked)}
-                                            className="sr-only peer"
-                                        />
-                                        <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
-                                        <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
-                                    </div>
-                                    <div className="min-w-0">
-                                        <span className="text-sm text-slate-700 block">Habilitar reservas</span>
-                                        <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                                            Si está habilitado, los tutores podrán reservar este servicio desde la ficha pública. Confirmas o rechazas cada solicitud desde tu panel.
-                                        </p>
-                                    </div>
-                                </label>
+                                {/* Sprint agenda-categorias (2026-09-11) — decisión PO
+                                    2026-09-09 punto 2: ocultar el toggle "Habilitar
+                                    reservas" cuando la categoría no admite F1 (bloque
+                                    horario) ni F2 (multi-día). Por default hoy solo
+                                    `guarderia` cae fuera de ambos — no tiene modelo de
+                                    reserva estructurada aún. En vez del toggle
+                                    mostramos línea informativa causa-neutral. */}
+                                {(admiteAgenda || admiteEstadia) ? (
+                                    <label className="flex items-start gap-3 cursor-pointer">
+                                        <div className="relative shrink-0 mt-0.5">
+                                            <input
+                                                type="checkbox"
+                                                checked={agendamientoHabilitado}
+                                                onChange={e => setAgendamientoHabilitado(e.target.checked)}
+                                                className="sr-only peer"
+                                            />
+                                            <div className="w-10 h-6 bg-slate-200 peer-checked:bg-accent-600 rounded-full transition-colors" />
+                                            <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform peer-checked:translate-x-4" />
+                                        </div>
+                                        <div className="min-w-0">
+                                            <span className="text-sm text-slate-700 block">Habilitar reservas</span>
+                                            {/* Sprint agenda-categorias (2026-09-11) — decisión PO
+                                                punto 4: hint dinámico. Cuando el segundo toggle
+                                                "Agenda con disponibilidad real" (usaAgendaReal)
+                                                está ON, el flujo pasa a instant-book (tutor reserva
+                                                slot directo, sin confirmación manual del proveedor).
+                                                El hint del toggle maestro debe reflejar ese cambio
+                                                para no dar impresión de "todo pasa por mí"
+                                                cuando en realidad no. */}
+                                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                                                {agendamientoHabilitado && usaAgendaReal
+                                                    ? 'Los tutores reservan directamente los slots libres de tu agenda. Cada reserva confirmada llega a tu panel (sin paso de confirmación manual).'
+                                                    : 'Si está habilitado, los tutores podrán reservar este servicio desde la ficha pública. Confirmas o rechazas cada solicitud desde tu panel.'}
+                                            </p>
+                                        </div>
+                                    </label>
+                                ) : (
+                                    <p className="text-sm text-slate-600 leading-relaxed">
+                                        En esta categoría los tutores te envían solicitudes y las respondes desde tu panel.
+                                    </p>
+                                )}
                             </div>
 
                             {/* ── SECCIÓN: Agenda con disponibilidad real (F1) ──
