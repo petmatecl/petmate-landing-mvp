@@ -60,14 +60,6 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
     let reservaYear = 0;
 
     test.beforeAll(async () => {
-        // L1-1 sprint launch-l1 — s4a excepción a los 90s de sus hermanos:
-        // este beforeAll es el más pesado de f2-3 (cleanup masivo de huérfanos
-        // acumulados + INSERT servicio + INSERT reserva pre-poblada). Cuando
-        // el bucket de huérfanos crece por runs previos abortados, el
-        // cleanup encadenado hace fail FK constraints y cascadea reintentos
-        // → observado 90s+ en CI. 120s con margen. Cero cambio a lógica de
-        // test.
-        test.setTimeout(120_000);
         const supabaseProv = getSupabaseAsProveedor();
         const supabaseTutor = getSupabaseAsTutor();
         const proveedorId = await getProveedorId();

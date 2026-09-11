@@ -169,18 +169,18 @@ export async function cleanupHuerfanosF23(
     }
     if (!data || data.length === 0) return { borrados: 0, errores: 0, titulos: [] };
 
-    let borrados = 0;
-    let errores = 0;
-    const titulos: string[] = [];
-    for (const s of data as Array<{ id: string; titulo: string }>) {
-        titulos.push(s.titulo);
-        try {
-            await borrarServicioResiliente(supabase, s.id);
-            borrados++;
-        } catch {
-            errores++;
-        }
-    }
+    // Sprint L1-2 (2026-09-09) — paralelizado tras medición que mostró
+    // 42-52s cuando había >15 huérfanos acumulados (serial x 3 tablas x
+    // N servicios). Ahora Promise.all sobre los N servicios; cada uno
+    // internamente paraleliza sus hijos (ver borrarServicioResiliente
+    // en servicio-efimero.ts). Efecto observado: ~50-100ms por servicio
+    // sin colisiones significativas del pool de conexiones Supabase.
+    const titulos = (data as Array<{ id: string; titulo: string }>).map(s => s.titulo);
+    const resultados = await Promise.allSettled(
+        (data as Array<{ id: string }>).map(s => borrarServicioResiliente(supabase, s.id)),
+    );
+    const borrados = resultados.filter(r => r.status === 'fulfilled').length;
+    const errores = resultados.filter(r => r.status === 'rejected').length;
     return { borrados, errores, titulos };
 }
 

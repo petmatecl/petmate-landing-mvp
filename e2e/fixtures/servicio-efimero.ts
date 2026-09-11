@@ -126,16 +126,37 @@ export async function borrarServicioResiliente(
     supabase: SupabaseClient,
     id: string,
 ): Promise<void> {
-    try {
-        await supabase.from('disponibilidad_semanal').delete().eq('servicio_id', id);
-    } catch (err) {
-        console.warn(`[servicio-efimero] delete disponibilidad_semanal ${id} falló:`, err);
-    }
-    try {
-        await supabase.from('excepciones_disponibilidad').delete().eq('servicio_id', id);
-    } catch (err) {
-        console.warn(`[servicio-efimero] delete excepciones_disponibilidad ${id} falló:`, err);
-    }
+    // Sprint L1-2 (2026-09-09) — medición del beforeAll de s6/s8 mostró
+    // que este helper era el 95%+ del tiempo (42-52s por spec con 15-30
+    // huérfanos acumulados). Dos bugs estructurales:
+    //   (a) NO se borraban `agendamientos` antes → FK constraint
+    //       `agendamientos_servicio_id_fkey` fallaba el DELETE de
+    //       `servicios_publicados`, dejando huérfanos que se acumulan
+    //       run a run y ralentizan el próximo cleanup.
+    //   (b) 3 DELETEs seriales cuando pueden ir en paralelo — cada
+    //       DELETE contra Supabase es un round-trip HTTP de ~50-100ms;
+    //       serial × 3 tablas × N servicios se acumula rápido.
+    //
+    // Fix: (a) agregar DELETE agendamientos ANTES; (b) Promise.all para
+    // las 3 tablas hijas (todas FK a servicios_publicados), luego el
+    // DELETE del padre. Orden respeta las FK.
+    //
+    // Efecto medido esperado: ~50-100ms por servicio (era ~1-2s cuando
+    // el FK del agendamientos cascadeaba). Con 30 huérfanos: ~2-3s en
+    // vez de 30-45s.
+    const hijos = await Promise.allSettled([
+        supabase.from('agendamientos').delete().eq('servicio_id', id),
+        supabase.from('disponibilidad_semanal').delete().eq('servicio_id', id),
+        supabase.from('excepciones_disponibilidad').delete().eq('servicio_id', id),
+    ]);
+    hijos.forEach((r, i) => {
+        const tabla = ['agendamientos', 'disponibilidad_semanal', 'excepciones_disponibilidad'][i];
+        if (r.status === 'rejected') {
+            console.warn(`[servicio-efimero] delete ${tabla} ${id} rejected:`, r.reason);
+        } else if ((r.value as { error: unknown }).error) {
+            console.warn(`[servicio-efimero] delete ${tabla} ${id} error:`, (r.value as { error: { message: string } }).error.message);
+        }
+    });
     try {
         const { error } = await supabase.from('servicios_publicados').delete().eq('id', id);
         if (error) console.warn(`[servicio-efimero] DELETE servicios_publicados ${id} error:`, error.message);

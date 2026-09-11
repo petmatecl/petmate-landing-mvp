@@ -22,7 +22,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
-    if (!verifyInternalSecret(req)) return res.status(403).json({ error: 'Forbidden' });
+    // Sprint L1-2 (2026-09-09) — verifyInternalSecret ahora tipado con 3 estados.
+    const auth = verifyInternalSecret(req);
+    if (!auth.ok) return res.status(auth.status).json({ error: auth.reason });
     if (!(await apiLimiter(req, res))) return;
 
     try {
