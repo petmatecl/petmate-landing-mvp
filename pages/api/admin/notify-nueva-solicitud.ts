@@ -54,18 +54,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // (missing-config=500 con Sentry, missing-header/invalid=403).
     const auth = verifyInternalSecret(req);
     if (!auth.ok) return res.status(auth.status).json({ error: auth.reason });
-    if (!(await emailLimiter(req, res))) return;
 
     const { proveedorId, fallback } = (req.body || {}) as RequestBody;
 
-    // Modo DEGRADADO: si no viene proveedorId pero SÍ viene fallback con
-    // datos mínimos, emitir el email con esos datos y prefijo "[DEGRADADO]".
-    if (!proveedorId && fallback && typeof fallback.email === 'string' && typeof fallback.nombre === 'string') {
-        return enviarModoDegradado(res, fallback);
+    // Sprint L1-2 (2026-09-11) — validación de body ANTES del rate limiter.
+    // Antes: emailLimiter (3/60s) corría antes del body check, entonces un
+    // caller que mandaba 3+ requests con body inválido se banaba de emails
+    // legítimos por 60s. Ahora el limiter solo cuenta los requests que
+    // efectivamente van al path de envío de email.
+    const modoDegradado = !proveedorId && fallback
+        && typeof fallback.email === 'string'
+        && typeof fallback.nombre === 'string';
+    const modoNormal = typeof proveedorId === 'string';
+    if (!modoDegradado && !modoNormal) {
+        return res.status(400).json({ error: 'Invalid proveedorId (o fallback shape)' });
     }
 
-    if (!proveedorId || typeof proveedorId !== 'string') {
-        return res.status(400).json({ error: 'Invalid proveedorId (o fallback shape)' });
+    // Body válido — ahora sí cuenta contra el rate limiter.
+    if (!(await emailLimiter(req, res))) return;
+
+    if (modoDegradado) {
+        // Modo DEGRADADO: emitir el email con datos del propio caller.
+        return enviarModoDegradado(res, fallback!);
     }
 
     const supabaseAdmin = createClient(
