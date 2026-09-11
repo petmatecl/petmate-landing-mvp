@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------------
 import { SupabaseClient } from '@supabase/supabase-js';
 import { resolverCategoriaIdPorSlug, borrarServicioResiliente } from './servicio-efimero';
+import { timeMark } from './timing';
 
 export const E2E_F2_3_TITULO_PREFIX = 'e2e-f2-3-';
 
@@ -57,7 +58,10 @@ export async function crearServicioCuidadoConF2(
     supabase: SupabaseClient,
     opts: CrearServicioCuidadoOptions,
 ): Promise<ServicioCuidadoListo> {
+    // Sprint estab-e2e (2026-09-11) — instrumentación timing por fase.
+    const t0 = timeMark('crearServicioCuidadoConF2.start');
     const categoriaId = await resolverCategoriaIdPorSlug(supabase, 'cuidado');
+    timeMark('crearServicioCuidadoConF2.resolverCategoria', t0);
     const titulo = `${E2E_F2_3_TITULO_PREFIX}${Date.now()}`;
     const capacidadEstadia = opts.capacidadEstadia ?? 1;
     const minNoches = opts.minNoches ?? 1;
@@ -107,6 +111,7 @@ export async function crearServicioCuidadoConF2(
         })
         .select('id, titulo')
         .single();
+    timeMark('crearServicioCuidadoConF2.INSERT.servicio', t0);
     if (error || !data) {
         throw new Error(`[servicio-cuidado-listo] INSERT falló: ${error?.message ?? 'sin data'}`);
     }
@@ -155,6 +160,8 @@ export async function cleanupHuerfanosF23(
     proveedorId: string,
     opts?: { olderThanMinutes?: number },
 ): Promise<{ borrados: number; errores: number; titulos: string[] }> {
+    // Sprint estab-e2e (2026-09-11) — instrumentación timing.
+    const t0 = timeMark('cleanupHuerfanosF23.start');
     const olderThanMinutes = opts?.olderThanMinutes ?? 30;
     const cutoffIso = new Date(Date.now() - olderThanMinutes * 60_000).toISOString();
     const { data, error } = await supabase
@@ -167,7 +174,12 @@ export async function cleanupHuerfanosF23(
         console.warn('[servicio-cuidado-listo] cleanupHuerfanosF23 SELECT falló:', error.message);
         return { borrados: 0, errores: 1, titulos: [] };
     }
-    if (!data || data.length === 0) return { borrados: 0, errores: 0, titulos: [] };
+    timeMark('cleanupHuerfanosF23.SELECT', t0);
+    if (!data || data.length === 0) {
+        timeMark('cleanupHuerfanosF23.done(none)', t0);
+        return { borrados: 0, errores: 0, titulos: [] };
+    }
+    console.log(`[TIMING] cleanupHuerfanosF23 encontrados=${data.length} huerfanos`);
 
     // Sprint L1-2 (2026-09-09) — paralelizado tras medición que mostró
     // 42-52s cuando había >15 huérfanos acumulados (serial x 3 tablas x
@@ -181,6 +193,7 @@ export async function cleanupHuerfanosF23(
     );
     const borrados = resultados.filter(r => r.status === 'fulfilled').length;
     const errores = resultados.filter(r => r.status === 'rejected').length;
+    timeMark(`cleanupHuerfanosF23.done(borrados=${borrados},errores=${errores})`, t0);
     return { borrados, errores, titulos };
 }
 
@@ -226,6 +239,8 @@ export async function preInsertarReservaConfirmada(
     supabase: SupabaseClient,
     opts: ReservaPreInsertadaOptions,
 ): Promise<string> {
+    // Sprint estab-e2e (2026-09-11) — instrumentación timing.
+    const t0 = timeMark('preInsertarReservaConfirmada.start');
     const { data, error } = await supabase
         .from('agendamientos')
         .insert({
@@ -240,6 +255,7 @@ export async function preInsertarReservaConfirmada(
         })
         .select('id')
         .single();
+    timeMark('preInsertarReservaConfirmada.INSERT', t0);
     if (error || !data) {
         throw new Error(`[servicio-cuidado-listo] preInsertarReservaConfirmada falló: ${error?.message ?? 'sin data'}`);
     }

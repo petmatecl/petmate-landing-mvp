@@ -170,13 +170,24 @@ export async function clickConfirmarReserva(page: Page): Promise<void> {
  * renderizada. Devuelve el locator del contenedor de cards.
  */
 export async function irAMisSolicitudes(page: Page) {
+    // Sprint estab-e2e (2026-09-11) — instrumentación timing para
+    // diagnosticar el stall reportado en s3/s7 f2-3.
+    const t0 = Date.now();
+    console.log(`[TIMING] irAMisSolicitudes.start at ${t0}`);
     await page.goto('/mis-reservas');
+    const tGoto = Date.now();
+    console.log(`[TIMING] irAMisSolicitudes.goto took ${tGoto - t0}ms`);
     await page.waitForLoadState('domcontentloaded');
+    const tDom = Date.now();
+    console.log(`[TIMING] irAMisSolicitudes.domcontentloaded took ${tDom - tGoto}ms`);
     // La página muestra un heading H1 "Mis reservas" (sweep #3). La ruta
     // Post Batch REMATE-1 R2b (2026-08-11): ruta renombrada a /mis-reservas.
     // El redirect 301 en next.config.js hace que goto('/mis-solicitudes')
     // funcione también (Playwright sigue el redirect). Este helper usa el
     // path canónico nuevo directo para no sumar hops innecesarios.
     await expect(page.getByRole('heading', { name: /Mis reservas/i })).toBeVisible({ timeout: 10_000 });
+    const tHeading = Date.now();
+    console.log(`[TIMING] irAMisSolicitudes.headingVisible took ${tHeading - tDom}ms`);
+    console.log(`[TIMING] irAMisSolicitudes.total took ${tHeading - t0}ms`);
     return page.locator('article'); // cada card es <article>
 }

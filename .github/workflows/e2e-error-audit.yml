@@ -3,18 +3,28 @@
 # Suite Playwright del sprint e2e-error-audit — valida en CI los fixes del
 # sprint error-audit (Cases Tipo A) contra preview URL de Vercel.
 #
+# Sprint estab-e2e (2026-09-11) — split en 2 jobs para acotar F2-3-FLAKINESS:
+#   - job `e2e-rapido` corre las suites sin fixture pesado (error-audit,
+#     form-post, tipo-b, launch-l1, pan-1) con workers=2. Termina primero.
+#   - job `e2e-f2` corre las suites F2 (f2-2b, f2-3, f2-recordatorios-cron)
+#     con workers=1 + step de calentamiento previo del preview. Necesita
+#     que `e2e-rapido` termine primero (`needs: e2e-rapido`) para no
+#     concurrir sobre Supabase staging desde workers paralelos dentro del
+#     mismo runner. Ambos comparten concurrency group `e2e-staging` (cross-PR).
+#
 # Triggers:
 #   - pull_request a main → corre contra el preview URL de la PR.
 #     (Requiere que la PR tenga un preview URL válido; Vercel lo genera
 #     automáticamente para cualquier PR abierta.)
 #   - workflow_dispatch → correr manual con URL custom (ej. re-run contra
-#     un preview específico para debugging).
+#     un preview específico para debugging o para los 3 runs del sprint
+#     estab-e2e de verificación).
 #
 # NO se dispara en push a main. Main = prod y los guards de e2e/setup/guard.ts
 # rechazan cualquier baseURL de prod (pawnecta.com/pawnecta.cl). Los tests
 # solo tienen sentido contra previews.
 #
-# Secrets requeridos (7, cargados en repo Settings → Secrets and variables →
+# Secrets requeridos (9, cargados en repo Settings → Secrets and variables →
 # Actions):
 #   E2E_STAGING_EMAIL         — cuenta admin+proveedor staging (Aldo)
 #   E2E_STAGING_PASSWORD      — password de la anterior
@@ -86,10 +96,16 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  e2e:
+  # ═══════════════════════════════════════════════════════════════════════
+  # Job 1 — Suite rápida (sin fixture pesado F2).
+  # workers=2, corre primero. Nombre display "Playwright suite error-audit"
+  # se mantiene igual que antes del split para preservar la referencia del
+  # required check en PRs históricos.
+  # ═══════════════════════════════════════════════════════════════════════
+  e2e-rapido:
     name: Playwright suite error-audit
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -101,16 +117,12 @@ jobs:
           cache: 'npm'
 
       - name: Install dependencies
-        # Ver comentario en .github/workflows/ci.yml — misma razón (rollup
-        # 4.x optional deps cross-platform).
         run: npm install --no-audit --no-fund
 
       - name: Install Playwright browsers
         run: npx playwright install --with-deps chromium
 
       - name: Compose e2e/.env.test from secrets
-        # La suite lee env de e2e/.env.test (gitignoreado). En CI lo generamos
-        # desde los GH Secrets. NO se sube al repo — vive solo en el runner.
         run: |
           mkdir -p e2e
           cat > e2e/.env.test <<EOF
@@ -127,23 +139,15 @@ jobs:
 
       - name: Resolve preview URL
         id: preview
-        # Para pull_request usamos el preview URL de Vercel construido por
-        # convención de rama: pawnecta-landing-mvp-git-<branch>-petmatecls-
-        # projects.vercel.app. Para workflow_dispatch usamos el input.
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "url=${{ inputs.preview_url }}" >> "$GITHUB_OUTPUT"
           else
             BRANCH="${{ github.head_ref }}"
-            # Vercel normaliza el branch name (lowercase, replace non-alnum)
-            # pero como convención respetamos el ref-name tal cual — si algún
-            # branch tiene chars raros ajustar acá.
             echo "url=https://pawnecta-landing-mvp-git-${BRANCH}-petmatecls-projects.vercel.app" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Wait for preview to be Ready (best effort)
-        # Vercel puede tardar ~2-3 min en construir el preview de una PR
-        # recién abierta. Damos hasta 5 min de retry con curl a la raíz.
         run: |
           URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
           for i in $(seq 1 30); do
@@ -157,39 +161,156 @@ jobs:
           done
           echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
 
-      - name: Run Playwright suites (error-audit + form-post + tipo-b + F2 full)
+      - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
-        # Sprint tipo-b lote 1 (2026-09-09) — agregado e2e/specs/tipo-b/.
-        # Sprint f2-ci-fix (2026-09-09) — agregados e2e/specs/f2-2b/, f2-3/
-        # y f2-recordatorios-cron/. Los 3 traen sus propios projects
-        # (chromium, chromium-tutor, chromium-cron) declarados via testMatch
-        # en playwright.config.ts — cero --project filter necesario.
-        #
-        # Tiempo total esperado en CI (ubuntu-latest, 2 workers): ~4-5 min
-        # sumado a la suite existente. Baseline local con 2 workers para
-        # solo F2: ~1m 20s; agregado a ~2 min de la suite ya presente da
-        # ~3-4 min. Bajo el umbral 8 min, sin sharding necesario. Si en
-        # algún momento este tiempo trepa (más specs F2 o crons más
-        # pesados), evaluar dividir en jobs paralelos por project (uno
-        # por role/mobile) o usar `--shard` de Playwright.
-        # Sprint pan-1 (2026-09-11) — agregado e2e/specs/pan-1/ para el
-        # diagnóstico de estado + regresiones del sprint panel notificaciones.
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/f2-2b/ e2e/specs/f2-3/ e2e/specs/f2-recordatorios-cron/ e2e/specs/launch-l1/ e2e/specs/pan-1/ --reporter=list
+        # Sprint estab-e2e (2026-09-11) — subset sin fixture F2 pesado.
+        # workers=2 (default de Playwright en CI) — cargas ligeras.
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ --reporter=list
 
       - name: Upload Playwright HTML report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report-${{ github.run_id }}
+          name: playwright-report-rapido-${{ github.run_id }}
           path: e2e/.report
           retention-days: 7
 
-      - name: Upload test-results (traces + screenshots + videos)
+      - name: Upload test-results
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-test-results-${{ github.run_id }}
+          name: playwright-test-results-rapido-${{ github.run_id }}
+          path: test-results
+          retention-days: 7
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # Job 2 — Suite F2 (con fixture pesado).
+  # workers=1 + step de calentamiento del preview + needs=[e2e-rapido]
+  # para que corra DESPUÉS del rápido. Instrumentación timing via console.log
+  # de los helpers en `e2e/fixtures/timing.ts` (llamados desde los helpers
+  # `crearServicioCuidadoConF2`, `preInsertarReservaConfirmada`,
+  # `cleanupHuerfanosF23`, `borrarServicioResiliente`, `irAMisSolicitudes`).
+  # El stdout del test capturado por list reporter llega al log del step;
+  # extraído post-run al artifact `timing-f2-<run_id>` para análisis.
+  # ═══════════════════════════════════════════════════════════════════════
+  e2e-f2:
+    name: Playwright suite F2
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: e2e-rapido
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Compose e2e/.env.test from secrets
+        run: |
+          mkdir -p e2e
+          cat > e2e/.env.test <<EOF
+          E2E_STAGING_EMAIL=${{ secrets.E2E_STAGING_EMAIL }}
+          E2E_STAGING_PASSWORD=${{ secrets.E2E_STAGING_PASSWORD }}
+          E2E_STAGING_TUTOR_EMAIL=${{ secrets.E2E_STAGING_TUTOR_EMAIL }}
+          E2E_STAGING_TUTOR_PASSWORD=${{ secrets.E2E_STAGING_TUTOR_PASSWORD }}
+          PLAYWRIGHT_BYPASS=${{ secrets.PLAYWRIGHT_BYPASS }}
+          E2E_SUPABASE_URL=${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY=${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_STAGING_CRON_SECRET=${{ secrets.E2E_STAGING_CRON_SECRET }}
+          INTERNAL_API_SECRET=${{ secrets.INTERNAL_API_SECRET }}
+          EOF
+
+      - name: Resolve preview URL
+        id: preview
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "url=${{ inputs.preview_url }}" >> "$GITHUB_OUTPUT"
+          else
+            BRANCH="${{ github.head_ref }}"
+            echo "url=https://pawnecta-landing-mvp-git-${BRANCH}-petmatecls-projects.vercel.app" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Sprint estab-e2e (2026-09-11) — calentamiento del preview antes de
+      # correr F2. La suite F2 abre el picker /servicio/[id] (Vercel lambda
+      # cold start ~1-2s la primera vez) + hitea /api/agendamientos/cancelar
+      # + /api/servicios/[id]/disponibilidad-noches. Un warmup pega esos
+      # endpoints una vez ANTES del primer test para amortizar el cold start.
+      # Sin id concreto de servicio en staging, calentamos rutas genéricas
+      # que atraviesan los mismos Vercel functions:
+      #   - / (renderiza SSG home + hidrata)
+      #   - /explorar (hidrata explorer + RPC buscar_servicios)
+      #   - /proveedor (auth check + panel bell)
+      #   - /mis-reservas (query agendamientos, ruta que causó el s3/s7 stall)
+      # 3 hits cada uno con 500ms de gap para no saturar cold pool.
+      - name: Warmup preview endpoints (cold start amortization)
+        run: |
+          URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
+          BASE="${{ steps.preview.outputs.url }}"
+          BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
+          echo "=== Warmup preview endpoints ==="
+          for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            echo "  ${path} → HTTP ${STATUS}"
+            sleep 0.5
+          done
+          # Segundo pass para asegurar que el pool warm queda estable.
+          for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            echo "  ${path} (2nd) → HTTP ${STATUS}"
+            sleep 0.5
+          done
+          echo "=== Warmup done ==="
+
+      - name: Run Playwright suite F2 (f2-2b + f2-3 + f2-recordatorios-cron) --workers=1
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
+          CI: 'true'
+        # Sprint estab-e2e (2026-09-11) — workers=1 forzado. Los tests f2
+        # dependen fuertemente de Supabase staging (INSERT servicios,
+        # agendamientos, blackouts) y con workers=2 competían por el pool
+        # de conexiones + causaban stalls en fetches cliente de
+        # /mis-reservas (F2-3-FLAKINESS observada en PR #20).
+        # Instrumentación timing por hook (via console.log de fixtures)
+        # queda capturada en el log del step + el HTML report.
+        run: npx playwright test e2e/specs/f2-2b/ e2e/specs/f2-3/ e2e/specs/f2-recordatorios-cron/ --workers=1 --reporter=list 2>&1 | tee /tmp/f2-stdout.log
+
+      - name: Extract timing marks to artifact
+        # Sprint estab-e2e (2026-09-11) — el reporter list captura stdout
+        # de los tests (incluyendo los console.log de `[TIMING] ...` de los
+        # helpers de fixtures). Aquí extraemos solo esas líneas al artifact
+        # para análisis post-run sin ruido.
+        if: always()
+        run: |
+          mkdir -p e2e/.report
+          grep -E "^\[TIMING\]|\[TIMING\]" /tmp/f2-stdout.log > e2e/.report/timing-f2.log || echo "(no timing marks found)" > e2e/.report/timing-f2.log
+          echo "=== Sample de timing marks (primeras 30 líneas) ==="
+          head -30 e2e/.report/timing-f2.log || true
+
+      - name: Upload Playwright HTML report + timing
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-f2-${{ github.run_id }}
+          path: |
+            e2e/.report
+            /tmp/f2-stdout.log
+          retention-days: 7
+
+      - name: Upload test-results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-f2-${{ github.run_id }}
           path: test-results
           retention-days: 7
