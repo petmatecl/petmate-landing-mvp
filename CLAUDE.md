@@ -313,24 +313,36 @@ Vulnerabilities reportadas por `npm audit` se filtran por exploitability en nues
 
 ## MCPs con acceso a servicios (staging + Vercel)
 
-### Supabase MCP — staging read-only
+### Supabase MCPs — split staging-rw + prod-ro (2026-09-11)
 
-MCP configurado en `.mcp.json` local (no committeado) con `--read-only` +
-`--project-ref=jmtadvdkicyylcwjcmcl`. Doble candado anti-prod: el MCP no
-puede escribir (rechaza INSERT/UPDATE/DELETE/DDL con SQLSTATE `25006` a
-nivel de sesión Postgres), y solo ve staging.
+Dos servers configurados en `.mcp.json` local (gitignored, ver
+`.gitignore` L23) con token vía env `SUPABASE_ACCESS_TOKEN` (PAT
+personal generado en Supabase Dashboard → Account → Access Tokens,
+nombrado `claude-code-mcp-pawnecta` o similar, sin scope granular —
+los PATs de Supabase son account-wide; el aislamiento por proyecto lo
+enforce el MCP server via `--project-ref`).
 
-**Puedo**: `SELECT`s de verificación en staging — citar query + resultado
-en reportes, nunca verificación invisible.
+**`supabase-staging-rw`** — proyecto `jmtadvdkicyylcwjcmcl` con
+escritura (`--project-ref` sin `--read-only`). El auditor aplica
+migraciones, corre checks (SELECT/INSERT/UPDATE/DELETE/DDL),
+inserta data de prueba, limpia tras smokes. Cada mutación reportada
+en el turno con SQL exacto + count de filas + cleanup si el estado
+no queda limpio automáticamente.
 
-**NO puedo**: INSERT/UPDATE/DELETE/DDL, migraciones, cambios de schema,
-cambios de RLS/policies. Siguen siendo bloques SQL que Aldo ejecuta
-manualmente — sin excepciones. Tampoco `apply_migration` del MCP (mismo
-criterio: cualquier mutación requiere ejecución manual de Aldo tras
-revisar el bloque).
+**`supabase-prod-ro`** — proyecto `ouezpeeiwjwawauidrqq` con
+`--read-only` estricto. Solo `SELECT`/`EXPLAIN`. Cualquier
+`UPDATE`/`INSERT`/`DELETE`/DDL cae con SQLSTATE `25006` a nivel de
+sesión Postgres — es un candado server-side, no una convención.
 
-Si el proyecto conectado dejara de ser staging o si `--read-only` no
-estuviera activo, dejo de usar el MCP y reporto.
+**Regla prod (no cambia)**: las escrituras contra prod las ejecuta
+Aldo manualmente con el bloque SQL exacto entregado por el auditor
+en el turno — SQL numerado, ordenado, con `RETURNING` para
+evidencia P5. Ni el MCP `supabase-prod-ro` ni ningún otro tool del
+auditor puede iniciar una mutación en prod.
+
+**Si un server cambia** — el proyecto conectado deja de ser el
+declarado, `--read-only` desaparece de `prod-ro`, o el token pierde
+scope — dejo de usar el MCP y reporto en el turno.
 
 ### Vercel MCP — hospedado, solo lectura
 

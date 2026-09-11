@@ -1,6 +1,6 @@
 ---
 name: pawnecta-smoke
-description: Ejecutar smokes de UI en preview/staging con Playwright MCP contra Pawnecta. Control positivo obligatorio antes de cualquier negativo (P8). Zero acciones de escritura contra producción sin GO explícito del PO en el mismo mensaje.
+description: Ejecutar smokes de UI en preview/staging con Playwright MCP contra Pawnecta. Control positivo obligatorio antes de cualquier negativo (P8). Auditor aplica y verifica en staging (Supabase MCP rw); en prod solo lee (Supabase MCP ro) y entrega el SQL de escritura al PO en orden. Zero acciones de escritura contra producción sin GO explícito del PO en el mismo mensaje.
 ---
 
 # pawnecta-smoke
@@ -59,11 +59,18 @@ Superficies aceptables por tipo de smoke:
 - **UI**: texto en pantalla vía `mcp__playwright__browser_snapshot`, capturado en la fase con el estado esperado + estado inesperado. Screenshots vía `mcp__playwright__browser_take_screenshot` (fullPage cuando el estado escapa el viewport).
 - **Network**: `mcp__playwright__browser_network_requests` con `filter: '<patrón>'` para verificar requests presentes/ausentes. Contar bloqueados si el smoke los ejerce.
 - **Console**: `mcp__playwright__browser_console_messages` con `level: 'warning'` (nuestros `console.warn` de defensa) o `error` (rejections no atrapadas).
-- **BD**: SQL vía `mcp__supabase-staging__execute_sql` (read-only sobre proyecto staging). Contra prod NUNCA — el MCP prod no existe en la sesión, y aunque existiera, aplica la regla dura.
+- **BD staging**: SQL vía `mcp__supabase-staging-rw__execute_sql` (write-capable sobre proyecto `jmtadvdkicyylcwjcmcl`). El auditor aplica migraciones, corre checks, inserta data de prueba y limpia. Cada mutación se reporta en el turno con SQL exacto + count de filas afectadas + cleanup si el estado no queda limpio.
+- **BD prod**: SQL vía `mcp__supabase-prod-ro__execute_sql` (`--read-only` estricto sobre `ouezpeeiwjwawauidrqq`). Solo SELECT/EXPLAIN. Cualquier UPDATE/INSERT/DELETE/DDL cae con SQLSTATE 25006 en el server MCP — es un candado, no una convención. Las escrituras contra prod las ejecuta el PO manualmente con el bloque SQL exacto entregado por el auditor en el turno.
 - **Storage**: contar archivos en bucket con `SELECT count(*) FROM storage.objects WHERE bucket_id='<bucket>'` (via MCP staging).
 - **Emails / Dashboards externos**: el auditor no puede leer buzón de Gmail ni dashboard de Resend. Verificar el efecto observable más cercano en el sistema propio (llamada HTTP a Resend en Network con status 200, fila en tabla de notificaciones si existe), y **derivar al PO la confirmación del buzón**.
 
 **Antídoto P8 aplicado a este skill**: cuando el smoke reporta "cero X" (cero errors, cero requests, cero filas nuevas), la línea inmediatamente anterior del reporte debe reportar ">0 Y_conocido" con el mismo método — o el resultado negativo no vale como evidencia (puede ser fallo silente del método de verificación).
+
+## División de trabajo staging vs prod
+
+**En staging** (proyecto Supabase `jmtadvdkicyylcwjcmcl`, previews Vercel de la rama activa): el auditor **aplica y verifica directamente**. Migraciones DDL, DML de setup, checks, cleanup — todo con `mcp__supabase-staging-rw__execute_sql`. UI writes via Playwright también OK (reservar servicios de prueba, crear cuentas efímeras, subir avatars). Cada mutación reportada en el turno con SQL + resultado + cleanup si el estado no queda limpio automáticamente.
+
+**En prod** (proyecto Supabase `ouezpeeiwjwawauidrqq`, `www.pawnecta.com`): el auditor **solo lee**. Verificación read-only con `mcp__supabase-prod-ro__execute_sql` (candado `--read-only` server-side, no convención). Navegación anónima con Playwright también OK (páginas públicas). Cualquier escritura la ejecuta el PO manualmente con el bloque SQL exacto entregado por el auditor en el turno — SQL numerado, ordenado, con `RETURNING` para evidencia P5.
 
 ## Regla dura de escrituras contra producción
 
@@ -123,15 +130,17 @@ Este skill depende de MCPs cargados en la sesión. Sin ellos el skill NO puede o
 - `mcp__playwright__browser_*` — ~20 tools bajo este prefijo (navigate, click, type, snapshot, evaluate, wait_for, take_screenshot, network_requests, console_messages, close, etc.). El plugin Playwright de Anthropic-verified los inyecta al arranque de la sesión. Si `ToolSearch` retorna vacío para `select:mcp__playwright__browser_navigate`, el plugin no está cargado — parar y reportar.
 
 **Recomendados** (dependen del smoke específico):
-- `mcp__supabase-staging__execute_sql` — read-only sobre proyecto staging (`--read-only` flag). Necesario para queries de verificación (contar filas, cross-check con tabla, verificar bucket via storage.objects). Contra prod NO existe: el MCP prod no está configurado por diseño, coherente con la regla dura de escrituras.
+- `mcp__supabase-staging-rw__execute_sql` — write-capable sobre proyecto staging (`jmtadvdkicyylcwjcmcl`). El auditor aplica migraciones, corre checks (SELECT/INSERT/UPDATE/DELETE/DDL), inserta data de prueba, limpia tras el smoke. Cada mutación reportada en el turno con SQL + resultado.
+- `mcp__supabase-prod-ro__execute_sql` — read-only estricto sobre proyecto prod (`ouezpeeiwjwawauidrqq`, `--read-only`). Solo SELECT/EXPLAIN. UPDATE/INSERT/DELETE/DDL cae con SQLSTATE 25006 a nivel server MCP — es un candado, no una convención. Escrituras contra prod las ejecuta el PO manualmente con el bloque SQL exacto entregado por el auditor.
 
 **No usar en un smoke** (aunque estén disponibles):
-- MCPs de escritura contra prod (si algún día se cargaran). La regla dura los excluye salvo GO explícito.
+- MCPs de escritura contra prod (si algún día se cargaran fuera del `supabase-prod-ro`). La regla dura los excluye salvo GO explícito.
 - Vercel MCP mutantes (redeploy, env vars). El skill valida behavior de una URL; no muta infra.
 
 **Fallback cuando un MCP falta**:
 - Playwright ausente: cero smoke posible desde este skill. Escalar al PO — puede levantar el plugin o correr él manual.
-- Supabase MCP ausente: smokes que dependen de la BD (bucket count, contadores) degradan a "verificable solo con acceso separado". Reportar como parcial.
+- `mcp__supabase-staging-rw__` ausente: no puede aplicar migraciones ni cleanup en staging. Entregar SQL al PO para ejecución manual (mismo tratamiento que prod).
+- `mcp__supabase-prod-ro__` ausente: verificación read-only prod degrada a "PO ejecuta la query y pega el resultado". El smoke completa con evidencia trasladada.
 
 ## Suite e2e Playwright
 
