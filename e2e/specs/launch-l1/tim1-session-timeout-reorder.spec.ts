@@ -49,6 +49,26 @@ const STORAGE_KEY = 'pawnecta_last_activity';
 
 test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => {
     test('marker 20 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
+        // 0. Intercepto `/auth/v1/logout` ANTES de cualquier navegación.
+        //    Contexto: `handleLogout()` de SessionTimeout llama
+        //    `supabase.auth.signOut()` con scope global (default), que
+        //    invalida el JWT server-side. La suite comparte el storageState
+        //    de `e2e/.auth/proveedor.json` (generado por el setup project
+        //    una sola vez) — si dejamos que el logout aterrice al server,
+        //    el refresh token queda blacklisted y TODOS los tests
+        //    posteriores fallan con "Auth session missing!". La primera
+        //    versión de este spec no exhibía el problema porque el test
+        //    timeouteaba en `waitForURL` sin llegar a signOut. Con el fix
+        //    del mouse.move (commit `1ab7ffe`) el flow completa y destapa
+        //    la cascada — CI PR #17 rerun mostró ~20 tests colateralmente
+        //    envenenados. El intercept responde 204 (No Content) al
+        //    endpoint de logout: la promise del SDK resuelve, el estado
+        //    local se limpia, la redirect a /security-logout ocurre, PERO
+        //    el server NUNCA recibe la request → tokens siguen vivos.
+        await page.route(/\/auth\/v1\/logout/, (route) =>
+            route.fulfill({ status: 204, body: '' })
+        );
+
         // 1. Arranco en /proveedor con la sesión de Aldo del storageState.
         await page.goto('/proveedor');
         await expect(page.getByRole('button', { name: /Mis Servicios/i }).first())
