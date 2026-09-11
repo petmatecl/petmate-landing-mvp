@@ -233,13 +233,13 @@ jobs:
           done
           echo "=== Warmup done (rapido) ==="
 
-      - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1)
+      - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1 + conviene)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
         # Sprint estab-e2e (2026-09-11) — subset sin fixture F2 pesado.
         # workers=2 (default de Playwright en CI) — cargas ligeras.
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
 
       - name: Extract AUTH-RETRY marks to artifact
         # Sprint estab-e2e (2026-09-11) — el `authenticate.ts` helper hace
