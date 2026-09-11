@@ -127,10 +127,27 @@ COMMIT;
 --   * "Users can delete own avatars" (DELETE, authenticated)
 --   * (cero policies TO public)
 --
--- SELECT polname, cmd, roles, qual::text
---   FROM pg_policies
---  WHERE schemaname = 'storage' AND tablename = 'objects'
---    AND qual::text LIKE '%avatars%'
+-- CORRECCIÓN 2026-09-11: la query original filtraba SOLO por polqual
+-- (equivalente a `qual` en pg_policies). Las policies de INSERT solo
+-- tienen polwithcheck (WITH CHECK), no polqual → quedaban invisibles.
+-- Falso hallazgo "falta INSERT policy" atribuido a staging antes de que
+-- el PO detectara el sesgo del método (P8 aplicado a verificación
+-- propia — mismo antipatrón que MCP information_schema.table_constraints
+-- vs pg_catalog.pg_constraint). Query corregida abajo consulta ambos
+-- lados (polqual OR polwithcheck).
+--
+-- SELECT polname,
+--        CASE polcmd WHEN 'r' THEN 'SELECT' WHEN 'a' THEN 'INSERT'
+--                    WHEN 'w' THEN 'UPDATE' WHEN 'd' THEN 'DELETE' END AS cmd,
+--        (SELECT array_agg(rolname) FROM pg_roles WHERE oid = ANY(polroles)) AS roles_arr,
+--        pg_get_expr(polqual, polrelid)      AS using_clause,
+--        pg_get_expr(polwithcheck, polrelid) AS with_check_clause
+--   FROM pg_policy
+--  WHERE polrelid = 'storage.objects'::regclass
+--    AND (
+--         pg_get_expr(polqual, polrelid)      ILIKE '%avatars%'
+--      OR pg_get_expr(polwithcheck, polrelid) ILIKE '%avatars%'
+--    )
 --  ORDER BY polname;
 --
 -- ------------------------------------------------------------------------
