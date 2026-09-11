@@ -161,13 +161,99 @@ jobs:
           done
           echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
 
+      # Sprint estab-e2e (2026-09-11) — MEDICIÓN Supabase Auth latency.
+      # 5 POST staging con anon real + creds dummy (400 esperado tras validar
+      # apikey), 5 POST prod con anon dummy (401 rápido). Registra latencia
+      # cada request + mediana en log + artifact. Si mediana staging > 3s,
+      # cuello de infra → reportar al PO. Correr ANTES de warmup y setup.
+      - name: Measure Supabase Auth latency (staging + prod, dummy 401)
+        run: |
+          STG_URL="https://jmtadvdkicyylcwjcmcl.supabase.co/auth/v1/token?grant_type=password"
+          PROD_URL="https://ouezpeeiwjwawauidrqq.supabase.co/auth/v1/token?grant_type=password"
+          STG_KEY="${{ secrets.E2E_SUPABASE_ANON_KEY }}"
+          PROD_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy_sig_for_401"
+          BODY='{"email":"dummy-latency-probe@example.com","password":"dummy-not-a-real-password"}'
+          mkdir -p e2e/.report
+          OUT="e2e/.report/supabase-auth-latency.log"
+          {
+            echo "=== Supabase Auth latency measurement (5 POST c/u, dummy creds → 400/401 esperados) ==="
+            echo "Date: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo ""
+          } | tee "$OUT"
+
+          STG_LATS=""
+          for i in 1 2 3 4 5; do
+            RESP=$(curl -s -o /dev/null -w "%{time_total} %{http_code}" -X POST "$STG_URL" -H "apikey: $STG_KEY" -H "Content-Type: application/json" -d "$BODY" || echo "0 000")
+            T=$(echo "$RESP" | awk '{print $1}')
+            S=$(echo "$RESP" | awk '{print $2}')
+            echo "  staging attempt $i: ${T}s (HTTP $S)" | tee -a "$OUT"
+            STG_LATS="$STG_LATS$T\n"
+          done
+          STG_MED=$(printf "$STG_LATS" | sort -n | awk 'NR==3')
+          echo "  staging median: ${STG_MED}s" | tee -a "$OUT"
+
+          echo "" | tee -a "$OUT"
+          PROD_LATS=""
+          for i in 1 2 3 4 5; do
+            RESP=$(curl -s -o /dev/null -w "%{time_total} %{http_code}" -X POST "$PROD_URL" -H "apikey: $PROD_KEY" -H "Content-Type: application/json" -d "$BODY" || echo "0 000")
+            T=$(echo "$RESP" | awk '{print $1}')
+            S=$(echo "$RESP" | awk '{print $2}')
+            echo "  prod    attempt $i: ${T}s (HTTP $S)" | tee -a "$OUT"
+            PROD_LATS="$PROD_LATS$T\n"
+          done
+          PROD_MED=$(printf "$PROD_LATS" | sort -n | awk 'NR==3')
+          echo "  prod    median: ${PROD_MED}s" | tee -a "$OUT"
+
+          echo "" | tee -a "$OUT"
+          THRESHOLD=3
+          CROSSED=$(echo "$STG_MED $THRESHOLD" | awk '{print ($1 > $2) ? "yes" : "no"}')
+          if [ "$CROSSED" = "yes" ]; then
+            echo "⚠️  ALERTA: staging median ${STG_MED}s > ${THRESHOLD}s (prod median ${PROD_MED}s)" | tee -a "$OUT"
+            echo "     Cuello de infraestructura probable → decisión C (plan Supabase Pro para staging)" | tee -a "$OUT"
+          else
+            echo "OK: staging median ${STG_MED}s ≤ ${THRESHOLD}s (prod median ${PROD_MED}s). Auth latencia estable." | tee -a "$OUT"
+          fi
+
+      # Sprint estab-e2e (2026-09-11) — warmup preview endpoints ANTES del
+      # auth setup. Amortiza cold start Vercel functions para /login (donde
+      # arranca el auth setup) + /proveedor + /admin + /mis-reservas
+      # (rutas gated que los tests posteriores navegan). Sin este warmup,
+      # el auth setup puede hit el preview cold + Supabase Auth cold en
+      # simultáneo → cascada de latencia que causa el timeout de setup
+      # visto en run 1 de PR #21 (waitForURL 60s exceeded en ambos setups).
+      - name: Warmup preview endpoints (cold start amortization pre-setup)
+        run: |
+          BASE="${{ steps.preview.outputs.url }}"
+          BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
+          echo "=== Warmup preview endpoints (rapido) ==="
+          for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            echo "  ${path} → HTTP ${STATUS}"
+            sleep 0.5
+          done
+          echo "=== Warmup done (rapido) ==="
+
       - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
           CI: 'true'
         # Sprint estab-e2e (2026-09-11) — subset sin fixture F2 pesado.
         # workers=2 (default de Playwright en CI) — cargas ligeras.
-        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ --reporter=list
+        run: npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
+
+      - name: Extract AUTH-RETRY marks to artifact
+        # Sprint estab-e2e (2026-09-11) — el `authenticate.ts` helper hace
+        # retry ≤3× del submit + waitForURL 30s cada uno. Cada intento loguea
+        # `[AUTH-RETRY] role attempt N/3 ...`. Extraer al artifact para saber
+        # si los runs verdes vienen tras 1 intento (infra OK) o tras 2-3
+        # intentos (infra flake — señal de que la mediana del step Measure
+        # miente en promedio pero hay percentiles altos).
+        if: always()
+        run: |
+          mkdir -p e2e/.report
+          grep -E "^\[AUTH-RETRY\]|\[AUTH-RETRY\]" /tmp/rapido-stdout.log > e2e/.report/auth-retry.log || echo "(no auth-retry marks found)" > e2e/.report/auth-retry.log
+          echo "=== Sample de auth-retry marks ==="
+          cat e2e/.report/auth-retry.log || true
 
       - name: Upload Playwright HTML report
         if: always()
