@@ -39,6 +39,7 @@ import {
 } from '../../lib/categoriaTemporal';
 import { formatRangoNoches, nochesEntre } from '../../lib/formatFecha';
 import { DayPicker, type DateRange } from 'react-day-picker';
+import DatePickerConHora from '../Shared/DatePickerConHora';
 import 'react-day-picker/dist/style.css';
 import { es } from 'date-fns/locale';
 import RegionComunaPicker from '../Shared/RegionComunaPicker';
@@ -1704,15 +1705,17 @@ export default function SolicitarAgendamientoModal({
                                 <label htmlFor="agend-fecha-hora" className="block text-sm font-medium text-slate-700 mb-1.5">
                                     Fecha y hora <span className="text-red-500">*</span>
                                 </label>
-                                <input
+                                {/* Sprint agenda-categorias (2026-09-11) — decisión PO
+                                    punto 3: DatePickerConHora reemplaza el
+                                    `<input type="datetime-local">` nativo. Mantiene
+                                    formato del state `fechaPreferida` (YYYY-MM-DDTHH:MM)
+                                    → cero cambio de contrato con endpoints o emails. */}
+                                <DatePickerConHora
                                     id="agend-fecha-hora"
-                                    name="agend-fecha-hora"
-                                    type="datetime-local"
                                     value={fechaPreferida}
-                                    onChange={e => setFechaPreferida(e.target.value)}
+                                    onChange={setFechaPreferida}
                                     min={minDt}
                                     required
-                                    className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                                 />
                             </div>
                             <div>
@@ -1743,15 +1746,14 @@ export default function SolicitarAgendamientoModal({
                             <label htmlFor="agend-fecha" className="block text-sm font-medium text-slate-700 mb-1.5">
                                 Fecha y hora preferida <span className="text-red-500">*</span>
                             </label>
-                            <input
+                            {/* Sprint agenda-categorias (2026-09-11) — decisión PO
+                                punto 3: DatePickerConHora en vez del input nativo. */}
+                            <DatePickerConHora
                                 id="agend-fecha"
-                                name="agend-fecha"
-                                type="datetime-local"
                                 value={fechaPreferida}
-                                onChange={e => setFechaPreferida(e.target.value)}
+                                onChange={setFechaPreferida}
                                 min={minDt}
                                 required
-                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white transition-colors"
                             />
                             <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                                 Cuándo te gustaría recibir el servicio. El proveedor confirmará o propondrá otra opción.

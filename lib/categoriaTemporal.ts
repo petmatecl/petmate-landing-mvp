@@ -35,8 +35,19 @@ export const CATEGORIAS_MULTI_DIA: ReadonlySet<string> = new Set(['cuidado']);
 // guarderia (cupo diario) requieren modelos distintos y quedan para F2/F3.
 // Slugs BD (matchean seed 20260506_seed_demos:325+ y explorar): `paseos`,
 // `peluqueria`, `adiestramiento`, `veterinario`, `traslado`.
+//
+// Sprint agenda-categorias (2026-09-11) — ampliado con `fotografia`,
+// `retratos`, `etologia`. Los 3 son servicios de sesión con duración fija
+// (mismo modelo que peluquería/adiestramiento/veterinario/traslado), aptos
+// para el toggle de agenda F1. Sustantivos agregados abajo en
+// `SUSTANTIVO_POR_SLUG`. Los 3 tenían campos específicos por preset
+// (`duracion_sesion` en fotografia/etologia + `plazo_entrega` en retratos)
+// que quedan como campos DESCRIPTIVOS del servicio (no del agendamiento)
+// — cero conflicto con la agenda F1 real (que trae la duración de la
+// disponibilidad_semanal + duracion_slot_min del servicio).
 export const CATEGORIAS_BLOQUE_HORARIO_F1: ReadonlySet<string> = new Set([
     'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado',
+    'fotografia', 'retratos', 'etologia',
 ]);
 
 export function categoriaAdmiteAgendaF1(slug: string | null | undefined): boolean {
@@ -61,6 +72,10 @@ const SUSTANTIVO_POR_SLUG: Record<string, SustantivoAgenda> = {
     veterinario:    { singular: 'consulta', del: 'de la consulta' },
     traslado:       { singular: 'viaje',    del: 'del viaje'    },
     cuidado:        { singular: 'estadía',  del: 'de la estadía' },
+    // Sprint agenda-categorias (2026-09-11) — categorías nuevas F1.
+    fotografia:     { singular: 'sesión',   del: 'de la sesión' },
+    retratos:       { singular: 'encargo',  del: 'del encargo'  },
+    etologia:       { singular: 'consulta', del: 'de la consulta' },
 };
 
 const SUSTANTIVO_FALLBACK: SustantivoAgenda = {
