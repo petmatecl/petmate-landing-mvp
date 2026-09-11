@@ -123,12 +123,24 @@ test.describe('PAN-1 · Diagnóstico estado actual (7 defectos)', () => {
         }
         await openBell(page);
         const panel = page.getByRole('menu', { name: /Lista de notificaciones/i });
+        // Corte de race (a): el fetch de fetchNotifications es async. Esperar
+        // que aparezca al menos 1 fila O que aparezca el empty state
+        // "No tienes notificaciones", lo que ocurra primero. Sin esta espera
+        // el count() ejecuta antes de que setState del fetch complete y devuelve 0
+        // — falso positivo de "panel muestra 0 filas" cuando en realidad
+        // hay 207 unread en BD (verificado empíricamente 2026-09-11, PR #19
+        // run 34622721857). RLS descartada como causa: bajo SET LOCAL
+        // role='authenticated' + jwt.sub=uid, la query devuelve las 207.
+        const primerFilaOEmptyState = panel.locator(
+            '.divide-y > div, p:has-text("No tienes notificaciones")'
+        ).first();
+        await primerFilaOEmptyState.waitFor({ state: 'visible', timeout: 10_000 });
         const visible = await panel.locator('.divide-y > div').count();
         // Si el panel muestra <= unreadCount, no trae leídas → def 3 vivo.
         expect(
             visible,
             `Panel muestra ${visible} filas; BD tiene unread=${unreadCount} read=${readCount}. Opción B espera al menos unread+1 read visible (def 3 vivo si visible <= unread).`
-        ).toBeGreaterThan(unreadCount);
+        ).toBeGreaterThan(Math.min(unreadCount, 20)); // limit(20) del fetch actual
     });
 
     test('Def 4a — click en backdrop cierra panel', async ({ page }) => {
