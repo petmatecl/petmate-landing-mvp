@@ -20,7 +20,17 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { resolverCategoriaIdPorSlug, borrarServicioResiliente } from './servicio-efimero';
 import { timeMark } from './timing';
 
-export const E2E_F2_3_TITULO_PREFIX = 'e2e-f2-3-';
+// Sprint pan-1 PR-1 wrap (2026-09-11) — fix def 5: prefix display-friendly.
+// Antes: `'e2e-f2-3-'` producía títulos como `"e2e-f2-3-1789148685738"` que
+// llegaban al `servicios_publicados.titulo` y al `${servicioTitulo}` del
+// generador recordatorio-reserva → notifs con "e2e-" visible al user en el
+// panel de la campana (def 5 PAN-1 aparente aunque el generator productivo
+// no emite código expuesto — la data de fixture contaminaba). Ahora el
+// prefix es humano-legible; el timestamp aún sirve para uniqueness pero
+// queda tras un separador "—" que produce títulos como
+// `"Cuidado de mascota (test F2-3) — 1789148685738"`. Cleanup sigue por
+// `.like(titulo, PREFIX + '%')` sin cambio semántico.
+export const E2E_F2_3_TITULO_PREFIX = 'Cuidado de mascota (test F2-3) — ';
 
 export type ServicioCuidadoListo = {
     id: string;
