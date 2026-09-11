@@ -197,6 +197,29 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
   **Restricción del sprint (PO 2026-08-28)**: es sólo diagnóstico. Cero fix, cero código productivo, cero hipótesis dada por buena sin corte de variable que la distinga de las demás. Ronda actual: **mapa de código de los caminos comunes de carga** (sin hipótesis todavía).
 
+- **[CERRADO — sprint PAN-1 pan-1-*, 2026-09-11 SHA `41e01d0` (última merge PR-3b)]** **Panel de notificaciones — 8 defectos observados** — sprint pedido PO 2026-08-28 aterrizado. **Estado final por defecto**:
+  - Def 1 CERRADO por sprint notifs-panel (2026-09-01) + diagnostic run 34622721857 (2026-09-11) confirmó generators canónicos con link poblado. Verificado por `[e2e/specs/pan-1/estado-actual.spec.ts:T1]` (rama pan-1 cerrada PR #19 tras cumplir rol de diagnóstico).
+  - Def 2 CERRADO por diagnostic run 34622721857 T2 — grep de 50 notifs devolvió cero `evaluacion|moderacion|Aparecera|publica tras|notificacion` sin tildes. El copy visto en el screenshot PO 2026-08-28 vino del preview `cuelgue-diag` (Supabase staging) con notifs históricas legacy, no del código actual.
+  - Def 3 CERRADO PR #20 (`pan-1-def3`, SHA `5098808`) — `NotificationBell` consume `useUser()` del UserContext (fix race auth resolution en /admin) + Opción B revisada del PO (fetch = unread + últimas 10 read). Cerró un bug productivo grave (100% reproducible en /admin con 207 unread en BD y panel mostrando 0). Spec regresión `[e2e/specs/pan-1/def3-bell-user-context.spec.ts]` con 3 tests (carrera /admin + mezcla unread+read + logout+login cambio user).
+  - Def 4a/4b/4c CERRADO por sprint notifs-panel 2026-09-01 (`usePersistentOverlayClose` + backdrop portal). Verificado por diagnostic run T4a/T4b/T4c todos verdes.
+  - Def 4 extensión (hook a `MobileActionSheet` + modales servicio + `FeedbackWidget` para audit consistente) → NO SE HIZO en el sprint por decisión operativa (síntoma no observado). Anotada como deuda separada abajo para cuando aparezca.
+  - Def 5 CERRADO PR #21 wrap (`pan-1-wrap`, SHA `<tbd>`) — fix estructural de fixtures: `E2E_F2_3_TITULO_PREFIX` y `E2E_TITULO_PREFIX` cambiados de `'e2e-f2-3-'` / `'e2e-f2-2b-'` a strings display-friendly (`'Cuidado de mascota (test F2-3) — '` / `'Servicio F2-2B (test e2e) — '`). El generator productivo `recordatorio-reserva.ts` emite `${servicioTitulo}` en el message del bell — con el fix, ese título es humano-legible en vez de código interno. El diagnostic T5 daba 50/50 con `e2e-` por CONTAMINACIÓN de fixtures (no bug del código productivo, verificado por grep de `recordatorio-reserva.ts` y `invitacion-resenas.ts`). Cerrado por vía indirecta correcta: el generator estaba OK, la data de test es lo que contaminaba el diagnostic.
+  - Def 6 CERRADO por diagnostic T6 — cero duplicados `(agendamiento_id, timestamp al segundo)` en 90 días. Generador es idempotente. No hay filas históricas para limpiar.
+  - Def 7 CERRADO PR #22 (`pan-1-def7`, SHA `5900641`) — `pages/api/cron/recordatorio-reserva.ts:561-563` split `emailSubject` (mantiene "Mañana:", correcto para email del día antes) del `notifTitle` (usa "Recordatorio:", el bell renderiza fecha relativa dinámica desde `metadata.tipo='recordatorio_dia_anterior'` + `agendamientos.fecha_preferida` via `formatFechaRelativa modo='evento'`). Spec regresión `[e2e/specs/pan-1/def7-recordatorio-title.spec.ts]`. **SQL cleanup PROD PENDIENTE** ejecución PO — 52 notifs viejas con `"Mañana:"` congelado en title:
+    ```sql
+    BEGIN;
+    UPDATE notifications
+       SET title = REPLACE(title, 'Mañana:', 'Recordatorio:')
+     WHERE metadata->>'tipo' = 'recordatorio_dia_anterior'
+       AND title LIKE 'Mañana:%'
+     RETURNING id, title;
+    COMMIT;
+    ```
+  - Def 8 CERRADO 2026-09-11 como falso hallazgo por confusión de entorno (ver historia abajo — preservada por trazabilidad).
+  - **PR-3b colateral encontrado y cerrado** (SHA `41e01d0`): mismo patrón bug del bell (`useEffect + supabase.auth.getUser() + []`) en 2 archivos más — `pages/usuario/mascotas/index.tsx` (2 lugares, uno redirigía a `/login` a user autenticado) + `components/Service/ReviewForm.tsx`. Fix uniforme con `useUser()`. Spec regresión `[e2e/specs/pan-1/race-mascotas-reviewform.spec.ts]`. **`pages/email-confirmado.tsx` L141-148** tiene `getSession()` en fallback defensivo (URL limpia, chequeo de otra tab) — semántica distinta, anotado como deuda separada en `Bloque C higiene`.
+
+Historia original preservada:
+
 - **[abierto — PRIORIDAD ALTA, pedido PO 2026-08-28]** **Panel de notificaciones — 8 defectos observados** — pedido consolidado del PO que reemplaza dos envíos previos (base 1-4 y ampliación 5-8) que no llegaron al contexto del auditor. Observado en dos entornos: **prod (pawnecta.com)** y **preview cuelgue-diag**, ambos con sesión admin, panel de la campana.
 
   **Nota de versión** — a verificar en el sprint: en el preview el panel tiene botón "Marcar leídas"; en prod NO aparecía. Determinar si es diferencia de versión desplegada o de estado (quizás el botón solo aparece cuando hay no-leídas).
@@ -1025,6 +1048,10 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 **Impacto SEO**: cero — el fix del bundle SEO de Auditoría #2 (307→404/410) cubre igual el caso de un ejemplo desactivado que un crawler encontró indexado.
 
 ## Deuda técnica / pulido
+
+- **[abierto — PRIORIDAD BAJA, sprint pan-1 PR-3b 2026-09-11] `email-confirmado.tsx` con `getSession()` en fallback defensivo** — [pages/email-confirmado.tsx:141-148](pages/email-confirmado.tsx#L141-L148). Semántica distinta al bug del bell (no es race del mount productivo — es fallback para detectar sesión previa de OTRA tab cuando la URL viene limpia). No amerita fix inmediato porque (a) el path se dispara solo cuando URL NO trajo token (rama 3 del effect), (b) el fallback termina en `setHasSomethingToProcess(!!data?.session)` que si retorna false por race, la landing muestra el path guest correcto (URL limpia = user probablemente ya está logueado o vino sin sesión previa). Consideración: reemplazar por `useUser()` del contexto sería más limpio y elimina la última superficie del patrón `getSession + useEffect[]` del proyecto. Sprint chico (~30 min) — combinable con cualquier PR que toque `email-confirmado.tsx`.
+
+- **[abierto — PRIORIDAD BAJA, anotada 2026-09-11 sprint pan-1 def 4 extensión]** Aplicar `usePersistentOverlayClose` a overlays adicionales (`MobileActionSheet.tsx`, modales servicio, `FeedbackWidget` si le falta alguna rama) para consistencia. Def 4 del PAN-1 verificó que el patrón buggy de "no cierra + persiste ruta" NO se manifiesta hoy en esos overlays en el diagnostic run 34622721857 — pero el hook está disponible y aplicarlo proactivamente reduce riesgo de que aparezca el patrón en un futuro refactor. Trigger para arrancar: (a) aparición del síntoma en algún overlay reportada por PO, (b) sprint de higiene de sistema.
 
 - **[abierto — PRIORIDAD MEDIA, sprint estabilizacion-e2e 2026-09-11] `F2-3-FLAKINESS` — flakiness intermitente de la suite `e2e/specs/f2-3/*`** — 2 fails consecutivos en PR #20 (pan-1-def3) en 2 tests DISTINTOS (s7 card /mis-reservas no visible + s3 `.rdp` DayPicker no renderiza) → saturación del pool Supabase staging bajo concurrency Playwright workers. **Mitigación aplicada 2026-09-11** (workflow split en 2 jobs: `e2e-rapido` con workers=2 + `e2e-f2` con workers=1 + warmup del preview, `needs: e2e-rapido` fuerza serialización). Deuda de investigación pendiente: instrumentación via `e2e/fixtures/timing.ts` va a producir `[TIMING]` marks en cada helper (`crearServicioCuidadoConF2`, `preInsertarReservaConfirmada`, `cleanupHuerfanosF23`, `borrarServicioResiliente`, `irAMisSolicitudes`). Extraídas al artifact `playwright-report-f2-<run_id>` para análisis. **Criterio de cierre del sprint estabilizacion-e2e**: 3 runs consecutivos verdes sin override. Si tras la mitigación aún hay flakes, investigar si el cuello es la base (plan Supabase staging free/pro) o el cliente. **Referencia**: [ACTA_ESTAB_E2E.md](ACTA_ESTAB_E2E.md) cuando exista.
 

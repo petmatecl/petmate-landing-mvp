@@ -11,7 +11,10 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { timeMark } from './timing';
 
-export const E2E_TITULO_PREFIX = 'e2e-f2-2b-';
+// Sprint pan-1 PR-1 wrap (2026-09-11) — fix def 5: prefix display-friendly.
+// Mismo cambio que servicio-cuidado-listo.ts (ver comentario extenso allí).
+// Títulos legibles como `"Servicio F2-2B (test e2e) — 1789148685738"`.
+export const E2E_TITULO_PREFIX = 'Servicio F2-2B (test e2e) — ';
 
 export type ServicioEfimero = {
     id: string;
