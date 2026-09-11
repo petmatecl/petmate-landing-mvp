@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 import { useRouter } from 'next/router';
+import { useUser } from '../../contexts/UserContext';
 import { markNotificationAsRead } from '../../lib/notifications';
 import { formatFechaRelativa } from '../../lib/dateRelative';
 import { usePersistentOverlayClose, dispatchOverlayOpen } from '../../lib/hooks/usePersistentOverlayClose';
@@ -51,10 +52,22 @@ type AgendaFecha = {
 
 export default function NotificationBell() {
     const router = useRouter();
+    // Sprint pan-1 PR-3 (2026-09-11) — Fix def 3 estructural. Antes el bell
+    // hacía `supabase.auth.getUser()` local dentro del useEffect(..., []).
+    // En rutas gated (/admin, /proveedor, /mis-reservas, etc.) el mount del
+    // Header ocurre ANTES de que UserContext resuelva la sesión: el bell
+    // hitteaba getUser() → user=null → init() early-return → notifications
+    // quedaba `[]` para siempre hasta remount (hard refresh). Bug estructural
+    // 100% reproducible en /admin con 207 unread en BD (PR #19 diagnóstico
+    // run 34624549600). Ahora consumimos user + isLoading del UserContext:
+    // el effect corre cuando el auth se resuelve (isLoading=false) Y cada
+    // vez que user.id cambie (null→val, val→null, val1→val2 en cross-tab).
+    // Cero onAuthStateChange local (respeta P10 CLAUDE.md — deadlock lock
+    // auth), cero timers, cero retry logic — el contexto ya orquesta todo.
+    const { user, isLoading: authLoading } = useUser();
     const [notifications, setNotifications] = useState<Notification[]>([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
-    const [userId, setUserId] = useState<string | null>(null);
     // Sprint notifs-panel C4 (2026-09-01) — Render defensivo.
     // Set con refs que existen en BD, formato "prefijo:UUID". Poblado por el
     // batch query después de traer las notifs. Notifs cuyos refs NO están en
@@ -110,28 +123,44 @@ export default function NotificationBell() {
         });
     }, [isOpen]);
 
-    // 1. Fetch initial state & subscribe
+    // 1. Fetch initial state & subscribe.
+    // Sprint pan-1 PR-3 (2026-09-11) — deps `[user?.id, authLoading]` para
+    // reaccionar a: (a) auth resuelto tras el mount race en rutas gated, (b)
+    // login post-guest, (c) logout, (d) cambio de user (cross-tab / mismo
+    // pestaña logout+login otro user). Cada transición desmonta el channel
+    // viejo y recontrata con el user_id nuevo. Cero getUser() local, cero
+    // subscribe a onAuthStateChange (respeta P10).
     useEffect(() => {
+        // Esperar auth resuelto — evita fetch temprano con user null que
+        // limpiaba el state cuando en realidad el auth aún estaba cargando.
+        if (authLoading) return;
+        // Sin user (guest o logout) → limpiar state, cero fetch, cero channel.
+        if (!user?.id) {
+            setNotifications([]);
+            setUnreadCount(0);
+            setExistingRefs(new Set());
+            setAgendaFechas(new Map());
+            return;
+        }
+
         let channel: any;
+        const uid = user.id;
 
-        const init = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return;
-            setUserId(user.id);
+        const load = async () => {
+            await fetchNotifications(uid);
 
-            // Fetch existing
-            await fetchNotifications(user.id);
-
-            // Subscription
+            // Subscription — nombre único por user_id para que un cambio de
+            // user desmonte el channel anterior (via cleanup abajo) y el
+            // nuevo tenga id fresh sin colisión.
             channel = supabase
-                .channel('public:notifications')
+                .channel(`public:notifications:${uid}`)
                 .on(
                     'postgres_changes',
                     {
                         event: 'INSERT',
                         schema: 'public',
                         table: 'notifications',
-                        filter: `user_id=eq.${user.id}`,
+                        filter: `user_id=eq.${uid}`,
                     },
                     (payload) => {
                         const newNotif = payload.new as Notification;
@@ -167,40 +196,55 @@ export default function NotificationBell() {
                 .subscribe();
         };
 
-        init();
+        load();
 
         return () => {
             if (channel) supabase.removeChannel(channel);
         };
-    }, []);
+    }, [user?.id, authLoading]);
 
     const fetchNotifications = async (uid: string) => {
-        // Sprint notifs-panel C5 (2026-09-01) — Panel corto = SOLO NO LEÍDAS
-        // (decisión D2 del PO). Con el link "Ver todas" removido en C1
-        // (7c39210), las notifs LEÍDAS quedan INACCESIBLES desde la UI hasta
-        // que exista la página /notificaciones (anotada en BACKLOG como
-        // sprint dedicado con paginación + filtros + marcar leídas). Es
-        // DELIBERADO, no un olvido: un panel corto que muestra también
-        // leídas se vuelve ruidoso con volumen. La página /notificaciones
-        // cuando llegue va a ser el destino del histórico completo.
-        //
-        // Efecto UX al marcar una notif como leída: el optimistic update
-        // en handleMarkRead cambia read=true; el filter del render la saca
-        // de la lista visible → parece "desaparecer" del panel. Correcto:
-        // el user ya la atendió, no debería seguir viéndola en el panel corto.
-        const { data, error } = await supabase
-            .from('notifications')
-            .select('*')
-            .eq('user_id', uid)
-            .eq('read', false)
-            .order('created_at', { ascending: false })
-            .limit(20);
+        // Sprint pan-1 PR-3 (2026-09-11) — Opción B revisada del PO: unread
+        // + últimas 10 read. Reemplaza D2 del sprint notifs-panel (que traía
+        // solo unread — el user perdía visibilidad del histórico reciente
+        // hasta que existiera la página /notificaciones dedicada). Con este
+        // fetch el panel muestra todo lo NO-atendido + las 10 más recientes
+        // ya atendidas, agrupadas visualmente por estilo (bg-accent-50/30
+        // marca unread — ver el render). Dos queries paralelas (no una sola
+        // ordenada por read asc + created_at desc) porque no hay guarantee
+        // de que Postgres ordene NULL-safely + evita cargar filas read=true
+        // que se descartarían.
+        const [unreadRes, readRes] = await Promise.all([
+            supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', uid)
+                .eq('read', false)
+                .order('created_at', { ascending: false }),
+            supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', uid)
+                .eq('read', true)
+                .order('created_at', { ascending: false })
+                .limit(10),
+        ]);
 
-        if (error || !data) return;
+        if (unreadRes.error) {
+            console.warn('[NotificationBell] fetch unread failed:', unreadRes.error.message);
+        }
+        if (readRes.error) {
+            console.warn('[NotificationBell] fetch read failed:', readRes.error.message);
+        }
 
-        const notifs = data as Notification[];
+        // Orden final: unread primero (urgentes), read después (histórico).
+        // Cada bloque interno ya viene ordenado desc por created_at desde
+        // el server.
+        const unread = (unreadRes.data ?? []) as Notification[];
+        const read = (readRes.data ?? []) as Notification[];
+        const notifs = [...unread, ...read];
         setNotifications(notifs);
-        setUnreadCount(notifs.filter((n) => !n.read).length);
+        setUnreadCount(unread.length);
 
         // Sprint notifs-panel C4 — batch query para render defensivo + fecha
         // del evento (Opción Y). Extraer ids distintos por tipo, después 3
@@ -414,16 +458,20 @@ export default function NotificationBell() {
                             </div>
                         </div>
 
-                        {/* Sprint notifs-panel C5 (2026-09-01) — filter render
-                            por read=false. El fetch ya trae solo no-leídas
-                            (.eq('read', false)), pero handleMarkRead hace
-                            optimistic update que cambia read=true en el state
-                            local; el filter acá saca la notif del render sin
-                            necesidad de re-fetchear. Empty state se calcula
-                            sobre las visibles, no sobre el array completo. */}
+                        {/* Sprint pan-1 PR-3 (2026-09-11) — filter removido.
+                            El fetch trae unread + últimas 10 read (opción B
+                            revisada del PO). Todas visibles con estilo
+                            distinto por `!n.read` en className (bg-accent-50/30
+                            marca unread, transparent marca read). handleMarkRead
+                            optimistic ya no oculta la notif — sigue visible con
+                            el estilo de leída, cero re-fetch.
+                            Empty state se calcula sobre `notifications` completo
+                            (no hay filtro). Si el fetch trae 0 read + 0 unread,
+                            aparece "No tienes notificaciones". Si trae solo
+                            reads (todas atendidas), sigue visible el histórico. */}
                         <div className="max-h-[60vh] overflow-y-auto">
                             {(() => {
-                                const visibles = notifications.filter((n) => !n.read);
+                                const visibles = notifications;
                                 if (visibles.length === 0) {
                                     return (
                                         <div className="p-8 text-center text-slate-500 text-sm">
