@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../../../lib/supabaseClient';
+import { useUser } from '../../../contexts/UserContext';
 import RoleGuard from '../../../components/Shared/RoleGuard';
 import ClientLayout from '../../../components/Client/ClientLayout';
 import ConfirmDialog from '../../../components/Shared/ConfirmDialog';
@@ -192,6 +193,7 @@ function calcularEdad(fechaNacimiento: string | null): string | null {
 
 function MascotasPageContent() {
     const router = useRouter();
+    const { user } = useUser();
     const [userId, setUserId] = useState<string | null>(null);
     const [mascotas, setMascotas] = useState<Mascota[]>([]);
     const [loading, setLoading] = useState(true);
@@ -204,13 +206,15 @@ function MascotasPageContent() {
     // le mostramos un link para volver al servicio y no perder el flujo.
     const returnTo = typeof router.query.returnTo === 'string' ? router.query.returnTo : null;
 
+    // Sprint pan-1 PR-3b (2026-09-11) — Fix del patrón buggy que
+    // NotificationBell tenía. Antes: `useEffect(() => getSession()..., [])`
+    // con race del auth resolution. Race lleva `userId=null` → fetchMascotas
+    // no corre → tabla vacía indefinida aunque el user autenticado sí tenga
+    // mascotas. Reemplazado por `useUser()` del contexto (fuente de verdad).
+    // Deps `[user?.id]` re-corre cuando cambia (login post-guest, logout).
     useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session?.user) {
-                setUserId(session.user.id);
-            }
-        });
-    }, []);
+        if (user?.id) setUserId(user.id);
+    }, [user?.id]);
 
     const fetchMascotas = useCallback(async (uid: string) => {
         setLoading(true);
@@ -1077,18 +1081,17 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
 // ────────────────────────────────────────────────────────────────────────────
 
 export default function MisMascotasPage() {
-    const [userId, setUserId] = useState<string | null>(null);
-    const router = useRouter();
-
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session?.user) {
-                setUserId(session.user.id);
-            } else {
-                router.push('/login');
-            }
-        });
-    }, [router]);
+    // Sprint pan-1 PR-3b (2026-09-11) — Fix del mismo patrón buggy que
+    // NotificationBell tenía: `useEffect(() => supabase.auth.getSession()...,
+    // [])` con race del auth resolution. Antes: si el mount ocurría con
+    // sesión aún cargando, `session === null` → `router.push('/login')`
+    // → user autenticado redirigido incorrectamente al login. Ahora
+    // consumimos el user del UserContext (fuente de verdad global,
+    // reactivo). RoleGuard con `requiredRole="usuario"` ya maneja el
+    // redirect si el user NO está autenticado tras hidratación —
+    // eliminamos el redirect propio para no duplicar lógica ni causar
+    // race con el guard.
+    const { user } = useUser();
 
     return (
         <RoleGuard requiredRole="usuario">
@@ -1097,7 +1100,7 @@ export default function MisMascotasPage() {
                 oculta el h1 duplicado. El h1 visual + document title los maneja el
                 page content (Head con "Mis mascotas — Pawnecta" gana por deepest Head
                 merge de Next.js). */}
-            <ClientLayout userId={userId}>
+            <ClientLayout userId={user?.id ?? null}>
                 <MascotasPageContent />
             </ClientLayout>
         </RoleGuard>
