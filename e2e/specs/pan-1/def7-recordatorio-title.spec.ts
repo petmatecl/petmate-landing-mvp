@@ -98,14 +98,23 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
-    test('corrida real cron → notif title empieza con "Recordatorio:", NO "Mañana:"', async ({ baseURL }) => {
+    test('corrida real cron → notif title empieza con "Recordatorio:", NO "Mañana:"', async ({ request, baseURL }) => {
         // 1. Hit cron con dryRun=false para insertar notifs reales.
+        //
+        // Sprint conviene Paso 0 (2026-09-12) — cambio `fetch()` global → `request`.
+        // El `fetch()` global de Node NO tiene cookie jar entre hops. Vercel
+        // Deployment Protection valida el bypass en query en el primer request,
+        // emite `Set-Cookie: _vercel_jwt=...` + redirect 307 a URL limpia; el
+        // segundo hop llega sin cookie y Vercel devuelve HTML del auth prompt,
+        // reventando `resp.json()` con `SyntaxError: Unexpected token '<'`.
+        // El `request` fixture de Playwright respeta cookies entre hops via su
+        // contexto, así el bypass persiste al 307. Fix consistente con el
+        // patrón usado por `e2e/specs/f2-recordatorios-cron/all.spec.ts`.
         const url = endpointUrl(baseURL!, { dryRun: false });
-        const resp = await fetch(url, {
-            method: 'GET',
+        const resp = await request.get(url, {
             headers: { 'x-cron-secret': secret },
         });
-        expect(resp.status, `cron respondió ${resp.status}`).toBe(200);
+        expect(resp.status(), `cron respondió ${resp.status()}`).toBe(200);
         const body = await resp.json();
         // El cron es GLOBAL — filtra sobre staging entero, no solo nuestro
         // agendamiento. `sent >= 2` (nuestros tutor+proveedor) es criterio
