@@ -36,6 +36,10 @@ interface AgendamientoProveedorEmailProps {
     // R7 — cascada Dónde resuelta server-side (formatDireccionLinea →
     // primera comuna → fallback chat). Si viene, reemplaza modalidad+dirección.
     donde?: string | null;
+    // Sprint conviene MAIL-MASC (2026-09-12) — bloque "Mascota" en el
+    // listado del email. Formato "Firulais (perro)" si vino de ficha, o
+    // texto libre del tutor si no. Null oculta la row (retrocompat total).
+    mascotaLabel?: string | null;
 }
 
 // Ambos escenarios (esConfirmadaAuto true/false) son eventos positivos
@@ -59,6 +63,7 @@ export const AgendamientoProveedorEmail = ({
     checkOutHora,
     fechaSub,
     donde,
+    mascotaLabel,
 }: AgendamientoProveedorEmailProps) => {
     return (
         <Html>
@@ -92,6 +97,7 @@ export const AgendamientoProveedorEmail = ({
                             <Section style={listadoStyles.contenedor}>
                                 <Row label="Cliente" value={nombreTutor} />
                                 <Row label="Servicio" value={servicioTitulo} />
+                                {mascotaLabel && <Row label="Mascota" value={mascotaLabel} fuerte />}
 
                                 {esRango ? (
                                     <Row

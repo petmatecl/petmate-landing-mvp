@@ -28,6 +28,8 @@
 //   - SERVICIO_SOLO_PERROS_ID = "Paseos dinamicos" (estable, no e2e).
 // ---------------------------------------------------------------------------
 import { test, expect } from '@playwright/test';
+import { readFile } from 'fs/promises';
+import path from 'path';
 import { getSupabaseAsTutor } from '../../fixtures/supabase';
 
 // -- IDs canónicos verificados vía MCP staging 2026-09-12 -----------------
@@ -129,12 +131,38 @@ test('[REDIRECT-403] user autenticado no-admin es redirigido a /explorar con toa
 
 // -- Item 5 ORPH-EDIT — saves críticos no exponen error.message crudo ------
 
-test.fixme('[ORPH-EDIT] saves críticos del editor proveedor no exponen error.message crudo', async () => {
-    // Ejecutable solo con rol proveedor (Aldo). Grep local PASO 0 encontró
-    // 2 saves con `toast.error(\`Error al guardar: ${error.message}\`)` en
-    // pages/proveedor/index.tsx L990 y L1167. Veredicto preliminar: VIVO.
-    // Fix estructural (map error → copy amigable + detalle a Sentry) va
-    // bajo rol proveedor en el spec del sprint proper.
+test('[ORPH-EDIT] saves de pages/proveedor/index.tsx no interpolan error.message crudo en toast', async () => {
+    // Post-fix conviene ORPH-EDIT (2026-09-12): los 4 sitios de saves que
+    // exponían `error.message`/`err.message` crudo (L829 avatar-upload,
+    // L990 save-perfil, L1089 enviar-verificacion, L1167 toggle-activo)
+    // ahora usan copy amigable + Sentry.captureException con tags de
+    // subsystem/action + extras del contexto.
+    //
+    // Assertion structural rol-agnóstica: leer el source y grepear los
+    // patrones malos. Cero rol proveedor requerido — corre bajo tutor.
+    // Cero mock de 500 en PATCH necesario. Failure mode inequívoco: si
+    // alguien reintroduce el patrón, este test lo captura en el commit.
+    const source = await readFile(
+        path.resolve(__dirname, '../../..', 'pages/proveedor/index.tsx'),
+        'utf-8',
+    );
+    // Patrón malo — cualquier toast.error que interpole error.message/err.message
+    // en un template string. Cobertura de ambos casos "Error al guardar: ${...}"
+    // y "Error: ${...}" y variantes.
+    const badPattern = /toast\.error\(`[^`]*\$\{(err|error)\.message\}/g;
+    const matches = source.match(badPattern);
+    expect(
+        matches?.length ?? 0,
+        `Cero toast.error interpolando error.message crudo. Match(es): ${JSON.stringify(matches ?? [])}`,
+    ).toBe(0);
+    // Anti-regresión: el patrón "err.message || 'Error al X'" también expone
+    // el error crudo cuando existe. También bloqueado.
+    const badPatternOr = /toast\.error\((err|error)\.message\s*\|\|/g;
+    const matchesOr = source.match(badPatternOr);
+    expect(
+        matchesOr?.length ?? 0,
+        `Cero toast.error(err.message || ...) crudo. Match(es): ${JSON.stringify(matchesOr ?? [])}`,
+    ).toBe(0);
 });
 
 // -- Item 6 TRIPLE-RECOV — UserContext recupera sesión tras hard refresh --
@@ -241,10 +269,34 @@ test.describe('[RES-MASC] modal reserva filtra mascotas por especie aceptada', (
 
 // -- Item 10 MAIL-MASC — bloque "Mascota" en template email + panel -------
 
-test.skip('[MAIL-MASC] template email al proveedor incluye bloque con especie/nombre de la mascota', async () => {
-    // Diagnostic por grep local (PASO 0): VIVO — template
-    // AgendamientoProveedorEmail.tsx sin bloque mascota (0 matches de
-    // "mascota|Mascota"). Fix en el sprint proper.
+test('[MAIL-MASC] template email al proveedor + endpoint incluyen bloque Mascota', async () => {
+    // Post-fix conviene MAIL-MASC (2026-09-12): tres cambios estructurales
+    // (verificados via grep sobre el source):
+    //   (a) AgendamientoProveedorEmail.tsx acepta prop `mascotaLabel` y
+    //       renderea Row "Mascota" cuando viene poblada.
+    //   (b) notify-proveedor.ts extiende query con join `mascotas!agendamientos
+    //       _mascota_id_fkey(nombre, tipo)` + resuelve `mascotaLabel`
+    //       server-side: "Firulais (perro)" si ficha real, o tipo_mascota_texto
+    //       literal si fallback texto libre, o null si no hay mascota.
+    //   (c) Panel proveedor (pages/proveedor/index.tsx L2639) ya renderea
+    //       FichaMascota desde sprint fichas-de-mascotas — cero cambio.
+    //
+    // Assertion structural — chequeos independientes al render real del
+    // email (que requiere render-emails-diff.ts para snapshot). Los 3
+    // greps aseguran que las 3 piezas están conectadas.
+    const template = await readFile(
+        path.resolve(__dirname, '../../..', 'components/Emails/AgendamientoProveedorEmail.tsx'),
+        'utf-8',
+    );
+    expect(template, 'Template acepta prop mascotaLabel').toMatch(/mascotaLabel\??:\s*string/);
+    expect(template, 'Template renderea Row "Mascota" cuando prop poblada').toMatch(/mascotaLabel\s*&&\s*<Row\s+label="Mascota"/);
+
+    const endpoint = await readFile(
+        path.resolve(__dirname, '../../..', 'pages/api/agendamientos/notify-proveedor.ts'),
+        'utf-8',
+    );
+    expect(endpoint, 'Endpoint join mascotas por FK').toMatch(/mascota:mascotas!agendamientos_mascota_id_fkey/);
+    expect(endpoint, 'Endpoint pasa mascotaLabel a AgendamientoProveedorEmail').toMatch(/mascotaLabel[,\s]/);
 });
 
 // -- Item 11 MIS-RESERVAS-TABS — tab activa con indicador visual ----------

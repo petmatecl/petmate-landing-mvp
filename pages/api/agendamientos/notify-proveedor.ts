@@ -58,9 +58,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 duracion_horas, direccion_servicio,
                 region, comuna, calle, numero, direccion_info,
                 estado, mensaje, capacidad_snapshot_estadia, tutor_id, proveedor_id, servicio_id,
+                mascota_id, tipo_mascota_texto,
                 tutor:usuarios_buscadores!agendamientos_tutor_id_fkey(id, auth_user_id, nombre),
                 proveedor:proveedores!agendamientos_proveedor_id_fkey(id, auth_user_id, nombre),
-                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora, comunas_cobertura)
+                servicio:servicios_publicados!agendamientos_servicio_id_fkey(id, titulo, check_in_hora, check_out_hora, comunas_cobertura),
+                mascota:mascotas!agendamientos_mascota_id_fkey(id, nombre, tipo)
             `)
             .eq('id', agendamientoId)
             .maybeSingle();
@@ -73,6 +75,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const tutor = Array.isArray(agend.tutor) ? agend.tutor[0] : agend.tutor;
         const proveedor = Array.isArray(agend.proveedor) ? agend.proveedor[0] : agend.proveedor;
         const servicio = Array.isArray(agend.servicio) ? agend.servicio[0] : agend.servicio;
+        const mascota = Array.isArray(agend.mascota) ? agend.mascota[0] : agend.mascota;
 
         // Authz: el caller debe ser el tutor del agendamiento.
         if (!tutor || tutor.auth_user_id !== userId) {
@@ -148,6 +151,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             ? 'Nueva reserva confirmada en Pawnecta'
             : 'Nueva solicitud de reserva en Pawnecta';
 
+        // Sprint conviene MAIL-MASC (2026-09-12) — bloque "Mascota" en el
+        // email al proveedor. Prioridad: (a) ficha real (mascota FK) →
+        // "Firulais (perro)"; (b) texto libre (tipo_mascota_texto) → literal;
+        // (c) null → template no rendea la row. El agendamiento tenía la
+        // data en BD desde el sprint fichas-de-mascotas pero el email
+        // nunca la usó (deuda de UX documentada en Auditoría #2).
+        let mascotaLabel: string | null = null;
+        if (mascota && mascota.nombre) {
+            mascotaLabel = mascota.tipo
+                ? `${mascota.nombre} (${mascota.tipo})`
+                : mascota.nombre;
+        } else if (agend.tipo_mascota_texto && agend.tipo_mascota_texto.trim()) {
+            mascotaLabel = agend.tipo_mascota_texto.trim();
+        }
+
         // ZB3 sprint ZONAB-1: alimentar props `donde` y `fechaSub` desde los
         // helpers puros de lib/emails/resolvers.ts. Fallback donde: chat con
         // el otro (el proveedor recibe el email; el otro es el tutor).
@@ -183,6 +201,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 checkOutHora,
                 fechaSub,
                 donde,
+                mascotaLabel,
             }) as React.ReactElement,
         });
 

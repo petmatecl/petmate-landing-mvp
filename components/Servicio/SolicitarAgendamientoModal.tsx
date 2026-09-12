@@ -72,6 +72,16 @@ interface SolicitarAgendamientoModalProps {
     // capacidad_snapshot_estadia. Precedencia sobre el flow V2/V4a existente
     // cuando la categoria es cuidado. Null/undefined → flow V2/V4a intacto.
     capacidadEstadia?: number | null;
+    // Sprint conviene RES-MASC (2026-09-12) — filtro de mascotas del tutor
+    // por especies aceptadas del servicio. Si el servicio solo acepta perros,
+    // el selector oculta las mascotas del tutor de tipo distinto. Cero cambio
+    // BD: `mascotas.tipo` sigue siendo 'perro' | 'gato' | otros valores; el
+    // filtro es puramente cliente sobre el fetch existente. Defaults a
+    // {perros:true, gatos:true, otras:true} para retrocompat con callers que
+    // no lo pasen (equivale al comportamiento previo de "mostrar todas").
+    aceptaPerros?: boolean;
+    aceptaGatos?: boolean;
+    aceptaOtras?: boolean;
 }
 
 // Tipo del response del endpoint de slots (espeja lib/slotsAgenda.ts).
@@ -252,6 +262,9 @@ export default function SolicitarAgendamientoModal({
     capacidadSlot,
     anticipacionMaxDias,
     capacidadEstadia,
+    aceptaPerros = true,
+    aceptaGatos = true,
+    aceptaOtras = true,
 }: SolicitarAgendamientoModalProps) {
     // F1 agenda con disponibilidad real: activa el picker rigido si el
     // servicio tiene duracionSlotMin. Tiene precedencia sobre las variantes
@@ -364,9 +377,27 @@ export default function SolicitarAgendamientoModal({
                 setMisMascotas([]);
                 return;
             }
-            setMisMascotas(data || []);
+            // Sprint conviene RES-MASC (2026-09-12) — filtrar por especies
+            // aceptadas del servicio. Antes se mostraban TODAS las mascotas
+            // del tutor sin importar si el servicio las aceptaba (bug UX:
+            // tutor podía elegir un gato para un servicio solo-perros y
+            // recién se enteraba al no poder submitear o post-hoc). Mapeo
+            // `mascotas.tipo` → prop: perro/gato explícitos; cualquier otro
+            // tipo cae en `aceptaOtras` (mismo criterio que la UI de badges
+            // del servicio en ServiceDetailView).
+            const filtradas = (data || []).filter(m => {
+                if (m.tipo === 'perro') return aceptaPerros;
+                if (m.tipo === 'gato') return aceptaGatos;
+                return aceptaOtras;
+            });
+            setMisMascotas(filtradas);
+            // Si la mascota previamente seleccionada quedó fuera del filtro
+            // (edge: user navegó al modal, eligió, cerró, cambió a otro
+            // servicio con distinto acepta_*, reabrió), resetear la selección
+            // para forzar re-elección — evita submit con mascota inválida.
+            setMascotaId(prev => (prev && filtradas.some(m => m.id === prev)) ? prev : null);
         })();
-    }, [isOpen]);
+    }, [isOpen, aceptaPerros, aceptaGatos, aceptaOtras]);
 
     // Reset fechas cuando cambia el shape del form. Mensaje y direccion se
     // preservan (la direccion del tutor es invariante a la modalidad del
