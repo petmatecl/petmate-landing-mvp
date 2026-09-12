@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import { getProxyImageUrl } from '../../lib/utils';
@@ -825,8 +826,15 @@ export default function ProveedorDashboard() {
             setFotoPerfil(url);
             toast.success('Foto de perfil actualizada');
         } catch (err: any) {
+            // Sprint conviene ORPH-EDIT (2026-09-12) — antes se exponía
+            // `err.message` crudo al user (mala UX + leak de detalles internos
+            // del backend/storage). Ahora: copy amigable + detalle a Sentry.
             console.error('Avatar upload error:', err);
-            toast.error(err.message || 'Error al subir imagen');
+            Sentry.captureException(err, {
+                tags: { subsystem: 'proveedor', action: 'avatar-upload' },
+                extra: { userId: user?.id },
+            });
+            toast.error('No pudimos subir tu foto. Reintenta en unos minutos.');
         } finally {
             setUploadingAvatar(false);
         }
@@ -986,8 +994,14 @@ export default function ProveedorDashboard() {
                 .eq('auth_user_id', user.id);
 
             if (error) {
+                // Sprint conviene ORPH-EDIT (2026-09-12) — antes exponía
+                // `error.message` crudo. Ahora: copy amigable + detalle a Sentry.
                 console.error('Save profile error:', error);
-                toast.error(`Error al guardar: ${error.message}`);
+                Sentry.captureException(error, {
+                    tags: { subsystem: 'proveedor', action: 'save-perfil' },
+                    extra: { userId: user?.id, errorCode: error.code },
+                });
+                toast.error('No pudimos guardar tu perfil. Reintenta en unos minutos.');
             } else {
                 toast.success('Perfil actualizado correctamente');
                 // Reset baseline + dirty: el snapshot actual es ahora el
@@ -1086,7 +1100,14 @@ export default function ProveedorDashboard() {
             trackEvent('verificacion_enviada');
             toast.success('Solicitud de verificación enviada. Te avisamos por correo apenas esté revisada.');
         } catch (err: any) {
-            toast.error(err.message || 'Error al enviar verificación');
+            // Sprint conviene ORPH-EDIT (2026-09-12) — antes exponía
+            // `err.message` crudo del upload/update. Ahora: copy amigable
+            // + detalle a Sentry.
+            Sentry.captureException(err, {
+                tags: { subsystem: 'proveedor', action: 'enviar-verificacion' },
+                extra: { userId: user?.id },
+            });
+            toast.error('No pudimos enviar tu solicitud de verificación. Reintenta en unos minutos.');
         } finally {
             setUploadingCarnet(false);
         }
@@ -1164,7 +1185,15 @@ export default function ProveedorDashboard() {
                 toast.success(currentStatus ? 'Servicio pausado' : 'Servicio activado');
                 closeConfirm();
             } else {
-                toast.error(`Error: ${error.message}`);
+                // Sprint conviene ORPH-EDIT (2026-09-12) — antes exponía
+                // `error.message` crudo. Ahora: copy amigable + detalle a Sentry.
+                Sentry.captureException(error, {
+                    tags: { subsystem: 'proveedor', action: 'toggle-activo-servicio' },
+                    extra: { servicioId: id, previousStatus: currentStatus, errorCode: error.code },
+                });
+                toast.error(currentStatus
+                    ? 'No pudimos pausar el servicio. Reintenta en unos minutos.'
+                    : 'No pudimos activar el servicio. Reintenta en unos minutos.');
             }
         } finally {
             setActionLoading(false);

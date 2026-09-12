@@ -1827,6 +1827,9 @@ export default function ServiceDetailView({
                 capacidadSlot={(service as any).capacidad_slot ?? 1}
                 anticipacionMaxDias={(service as any).anticipacion_max_dias ?? 60}
                 capacidadEstadia={(service as any).capacidad_estadia ?? null}
+                aceptaPerros={service.acepta_perros ?? true}
+                aceptaGatos={service.acepta_gatos ?? true}
+                aceptaOtras={service.acepta_otras ?? true}
             />
             <ExampleCTAModal
                 isOpen={exampleModalAction !== null}
