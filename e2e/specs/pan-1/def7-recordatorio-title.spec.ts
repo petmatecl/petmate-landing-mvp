@@ -120,7 +120,17 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
         // agendamiento. `sent >= 2` (nuestros tutor+proveedor) es criterio
         // mínimo, no exacto (otros tests pueden agregar). Verificamos
         // específicamente nuestras notifs abajo con filter por agendamiento_id.
-        expect(body.sent).toBeGreaterThanOrEqual(2);
+        //
+        // Sprint conviene Paso 0 v2 (2026-09-12) — body.sent es objeto
+        // desglosado `{tutor: N, proveedor: N}`, NO int. El fix del fetch
+        // (v1 → request.get) destapó este schema real que estaba oculto
+        // por el `SyntaxError` previo. Compat con ambos formatos por
+        // seguridad si el endpoint vuelve al schema viejo en un futuro.
+        const totalSent = typeof body.sent === 'object' && body.sent !== null
+            ? (body.sent.tutor ?? 0) + (body.sent.proveedor ?? 0)
+            : (body.sent ?? 0);
+        expect(totalSent, `sent total (tutor+proveedor) desde body=${JSON.stringify(body.sent)}`)
+            .toBeGreaterThanOrEqual(2);
 
         // 2. Query las notifs creadas para NUESTRO agendamiento.
         const supabase = getSupabaseAsProveedor();

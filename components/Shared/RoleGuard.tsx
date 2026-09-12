@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
+import { toast } from 'sonner';
 import * as Sentry from '@sentry/nextjs';
 import { useUser } from "../../contexts/UserContext";
 import { supabase } from '../../lib/supabaseClient';
@@ -37,14 +38,19 @@ interface RoleGuardProps {
 // (safeRedirectFromQuery via new URL() + check de origin + rechazo de //).
 // Cero cambio a login.tsx.
 //
-// Caveat conocido (loop en escenario edge): un user autenticado sin el rol
-// requerido (ej. Camila en /admin/servicios) va a /login?redirect=... con
-// sesión activa. Si REENVÍA credenciales de su rol tutor en el form (edge —
-// típicamente navega en vez de re-submit), post-auth el redirect param gana,
-// vuelve al gate, gate deniega, vuelve a /login → loop. Aceptado por PO:
-// destino /login para no-autorizado con sesión está en BACKLOG (fix estructural
-// separado — página /403 o redirect a /explorar con toast). El redirect param
-// no agrava el problema de fondo, solo lo hereda cuando el user re-submitea.
+// Sprint conviene REDIRECT-403 (2026-09-12) — cerrado el caveat previo:
+// user autenticado SIN el rol requerido (ej. Camila en /admin/*) ya no cae
+// en el loop `/login?redirect=X → login acepta sesión existente → redirect
+// gana → gate deniega → /login → loop`. Ahora redirige a `/explorar` con
+// toast informativo "No tienes acceso a esta sección". La distinción clave
+// es:
+//   - NO autenticado                         → /login?redirect=X (legítimo).
+//   - autenticado + sin rol / rol distinto   → /explorar + toast.error.
+//   - autenticado + query rol reventó (red)  → estado 'error' con Reintentar
+//                                             (comportamiento previo intacto).
+// El diagnostic PASO 0 conviene (PR #26 run 34643649379) confirmó el bug
+// con user tutor navegando a /admin: URL final = `/login?redirect=%2Fadmin`,
+// loop-prone. Post-fix el test asserta URL final = /explorar + toast visible.
 export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
     const router = useRouter();
     const { isAuthenticated, isLoading, user, providerStatus, roles } = useUser();
@@ -100,8 +106,12 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                 }
 
                 if (!data) {
+                    // Sprint conviene REDIRECT-403 — user autenticado sin fila
+                    // de proveedor NO va a /login (loop-prone). Va a /explorar
+                    // con toast. Ver docstring al tope del archivo.
                     setAuthState('unauthorized');
-                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
+                    toast.error('No tienes acceso a esta sección');
+                    router.push('/explorar');
                     return;
                 }
 
@@ -109,7 +119,8 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                     setAuthState('authorized');
                 } else {
                     setAuthState('unauthorized');
-                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
+                    toast.error('No tienes acceso a esta sección');
+                    router.push('/explorar');
                 }
                 return;
             }
@@ -143,8 +154,12 @@ export default function RoleGuard({ children, requiredRole }: RoleGuardProps) {
                 if (data?.roles && Array.isArray(data.roles) && data.roles.includes('admin') && data.estado === 'aprobado') {
                     setAuthState('authorized');
                 } else {
+                    // Sprint conviene REDIRECT-403 — user autenticado sin rol
+                    // admin NO va a /login (loop-prone). Va a /explorar con
+                    // toast. Ver docstring al tope del archivo.
                     setAuthState('unauthorized');
-                    router.push({ pathname: '/login', query: { redirect: router.asPath } });
+                    toast.error('No tienes acceso a esta sección');
+                    router.push('/explorar');
                 }
                 return;
             }
