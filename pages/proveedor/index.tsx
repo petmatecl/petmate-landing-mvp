@@ -1400,7 +1400,14 @@ export default function ProveedorDashboard() {
                             </div>
                         </div>
                         <div className="border-t border-slate-200 mb-4" />
-                        <nav className="flex flex-col gap-2">
+                        {/* Sprint E-3 a11y-3 (2026-09-15) — sidebar de tabs
+                            del panel de proveedor con `role="tablist"` +
+                            `role="tab"` + `aria-selected` + `aria-controls`.
+                            Antes eran `button` puros — inconsistente con el
+                            patrón que /mis-reservas PD2 ya aplicaba. Mismo
+                            patrón replicado en el bloque mobile más abajo.
+                            Ver REPORTE_UX_WALKTHROUGH_1.md a11y-3. */}
+                        <div role="tablist" aria-label="Panel de proveedor" aria-orientation="vertical" className="flex flex-col gap-2">
                             {[
                                 { id: 'servicios', label: 'Mis Servicios', icon: <Briefcase size={20} /> },
                                 { id: 'perfil', label: 'Mi Perfil', icon: <UserIcon size={20} /> },
@@ -1411,6 +1418,11 @@ export default function ProveedorDashboard() {
                             ].map(item => (
                                 <button
                                     key={item.id}
+                                    role="tab"
+                                    id={`proveedor-tab-${item.id}`}
+                                    aria-selected={activeTab === item.id}
+                                    aria-controls={`proveedor-tabpanel-${item.id}`}
+                                    tabIndex={activeTab === item.id ? 0 : -1}
                                     onClick={() => handleTabChange(item.id as TabType)}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all text-left ${activeTab === item.id ? 'bg-accent-50 text-accent-700 font-semibold' : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}`}
                                 >
@@ -1423,7 +1435,7 @@ export default function ProveedorDashboard() {
                                     )}
                                 </button>
                             ))}
-                        </nav>
+                        </div>
 
                         {/* Sprint badge-f1 — CTA sidebar "Verificar identidad".
                             Visible cuando 'sin_enviar' o 'rechazado'. Es el único
@@ -1455,8 +1467,9 @@ export default function ProveedorDashboard() {
                     </div>
                 </aside>
 
-                {/* Mobile Tabs (Horizontal Scroll) */}
-                <div className="lg:hidden w-full bg-white border-b border-slate-200 overflow-x-auto flex px-4 pt-2 pb-0 snap-x hide-scrollbar sticky top-16 z-20">
+                {/* Mobile Tabs (Horizontal Scroll) — mismo patrón a11y-3 que
+                    el desktop sidebar arriba. */}
+                <div role="tablist" aria-label="Panel de proveedor" className="lg:hidden w-full bg-white border-b border-slate-200 overflow-x-auto flex px-4 pt-2 pb-0 snap-x hide-scrollbar sticky top-16 z-20">
                     {[
                         { id: 'servicios', label: 'Servicios', icon: <Briefcase size={16} /> },
                         { id: 'perfil', label: 'Perfil', icon: <UserIcon size={16} /> },
@@ -1467,6 +1480,11 @@ export default function ProveedorDashboard() {
                     ].map(item => (
                         <button
                             key={item.id}
+                            role="tab"
+                            id={`proveedor-tab-mobile-${item.id}`}
+                            aria-selected={activeTab === item.id}
+                            aria-controls={`proveedor-tabpanel-${item.id}`}
+                            tabIndex={activeTab === item.id ? 0 : -1}
                             onClick={() => handleTabChange(item.id as TabType)}
                             className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm whitespace-nowrap snap-start border-b-2 transition-all ${activeTab === item.id ? 'border-accent-600 text-accent-700' : 'border-transparent text-slate-500'}`}
                         >

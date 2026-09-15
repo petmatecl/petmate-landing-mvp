@@ -55,6 +55,12 @@ export default function Header() {
   //   - Tutor -> Mis favoritos + Mis solicitudes + Mis mascotas.
   //   - Ambos -> las dos secciones apiladas con separator entre medio.
   const isProveedor = providerStatus === 'aprobado';
+  // Sprint E-3 UX-6 (2026-09-15) — admin detectado desde profile.roles[].
+  // El chip del header muestra el rol activo (derivado del pathname) para
+  // no confundir el nombre del usuario "Admin" con el rol. Ver
+  // REPORTE_UX_WALKTHROUGH_1.md UX-6 ("AS Admin" mostraba a Aldo con
+  // apariencia de que "Admin" era el nombre).
+  const isAdmin = Array.isArray(profile?.roles) && profile.roles.includes('admin');
   const providerNav = isProveedor
     ? [{ href: '/proveedor', label: 'Panel de proveedor' }]
     : [];
@@ -65,8 +71,34 @@ export default function Header() {
         { href: '/usuario/mascotas', label: 'Mis mascotas' },
       ]
     : [];
-  const personalNav = [...providerNav, ...tutorNav];
+  const adminNav = isAdmin
+    ? [{ href: '/admin', label: 'Panel de administración' }]
+    : [];
+  const personalNav = [...providerNav, ...tutorNav, ...adminNav];
   const personalActive = personalNav.some(item => isRouteActive(item.href));
+
+  // Sprint E-3 UX-6 — rol activo derivado del pathname. Prioridad:
+  // /admin/* → admin (si es admin); /proveedor* → proveedor; /favoritos,
+  // /mis-reservas, /usuario/* → tutor; fallback: primer rol disponible.
+  // La cuenta con múltiples roles ve el pill cambiar según dónde está
+  // navegando; el menú personal ya ofrece los links a los otros roles
+  // (adminNav + providerNav + tutorNav apilados con separadores). Cero
+  // botón "cambiar de rol" explícito porque el menú YA es ese switcher.
+  const rolesDisponibles: Array<'tutor' | 'proveedor' | 'admin'> = [];
+  if (hasSeekerProfile) rolesDisponibles.push('tutor');
+  if (isProveedor) rolesDisponibles.push('proveedor');
+  if (isAdmin) rolesDisponibles.push('admin');
+  const pathname = router.pathname;
+  let rolActivo: 'tutor' | 'proveedor' | 'admin' | null = null;
+  if (isAdmin && pathname.startsWith('/admin')) rolActivo = 'admin';
+  else if (isProveedor && pathname.startsWith('/proveedor')) rolActivo = 'proveedor';
+  else if (hasSeekerProfile && (pathname === '/favoritos' || pathname === '/mis-reservas' || pathname.startsWith('/usuario'))) rolActivo = 'tutor';
+  else rolActivo = rolesDisponibles[0] ?? null;
+  const ROL_LABEL: Record<'tutor' | 'proveedor' | 'admin', string> = {
+    tutor: 'Tutor',
+    proveedor: 'Proveedor',
+    admin: 'Admin',
+  };
 
   // Sombra sutil al scrollear — patron estandar de header sticky. Listener
   // pasivo, threshold bajo (4px) para que se active al primer movimiento
@@ -198,7 +230,7 @@ export default function Header() {
                   onClick={() => setAvatarOpen(v => !v)}
                   aria-haspopup="menu"
                   aria-expanded={avatarOpen}
-                  aria-label="Menu de usuario"
+                  aria-label={rolActivo ? `Menu de usuario (${ROL_LABEL[rolActivo]})` : 'Menu de usuario'}
                   className={`inline-flex items-center gap-2 rounded-full px-3 py-1 transition-colors ${
                     personalActive
                       ? 'bg-accent-100 ring-1 ring-accent-300'
@@ -207,6 +239,16 @@ export default function Header() {
                 >
                   <UserInitialsAvatar nombre={profile?.nombre || userName} apellidoP={profile?.apellido_p} size="sm" />
                   <span className="text-sm font-normal text-accent-900 max-w-[8rem] truncate">{userName}</span>
+                  {/* Sprint E-3 UX-6 (2026-09-15) — pill del rol activo.
+                      Solo se renderiza cuando la cuenta tiene MÁS DE UN
+                      rol; con un solo rol el pill es redundante. Cierra
+                      el bug "AS Admin" del walkthrough donde el nombre
+                      del user se leía como si fuera un rol. */}
+                  {rolActivo && rolesDisponibles.length > 1 && (
+                    <span className="hidden sm:inline-flex items-center rounded-full bg-white/70 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-accent-800 border border-accent-200">
+                      {ROL_LABEL[rolActivo]}
+                    </span>
+                  )}
                   <ChevronDown size={14} className={`text-accent-800 transition-transform ${avatarOpen ? 'rotate-180' : ''}`} />
                 </button>
 
@@ -237,6 +279,31 @@ export default function Header() {
                       <div className="my-1 border-t border-slate-100" />
                     )}
                     {tutorNav.map(item => {
+                      const active = isRouteActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setAvatarOpen(false)}
+                          className={`block w-full rounded-lg px-3 py-2 text-sm transition-colors ${
+                            active
+                              ? 'bg-accent-600 text-white font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                        >
+                          {item.label}
+                        </Link>
+                      );
+                    })}
+                    {/* Sprint E-3 UX-6 (2026-09-15) — sección Admin en el
+                        dropdown cuando la cuenta tiene rol admin. El menú
+                        completo es el "switcher de rol" (cero botón
+                        explícito de "cambiar de rol" — el user navega al
+                        panel del rol que le interesa desde acá). */}
+                    {adminNav.length > 0 && (providerNav.length > 0 || tutorNav.length > 0) && (
+                      <div className="my-1 border-t border-slate-100" />
+                    )}
+                    {adminNav.map(item => {
                       const active = isRouteActive(item.href);
                       return (
                         <Link
