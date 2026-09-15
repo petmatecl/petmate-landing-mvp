@@ -5,6 +5,7 @@ import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, Message
 
 import dynamic from 'next/dynamic';
 import RoleGuard from '../components/Shared/RoleGuard';
+import { useScrollToTopOnTabChange } from '../lib/hooks/useScrollToTopOnTabChange';
 
 const AdminMetrics = dynamic(() => import('../components/Admin/AdminMetrics'), { ssr: false });
 const ProveedorApprovalList = dynamic(() => import('../components/Admin/ProveedorApprovalList'), { ssr: false });
@@ -54,6 +55,10 @@ export default function AdminDashboard() {
 function AdminDashboardInner() {
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
+    // Sprint d-ui-paneles SCROLL-TAB (2026-09-15) — scroll al top al cambiar
+    // de tab; sin esto el contenido del tab nuevo arranca en el offset del
+    // anterior, obligando al user a scrollear manual arriba.
+    useScrollToTopOnTabChange(activeTab);
 
     // Sprint badge-f1 (2026-08-18) — auto-aprobación al signup deja el
     // tab Aprobaciones legacy vacío en el flow nuevo. Ocultamos el tab

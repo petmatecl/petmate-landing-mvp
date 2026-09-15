@@ -5,6 +5,7 @@ import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { useUser } from '../../contexts/UserContext';
 import { getProxyImageUrl } from '../../lib/utils';
+import { useScrollToTopOnTabChange } from '../../lib/hooks/useScrollToTopOnTabChange';
 import { trackEvent } from '../../lib/gtag';
 import { useProveedorStats } from '../../lib/useProveedorStats';
 import { runReadQuery } from '../../lib/supabaseReadQuery';
@@ -111,6 +112,9 @@ export default function ProveedorDashboard() {
     const [statusLoading, setStatusLoading] = useState(true);
 
     const [activeTab, setActiveTab] = useState<TabType>('servicios');
+    // Sprint d-ui-paneles SCROLL-TAB (2026-09-15) — scroll al top al cambiar
+    // de tab (mismo patrón que /admin).
+    useScrollToTopOnTabChange(activeTab);
 
     // Sub-tab activo dentro de Mi Perfil. Default 'identidad' segun spec.
     const [perfilTab, setPerfilTab] = useState<PerfilTabType>('identidad');
