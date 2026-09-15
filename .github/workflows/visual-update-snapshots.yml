@@ -109,11 +109,33 @@ jobs:
           E2E_STAGING_CRON_SECRET=$E2E_STAGING_CRON_SECRET
           EOF
 
+      - name: Warmup preview endpoints (cold start amortization pre-setup)
+        # Mismo pattern que e2e-error-audit.yml — sin este step, los setups
+        # de auth pueden fallar por cold start Vercel + Supabase Auth
+        # concurrent bajo mismo request.
+        env:
+          PREVIEW_URL: ${{ github.event.inputs.preview_url }}
+          BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
+        run: |
+          BYPASS_QP="?x-vercel-protection-bypass=${BYPASS}"
+          echo "=== Warmup preview endpoints ==="
+          for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${PREVIEW_URL}${path}${BYPASS_QP}" || echo "000")
+            echo "  ${path} → HTTP ${STATUS}"
+            sleep 0.5
+          done
+          echo "=== Warmup done ==="
+
       - name: Update snapshots
         env:
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.preview_url }}
+          CI: 'true'
         run: |
-          npx playwright test e2e/specs/visual/ --project=visual --update-snapshots || true
+          # --workers=1 evita que los 2 setups (proveedor + tutor) golpeen
+          # Supabase Auth staging en paralelo — cuello de infra observado en
+          # primer run del workflow (35031817315, 2026-09-15 22:38 UTC).
+          # Los 14 snapshots del spec visual son secuenciales igual entre sí.
+          npx playwright test e2e/specs/visual/ --project=visual --update-snapshots --workers=1 || true
           # El --update-snapshots hace que playwright genere/regenere los
           # snapshots faltantes. Los tests fallan la primera vez porque no
           # había baseline (comportamiento esperado) — || true captura ese
