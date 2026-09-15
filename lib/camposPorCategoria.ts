@@ -385,9 +385,11 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         // riesgo de datos contradictorios si el user marcaba distinto en
         // los 2 campos. Un etólogo que atienda especies exóticas puede
         // decirlo en la descripción del servicio. Icon map con la entry
-        // `especies_atendidas: Stethoscope` (L722) se deja intacto — cero
-        // uso pero cero problema. Data huérfana en staging (1 servicio con
-        // `detalles.especies_atendidas = "[]"`) se deja también — sin lector.
+        // `especies_atendidas: Stethoscope` fue ELIMINADO en sprint
+        // c-higiene ICO-HUER (2026-09-15) — ver comentario en el icon
+        // map cerca del final del archivo. Data huérfana en staging (1
+        // servicio con `detalles.especies_atendidas = "[]"`) se deja
+        // también — sin lector.
         { key: 'radio_cobertura_km', label: 'Radio de cobertura a domicilio (km)', tipo: 'number', condicionalDe: 'modalidad', condicionalValor: 'domicilio' },
         { key: 'inclusiones', label: '¿Qué incluye el servicio?', tipo: 'multiselect', opciones: [
             { value: 'evaluacion_inicial',      label: 'Evaluación inicial' },

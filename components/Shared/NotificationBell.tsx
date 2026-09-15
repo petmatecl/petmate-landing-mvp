@@ -362,7 +362,14 @@ export default function NotificationBell() {
         if (typeof agendId !== 'string' || !agendId) return null;
         const info = agendaFechas.get(agendId);
         if (!info?.fecha_preferida) return null;
-        return formatFechaRelativa(info.fecha_preferida, { modo: 'evento' });
+        // Sprint E-5 F2-NOTIF-0000 (2026-09-15) — reservas F2 (rango de
+        // noches) tienen `fecha_fin` poblada y `duracion_min` null. El
+        // timestamp de `fecha_preferida` es midnight local (00:00), por
+        // eso mostrar "Mañana a las 00:00" lee raro. Con sinHora=true
+        // queda "Mañana" limpio. F1 (slot horario) tiene duracion_min !=
+        // null y sigue mostrando HH:MM real del slot elegido.
+        const esF2 = info.duracion_min == null && info.fecha_fin != null;
+        return formatFechaRelativa(info.fecha_preferida, { modo: 'evento', sinHora: esF2 });
     };
 
     const handleMarkRead = async (id: string) => {
@@ -522,7 +529,13 @@ export default function NotificationBell() {
                                                     key={n.id}
                                                     onClick={() => handleNotificationClick(n)}
                                                     title={clickeable ? undefined : 'Este destino ya no está disponible'}
-                                                    className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 ${!n.read ? 'bg-accent-50/30' : ''} ${clickeable ? 'cursor-pointer' : 'cursor-default opacity-60'}`}
+                                                    /* Sprint E-5 NOTIF-CONTRASTE (2026-09-15) — hairline
+                                                       izquierda `border-l-2 accent-500` en las no-leídas
+                                                       para diferenciarlas del estado leído sin depender
+                                                       solo del `bg-accent-50/30` (que es sutil). El dot
+                                                       accent-600 sigue como antes; el border-left agrega
+                                                       una segunda señal visual. Ver BACKLOG L1231. */
+                                                    className={`p-4 hover:bg-slate-50 transition-colors flex gap-3 ${!n.read ? 'bg-accent-50/30 border-l-2 border-accent-500' : 'border-l-2 border-transparent'} ${clickeable ? 'cursor-pointer' : 'cursor-default opacity-60'}`}
                                                 >
                                                     <div className={`mt-1 h-2 w-2 rounded-full flex-shrink-0 ${!n.read ? 'bg-accent-600' : 'bg-transparent'}`} />
                                                     <div className="flex-1">

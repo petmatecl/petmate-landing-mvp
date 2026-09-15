@@ -211,6 +211,12 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
 
     // Declare for use in future nav items
     void handleLogout;
+    // Sprint E-5 AV-TUTOR-TRIGGER (2026-09-15) — handlePhotoUpload
+    // sigue declarado por si mañana se habilita `usuarios_buscadores.
+    // foto_perfil`. Silenciamos el unused-warning con void; su código
+    // interior YA verifica el rol antes de subir el archivo (defensa
+    // documentada arriba). Cero caller hoy tras remover el trigger.
+    void handlePhotoUpload;
 
     return (
         <div className="ambient-bg min-h-screen">
@@ -245,31 +251,17 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
                 {/* #11 Fix: was <header> causing duplicate semantic header — now a <div> */}
                 <div className="mb-6 sm:mb-8 flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                        {/* Avatar con opción de cambio de foto */}
-                        <label
-                            htmlFor="avatar-upload"
-                            className="md:hidden relative w-10 h-10 rounded-full overflow-hidden border-2 border-slate-300 bg-white shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                            title="Cambiar foto de perfil"
-                        >
-                            {clientProfile?.foto_perfil ? (
-                                <Image
-                                    src={getProxyImageUrl(clientProfile.foto_perfil) || ''}
-                                    alt="Foto perfil"
-                                    fill
-                                    className="object-cover"
-                                    unoptimized
-                                />
-                            ) : (
-                                <div className="flex items-center justify-center h-full text-slate-300 text-lg"><User size={24} /></div>
-                            )}
-                        </label>
-                        <input
-                            id="avatar-upload"
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={handlePhotoUpload}
-                        />
+                        {/* Sprint E-5 AV-TUTOR-TRIGGER (2026-09-15) — avatar
+                            clickeable de tutor eliminado. Antes el `<label>`
+                            trigger disparaba `<input type="file">` para subir
+                            foto, pero `usuarios_buscadores` no tiene columna
+                            `foto_perfil` (solo `proveedores` la tiene). El
+                            flow siempre terminaba en modal "No disponible
+                            aún — La foto de perfil todavía no está habilitada
+                            para tutores." Trigger que siempre falla = anti-
+                            patrón (P8 sobre UX que promete algo que no cumple).
+                            Ocultar (opción A) hasta que `usuarios_buscadores.
+                            foto_perfil` exista. Ver BACKLOG L692. */}
 
                         <div>
                             <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-tight">
