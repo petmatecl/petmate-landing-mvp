@@ -30,12 +30,36 @@ DROP POLICY IF EXISTS "tutor_update_own_mascotas" ON public.mascotas;
 -- 2. DATOS-ESP: DROP COLUMN huérfana
 ALTER TABLE public.proveedores DROP COLUMN IF EXISTS datos_especificos;
 
--- 3. Paridad avatars INSERT: alinear roles a `authenticated`
--- ALTER POLICY con reasignación de roles no es directo — Postgres exige
--- DROP + CREATE. Reasignamos preservando el nombre para retrocompat.
+-- 3. Paridad avatars INSERT + UPDATE + DELETE: alinear las 3 policies a
+-- shape byte-idéntico a prod (verificado via MCP prod-ro con query
+-- corregida `polqual OR polwithcheck`). Postgres exige DROP + CREATE
+-- para reasignar roles y para actualizar USING/WITH CHECK — mantenemos
+-- los nombres canónicos que ya existían.
+--
+-- Shape final (idéntico prod, 5 policies bucket avatars):
+--   INSERT: TO authenticated, WITH CHECK bucket_id='avatars' AND auth.role()='authenticated'
+--   UPDATE: TO authenticated, USING bucket_id='avatars' AND owner = auth.uid()
+--   DELETE: TO authenticated, USING bucket_id='avatars' AND owner = auth.uid()
+--   SELECT admin: TO authenticated, qual bucket_id='avatars' AND is_admin()  [YA ALINEADO]
+--   SELECT owner: TO authenticated, qual bucket_id='avatars' AND foldername = auth.uid()  [YA ALINEADO]
+
 DROP POLICY IF EXISTS "Authenticated users can upload avatars" ON storage.objects;
 CREATE POLICY "Authenticated users can upload avatars"
   ON storage.objects
   FOR INSERT
   TO authenticated
-  WITH CHECK (bucket_id = 'avatars');
+  WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
+
+DROP POLICY IF EXISTS "Users can update own avatars" ON storage.objects;
+CREATE POLICY "Users can update own avatars"
+  ON storage.objects
+  FOR UPDATE
+  TO authenticated
+  USING (bucket_id = 'avatars' AND owner = auth.uid());
+
+DROP POLICY IF EXISTS "Users can delete own avatars" ON storage.objects;
+CREATE POLICY "Users can delete own avatars"
+  ON storage.objects
+  FOR DELETE
+  TO authenticated
+  USING (bucket_id = 'avatars' AND owner = auth.uid());
