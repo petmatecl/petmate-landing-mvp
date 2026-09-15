@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import NewEvaluationEmail from '../../../components/Emails/NewEvaluationEmail';
@@ -28,7 +29,7 @@ import { verifySession, isAdmin, maskUid } from '../../../lib/apiAuth';
  * OR (creator || admin). Patron id-only — el cliente solo manda
  * evaluacionId.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await emailLimiter(req, res))) return;
 
@@ -128,3 +129,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/evaluaciones/notify');

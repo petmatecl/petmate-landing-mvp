@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { autoModerarSchema } from '../../../lib/validations';
@@ -30,7 +31,7 @@ function containsBlacklisted(text: string): boolean {
     return BLACKLIST.some(w => lower.includes(w));
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).end();
     if (!(await apiLimiter(req, res))) return;
 
@@ -213,3 +214,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'Error interno del servidor' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/evaluaciones/auto-moderar');

@@ -34,6 +34,14 @@ const emailCalls: Array<{ subject: string }> = [];
 const sentryMock = {
     captureMessage: (_msg: string, _opts?: any) => {},
     captureException: (_err: unknown, _opts?: any) => {},
+    // Sprint bloque-g G-1 (2026-09-15) — handlers wrappeados con
+    // wrapApiHandlerWithSentry al importar el módulo. El mock devuelve
+    // el handler tal cual (pass-through) para preservar la semántica
+    // del test tipo-cd (fail-close via res.status(500) sin escalar a
+    // throw). Sin este mock, `require(handler)` throwea con
+    // "wrapApiHandlerWithSentry is not defined".
+    wrapApiHandlerWithSentry: (handler: any, _routePattern: string) => handler,
+    flush: async () => true,
 };
 
 /**

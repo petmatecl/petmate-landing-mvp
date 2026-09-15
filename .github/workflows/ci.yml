@@ -61,5 +61,12 @@ jobs:
         # createClient o en el rate limiter según el path del handler.
         run: npm run test:g1-cron-auth
 
+      - name: Unit tests (G-1d notifs+push+evals wrap+route tag)
+        # Sprint bloque-g PR G-1d (2026-09-15) — 2 notifications/ + 2 push/
+        # + 2 evaluaciones/. Los 3 endpoints que hacen createClient a nivel
+        # módulo (create, push/send, push/subscribe) forzan throw en el
+        # limiter en vez del createClient (que rompería el require).
+        run: npm run test:g1-notifs-push-evals
+
       - name: Build
         run: npm run build

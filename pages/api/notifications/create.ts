@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { notificationCreateSchema } from '../../../lib/validations';
@@ -90,7 +91,7 @@ async function hasLegitimateRelationship(
     return false;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ message: 'Method not allowed' });
     }
@@ -144,3 +145,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/notifications/create');
