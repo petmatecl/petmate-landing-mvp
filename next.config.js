@@ -226,6 +226,14 @@ const nextConfig = {
       // deep links históricos + emails ya enviados + indexación Google. La query
       // string se preserva por default en Next.js redirects.
       { source: '/mis-solicitudes', destination: '/mis-reservas', permanent: true },
+      // Bloque D-2 404-SEED-FIX (2026-09-15) — Ver BACKLOG.md L376-381.
+      // Los 9 proveedores seed con UUID `b1000001-0000-4000-8000-00000000000X`
+      // (X=1..9, ver migrations/20260506_seed_demos_y_es_ejemplo.sql) fueron
+      // retirados del sitemap por el bundle SEO (Auditoria #2, 307->404/410),
+      // pero Google cache + links compartidos externos siguen generando 404s
+      // sobre `/proveedor/b1000001-*`. Redirect 301 los convierte en trafico
+      // util al catalogo hasta que Google reindexe.
+      { source: '/proveedor/:id(b1000001-.*)', destination: '/explorar', permanent: true },
     ]
   },
 

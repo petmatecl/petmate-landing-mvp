@@ -257,7 +257,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                             <img
                                                 src={coverImage}
                                                 alt={s.titulo}
-                                                className="w-full h-32 object-cover"
+                                                className="w-full h-32 object-cover object-top"
                                             />
                                         )}
                                         <div className="p-4">
