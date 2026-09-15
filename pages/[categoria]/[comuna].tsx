@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
+import { logSupabaseError } from '../../lib/logSupabaseError';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
@@ -223,23 +224,26 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
 
     try {
         // Get categoria info
-        const { data: catData } = await supabase
+        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        const { data: catData, error: catErr } = await supabase
             .from('categorias_servicio')
             .select('nombre, slug, icono')
             .eq('slug', categoriaSlug)
             .maybeSingle();
+        logSupabaseError('ssr:categoria-comuna:categoria_lookup', catErr, { categoriaSlug });
 
         const categoria = catData || null;
 
         // Get services via RPC
         let services: ServiceResult[] = [];
         if (categoria) {
-            const { data } = await supabase.rpc('buscar_servicios', {
+            const { data, error: rpcErr } = await supabase.rpc('buscar_servicios', {
                 p_categoria_slug: categoriaSlug,
                 p_comuna: comunaNombre,
                 p_limit: 30,
                 p_offset: 0,
             });
+            logSupabaseError('ssr:categoria-comuna:buscar_servicios', rpcErr, { categoriaSlug, comunaNombre });
 
             // Sweep #1 fix B4 (2026-08-07) — paridad completa del ServiceResult
             // en TODOS los mapping paths: el inline mapper previo omitía

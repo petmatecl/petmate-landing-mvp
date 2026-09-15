@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { verifySession } from '../../../lib/apiAuth';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
  * POST /api/referidos/generar-codigo
@@ -25,13 +26,15 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Check for existing code
-    const { data: existing } = await supabaseAdmin
+    // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from('referidos')
       .select('codigo')
       .eq('referrer_auth_id', userId)
       .is('referred_auth_id', null)
       .limit(1)
       .maybeSingle();
+    logSupabaseError('api-refer:generar-codigo:lookup_existing', existingError, { userId });
 
     if (existing?.codigo) {
       return res.status(200).json({ codigo: existing.codigo });

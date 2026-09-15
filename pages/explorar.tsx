@@ -21,6 +21,7 @@ import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
+import { logSupabaseError } from "../lib/logSupabaseError";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import { CAMPOS_POR_CATEGORIA } from "../lib/camposPorCategoria";
@@ -407,11 +408,13 @@ export default function ExplorarPage() {
                 // comuna actual. Reuso el slug ya seleccionado (la
                 // categoria es single-select, no hay ambiguedad).
                 if (rows.length === 0 && currentComuna && currentCategoria) {
-                    const { data: altData } = await supabase.rpc('buscar_servicios', {
+                    // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+                    const { data: altData, error: altErr } = await supabase.rpc('buscar_servicios', {
                         p_categoria_slug: currentCategoria,
                         p_comuna: null, p_precio_max: null,
                         p_precio_min: null, p_texto: null, p_limit: 50, p_offset: 0,
                     });
+                    logSupabaseError('ssr:explorar:sugerencias_alt_rpc', altErr, { categoria: currentCategoria, comuna: currentComuna });
                     if (altData && altData.length > 0) {
                         const comunas = Array.from(new Set(
                             (altData as any[]).map((s: any) => s.comuna).filter(Boolean)

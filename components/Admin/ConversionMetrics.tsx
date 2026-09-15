@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabaseClient';
+import { logSupabaseError } from '../../lib/logSupabaseError';
 import { TrendingUp, MessageSquare, Star, Users, RefreshCw } from 'lucide-react';
 
 interface ConversionStats {
@@ -83,9 +84,11 @@ export default function ConversionMetrics() {
             let proveedorComunaMap: Record<string, string> = {};
 
             if (servicioIds.length > 0) {
-                const { data: servRows } = await supabase.from('servicios_publicados')
+                // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+                const { data: servRows, error: servErr } = await supabase.from('servicios_publicados')
                     .select('id, categorias_servicio!inner(nombre)')
                     .in('id', servicioIds);
+                logSupabaseError('ssr:admin-conversion-metrics:servicios_lookup', servErr, { servicioIdsCount: servicioIds.length });
                 (servRows || []).forEach((r: any) => {
                     if (r.id && r.categorias_servicio?.nombre) {
                         servicioCategoriaMap[r.id] = r.categorias_servicio.nombre;
@@ -93,9 +96,10 @@ export default function ConversionMetrics() {
                 });
             }
             if (sitterIds.length > 0) {
-                const { data: provRows } = await supabase.from('proveedores')
+                const { data: provRows, error: provErr } = await supabase.from('proveedores')
                     .select('id, comuna')
                     .in('id', sitterIds);
+                logSupabaseError('ssr:admin-conversion-metrics:proveedores_lookup', provErr, { sitterIdsCount: sitterIds.length });
                 (provRows || []).forEach((r: any) => {
                     if (r.id && r.comuna) proveedorComunaMap[r.id] = r.comuna;
                 });

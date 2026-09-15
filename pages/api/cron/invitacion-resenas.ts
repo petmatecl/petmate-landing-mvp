@@ -38,6 +38,7 @@ import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import { InvitacionResenaEmail } from '../../../components/Emails/InvitacionResenaEmail';
 import { formatFechaServicioInline } from '../../../lib/formatFecha';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 import type React from 'react';
 
 const BUFFER_HORAS = 24;
@@ -128,7 +129,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // si su intento previo fue rechazado por moderacion, sigue
             // habilitado para re-intentar (alineado con el constraint
             // parcial de BD sobre estado != 'rechazado').
-            const { data: yaReseno } = await supabaseAdmin
+            // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+            const { data: yaReseno, error: yaResenoErr } = await supabaseAdmin
                 .from('evaluaciones')
                 .select('id')
                 .eq('usuario_id', tutor.auth_user_id)
@@ -136,6 +138,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .neq('estado', 'rechazado')
                 .limit(1)
                 .maybeSingle();
+            logSupabaseError('api-cron:invitacion-resenas:evaluacion_dup_check', yaResenoErr, { tutorAuthId: tutor.auth_user_id, servicioId: servicio.id });
             if (yaReseno) continue;
 
             elegibles.push({
@@ -177,7 +180,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         for (const e of elegibles) {
             try {
                 // 1) Buscar email del tutor via auth admin.
-                const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(e.tutorAuthId);
+                const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(e.tutorAuthId);
+                logSupabaseError('api-cron:invitacion-resenas:auth_lookup', authErr, { tutorAuthId: e.tutorAuthId });
                 if (!authUser?.user?.email) {
                     failures.push({ id: e.agendamientoId, reason: 'no_email' });
                     continue;

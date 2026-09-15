@@ -843,7 +843,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const refreshProfile = async () => {
         setIsLoading(true);
-        const { data } = await supabase.auth.getSession();
+        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+            Sentry.captureMessage('auth-session:user-context:refresh_profile_getSession', {
+                level: 'warning',
+                tags: { subsystem: 'auth-session', errorCode: (error as { name?: string }).name || 'unknown' },
+                extra: { errorMessage: error.message },
+            });
+        }
         await hydrateFromSession(data?.session ?? null);
     };
 

@@ -15,6 +15,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { verifySession, isAdmin } from '../../../lib/apiAuth';
 import { apiLimiter } from '../../../lib/rateLimit';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 const TEST_EMAIL_DOMAIN = '@pawnecta-test.com';
 
@@ -55,7 +56,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // Email real: auth.users.email por auth_user_id.
             let emailAuth: string | null = null;
             if (prov.auth_user_id) {
-                const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+                // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+                const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+                logSupabaseError('api-admin:proveedores-pendientes:auth_lookup', authErr, { proveedorId: prov.id });
                 emailAuth = authUser?.user?.email || null;
             }
 

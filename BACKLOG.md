@@ -740,13 +740,13 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
   - **Decisión pendiente al PO**: (i) housekeeping — borrar los 2 archivos + el redirect en `next.config.js`, o (ii) levantar el redirect y ejercer la superficie tutor (implica retomar el spec dashboard tutor droppeado en Lote 2). Sin acción no hay riesgo — code correcto, surface muerta.
   - **Contexto histórico útil**: el redirect es `permanent: false` (307 temporary). Fecha de introducción y motivación no documentadas en git blame legible al auditor; el PO tendrá el contexto vivo.
 
-  **Tipo C (~5 líneas, low — SEO/landing/metrics con impacto bajo)**:
+  **Tipo C (~5 líneas, low — SEO/landing/metrics con impacto bajo)** — **CERRADO 2026-09-15 sprint tipo-cd** (`<SHA-tipo-cd>`, tag `tipo-cd-prod-20260915`). Los 7 sitios (5 originales + `servicio/[id]:109` + hallazgos adyacentes) ahora destructuran `.error` + `logSupabaseError('ssr:<superficie>:<accion>', err, extra)`. Cero cambio funcional del render — el fallback empty state / propagación catch sigue igual, solo agrega telemetría a Sentry con tag `subsystem=ssr`. Comportamiento gate por `VERCEL_ENV===production` intacto. Historia original preservada:
     - `pages/explorar.tsx:410` — RPC `buscar_servicios` fallback (path secundario, principal ya maneja error).
     - `pages/[categoria]/[comuna].tsx:226, 237` — SEO landing por categoría+comuna (server-side SSR).
-    - `pages/servicio/[id].tsx:128` — RPC `buscar_servicios` para "servicios similares" (silent empty section).
+    - `pages/servicio/[id].tsx:109, 128` — reviews globales + RPC "servicios similares" (silent empty section).
     - `components/Admin/ConversionMetrics.tsx:86, 96` — métricas admin (silent 0 count).
 
-  **Tipo D (~16 líneas, nil — server crons + auth session + notify server-to-server)**:
+  **Tipo D (~16 líneas, nil — server crons + auth session + notify server-to-server)** — **CERRADO 2026-09-15 sprint tipo-cd** (`<SHA-tipo-cd>`, tag `tipo-cd-prod-20260915`). Los 16 sitios ahora destructuran `.error` + `logSupabaseError('<familia>:<superficie>:<accion>', err, extra)` con familias `api-cron:` / `api-notify:` / `api-admin:` / `api-eval:` / `api-refer:` / `auth-session:`. Cero cambio funcional del flow — cada cron/endpoint sigue el mismo path de éxito y sigue tolerando `data=null` como hoy, solo agrega telemetría a Sentry con tag `subsystem` de la familia. `contexts/UserContext.tsx:846` (renumerado post-CUE-1 watchdog) usa `Sentry.captureMessage` inline consistente con RoleGuard-style. Historia original preservada:
     - `pages/api/evaluaciones/auto-moderar.ts:83, 144, 155` — server moderation.
     - `pages/api/notifications/new-message.ts:74` — `auth.admin.getUserById` (server-side).
     - `pages/api/referidos/generar-codigo.ts:28` — server.

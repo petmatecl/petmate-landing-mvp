@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
 import { skipIfNonProd } from '../../../lib/cronGuard';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET' && req.method !== 'POST') {
@@ -68,14 +69,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 new Date(conv.recordatorio_enviado_at) > new Date(cutoff)) continue;
 
             // Get provider email
-            const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(conv.proveedor_auth_id);
+            // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+            const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(conv.proveedor_auth_id);
+            logSupabaseError('api-cron:recordatorio-mensajes:auth_lookup', authErr, { providerId: conv.proveedor_auth_id });
             if (!authUser?.user?.email) continue;
 
-            const { data: proveedor } = await supabaseAdmin
+            const { data: proveedor, error: provErr } = await supabaseAdmin
                 .from('proveedores')
                 .select('nombre')
                 .eq('auth_user_id', conv.proveedor_auth_id)
                 .maybeSingle();
+            logSupabaseError('api-cron:recordatorio-mensajes:provider_lookup', provErr, { providerId: conv.proveedor_auth_id });
 
             const servicioTitulo = (conv.servicios_publicados as any)?.titulo || 'tu servicio';
             const chatUrl = `${process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pawnecta.com'}/mensajes?id=${conv.id}`;

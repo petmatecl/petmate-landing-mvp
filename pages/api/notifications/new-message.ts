@@ -6,6 +6,7 @@ import { escapeHtml } from '../../../lib/sanitize';
 import { newMessageSchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
 import { getParticipantProfile } from '../../../lib/profileUtils';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
  * Notifica por email al recipient de un nuevo mensaje de chat. Disparado
@@ -71,7 +72,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 4. Email del recipient via auth.users.
-        const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(recipientAuthId);
+        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(recipientAuthId);
+        logSupabaseError('api-notify:new-message:auth_lookup', authErr, { recipientAuthId });
         const email = authUser?.user?.email;
         if (!email) return res.status(200).json({ skipped: true, reason: 'no_email' });
 
