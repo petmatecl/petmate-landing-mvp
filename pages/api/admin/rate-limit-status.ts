@@ -32,6 +32,7 @@
 // evidencia probabilística (más fuerte con más pings a lo largo del tiempo).
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { verifySession, isAdmin } from '../../../lib/apiAuth';
 import { getBackendStatus, pingRedis } from '../../../lib/rateLimit';
 
@@ -49,7 +50,7 @@ interface RateLimitStatusResponse {
     checkedAt: string;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
 
     const userId = await verifySession(req);
@@ -76,3 +77,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     res.setHeader('Cache-Control', 'private, max-age=30');
     return res.status(200).json(response);
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/admin/rate-limit-status');

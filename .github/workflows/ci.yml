@@ -40,5 +40,13 @@ jobs:
         # antes del build para atajar regresión estructural rápido.
         run: npm run test:tipo-cd
 
+      - name: Unit tests (G-1 admin/ wrap+route tag)
+        # Sprint bloque-g PR G-1a (2026-09-15) — tests unitarios que
+        # verifican que cada endpoint admin/ está envuelto con
+        # wrapApiHandlerWithSentry y el tag route se propaga al event
+        # capturado en un throw no manejado. Mock del cliente Sentry
+        # simula la propagación del routePattern al scope activo.
+        run: npm run test:g1-admin
+
       - name: Build
         run: npm run build

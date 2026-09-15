@@ -27,6 +27,7 @@
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
 import * as Sentry from '@sentry/nextjs';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { createClient } from '@supabase/supabase-js';
 import { emailLimiter } from '../../../lib/rateLimit';
@@ -48,7 +49,7 @@ interface RequestBody {
     fallback?: FallbackPayload;
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     // Sprint L1-2 (2026-09-09) — verifyInternalSecret ahora retorna 3 estados
     // (missing-config=500 con Sentry, missing-header/invalid=403).
@@ -179,3 +180,5 @@ async function enviarModoDegradado(res: NextApiResponse, fallback: FallbackPaylo
         return res.status(200).json({ skipped: true, reason: 'unexpected error', detail: err?.message, mode: 'degraded' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/admin/notify-nueva-solicitud');
