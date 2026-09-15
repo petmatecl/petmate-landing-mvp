@@ -21,6 +21,7 @@ import { FeedbackProvider } from "../contexts/FeedbackContext";
 import ConsentScripts from "../components/ConsentScripts";
 import CookieBanner from "../components/CookieBanner";
 import HydrationToast from "../components/Shared/HydrationToast";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function MyApp({ Component, pageProps }: AppProps) {
   const router = useRouter();
@@ -122,6 +123,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
               no tienen Header/Footer (ej. /completar-registro), porque
               esas rutas también dependen del hydrate. */}
           <HydrationToast />
+          <SpeedInsights />
         </div>
       </OnlineStatusProvider>
       </FeedbackProvider>
