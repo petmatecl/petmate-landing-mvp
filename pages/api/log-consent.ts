@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../lib/rateLimit';
 import { logConsentSchema } from '../../lib/validations';
@@ -14,7 +15,7 @@ import { verifySession } from '../../lib/apiAuth';
 // cliente. El writer sigue con service_role; la autenticación del caller
 // va vía el helper canónico.
 
-export default async function handler(
+async function handler(
     req: NextApiRequest,
     res: NextApiResponse
 ) {
@@ -62,3 +63,5 @@ export default async function handler(
         return res.status(500).json({ message: 'Internal Server Error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/log-consent');

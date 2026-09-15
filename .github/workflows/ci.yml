@@ -68,5 +68,13 @@ jobs:
         # limiter en vez del createClient (que rompería el require).
         run: npm run test:g1-notifs-push-evals
 
+      - name: Unit tests (G-1e resto wrap+route tag)
+        # Sprint bloque-g PR G-1e (2026-09-15) — 8 endpoints: contactos/,
+        # referidos/, servicios/[id]/, waitlist/, root (log-consent, noop,
+        # visitor-hash). Los 6 con limiter fuerzan throw ahí; noop y
+        # visitor-hash usan test estructural (require + typeof + tracked
+        # route pattern) porque no tienen limiter ni supabase.
+        run: npm run test:g1-resto
+
       - name: Build
         run: npm run build

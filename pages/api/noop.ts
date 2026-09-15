@@ -31,9 +31,12 @@
 // que servir acá).
 // ---------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 
-export default function handler(_req: NextApiRequest, res: NextApiResponse) {
+function handler(_req: NextApiRequest, res: NextApiResponse) {
     // Allow header vacío-implícito: cero métodos aceptados legítimamente.
     // Content-Type text/plain para no confundir con una API JSON.
     res.status(405).setHeader('Content-Type', 'text/plain; charset=utf-8').end('Method Not Allowed');
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/noop');

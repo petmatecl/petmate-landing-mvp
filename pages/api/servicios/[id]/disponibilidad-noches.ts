@@ -45,6 +45,7 @@
 // testeable. Este handler solo hace: validar → fetch → llamar deriv → devolver.
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../../lib/rateLimit';
 import {
@@ -72,7 +73,7 @@ function diasEntreFechas(desde: string, hasta: string): number {
     return Math.round((end - start) / 86_400_000);
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await apiLimiter(req, res))) return;
 
@@ -214,3 +215,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'error interno' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/servicios/[id]/disponibilidad-noches');
