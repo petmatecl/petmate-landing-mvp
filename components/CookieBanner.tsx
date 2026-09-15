@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { Cookie, X } from 'lucide-react';
 import { useConsent, ConsentPrefs } from '../lib/useConsent';
+import Button from './UI/Button';
 
 type View = 'banner' | 'preferences' | null;
 
@@ -106,12 +107,15 @@ export default function CookieBanner() {
                         >
                             Personalizar
                         </button>
-                        <button
+                        <Button
                             onClick={() => { acceptAll(); setView(null); }}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
+                            variant="primary"
+                            size="md"
+                            radius="xl"
+                            weight="semibold"
                         >
                             Aceptar todas
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -190,12 +194,15 @@ export default function CookieBanner() {
                         >
                             Cancelar
                         </button>
-                        <button
+                        <Button
                             onClick={handleSavePrefs}
-                            className="px-4 py-2 text-sm font-semibold text-white bg-accent-600 rounded-xl hover:bg-accent-700 transition-colors"
+                            variant="primary"
+                            size="md"
+                            radius="xl"
+                            weight="semibold"
                         >
                             Guardar preferencias
-                        </button>
+                        </Button>
                     </div>
                 </div>
             </div>
