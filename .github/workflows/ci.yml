@@ -48,5 +48,12 @@ jobs:
         # simula la propagación del routePattern al scope activo.
         run: npm run test:g1-admin
 
+      - name: Unit tests (G-1b agendamientos/ wrap+route tag)
+        # Sprint bloque-g PR G-1b (2026-09-15) — tests unitarios que
+        # verifican que cada endpoint agendamientos/ está envuelto con
+        # wrapApiHandlerWithSentry y el tag route se propaga al event
+        # capturado en un throw no manejado.
+        run: npm run test:g1-agendamientos
+
       - name: Build
         run: npm run build

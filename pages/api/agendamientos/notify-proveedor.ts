@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { emailLimiter } from '../../../lib/rateLimit';
@@ -23,7 +24,7 @@ import { resolverDonde, resolverFechaSub } from '../../../lib/emails/resolvers';
  * loggea pero responde 2xx para no romper el flow del cliente (el modal del
  * tutor ya hizo el INSERT exitoso; el email es notificacion, no transaccional).
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await emailLimiter(req, res))) return;
 
@@ -222,3 +223,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/agendamientos/notify-proveedor');

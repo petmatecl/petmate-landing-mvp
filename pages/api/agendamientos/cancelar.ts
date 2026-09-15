@@ -43,12 +43,13 @@
 //     (esRango=true por F2-3-B — cadena de emails ya cableada).
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { agendamientoNotifySchema } from '../../../lib/validations';
 import { verifySession, maskUid } from '../../../lib/apiAuth';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     // Nitpick T4-#3 2026-08-18: cambiado de emailLimiter (3/60s) a apiLimiter
     // (30/60s). Este endpoint es una MUTACIÓN (cancelar reserva), no email —
@@ -205,3 +206,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/agendamientos/cancelar');

@@ -13,6 +13,7 @@
     "test:noches": "npx tsx lib/nochesAgenda.test.ts",
     "test:tipo-cd": "npx tsx lib/tipo-cd-handlers.test.ts",
     "test:g1-admin": "npx tsx lib/g1-admin.test.ts",
+    "test:g1-agendamientos": "npx tsx lib/g1-agendamientos.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report e2e/.report"
