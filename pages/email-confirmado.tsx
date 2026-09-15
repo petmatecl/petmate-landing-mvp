@@ -136,20 +136,28 @@ export default function EmailConfirmadoPage() {
             return;
         }
 
-        // URL limpia. Puede haber sesión activa por otra tab (chequeo
-        // async), o puede no haber nada — en cualquier caso la landing
-        // resuelve una vez sabemos el resultado del getSession.
-        (async () => {
-            try {
-                // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
-                const { data, error } = await supabase.auth.getSession();
-                logSupabaseError('auth-session:email-confirmado:fallback_getSession', error);
-                setHasSomethingToProcess(!!data?.session);
-            } catch {
-                setHasSomethingToProcess(false);
-            }
-        })();
+        // Sprint c-higiene (2026-09-15) — removido el fallback async con
+        // `supabase.auth.getSession()`. UserContext ya expone `user` +
+        // `isLoading` como state hidratado (canal 1 sincrónico + canal 2
+        // event-driven); cero necesidad de un tercer canal ad-hoc que
+        // introduce race con los otros dos (patrón que la regla P10 de
+        // CLAUDE.md advirtió). El nuevo effect abajo (deps [user, userLoading])
+        // reacciona a la transición del context.
+        setHasSomethingToProcess(false); // baseline: nada en URL, aún no sé si hay user
     }, []);
+
+    // Sprint c-higiene (2026-09-15) — fallback URL limpia via UserContext.
+    // Cuando el hydrate del context termina (`!userLoading`), si `user` está
+    // poblado → sesión previa activa (otra tab) → tratar como "algo que
+    // procesar" (aunque no hay token en URL, la landing tiene state útil).
+    useEffect(() => {
+        // Solo aplicar el fallback si NO había hash ni code (esos ya setearon
+        // hasSomethingToProcess=true en el effect anterior). Guard: si ya
+        // se marcó como true, no revertir a false por race del hydrate.
+        if (userLoading) return;
+        if (!user) return; // sin user hidratado → nada que procesar
+        setHasSomethingToProcess(true);
+    }, [user, userLoading]);
 
     // Kill-switch temporal — activa a los 4s pase lo que pase.
     useEffect(() => {
