@@ -1,0 +1,133 @@
+# .github/workflows/visual-update-snapshots.yml
+# ---------------------------------------------------------------------------
+# Sprint bloque-g G-3 (2026-09-15) — workflow manual para generar o
+# actualizar los snapshots baseline de e2e/specs/visual/*.spec.ts en el
+# runner Linux de GitHub Actions y committearlos al branch.
+#
+# POR QUÉ CI Y NO LOCAL:
+#   Los snapshots pixel-por-pixel de Playwright difieren entre sistemas
+#   operativos (fuentes, sub-pixel rendering, hinting). Si Aldo genera
+#   snapshots en Windows local, todos los tests en CI (Linux) van a fallar
+#   por diff spurio. La regla: generar snapshots EN el sistema donde
+#   corren los tests → CI Ubuntu.
+#
+# CUÁNDO CORRER ESTE WORKFLOW:
+#   1. Primera vez (bloque-g G-3 seed): tras mergear el PR seed, correr
+#      este workflow → genera 14 PNGs baseline, los committea al branch
+#      main. A partir de acá, cada PR corre el spec sin --update-snapshots
+#      y compara contra las baselines.
+#   2. Cambio visual intencional aprobado: si BUTTON-CANON incremental
+#      efectivamente cambia el look de una página (ej. rediseño de la
+#      home), correr este workflow desde el branch del PR — regenera
+#      las baselines afectadas. Commit visible en el mismo PR como
+#      evidencia del cambio.
+#   3. Deploy prod cambió fuentes / assets externos: mismo procedimiento,
+#      regenerar baselines desde el branch main.
+#
+# ENTRADA:
+#   Workflow_dispatch con un parámetro opcional `preview_url` para apuntar
+#   a un preview específico (default: staging URL del branch staging).
+#
+# SALIDA:
+#   Commit en el branch actual con los PNGs generados/actualizados en
+#   e2e/specs/visual/paginas-clave.spec.ts-snapshots/. El commit se
+#   pushea directamente al branch — para PRs abiertos, esto trigger una
+#   nueva CI run automáticamente.
+# ---------------------------------------------------------------------------
+
+name: visual-update-snapshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      preview_url:
+        description: 'Preview URL de Vercel para correr los tests (default: staging URL)'
+        required: false
+        default: 'https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app'
+      commit_message:
+        description: 'Mensaje de commit para los snapshots actualizados'
+        required: false
+        default: 'chore(visual): update baseline snapshots from CI runner'
+
+# Concurrency compartido con e2e-error-audit para no correr contra staging
+# desde 2 lugares en paralelo (los tests visual navegan páginas cacheadas +
+# leen data via Supabase staging).
+concurrency:
+  group: e2e-staging
+  cancel-in-progress: false
+
+jobs:
+  update-snapshots:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # necesario para el commit + push de snapshots.
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Full history + credenciales para push posterior.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+          cache: npm
+
+      - name: Install dependencies
+        # Mismo criterio que ci.yml: npm install (no ci) por bug rollup+lock.
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        # Necesario para el runner CI — sin esto playwright test falla con
+        # "browser executable not found".
+        run: npx playwright install chromium --with-deps
+
+      - name: Write e2e/.env.test from secrets
+        # El playwright.config.ts requiere e2e/.env.test con credenciales
+        # reales. Los secrets ya están cargados para el otro workflow;
+        # reusamos el mismo formato.
+        env:
+          E2E_STAGING_EMAIL: ${{ secrets.E2E_STAGING_EMAIL }}
+          E2E_STAGING_PASSWORD: ${{ secrets.E2E_STAGING_PASSWORD }}
+          E2E_STAGING_TUTOR_EMAIL: ${{ secrets.E2E_STAGING_TUTOR_EMAIL }}
+          E2E_STAGING_TUTOR_PASSWORD: ${{ secrets.E2E_STAGING_TUTOR_PASSWORD }}
+          PLAYWRIGHT_BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_ANON_KEY: ${{ secrets.E2E_SUPABASE_ANON_KEY }}
+          E2E_STAGING_CRON_SECRET: ${{ secrets.E2E_STAGING_CRON_SECRET }}
+        run: |
+          mkdir -p e2e
+          cat > e2e/.env.test <<EOF
+          E2E_STAGING_EMAIL=$E2E_STAGING_EMAIL
+          E2E_STAGING_PASSWORD=$E2E_STAGING_PASSWORD
+          E2E_STAGING_TUTOR_EMAIL=$E2E_STAGING_TUTOR_EMAIL
+          E2E_STAGING_TUTOR_PASSWORD=$E2E_STAGING_TUTOR_PASSWORD
+          PLAYWRIGHT_BYPASS=$PLAYWRIGHT_BYPASS
+          E2E_SUPABASE_URL=$E2E_SUPABASE_URL
+          E2E_SUPABASE_ANON_KEY=$E2E_SUPABASE_ANON_KEY
+          E2E_STAGING_CRON_SECRET=$E2E_STAGING_CRON_SECRET
+          EOF
+
+      - name: Update snapshots
+        env:
+          PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.preview_url }}
+        run: |
+          npx playwright test e2e/specs/visual/ --project=visual --update-snapshots || true
+          # El --update-snapshots hace que playwright genere/regenere los
+          # snapshots faltantes. Los tests fallan la primera vez porque no
+          # había baseline (comportamiento esperado) — || true captura ese
+          # exit code y no rompe el workflow. Los snapshots quedan escritos
+          # a disk, listos para el commit.
+
+      - name: Commit and push snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add e2e/specs/visual/**/*-snapshots/*.png || true
+          if git diff --staged --quiet; then
+            echo "No snapshot changes to commit."
+            exit 0
+          fi
+          git commit -m "${{ github.event.inputs.commit_message }}"
+          git push origin HEAD:${{ github.ref_name }}

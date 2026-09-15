@@ -202,7 +202,7 @@ export default defineConfig({
             // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
             // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
             // acá porque tiene "proveedor" en el filename.
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -258,6 +258,30 @@ export default defineConfig({
             },
             dependencies: ['setup', 'setup-tutor'],
             testMatch: /specs[\\/]f2-recordatorios-cron[\\/].*\.spec\.ts$/,
+        },
+        {
+            // Sprint bloque-g G-3 seed (2026-09-15) — visual regression para
+            // BUTTON-CANON incremental. Spec único e2e/specs/visual/
+            // paginas-clave.spec.ts con 14 snapshots (7 páginas × 2 viewports).
+            //
+            // storageState por default: proveedor. El spec usa test.use()
+            // por describe para overridear con storageState vacío (público)
+            // o tutor (mis-reservas).
+            //
+            // dependencies: setup + setup-tutor — ambos storageStates deben
+            // existir antes de que corra este project.
+            //
+            // Base images: e2e/specs/visual/paginas-clave.spec.ts-snapshots/
+            // generadas por CI runner Linux vía workflow_dispatch de
+            // .github/workflows/visual-update-snapshots.yml. NO regenerar
+            // desde Windows local (fuentes distintas → diff spurio).
+            name: 'visual',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'e2e/.auth/proveedor.json',
+            },
+            dependencies: ['setup', 'setup-tutor'],
+            testMatch: /specs[\\/]visual[\\/].*\.spec\.ts$/,
         },
     ],
 });
