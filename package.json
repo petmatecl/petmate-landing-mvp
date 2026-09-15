@@ -16,6 +16,7 @@
     "test:g1-agendamientos": "npx tsx lib/g1-agendamientos.test.ts",
     "test:g1-cron-auth": "npx tsx lib/g1-cron-auth.test.ts",
     "test:g1-notifs-push-evals": "npx tsx lib/g1-notifs-push-evals.test.ts",
+    "test:g1-resto": "npx tsx lib/g1-resto.test.ts",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report e2e/.report"

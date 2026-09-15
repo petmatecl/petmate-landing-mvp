@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { verifySession } from '../../../lib/apiAuth';
@@ -9,7 +10,7 @@ import { logSupabaseError } from '../../../lib/logSupabaseError';
  * Generates a unique referral code for an authenticated user.
  * Requires Authorization: Bearer <token> header.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
   if (!(await apiLimiter(req, res))) return;
 
@@ -64,3 +65,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(500).json({ error: 'Error interno del servidor' });
   }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/referidos/generar-codigo');

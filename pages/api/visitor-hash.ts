@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createHash } from 'crypto';
 
 /**
@@ -12,7 +13,7 @@ import { createHash } from 'crypto';
  *  - El hash es estable mientras IP y UA no cambien — eso es intencional, es
  *    lo que permite el rate limit "1 visita por día por visitante".
  */
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -39,3 +40,5 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
         return res.status(500).json({ error: 'Internal error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/visitor-hash');

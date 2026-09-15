@@ -1,4 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { waitlistSchema } from '../../../lib/validations';
@@ -10,7 +11,7 @@ const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 // However, since we have an INSERT policy, regular anon could insert, but UPSERT might need more permissions.
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') {
         return res.status(405).json({ ok: false, error: 'Method Not Allowed' });
     }
@@ -46,3 +47,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ ok: false, error: 'Internal Server Error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/waitlist/subscribe');
