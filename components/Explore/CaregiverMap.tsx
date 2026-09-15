@@ -278,24 +278,20 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                                 <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
                                             </div>
 
-                                            {/* Sprint popup-fix commit 1 (2026-09-04) — `!text-white` con
-                                                Tailwind `!` prefix (= `color: white !important` en CSS).
-                                                Motivo: Leaflet incluye `.leaflet-container a { color:
-                                                #0078A8 }` en su CSS default. Verificado por PO en DevTools
-                                                de prod 2026-09-04 — selector real `.leaflet-container a`
-                                                (no `.leaflet-popup-content a` como estimé inicialmente).
-                                                Especificidad `(0,0,1,1)` > `.text-white` `(0,0,1,0)` →
-                                                Leaflet ganaba silente y el botón renderea azul-verdoso
-                                                sobre fondo verde → efecto "verde apenas más claro".
-                                                `!important` (via `!`) supera especificidad → text-white
-                                                efectivo. El selector `.leaflet-container a` cubre TODOS
-                                                los links del mapa (incluyendo attribution "OpenStreetMap"
-                                                y "CARTO"), pero esos viven sobre fondo blanco donde el
-                                                azul funciona — solo este CTA sobre fondo verde sufría
-                                                el bug. */}
+                                            {/* Sprint prelaunch MAP-4 (2026-09-15) — se removió `!text-white`
+                                                inline. El override token-based ahora vive en
+                                                `styles/globals.css > .leaflet-container a[class*="bg-accent-"]`
+                                                y cubre cualquier CTA con fondo accent-* dentro de un container
+                                                Leaflet, sin necesitar `!important` por componente. Ver comentario
+                                                extenso en globals.css con la razón del override (Leaflet inyecta
+                                                `.leaflet-container a { color: #0078A8 }` con especificidad
+                                                (0,0,1,1) que gana sobre `.text-white`).
+                                                Historia: sprint popup-fix (2026-09-04) aplicó `!text-white`
+                                                inline como primera pasada; el sprint prelaunch consolidó a
+                                                token-based porque el patrón se iba a repetir en futuros popups. */}
                                             <Link
                                                 href={`/proveedor/${s.proveedor_id}`}
-                                                className="block w-full py-2 bg-accent-600 !text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
+                                                className="block w-full py-2 bg-accent-600 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
                                             >
                                                 Ver perfil completo
                                             </Link>

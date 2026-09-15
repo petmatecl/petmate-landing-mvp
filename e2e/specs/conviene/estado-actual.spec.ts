@@ -88,6 +88,47 @@ test('[VOL-1] botón "Volver" del perfil del proveedor regresa al origen interno
     expect(page.url(), 'Regresa a /explorar (no expulsa fuera del sitio)').toContain('/explorar');
 });
 
+test('[VOL-1-EXT] botón "Volver" con referrer externo (google.com) va a /explorar, no history.back', async ({ page }) => {
+    // Sprint prelaunch (2026-09-15) — segundo caso del fix volver-fix (2026-09-04)
+    // que cerró el bug del PO cuando el referrer venía de Google/redes/URL
+    // directa. El fix hace `document.referrer.startsWith(window.location.origin)`
+    // → si NO → router.push('/explorar'). Este test verifica que la ruta
+    // externa se detecta correctamente sin ejecutar history.back().
+    //
+    // Estrategia: monkeypatch `document.referrer` via addInitScript ANTES
+    // de la navegación. Playwright no permite setear referrer real desde
+    // otro origin (CORS/security), pero sí override del getter.
+    const { proveedorId } = await pickServicioIdConAgenda();
+
+    await page.addInitScript(() => {
+        Object.defineProperty(document, 'referrer', {
+            get: () => 'https://www.google.com/',
+            configurable: true,
+        });
+    });
+
+    // Navegar DIRECTO al perfil (sin pasar por /explorar) para simular el
+    // caso real: user llega desde Google/redes/URL directa. `document.referrer`
+    // será el mock (google.com), y `window.location.origin` será el preview
+    // Vercel — startsWith retorna false → botón usa router.push('/explorar').
+    await page.goto(`/proveedor/${proveedorId}`, { waitUntil: 'domcontentloaded' });
+
+    // Sanity check del mock: el referrer efectivo debe ser google.com.
+    const referrerVisto = await page.evaluate(() => document.referrer);
+    expect(referrerVisto, 'document.referrer monkeypatch aplicó (google.com)').toBe('https://www.google.com/');
+
+    const volver = page.getByRole('button', { name: /volver/i }).first();
+    await expect(volver, 'Botón Volver visible en perfil de proveedor').toBeVisible({ timeout: 5_000 });
+    await volver.click();
+
+    // Assertion clave: URL final es /explorar (no fuera del sitio, no la
+    // página anterior — este test NO tiene página anterior porque
+    // navegó directo al perfil).
+    await page.waitForURL(/\/explorar/, { timeout: 5_000 });
+    expect(page.url(), 'Referrer externo → botón Volver aterriza en /explorar (no history.back a Google)')
+        .toContain('/explorar');
+});
+
 // -- Item 3 EXP-1 — copy "sesión expiró" presente en JS del modal ----------
 
 test.skip('[EXP-1] copy "Tu sesión expiró" en tuteo presente en JS del modal reserva', async () => {

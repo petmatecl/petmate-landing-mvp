@@ -255,6 +255,13 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     //     Si se saca esto, el deadlock SIGUE cerrado (PIEZA 1 lo cubre) —
     //     solo hay trabajo redundante. El guard NO reemplaza a la PIEZA 1.
     //
+    // Sprint prelaunch CUE-1 (2026-09-15) — watchdog para cuelgue intermitente
+    // de carga (spinner indefinido). Trackea último evento auth + ruta previa
+    // para el payload de Sentry. Los refs son intencionalmente updateados
+    // en cada evento (auth handler + routeChange) sin trigger de re-render.
+    const lastAuthEventRef = useRef<string | null>(null);
+    const previousRouteRef = useRef<string | null>(null);
+
     // REF (no state) porque el handler de onAuthStateChange puede correr
     // entre renders y el state estar stale (race entre hydrate exitoso y
     // handler del próximo evento). Ref se actualiza en el mismo tick que
@@ -622,6 +629,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
         // resuelve sin colgarse en Web Locks orphaned.
         supabase.auth.getSession().then(({ data: { session } }) => {
+            lastAuthEventRef.current = 'INITIAL_SESSION_GETSESSION';
             if (mounted) hydrateFromSession(session);
         });
 
@@ -631,6 +639,7 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
             async (event, session) => {
                 if (!mounted) return;
+                lastAuthEventRef.current = event;
                 switch (event) {
                     case 'SIGNED_IN': {
                         // ═══════════════════════════════════════════════════
@@ -719,6 +728,103 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             }
             subscription.unsubscribe();
         };
+    }, []);
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // SPRINT prelaunch CUE-1 (2026-09-15) — WATCHDOG PARA CUELGUE INTERMITENTE
+    // ═══════════════════════════════════════════════════════════════════════
+    //
+    // PROBLEMA QUE MONITOREA: cuelgue intermitente de carga (spinner
+    // indefinido, se destraba con Ctrl+Shift+R) reportado por el PO en
+    // smokes prod desde 2026-08-27. Reproducido en múltiples rutas no
+    // relacionadas, ambos entornos. Sin causa reproducible, cero forma
+    // de fixear sin evidencia. Este watchdog captura el estado atascado
+    // cuando ocurra para que el próximo caso deje evidencia en Sentry
+    // sin necesidad de reproducir manualmente.
+    //
+    // DISEÑO:
+    //   - 15s post-mount inicial (solo una vez, no re-arma).
+    //   - Condiciones de "atascado":
+    //     (a) isLoading sigue true → hidratación nunca terminó.
+    //     (b) !user && !isLoading en ruta que probablemente requería auth
+    //         → post-hidratación con sesión esperada pero user no llegó.
+    //   - Payload Sentry: ruta actual, ruta previa (tracker), último
+    //     evento auth recibido, si hay sesión en storage, si el SW controla
+    //     la página. Level warning (no error) — el user puede ni notarlo,
+    //     el objetivo es diagnóstico.
+    //   - Sentry gate a production sigue vigente (sentry.client.config.ts) —
+    //     en preview NO envía. Un `console.warn` dual permite que el spec
+    //     verifique la llamada sin depender del dashboard.
+    //
+    // CERO EFECTO EN UX: solo emite un mensaje. No dispara reload, no
+    // limpia state, no redirige. La solución del cuelgue vendrá en un
+    // sprint dedicado una vez tengamos suficientes muestras.
+    // ═══════════════════════════════════════════════════════════════════════
+    useEffect(() => {
+        const handleRouteChange = () => {
+            previousRouteRef.current = router.asPath;
+        };
+        router.events.on('routeChangeStart', handleRouteChange);
+        return () => router.events.off('routeChangeStart', handleRouteChange);
+    }, [router.asPath, router.events]);
+
+    useEffect(() => {
+        const t = setTimeout(async () => {
+            // Recheck de condiciones dentro del setTimeout — el state al
+            // dispararse el timer, no al armarlo.
+            const stuckLoading = isLoading;
+            const stuckNoUser = !user && !isLoading;
+            if (!stuckLoading && !stuckNoUser) return;
+
+            // Sesión en storage: chequeo defensivo — el SDK puede tener
+            // la sesión en localStorage pero UserContext no la reflejó por
+            // race o error silente en hydrateFromSession. Si hay sesión
+            // en storage pero user es null → hydrate falló, pista fuerte.
+            let hasStorageSession = false;
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                hasStorageSession = !!session;
+            } catch {
+                // ignorar — si getSession revienta el propio watchdog no
+                // debe crashear la app.
+            }
+
+            const swControlling = typeof navigator !== 'undefined'
+                && !!navigator.serviceWorker?.controller;
+
+            const payload = {
+                stuckReason: stuckLoading ? 'loading_never_resolved' : 'no_user_after_load',
+                currentRoute: router.asPath,
+                previousRoute: previousRouteRef.current,
+                lastAuthEvent: lastAuthEventRef.current,
+                hasStorageSession,
+                swControlling,
+                hydrationState,
+                isLoading,
+                userTruthy: !!user,
+            };
+
+            // Dual emit: console.warn en no-prod para specs y debugging local;
+            // Sentry.captureMessage siempre (gate a prod dentro del SDK).
+            const isProd = process.env.NEXT_PUBLIC_APP_ENV === 'production';
+            if (!isProd) {
+                // eslint-disable-next-line no-console
+                console.warn('[user_context_stuck]', payload);
+            }
+            Sentry.captureMessage('user_context_stuck', {
+                level: 'warning',
+                tags: {
+                    subsystem: 'user_context',
+                    stuck_reason: payload.stuckReason,
+                    sw_controlling: String(swControlling),
+                    has_storage_session: String(hasStorageSession),
+                    hydration_state: hydrationState,
+                },
+                extra: payload,
+            });
+        }, 15_000);
+        return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const switchRole = (role: Role) => {

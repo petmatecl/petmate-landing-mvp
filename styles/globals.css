@@ -234,3 +234,22 @@ h6 {
   width: 100%;
   height: 100%;
 }
+
+/* Sprint prelaunch MAP-4 (2026-09-15) — override token-based del reset de
+   Leaflet para CTAs sobre fondo accent-*. Leaflet inyecta
+   `.leaflet-container a { color: #0078A8 }` con especificidad (0,0,1,1)
+   que gana sobre `.text-white` (0,0,1,0), dejando el CTA "Ver perfil
+   completo" del popup del mapa con texto azul-verdoso sobre fondo verde
+   (contraste bajo, apenas legible — reportado por PO 2026-09-04 en smoke
+   z-index-maps). El fix anterior usaba `!text-white` inline (Tailwind `!`
+   prefix = `!important`), efectivo pero token-blind — cada CTA nuevo con
+   fondo accent en un popup Leaflet obliga a repetir el override inline y
+   se olvida.
+   Este selector cubre TODOS los links descendientes de `.leaflet-container`
+   con clase `bg-accent-*` (accent-500, accent-600, accent-700), sin
+   necesitar `!important` inline en el componente. La especificidad del
+   selector (0,0,2,1) > selector Leaflet (0,0,1,1) → gana silente.
+   Cero efecto sobre attribution links del mapa (fondo blanco, sin bg-accent). */
+.leaflet-container a[class*="bg-accent-"] {
+  color: white;
+}
