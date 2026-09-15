@@ -1,5 +1,4 @@
 import Head from "next/head";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { useRouter } from "next/router";
@@ -164,13 +163,10 @@ function ExplorarPrelaunch() {
                 </form>
             )}
 
+            {/* Sprint E-2 UX-2 (2026-09-15) — removido el link "¿Ofreces
+                servicios para mascotas?" duplicado. El CTA de registro
+                proveedor vive solo en Header + Footer del sitio. */}
             <p className="text-xs text-slate-500 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores en tu zona.</p>
-
-            <div className="mt-8 pt-6 border-t border-slate-100">
-                <Link href="/register?rol=proveedor" className="text-sm text-accent-700 font-semibold hover:underline">
-                    ¿Ofreces servicios para mascotas? Publica tu perfil gratis y sé de los primeros →
-                </Link>
-            </div>
         </div>
     );
 }
@@ -819,13 +815,15 @@ export default function ExplorarPage() {
                                                 Intenta ajustar los filtros o ampliar la búsqueda.
                                             </p>
                                         )}
+                                        {/* Sprint E-2 UX-2 (2026-09-15) — removido el
+                                            CTA "¿Eres proveedor? Publica tu servicio →"
+                                            duplicado del bloque sin-resultados. El CTA
+                                            de registro proveedor vive solo en Header +
+                                            Footer del sitio. */}
                                         <div className="flex flex-col sm:flex-row justify-center gap-3 mt-8">
                                             <button onClick={handleClearFilters} className="px-6 py-2.5 border border-slate-200 text-slate-700 font-semibold rounded-xl hover:bg-slate-50 transition-colors text-sm">
                                                 Ver todos los servicios
                                             </button>
-                                            <Link href="/register?rol=proveedor" className="px-6 py-2.5 bg-accent-50 text-accent-800 font-semibold rounded-xl hover:bg-accent-100 transition-colors text-sm text-center">
-                                                ¿Eres proveedor? Publica tu servicio →
-                                            </Link>
                                         </div>
                                     </div>
                                 ) : (
@@ -898,26 +896,39 @@ export default function ExplorarPage() {
                                 {vista === 'mapa' ? (
                                     <CaregiverMap services={services} />
                                 ) : (
-                                    <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-                                        {services.map((service) => (
-                                            <ServiceCard key={service.servicio_id} service={service} />
-                                        ))}
-                                        {pagina === 1 && services.length > 0 && totalCount < 12 && (() => {
-                                            // Si hay filtro de categoría, todos los placeholders comparten ese slug.
-                                            // Si NO hay filtro, rotamos por las 9 categorías para que cada placeholder
-                                            // muestre un subtítulo distinto (vía getPlaceholderSubtitle).
-                                            const ROTATION_SLUGS = ['cuidado', 'guarderia', 'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
-                                            const filterSlug = filters.categoria;
-                                            return Array.from({ length: 12 - services.length }).map((_, i) => (
-                                                <ServicePlaceholderCard
-                                                    key={`placeholder-${i}`}
-                                                    categoriaSlug={filterSlug || ROTATION_SLUGS[i % ROTATION_SLUGS.length]}
-                                                    comuna={filters.comuna || undefined}
-                                                    variant="full"
-                                                />
-                                            ));
-                                        })()}
-                                    </div>
+                                    <>
+                                        {/* Sprint E-2 UX-1 + EMPTY-STATES (2026-09-15):
+                                            solo 2 tarjetas de relleno máximo y solo cuando
+                                            hay <3 servicios reales — antes rellenaba hasta
+                                            12 (spam). Ver ACTA E / BACKLOG UX-1. */}
+                                        {pagina === 1 && services.length > 0 && services.length < 3 && (
+                                            <p className="text-sm text-slate-500 italic mb-4">
+                                                Aún hay pocos proveedores en esta categoría — te mostramos algunos ejemplos de lo que podrías encontrar acá cuando la oferta crezca.
+                                            </p>
+                                        )}
+                                        <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
+                                            {services.map((service) => (
+                                                <ServiceCard key={service.servicio_id} service={service} />
+                                            ))}
+                                            {pagina === 1 && services.length > 0 && services.length < 3 && (() => {
+                                                // Cap 2 fillers máximo, solo cuando hay <3
+                                                // servicios reales. Antes: hasta 11 fillers
+                                                // hasta llegar a 12 en el grid (spam). Ver
+                                                // UX-1 + EMPTY-STATES BACKLOG.
+                                                const ROTATION_SLUGS = ['cuidado', 'guarderia', 'paseos', 'peluqueria', 'adiestramiento', 'veterinario', 'traslado', 'fotografia'];
+                                                const filterSlug = filters.categoria;
+                                                const cantidad = Math.min(2, 3 - services.length);
+                                                return Array.from({ length: cantidad }).map((_, i) => (
+                                                    <ServicePlaceholderCard
+                                                        key={`placeholder-${i}`}
+                                                        categoriaSlug={filterSlug || ROTATION_SLUGS[i % ROTATION_SLUGS.length]}
+                                                        comuna={filters.comuna || undefined}
+                                                        variant="full"
+                                                    />
+                                                ));
+                                            })()}
+                                        </div>
+                                    </>
                                 )}
 
                                 {/* Controles de paginación — solo en vista lista */}
@@ -971,43 +982,10 @@ export default function ExplorarPage() {
                 </div>
             </div>
 
-            {/* CTA Proveedores */}
-            {!user && (
-                <section className="py-16 px-4 bg-accent-50 border-t border-accent-100">
-                    <div className="max-w-4xl mx-auto text-center">
-                        <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-4">
-                            ¿Ofreces servicios para mascotas?
-                        </h2>
-                        <p className="text-lg text-slate-600 mb-8 max-w-2xl mx-auto">
-                            Únete a Pawnecta y conecta con miles de dueños que buscan profesionales confiables como tú.
-                        </p>
-                        <Link
-                            href="/register?rol=proveedor"
-                            className="inline-block px-8 py-4 bg-accent-600 text-white font-semibold rounded-2xl hover:bg-accent-700 transition-colors focus:outline-none focus:ring-2 focus:ring-accent-600 focus:ring-offset-2 shadow-sm"
-                        >
-                            Publicar mi servicio
-                        </Link>
-
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 max-w-3xl mx-auto">
-                            {[
-                                { label: 'Registro gratuito', sub: 'Sin costos de alta' },
-                                { label: 'Visibilidad en búsquedas', sub: 'Aparece en tu comuna' },
-                                { label: 'Clientes reales', sub: 'Conecta con dueños verificados' },
-                            ].map((b, i) => (
-                                <div key={b.label} className="text-center">
-                                    <div className="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                                        {i === 0 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                        {i === 1 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>}
-                                        {i === 2 && <svg className="w-6 h-6 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>}
-                                    </div>
-                                    <p className="text-sm text-slate-900 font-semibold">{b.label}</p>
-                                    <p className="text-xs text-slate-500 mt-0.5">{b.sub}</p>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </section>
-            )}
+            {/* Sprint E-2 UX-2 (2026-09-15) — removida la sección CTA
+                Proveedores del final de /explorar. El CTA de registro
+                proveedor vive solo en Header + Footer del sitio, no en
+                secciones laterales/bottom banners de páginas de contenido. */}
         </div>
     );
 }
