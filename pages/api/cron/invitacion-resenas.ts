@@ -33,6 +33,7 @@
 // proveedor.
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { skipIfNonProd } from '../../../lib/cronGuard';
@@ -44,7 +45,7 @@ import type React from 'react';
 const BUFFER_HORAS = 24;
 const BATCH_LIMIT = 30;
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET' && req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
     }
@@ -259,3 +260,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'Internal error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/cron/invitacion-resenas');
