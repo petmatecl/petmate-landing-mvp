@@ -315,7 +315,7 @@ Historia original preservada:
 
   **Nota auditor**: entrada solo anotada por instrucción explícita del PO ("NO la implementes, no la diseñes en detalle, no toques código"). Prioridad y decisiones producto fijas — reabrir con el PO en el momento del sprint.
 
-- **[abierto — sprint dedicado post email-landing]** Fix estructural: self-calls server-side rotos en Vercel Preview con Deployment Protection. Detectado 2026-08-20 durante smoke email-landing. **Alcance**: 5 llamadas `fetch('${NEXT_PUBLIC_SITE_URL}/api/...')` desde otras Functions del proyecto, todas silentes en preview protegido:
+- **[CERRADO 2026-09-15 sprint bloque-g G-2 `pages/api/auth/signup.ts` + `lib/withProtectionBypass.ts`] Fix estructural: self-calls server-side rotos en Vercel Preview con Deployment Protection.** Detectado 2026-08-20 durante smoke email-landing. **Alcance**: 5 llamadas `fetch('${NEXT_PUBLIC_SITE_URL}/api/...')` desde otras Functions del proyecto, todas silentes en preview protegido:
   - [pages/api/auth/signup.ts:201](pages/api/auth/signup.ts#L201) → `/api/auth/welcome`.
   - [pages/api/auth/signup.ts:229](pages/api/auth/signup.ts#L229) → `/api/admin/notify-nueva-solicitud`.
   - [pages/api/cron/recordatorio-reserva.ts:120](pages/api/cron/recordatorio-reserva.ts#L120).

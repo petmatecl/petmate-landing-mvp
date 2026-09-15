@@ -181,7 +181,7 @@ async function main() {
             assert.equal(typeof mod.default, 'function', `mod.default no es función`);
             assert.ok(
                 wrappedRoutes.has(route),
-                `Se esperaba wrapApiHandlerWithSentry(..., '${route}'). Trackeados: ${JSON.stringify([...wrappedRoutes])}`
+                `Se esperaba wrapApiHandlerWithSentry(..., '${route}'). Trackeados: ${JSON.stringify(Array.from(wrappedRoutes))}`
             );
         });
     }

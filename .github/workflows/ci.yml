@@ -76,5 +76,13 @@ jobs:
         # route pattern) porque no tienen limiter ni supabase.
         run: npm run test:g1-resto
 
+      - name: Unit tests (G-2 protection bypass helper)
+        # Sprint bloque-g PR G-2 (2026-09-15) — verifica que
+        # buildProtectionBypassHeaders() retorna el header en preview
+        # con secret seteado, y objeto vacío en production, preview sin
+        # secret, o development. Además verifica que signup.ts importa
+        # y usa el helper en 2+ headers de fetch.
+        run: npm run test:g2-protection-bypass
+
       - name: Build
         run: npm run build
