@@ -1,6 +1,5 @@
-import Link from 'next/link';
-import { Sparkles, ArrowRight } from 'lucide-react';
-import { getPlaceholderQuestion, getPlaceholderSubtitle, buildRegisterUrl } from '../../lib/placeholderCopy';
+import { Sparkles } from 'lucide-react';
+import { getPlaceholderQuestion, getPlaceholderSubtitle } from '../../lib/placeholderCopy';
 
 interface ServicePlaceholderCardProps {
     categoriaSlug?: string;
@@ -11,6 +10,25 @@ interface ServicePlaceholderCardProps {
     customTitle?: string;
 }
 
+/**
+ * Sprint E-2 UX-2 (2026-09-15) — refactor de CTA card → informational card.
+ *
+ * Antes: el componente era un `<Link href="/register?rol=proveedor">` con
+ * footer "Publica gratis →" y aria-label que llamaba al CTA de registro
+ * proveedor. Contribuía al patrón de ~12 apariciones del mismo destino
+ * en /explorar (UX-1 + UX-2 del walkthrough #1).
+ *
+ * Ahora: div puro sin `<Link>`, sin footer CTA, sin aria-label de
+ * publicación. Solo pregunta + subtítulo con un ícono Sparkles arriba.
+ * El CTA de registro proveedor vive únicamente en Header + Footer del
+ * sitio. La copy que explica por qué aparecen los placeholders vive en
+ * el caller (pages/explorar.tsx muestra "Aún hay pocos proveedores..."
+ * arriba del grid cuando aplica).
+ *
+ * El `buildRegisterUrl` helper del import queda sin uso en este archivo
+ * — no lo removemos del `lib/placeholderCopy.ts` porque puede haber otros
+ * callers históricos y removerlo es scope de un sprint de higiene aparte.
+ */
 export default function ServicePlaceholderCard({
     categoriaSlug,
     comuna,
@@ -19,60 +37,44 @@ export default function ServicePlaceholderCard({
 }: ServicePlaceholderCardProps) {
     const question = customTitle ?? getPlaceholderQuestion(categoriaSlug, comuna);
     const subtitle = getPlaceholderSubtitle(categoriaSlug);
-    const href = buildRegisterUrl(categoriaSlug, comuna);
 
     if (variant === 'compact') {
         return (
-            <Link
-                href={href}
-                aria-label={`${question} Publica gratis tu servicio.`}
-                className="group flex flex-col rounded-2xl border border-slate-200 bg-white hover:border-accent-600 hover:shadow-lg transition-all duration-300 overflow-hidden"
+            <div
+                aria-label={question}
+                className="flex flex-col rounded-2xl border border-dashed border-slate-200 bg-white overflow-hidden"
             >
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 min-h-[200px]">
-                    <div className="text-accent-600">
+                    <div className="text-slate-400">
                         <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
                     </div>
-                    <p className="text-base font-medium text-slate-900 leading-snug max-w-[220px]">
+                    <p className="text-base font-medium text-slate-700 leading-snug max-w-[220px]">
                         {question}
                     </p>
                     <p className="text-xs text-slate-500 leading-relaxed">
                         {subtitle}
                     </p>
                 </div>
-                <div className="border-t border-slate-100 px-4 py-3.5 bg-slate-50 group-hover:bg-accent-50 transition-colors">
-                    <span className="flex items-center justify-center gap-2 text-sm font-semibold text-accent-700">
-                        Publica gratis
-                        <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                    </span>
-                </div>
-            </Link>
+            </div>
         );
     }
 
-    // variant 'full' — mismo lenguaje, más espacio
     return (
-        <Link
-            href={href}
-            aria-label={`${question} Publica gratis tu servicio.`}
-            className="group flex flex-col h-full rounded-2xl border border-slate-200 bg-white hover:border-accent-600 hover:shadow-lg transition-all duration-300 overflow-hidden"
+        <div
+            aria-label={question}
+            className="flex flex-col h-full rounded-2xl border border-dashed border-slate-200 bg-white overflow-hidden"
         >
             <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-5 min-h-[300px]">
-                <div className="text-accent-600">
+                <div className="text-slate-400">
                     <Sparkles size={36} strokeWidth={1.5} aria-hidden="true" />
                 </div>
-                <p className="text-base font-medium text-slate-900 leading-snug max-w-[240px]">
+                <p className="text-base font-medium text-slate-700 leading-snug max-w-[240px]">
                     {question}
                 </p>
                 <p className="text-sm text-slate-500 leading-relaxed max-w-[260px]">
                     {subtitle}
                 </p>
             </div>
-            <div className="border-t border-slate-100 px-5 py-4 bg-slate-50 group-hover:bg-accent-50 transition-colors">
-                <span className="flex items-center justify-center gap-2 text-sm font-semibold text-accent-700">
-                    Publica gratis
-                    <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" aria-hidden="true" />
-                </span>
-            </div>
-        </Link>
+        </div>
     );
 }
