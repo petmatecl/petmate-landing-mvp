@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
 import { skipIfNonProd } from '../../../lib/cronGuard';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
  * Cron: Onboarding reminders for providers
@@ -39,7 +40,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
     // 1. Approved providers with no published services (registered 48h-7d ago)
-    const { data: providersNoService } = await supabaseAdmin
+    // Sprint tipo-cd v2 — cambio de comportamiento: si la query principal
+    // falla, THROW → cae al catch outer 500 → Vercel marca job como failed.
+    // Antes: `providersNoService=null` → loop no itera → cron reporta
+    // `sent=0` en 200 → Vercel marca success ficticio y perdíamos la señal
+    // del batch fallido.
+    const { data: providersNoService, error: noServiceErr } = await supabaseAdmin
       .from('proveedores')
       .select('auth_user_id, nombre, email_onboarding_at, created_at')
       .eq('estado', 'aprobado')
@@ -47,6 +53,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .lt('created_at', cutoff48h)
       .gt('created_at', cutoff7d)
       .limit(30);
+    logSupabaseError('api-cron:recordatorio-onboarding:providers_no_service', noServiceErr);
+    if (noServiceErr) throw noServiceErr;
 
     for (const prov of (providersNoService || [])) {
       // Check if they have any services
@@ -57,7 +65,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
       if ((count || 0) > 0) continue;
 
-      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_service', authErr, { providerId: prov.auth_user_id });
       if (!authUser?.user?.email) continue;
 
       await resend.emails.send({
@@ -88,7 +97,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     // 2. Approved providers with no profile photo (registered >48h ago)
-    const { data: providersNoPhoto } = await supabaseAdmin
+    // Sprint tipo-cd v2 — throw si error. La sección 1 puede haber enviado
+    // N emails; el UPDATE de `email_onboarding_at` (L82-85) los marca como
+    // enviados → idempotencia protege contra doble-envío en próximo run.
+    // Es correcto reportar 500 partial: Vercel marca el job para inspección
+    // sin perder los envíos ya hechos.
+    const { data: providersNoPhoto, error: noPhotoErr } = await supabaseAdmin
       .from('proveedores')
       .select('auth_user_id, nombre, foto_perfil, email_foto_at, created_at')
       .eq('estado', 'aprobado')
@@ -97,9 +111,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       .lt('created_at', cutoff48h)
       .gt('created_at', cutoff7d)
       .limit(30);
+    logSupabaseError('api-cron:recordatorio-onboarding:providers_no_photo', noPhotoErr);
+    if (noPhotoErr) throw noPhotoErr;
 
     for (const prov of (providersNoPhoto || [])) {
-      const { data: authUser } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      const { data: authUser, error: authErr2 } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_photo', authErr2, { providerId: prov.auth_user_id });
       if (!authUser?.user?.email) continue;
 
       await resend.emails.send({

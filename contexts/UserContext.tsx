@@ -843,7 +843,24 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
     const refreshProfile = async () => {
         setIsLoading(true);
-        const { data } = await supabase.auth.getSession();
+        // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si
+        // getSession falla, EARLY RETURN preservando el state actual. Antes
+        // llamaba `hydrateFromSession(null)` con `data=null` → hidrataba al
+        // user como guest silente. Un fallo transitorio de red degradaba
+        // admin/proveedor a "Usuario" pese a que el refresh fue llamado
+        // INTENCIONALMENTE para RE-hidratar (no des-hidratar). Con el early
+        // return, la próxima acción del user (o el retry-in-place del
+        // hydrate C2) recupera el rol correcto.
+        const { data, error } = await supabase.auth.getSession();
+        if (error) {
+            Sentry.captureMessage('auth-session:user-context:refresh_profile_getSession', {
+                level: 'warning',
+                tags: { subsystem: 'auth-session', errorCode: (error as { name?: string }).name || 'unknown' },
+                extra: { errorMessage: error.message },
+            });
+            setIsLoading(false);
+            return;
+        }
         await hydrateFromSession(data?.session ?? null);
     };
 

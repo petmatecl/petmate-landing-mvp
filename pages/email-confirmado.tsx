@@ -5,6 +5,7 @@ import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
+import { logSupabaseError } from "../lib/logSupabaseError";
 
 /**
  * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
@@ -140,7 +141,9 @@ export default function EmailConfirmadoPage() {
         // resuelve una vez sabemos el resultado del getSession.
         (async () => {
             try {
-                const { data } = await supabase.auth.getSession();
+                // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+                const { data, error } = await supabase.auth.getSession();
+                logSupabaseError('auth-session:email-confirmado:fallback_getSession', error);
                 setHasSomethingToProcess(!!data?.session);
             } catch {
                 setHasSomethingToProcess(false);

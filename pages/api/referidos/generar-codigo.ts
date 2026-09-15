@@ -2,6 +2,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { verifySession } from '../../../lib/apiAuth';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
  * POST /api/referidos/generar-codigo
@@ -25,13 +26,20 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
   try {
     // Check for existing code
-    const { data: existing } = await supabaseAdmin
+    // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si el lookup
+    // falla, 500 (fail-close). Antes continuaba a "generar nuevo código" con
+    // `existing=null` — riesgo de generar código DUPLICADO cuando el user ya
+    // tenía uno pero la query reventó. Es un fail-close estricto: sin verificar
+    // que no existe, no creamos otro.
+    const { data: existing, error: existingError } = await supabaseAdmin
       .from('referidos')
       .select('codigo')
       .eq('referrer_auth_id', userId)
       .is('referred_auth_id', null)
       .limit(1)
       .maybeSingle();
+    logSupabaseError('api-refer:generar-codigo:lookup_existing', existingError, { userId });
+    if (existingError) return res.status(500).json({ error: 'existing_lookup_failed' });
 
     if (existing?.codigo) {
       return res.status(200).json({ codigo: existing.codigo });

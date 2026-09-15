@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import { useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
+import { logSupabaseError } from '../../lib/logSupabaseError';
 import { fetchProveedoresPublicosByIds } from '../../lib/supabase/queries/proveedoresPublicos';
 import { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServiceDetailView from '../../components/Servicio/ServiceDetailView';
@@ -16,6 +17,10 @@ interface ServiceDetailProps {
     // no solo este servicio) para la tarjeta resumen Zona B.
     globalRatingPromedio: number;
     globalTotalEvaluaciones: number;
+    // Sprint tipo-cd v2 — flag de degradación cuando la query del rating
+    // global falla. UI muestra "—" en vez de la ausencia silenciosa
+    // (que era indistinguible de "proveedor sin reviews").
+    globalRatingUnavailable?: boolean;
 }
 
 export default function ServicioPage(props: ServiceDetailProps) {
@@ -106,14 +111,21 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // Rediseno Commit 4: rating global del proveedor (todas sus evaluaciones,
         // no solo este servicio) para la tarjeta resumen Zona B. Query separada
         // porque `reviews` de arriba filtra por servicio_id.
-        const { data: reviewsGlobalProv } = await supabase
+        // Sprint tipo-cd (2026-09-15) v2 — flag `globalRatingUnavailable` en
+        // vez de continuar con 0. La ficha del servicio SÍ debe cargar
+        // (redirect a /explorar sería agresivo — la ficha existe), pero el
+        // resumen Zona B debe distinguir "proveedor sin reviews" (real) de
+        // "no pudimos cargar el rating global" (transitorio). UI muestra "—".
+        const { data: reviewsGlobalProv, error: globalErr } = await supabase
             .from('evaluaciones')
             .select('rating')
             .eq('proveedor_id', service.proveedor_id)
             .eq('estado', 'aprobado');
+        logSupabaseError('ssr:servicio-id:reviews_global_proveedor', globalErr, { proveedorId: service.proveedor_id });
         let globalRatingPromedio = 0;
         let globalTotalEvaluaciones = 0;
-        if (reviewsGlobalProv && reviewsGlobalProv.length > 0) {
+        const globalRatingUnavailable = !!globalErr;
+        if (!globalErr && reviewsGlobalProv && reviewsGlobalProv.length > 0) {
             globalTotalEvaluaciones = reviewsGlobalProv.length;
             globalRatingPromedio = reviewsGlobalProv.reduce((acc, r: any) => acc + r.rating, 0) / globalTotalEvaluaciones;
         }
@@ -125,12 +137,13 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         let otrosServicios: ServiceResult[] = [];
 
         if (categoriaSlug && comuna) {
-            const { data: similarRaw } = await supabase.rpc('buscar_servicios', {
+            const { data: similarRaw, error: similarErr } = await supabase.rpc('buscar_servicios', {
                 p_categoria_slug: categoriaSlug,
                 p_comuna: comuna,
                 p_limit: 6,
                 p_offset: 0,
             });
+            logSupabaseError('ssr:servicio-id:similares_rpc', similarErr, { categoriaSlug, comuna });
 
             otrosServicios = (similarRaw || [])
                 .filter((s: any) => s.proveedor_id !== proveedorId && s.id !== id)
@@ -145,6 +158,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 otrosServicios,
                 globalRatingPromedio,
                 globalTotalEvaluaciones,
+                globalRatingUnavailable,
             }
         };
 

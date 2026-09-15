@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { apiLimiter } from '../../../lib/rateLimit';
 import { autoModerarSchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
+import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
  * Auto-moderacion de evaluaciones. Disparado desde ReviewForm tras el
@@ -80,11 +81,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // antes de auto-moderar. Complementa el fix de contactos/track:
         // aunque ahí ya validamos el par al insertar el contacto, este es
         // el gate autoritativo del auto-moderador.
-        const { data: servicio } = await supabase
+        // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si la
+        // query del servicio falla, THROW → cae al catch outer 500. Antes
+        // continuaba con `servicio=null` → auto-rechaza con reason
+        // 'par_incoherente' cuando en realidad la query falló → auto-moderación
+        // errónea. Con throw, el cliente ve 500 y puede reintentar o
+        // escalar a moderación manual (patrón fail-close).
+        const { data: servicio, error: servicioErr } = await supabase
             .from('servicios_publicados')
             .select('proveedor_id')
             .eq('id', ev.servicio_id)
             .maybeSingle();
+        logSupabaseError('api-eval:auto-moderar:servicio_lookup', servicioErr, { evaluacionId, servicioId: ev.servicio_id });
+        if (servicioErr) throw servicioErr;
         if (!servicio || servicio.proveedor_id !== ev.proveedor_id) {
             console.warn('[auto-moderar] par incoherente servicio↔proveedor', {
                 evaluacionId,
@@ -141,18 +150,22 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
         let hasAgendamientoPasado = false;
         if ((convCount ?? 0) === 0) {
-            const { data: buscador } = await supabase
+            const { data: buscador, error: buscadorErr } = await supabase
                 .from('usuarios_buscadores')
                 .select('id')
                 .eq('auth_user_id', clienteId)
                 .maybeSingle();
+            logSupabaseError('api-eval:auto-moderar:buscador_lookup', buscadorErr, { clienteId });
+            // Sprint tipo-cd v2 — throw si error: auto-moderar sin buscador
+            // resuelto = rechazo silente errado.
+            if (buscadorErr) throw buscadorErr;
 
             if (buscador?.id) {
                 const nowIso = new Date().toISOString();
                 // PostgREST no acepta `coalesce(fecha_fin, fecha_preferida)`
                 // como columna en `.lt()`. Reescribimos como `or`:
                 //   fecha_fin < now  OR  (fecha_fin IS NULL AND fecha_preferida < now)
-                const { data: agend } = await supabase
+                const { data: agend, error: agendErr } = await supabase
                     .from('agendamientos')
                     .select('id')
                     .eq('tutor_id', buscador.id)
@@ -161,6 +174,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .or(`fecha_fin.lt.${nowIso},and(fecha_fin.is.null,fecha_preferida.lt.${nowIso})`)
                     .limit(1)
                     .maybeSingle();
+                logSupabaseError('api-eval:auto-moderar:agend_lookup', agendErr, { tutorId: buscador.id, servicioId });
+                // Sprint tipo-cd v2 — throw si error: auto-approve incorrecto
+                // sin verificar agendamiento previo (mismo criterio que buscador).
+                if (agendErr) throw agendErr;
                 hasAgendamientoPasado = agend !== null;
             }
         }
