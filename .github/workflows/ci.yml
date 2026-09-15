@@ -55,5 +55,11 @@ jobs:
         # capturado en un throw no manejado.
         run: npm run test:g1-agendamientos
 
+      - name: Unit tests (G-1c cron/+auth/ wrap+route tag)
+        # Sprint bloque-g PR G-1c (2026-09-15) — tests unitarios para
+        # los 5 crons + 3 endpoints auth, con throw controlado en
+        # createClient o en el rate limiter según el path del handler.
+        run: npm run test:g1-cron-auth
+
       - name: Build
         run: npm run build
