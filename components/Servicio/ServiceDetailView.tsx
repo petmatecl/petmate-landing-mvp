@@ -50,6 +50,10 @@ export interface ServiceDetailViewProps {
     // separada (rating por proveedor_id, no por servicio_id).
     globalRatingPromedio?: number;
     globalTotalEvaluaciones?: number;
+    // Sprint tipo-cd v2 — flag de degradación cuando la query del rating
+    // global falla en getServerSideProps. Se propaga a ProveedorResumenCard
+    // para distinguir "sin reviews" (real) de "no pudimos cargar" (transitorio).
+    globalRatingUnavailable?: boolean;
 }
 
 const SLUG_ICONS: Record<string, LucideIcon> = {
@@ -100,6 +104,7 @@ export default function ServiceDetailView({
     isExample = false,
     globalRatingPromedio = 0,
     globalTotalEvaluaciones = 0,
+    globalRatingUnavailable = false,
 }: ServiceDetailViewProps) {
     const router = useRouter();
     const [fotoActiva, setFotoActiva] = useState(0);
@@ -1364,6 +1369,7 @@ export default function ServiceDetailView({
                             proveedor={proveedor}
                             globalRatingPromedio={globalRatingPromedio}
                             globalTotalEvaluaciones={globalTotalEvaluaciones}
+                            globalRatingUnavailable={globalRatingUnavailable}
                         />
 
                         {/* Fotos del espacio — sin galeria, sin seccion (ni heading

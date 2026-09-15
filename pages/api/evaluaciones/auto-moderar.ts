@@ -81,13 +81,19 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // antes de auto-moderar. Complementa el fix de contactos/track:
         // aunque ahí ya validamos el par al insertar el contacto, este es
         // el gate autoritativo del auto-moderador.
-        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si la
+        // query del servicio falla, THROW → cae al catch outer 500. Antes
+        // continuaba con `servicio=null` → auto-rechaza con reason
+        // 'par_incoherente' cuando en realidad la query falló → auto-moderación
+        // errónea. Con throw, el cliente ve 500 y puede reintentar o
+        // escalar a moderación manual (patrón fail-close).
         const { data: servicio, error: servicioErr } = await supabase
             .from('servicios_publicados')
             .select('proveedor_id')
             .eq('id', ev.servicio_id)
             .maybeSingle();
         logSupabaseError('api-eval:auto-moderar:servicio_lookup', servicioErr, { evaluacionId, servicioId: ev.servicio_id });
+        if (servicioErr) throw servicioErr;
         if (!servicio || servicio.proveedor_id !== ev.proveedor_id) {
             console.warn('[auto-moderar] par incoherente servicio↔proveedor', {
                 evaluacionId,
@@ -150,6 +156,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .eq('auth_user_id', clienteId)
                 .maybeSingle();
             logSupabaseError('api-eval:auto-moderar:buscador_lookup', buscadorErr, { clienteId });
+            // Sprint tipo-cd v2 — throw si error: auto-moderar sin buscador
+            // resuelto = rechazo silente errado.
+            if (buscadorErr) throw buscadorErr;
 
             if (buscador?.id) {
                 const nowIso = new Date().toISOString();
@@ -166,6 +175,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     .limit(1)
                     .maybeSingle();
                 logSupabaseError('api-eval:auto-moderar:agend_lookup', agendErr, { tutorId: buscador.id, servicioId });
+                // Sprint tipo-cd v2 — throw si error: auto-approve incorrecto
+                // sin verificar agendamiento previo (mismo criterio que buscador).
+                if (agendErr) throw agendErr;
                 hasAgendamientoPasado = agend !== null;
             }
         }

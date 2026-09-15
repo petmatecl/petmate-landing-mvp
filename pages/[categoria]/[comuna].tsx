@@ -71,9 +71,27 @@ interface Props {
     categoria: { nombre: string; slug: string; icono: string } | null;
     comuna: string;
     services: ServiceResult[];
+    // Sprint tipo-cd v2 — flag de degradación: true si el getStaticProps
+    // no pudo cargar categoría/servicios por error transitorio. En vez de
+    // afirmar "no hay proveedores en esta comuna" (que es información falsa
+    // si la query falló), la UI muestra estado de error + CTA a /explorar.
+    errorLoading?: boolean;
 }
 
-export default function CategoriaComuna({ categoria, comuna, services }: Props) {
+export default function CategoriaComuna({ categoria, comuna, services, errorLoading }: Props) {
+    if (errorLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+                <div className="text-center max-w-md">
+                    <h1 className="text-xl font-semibold text-slate-900 mb-3">No pudimos cargar esta página</h1>
+                    <p className="text-slate-500 mb-6">Tuvimos un problema temporal al leer los datos. Intenta explorar todas las categorías o vuelve a cargar en unos minutos.</p>
+                    <Link href="/explorar" className="inline-flex items-center gap-2 px-6 py-3 bg-accent-600 text-white font-semibold rounded-xl hover:bg-accent-700 transition-colors">
+                        Ir a explorar
+                    </Link>
+                </div>
+            </div>
+        );
+    }
     if (!categoria) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -224,13 +242,20 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
 
     try {
         // Get categoria info
-        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si
+        // cualquiera de las 2 queries falla, THROW → cae al catch outer →
+        // props con `errorLoading: true`. Antes: `catData=null` → categoria=null
+        // → página SEO cached con "Categoría no encontrada" que en realidad
+        // sí existe. Peor con la RPC: si falla, `services=[]` afirmaba
+        // "no hay proveedores en esta comuna" durante la ventana de revalidate
+        // 1h, dañando descubrimiento hasta el siguiente rebuild.
         const { data: catData, error: catErr } = await supabase
             .from('categorias_servicio')
             .select('nombre, slug, icono')
             .eq('slug', categoriaSlug)
             .maybeSingle();
         logSupabaseError('ssr:categoria-comuna:categoria_lookup', catErr, { categoriaSlug });
+        if (catErr) throw catErr;
 
         const categoria = catData || null;
 
@@ -244,6 +269,7 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
                 p_offset: 0,
             });
             logSupabaseError('ssr:categoria-comuna:buscar_servicios', rpcErr, { categoriaSlug, comunaNombre });
+            if (rpcErr) throw rpcErr;
 
             // Sweep #1 fix B4 (2026-08-07) — paridad completa del ServiceResult
             // en TODOS los mapping paths: el inline mapper previo omitía
@@ -259,7 +285,14 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
             revalidate: 3600 // Revalidate every hour
         };
     } catch (e) {
+        // Sprint tipo-cd v2 — flag errorLoading + revalidate corto (60s) para
+        // recuperación rápida cuando la BD vuelva. Antes: props con
+        // services=[] + revalidate 1h → afirmábamos "sin servicios" durante
+        // una hora completa aunque la BD ya estuviera sana.
         console.error('Error en [categoria]/[comuna] getStaticProps:', e);
-        return { props: { categoria: null, comuna: comunaNombre, services: [] }, revalidate: 3600 };
+        return {
+            props: { categoria: null, comuna: comunaNombre, services: [], errorLoading: true },
+            revalidate: 60,
+        };
     }
 };

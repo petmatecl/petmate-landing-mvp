@@ -16,6 +16,59 @@ Política por familia según sprint chore-tipo-b-ssr-audit ya declarada:
 - **Tipo C**: destructurar `.error` + log a Sentry con tag `subsystem=ssr`. **Cero cambio del comportamiento del render** — el fallback empty state / propagación catch sigue igual, solo se agrega telemetría para diagnóstico.
 - **Tipo D**: destructurar `.error` + log a Sentry con tag `subsystem` por familia (`api-cron` / `api-notify` / `api-admin` / `api-eval` / `api-refer` / `auth-session`). Los crons ya están dentro de `try/catch` — no se toca el flow, solo se agrega la señal cuando `error != null`.
 
+## ⚠️ v2 (segundo commit — pedido PO 2026-09-15 post-review PR #29)
+
+Policy correction: la política de B era de **COMPORTAMIENTO**, no solo telemetría. Segundo commit clasifica los 23 sitios en 2 grupos:
+
+### Grupo A · fallback ya cumplía política, solo faltaba log (9 sitios)
+
+| Sitio | Fallback preexistente que cumple |
+|---|---|
+| `explorar.tsx:410` | Fallback secundario de "sugerencias comunas" — nice-to-have; sin sugerencias no daña UX principal. |
+| `servicio/[id].tsx:128` | Sección "servicios similares" opcional; render omite el bloque si vacío. |
+| `proveedores-pendientes.ts:58` | Admin ve `emailAuth=null` para el proveedor específico; los demás enrichs OK. |
+| `email-confirmado.tsx:143` | Kill-switch defensivo 4s (sprint email-landing) fuerza fallback afirmativo. |
+| `recordatorio-onboarding.ts:60,102` | Loop interno auth: fail-close natural via `if (!authUser?.user?.email) continue`. |
+| `recordatorio-mensajes.ts:71,74` | Loop interno auth + provider name (cero impacto — fallback textual). |
+| `invitacion-resenas.ts:180` | Loop interno auth: fail-close natural via `if (!authUser?.user?.email) continue`. |
+
+### Grupo B · CORREGIR comportamiento (14 sitios, 2° commit)
+
+**Crons — throw en query principal → catch outer 500 (Vercel marca job failed)**:
+- `auto-moderar.ts:83,144,155` — `if (err) throw err` en las 3 queries (servicio/buscador/agend lookup). Antes: `data=null` sin throw → auto-moderación con criterio erróneo (`par_incoherente` o rechazo silente).
+- `recordatorio-onboarding.ts:42,91` — `throw` en ambas queries principales (`providersNoService`, `providersNoPhoto`). La 2ª puede ejecutar después de la 1ª → 500 partial protegido por idempotencia (`email_onboarding_at` marcado por row).
+- `invitacion-resenas.ts:131` — **fail-close por-ítem** con `continue`. Duplicate check falló → asumir "ya reseñó" → skip envío. Alternativa a 500-total: preserva batch, evita invitación duplicada, log Sentry para diagnóstico si es sistémico.
+
+**API endpoints — fail-close 500**:
+- `new-message.ts:74` — `if (authErr) return 500 'auth_lookup_failed'`. Distingue "no tiene email" (skipped correcto) de "auth reventó" (recipient sí tiene pero no lo pudimos leer).
+- `generar-codigo.ts:28` — `if (existingError) return 500 'existing_lookup_failed'`. Evita generar código DUPLICADO cuando ya tenía uno.
+
+**SSR — flag degradación + UI apropiada**:
+- `[categoria]/[comuna].tsx:226,237` — nueva prop `errorLoading?: boolean` + throw en catch outer → props `errorLoading: true` + `revalidate: 60` (rápida recuperación). UI muestra "No pudimos cargar esta página" + CTA `/explorar` en vez de `services=[]` cached 1h afirmando "sin proveedores en esta comuna".
+- `servicio/[id].tsx:109` — nueva prop `globalRatingUnavailable?: boolean` (NO throw — la ficha SÍ debe cargar). Se propaga `ServiceDetailView` → `ProveedorResumenCard`. UI muestra "Evaluaciones —" en vez de "Aún sin evaluaciones" (falso cuando el proveedor SÍ tenía reviews que no leímos).
+- `ConversionMetrics.tsx:86,96` — nuevo state `partialError` seteado si alguno de los 2 enriches falla + banner `bg-warning-50` "Datos parciales" con botón Reintentar. Rankings top se muestran incompletos pero el admin sabe que están.
+
+**Client auth**:
+- `UserContext.tsx:846 refreshProfile` — early return `setIsLoading(false); return` si `getSession` falla. Antes llamaba `hydrateFromSession(null)` → degradaba silente admin/proveedor a "Usuario" por un blip de red, contradiciendo la intención del refresh.
+
+### Reporte de caso edge (crons en batch, según instrucción PO)
+
+**recordatorio-onboarding.ts** procesa 2 secciones secuenciales (`no_service` + `no_photo`), cada una con SELECT principal + loop de envíos. Decisión aplicada:
+- **1ª sección envía N** (marca `email_onboarding_at` fila por fila).
+- **2ª sección query principal falla** → `throw` → cae al catch outer → 500 con log. Los N ya enviados quedan protegidos por idempotencia (`email_onboarding_at IS NOT NULL` excluye del próximo run). Vercel marca el job como failed, PO ve la señal.
+
+Alternativa considerada y descartada: 200 con `partial: true` para no gatillar alarma. Motivo del descarte: el criterio operativo del PO ("Vercel marque el job como fallido") pesa más que evitar la alarma; una 2ª sección fallando SÍ amerita diagnóstico.
+
+**Loop interno auth (recordatorio-onboarding L60,L102 + recordatorio-mensajes + invitacion-resenas L180)**: fail-close natural ya presente (`if (!authUser?.user?.email) continue`). Un `auth.admin.getUserById` que reviente cae idénticamente al patrón de "user sin email registrado" — comportamiento correcto para lotes. Solo se agregó log a Sentry en el 1er commit para diagnóstico si el fail es sistémico.
+
+### Test de comportamiento
+
+**Ideal**: mock server-side de queries Supabase para forzar el error real + assertion `status === 500`. **Infra no disponible** — `page.route` de Playwright intercepta el browser context, no las Vercel Functions. Alternativa `?__forceError=1` gate no-prod contamina el bundle productivo.
+
+**Compromiso pragmático (aplicado)**: tests structural sobre el source (grep + assertion regex) que verifican **cada patrón exigido**: `throw` presente en las líneas críticas, `return res.status(500)` en API endpoints, flag prop en interfaces SSR, `setPartialError` + banner en ConversionMetrics, early return en UserContext. 7 tests nuevos en `[tipo-cd-v2]` del spec `estado-actual.spec.ts`. Auditable como cualquier grep; cualquier reintroducción del patrón viejo revienta el test.
+
+Si el PO requiere runtime mocks reales, disponible en 3er commit vía query param `?__forceError=<tabla>` gated a `NEXT_PUBLIC_APP_ENV !== 'production'`.
+
 ## Diseño
 
 Nuevo helper `lib/logSupabaseError.ts`:

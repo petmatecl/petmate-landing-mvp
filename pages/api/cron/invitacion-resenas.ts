@@ -129,7 +129,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // si su intento previo fue rechazado por moderacion, sigue
             // habilitado para re-intentar (alineado con el constraint
             // parcial de BD sobre estado != 'rechazado').
-            // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+            // Sprint tipo-cd (2026-09-15) v2 — fail-close por-ítem: si el
+            // check de duplicado falla, ASUMIR que ya reseñó → skip envío.
+            // Antes: `yaReseno=null` con error → cae en `if (yaReseno)` false
+            // → NO skip → enviaría invitación potencialmente DUPLICADA a
+            // un tutor que ya reseñó. Con fail-close por-ítem, el batch sigue
+            // (otros tutores no se ven afectados), solo se salta este ítem
+            // con log a Sentry para que si el fail es sistémico lo veamos.
             const { data: yaReseno, error: yaResenoErr } = await supabaseAdmin
                 .from('evaluaciones')
                 .select('id')
@@ -139,6 +145,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 .limit(1)
                 .maybeSingle();
             logSupabaseError('api-cron:invitacion-resenas:evaluacion_dup_check', yaResenoErr, { tutorAuthId: tutor.auth_user_id, servicioId: servicio.id });
+            if (yaResenoErr) continue; // fail-close: no arriesgar invitación duplicada
             if (yaReseno) continue;
 
             elegibles.push({

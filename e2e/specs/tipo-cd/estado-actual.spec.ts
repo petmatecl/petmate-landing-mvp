@@ -98,3 +98,109 @@ test('[tipo-cd] cada archivo importa logSupabaseError o Sentry directo (UserCont
         `Archivos sin import de logSupabaseError:\n${sinImportSentry.join('\n')}`,
     ).toBe(0);
 });
+
+// ─── Sprint tipo-cd v2 — tests de COMPORTAMIENTO (no solo telemetría) ───
+//
+// Cada archivo debe demostrar el patrón fail-close correcto según su
+// familia. Los assertion se hacen via grep del source (structural) porque
+// mockear el fallo real de queries Supabase server-side desde Playwright
+// no es posible sin infra adicional (page.route intercepta browser, no
+// server node functions). Los patterns exigidos son literales auditables
+// y cualquier reintroducción del patrón viejo revienta estos tests.
+
+test('[tipo-cd-v2] queries principales de crons y auto-moderar THROW en error', async () => {
+    const casos = [
+        {
+            file: 'pages/api/evaluaciones/auto-moderar.ts',
+            patrones: [
+                /if\s*\(servicioErr\)\s*throw/,
+                /if\s*\(buscadorErr\)\s*throw/,
+                /if\s*\(agendErr\)\s*throw/,
+            ],
+        },
+        {
+            file: 'pages/api/cron/recordatorio-onboarding.ts',
+            patrones: [
+                /if\s*\(noServiceErr\)\s*throw/,
+                /if\s*\(noPhotoErr\)\s*throw/,
+            ],
+        },
+    ];
+    for (const { file, patrones } of casos) {
+        const source = await readFile(path.join(REPO_ROOT, file), 'utf-8');
+        for (const patron of patrones) {
+            expect(source, `${file} debe tener throw en ${patron}`).toMatch(patron);
+        }
+    }
+});
+
+test('[tipo-cd-v2] API endpoints devuelven 500 en error de query crítica', async () => {
+    const casos = [
+        {
+            file: 'pages/api/notifications/new-message.ts',
+            patron: /if\s*\(authErr\)\s*return\s*res\.status\(500\)/,
+        },
+        {
+            file: 'pages/api/referidos/generar-codigo.ts',
+            patron: /if\s*\(existingError\)\s*return\s*res\.status\(500\)/,
+        },
+    ];
+    for (const { file, patron } of casos) {
+        const source = await readFile(path.join(REPO_ROOT, file), 'utf-8');
+        expect(source, `${file} debe devolver 500 en error`).toMatch(patron);
+    }
+});
+
+test('[tipo-cd-v2] invitacion-resenas dup_check fail-close por-ítem con continue', async () => {
+    const source = await readFile(
+        path.join(REPO_ROOT, 'pages/api/cron/invitacion-resenas.ts'),
+        'utf-8',
+    );
+    // Fail-close: `if (yaResenoErr) continue` ANTES del `if (yaReseno)` normal.
+    expect(source, 'yaResenoErr continue fail-close').toMatch(/if\s*\(yaResenoErr\)\s*continue/);
+});
+
+test('[tipo-cd-v2] SSR [categoria]/[comuna] tiene flag errorLoading + throw en queries', async () => {
+    const source = await readFile(
+        path.join(REPO_ROOT, 'pages/[categoria]/[comuna].tsx'),
+        'utf-8',
+    );
+    expect(source, 'interface Props errorLoading').toMatch(/errorLoading\??:\s*boolean/);
+    expect(source, 'catch outer setea errorLoading true').toMatch(/errorLoading:\s*true/);
+    expect(source, 'catErr throw').toMatch(/if\s*\(catErr\)\s*throw/);
+    expect(source, 'rpcErr throw').toMatch(/if\s*\(rpcErr\)\s*throw/);
+});
+
+test('[tipo-cd-v2] SSR servicio/[id] tiene flag globalRatingUnavailable en props', async () => {
+    const source = await readFile(
+        path.join(REPO_ROOT, 'pages/servicio/[id].tsx'),
+        'utf-8',
+    );
+    expect(source, 'interface globalRatingUnavailable').toMatch(/globalRatingUnavailable\??:\s*boolean/);
+    expect(source, 'compute desde globalErr').toMatch(/globalRatingUnavailable\s*=\s*!!globalErr/);
+    expect(source, 'return props incluye flag').toMatch(/globalRatingUnavailable,?\s*\n?\s*}/);
+});
+
+test('[tipo-cd-v2] ConversionMetrics tiene partialError state + banner', async () => {
+    const source = await readFile(
+        path.join(REPO_ROOT, 'components/Admin/ConversionMetrics.tsx'),
+        'utf-8',
+    );
+    expect(source, 'partialError state').toMatch(/const\s*\[partialError,\s*setPartialError\]/);
+    expect(source, 'trackear enrichErrors').toMatch(/enrichErrors\.push\(/);
+    expect(source, 'banner Datos parciales').toMatch(/Datos parciales/);
+});
+
+test('[tipo-cd-v2] UserContext.refreshProfile early-return sin des-hidratar en error', async () => {
+    const source = await readFile(
+        path.join(REPO_ROOT, 'contexts/UserContext.tsx'),
+        'utf-8',
+    );
+    // Buscar el patrón dentro de refreshProfile: si error → setIsLoading(false) + return
+    // ANTES de hydrateFromSession(null).
+    const refreshBlock = source.match(/const refreshProfile[\s\S]{0,800}/);
+    expect(refreshBlock, 'bloque refreshProfile encontrado').not.toBeNull();
+    expect(refreshBlock![0], 'error → setIsLoading(false) + return sin hydrate').toMatch(
+        /if\s*\(error\)\s*\{[\s\S]*?setIsLoading\(false\);\s*return;\s*\}/,
+    );
+});

@@ -20,6 +20,12 @@ interface ProveedorResumenCardProps {
     /** Rating global del proveedor (todas sus evaluaciones, no solo este servicio). */
     globalRatingPromedio: number;
     globalTotalEvaluaciones: number;
+    /**
+     * Sprint tipo-cd v2 — true si la query del rating global falló en SSR.
+     * UI muestra "—" en vez del fallback "Aún sin evaluaciones", que sería
+     * afirmación falsa cuando la query solo reventó por red/RLS transitorio.
+     */
+    globalRatingUnavailable?: boolean;
 }
 
 /**
@@ -39,6 +45,7 @@ export default function ProveedorResumenCard({
     proveedor,
     globalRatingPromedio,
     globalTotalEvaluaciones,
+    globalRatingUnavailable = false,
 }: ProveedorResumenCardProps) {
     const nombreVisible = proveedor.nombre_publico || `${proveedor.nombre || ''} ${proveedor.apellido_p || ''}`.trim() || 'Proveedor';
     const bioTrunc = proveedor.bio ? truncarBio(proveedor.bio, 150) : null;
@@ -89,7 +96,13 @@ export default function ProveedorResumenCard({
                     </div>
 
                     {/* Rating global (todas sus evaluaciones) */}
-                    {globalTotalEvaluaciones > 0 ? (
+                    {/* Sprint tipo-cd v2 — orden de branches:
+                        (a) unavailable (query falló) → "—" causa-neutral,
+                        (b) hay evaluaciones → rating,
+                        (c) sin evaluaciones (data confirmada) → "Aún sin evaluaciones". */}
+                    {globalRatingUnavailable ? (
+                        <div className="text-sm text-slate-500">Evaluaciones —</div>
+                    ) : globalTotalEvaluaciones > 0 ? (
                         <div className="flex items-center gap-1.5 text-sm text-slate-600">
                             <Star size={14} className="text-amber-400 fill-amber-400" />
                             <span className="font-semibold text-slate-900">

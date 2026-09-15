@@ -72,9 +72,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         }
 
         // 4. Email del recipient via auth.users.
-        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        // Sprint tipo-cd (2026-09-15) v2 — cambio de comportamiento: si la
+        // query auth falla, 500 (fail-close). Antes caía en el mismo path
+        // que "no_email" natural — perdíamos distinción entre "el user no
+        // tiene email registrado" (skipped correcto) y "auth query reventó"
+        // (recipient sí tiene email pero no lo pudimos leer).
         const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(recipientAuthId);
         logSupabaseError('api-notify:new-message:auth_lookup', authErr, { recipientAuthId });
+        if (authErr) return res.status(500).json({ error: 'auth_lookup_failed' });
         const email = authUser?.user?.email;
         if (!email) return res.status(200).json({ skipped: true, reason: 'no_email' });
 

@@ -17,6 +17,11 @@ export default function ConversionMetrics() {
     const [stats, setStats] = useState<ConversionStats | null>(null);
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
+    // Sprint tipo-cd v2 — flag de degradación cuando alguno de los 2 enriches
+    // (servicios/proveedores para top categorías/comunas) falla. UI muestra
+    // banner "Datos parciales" en vez de rankings truncados que parecen
+    // "solo hay X en top" (afirmación falsa si algún fetch reventó).
+    const [partialError, setPartialError] = useState<string | null>(null);
 
     const fetchStats = async (isRefresh = false) => {
         if (isRefresh) setRefreshing(true);
@@ -83,12 +88,18 @@ export default function ConversionMetrics() {
             let servicioCategoriaMap: Record<string, string> = {};
             let proveedorComunaMap: Record<string, string> = {};
 
+            // Sprint tipo-cd v2 — trackear si alguno de los enriches falló
+            // para setear partialError. NO throw (los stats principales de
+            // arriba ya poblaron sin depender de estos enriches — solo
+            // afectan top categorías/comunas). El banner alerta al admin
+            // que los rankings pueden estar incompletos y ofrece Reintentar.
+            const enrichErrors: string[] = [];
             if (servicioIds.length > 0) {
-                // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
                 const { data: servRows, error: servErr } = await supabase.from('servicios_publicados')
                     .select('id, categorias_servicio!inner(nombre)')
                     .in('id', servicioIds);
                 logSupabaseError('ssr:admin-conversion-metrics:servicios_lookup', servErr, { servicioIdsCount: servicioIds.length });
+                if (servErr) enrichErrors.push('servicios');
                 (servRows || []).forEach((r: any) => {
                     if (r.id && r.categorias_servicio?.nombre) {
                         servicioCategoriaMap[r.id] = r.categorias_servicio.nombre;
@@ -100,10 +111,12 @@ export default function ConversionMetrics() {
                     .select('id, comuna')
                     .in('id', sitterIds);
                 logSupabaseError('ssr:admin-conversion-metrics:proveedores_lookup', provErr, { sitterIdsCount: sitterIds.length });
+                if (provErr) enrichErrors.push('proveedores');
                 (provRows || []).forEach((r: any) => {
                     if (r.id && r.comuna) proveedorComunaMap[r.id] = r.comuna;
                 });
             }
+            setPartialError(enrichErrors.length > 0 ? enrichErrors.join(' + ') : null);
 
             const catCount: Record<string, number> = {};
             const comunaCount: Record<string, number> = {};
@@ -182,6 +195,21 @@ export default function ConversionMetrics() {
 
     return (
         <div className="space-y-8">
+            {/* Sprint tipo-cd v2 — banner degradación cuando enrich rankings falló. */}
+            {partialError && (
+                <div className="bg-warning-50 border border-warning-200 text-warning-800 text-sm px-4 py-3 rounded-lg flex items-center justify-between gap-3">
+                    <span>
+                        <strong>Datos parciales:</strong> no pudimos cargar el enriquecimiento de{' '}
+                        <code className="font-mono text-xs">{partialError}</code>. Los rankings de top categorías y comunas pueden estar incompletos.
+                    </span>
+                    <button
+                        onClick={() => fetchStats(true)}
+                        className="underline font-medium hover:text-warning-900 shrink-0"
+                    >
+                        Reintentar
+                    </button>
+                </div>
+            )}
             <div className="flex justify-between items-center">
                 <div>
                     <h2 className="text-xl font-semibold text-slate-900 tracking-tight">Conversión — últimos 30 días</h2>

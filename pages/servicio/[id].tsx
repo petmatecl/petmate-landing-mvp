@@ -17,6 +17,10 @@ interface ServiceDetailProps {
     // no solo este servicio) para la tarjeta resumen Zona B.
     globalRatingPromedio: number;
     globalTotalEvaluaciones: number;
+    // Sprint tipo-cd v2 — flag de degradación cuando la query del rating
+    // global falla. UI muestra "—" en vez de la ausencia silenciosa
+    // (que era indistinguible de "proveedor sin reviews").
+    globalRatingUnavailable?: boolean;
 }
 
 export default function ServicioPage(props: ServiceDetailProps) {
@@ -107,7 +111,11 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         // Rediseno Commit 4: rating global del proveedor (todas sus evaluaciones,
         // no solo este servicio) para la tarjeta resumen Zona B. Query separada
         // porque `reviews` de arriba filtra por servicio_id.
-        // Sprint tipo-cd (2026-09-15) — .error destructurado + log Sentry.
+        // Sprint tipo-cd (2026-09-15) v2 — flag `globalRatingUnavailable` en
+        // vez de continuar con 0. La ficha del servicio SÍ debe cargar
+        // (redirect a /explorar sería agresivo — la ficha existe), pero el
+        // resumen Zona B debe distinguir "proveedor sin reviews" (real) de
+        // "no pudimos cargar el rating global" (transitorio). UI muestra "—".
         const { data: reviewsGlobalProv, error: globalErr } = await supabase
             .from('evaluaciones')
             .select('rating')
@@ -116,7 +124,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         logSupabaseError('ssr:servicio-id:reviews_global_proveedor', globalErr, { proveedorId: service.proveedor_id });
         let globalRatingPromedio = 0;
         let globalTotalEvaluaciones = 0;
-        if (reviewsGlobalProv && reviewsGlobalProv.length > 0) {
+        const globalRatingUnavailable = !!globalErr;
+        if (!globalErr && reviewsGlobalProv && reviewsGlobalProv.length > 0) {
             globalTotalEvaluaciones = reviewsGlobalProv.length;
             globalRatingPromedio = reviewsGlobalProv.reduce((acc, r: any) => acc + r.rating, 0) / globalTotalEvaluaciones;
         }
@@ -149,6 +158,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 otrosServicios,
                 globalRatingPromedio,
                 globalTotalEvaluaciones,
+                globalRatingUnavailable,
             }
         };
 
