@@ -33,5 +33,12 @@ jobs:
       - name: Type check
         run: npx tsc --noEmit
 
+      - name: Unit tests (tipo-cd handlers fail-close)
+        # Sprint c-higiene PR C-2 (2026-09-15) — tests unitarios de handlers
+        # corregidos en tipo-cd v2 con Supabase mockeado devolviendo error.
+        # Afirma throw/500/flag + cero escritura o email posterior. Ejecuta
+        # antes del build para atajar regresión estructural rápido.
+        run: npm run test:tipo-cd
+
       - name: Build
         run: npm run build
