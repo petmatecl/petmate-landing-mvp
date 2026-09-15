@@ -5,15 +5,22 @@ import { Check, X, Briefcase, Search, MapPin } from "lucide-react";
 
 // Pawnecta — Style Guide
 // ----------------------------------------------------------------------------
-// Página interna (noindex). Referencia consolidada del Sistema Visual vigente
-// post sprint del 15/05/2026 (HEAD d20dc41). NO usar como demo de producto;
-// solo como source of truth para devs.
+// Página interna (noindex). Referencia consolidada del Sistema Visual v3
+// vigente 2026-09-15 — capa marca (`accent`/`deep`) + capa estado
+// (`success`/`danger`/`warning`/`info`). Post rewrite del sprint bloque-f.
+//
+// Historia: la versión anterior documentaba el sistema legacy con `emerald-700`
+// como color de marca directo. La migración v3 (tailwind.config.js + UI_STANDARDS.md)
+// alias `success-*` a emerald y designa `accent-*` (verde `#22C55E`) como token
+// canónico de marca. Este archivo se reescribió para reflejar los tokens vivos.
+//
+// NO usar como demo de producto; solo como source of truth para devs.
 // ----------------------------------------------------------------------------
 
 const tocSections = [
     { id: "tipografia", label: "1. Tipografía" },
     { id: "paleta", label: "2. Paleta de texto" },
-    { id: "emerald", label: "3. Color de marca emerald-700" },
+    { id: "accent", label: "3. Color de marca accent-600" },
     { id: "radius", label: "4. Border-radius" },
     { id: "body-pesos", label: "5. Body content — pesos correctos" },
     { id: "excepciones", label: "6. Excepciones documentadas" },
@@ -37,8 +44,10 @@ export default function StyleGuide() {
                             Style Guide — Sistema Visual Pawnecta
                         </h1>
                         <p className="mt-3 text-sm text-slate-300 max-w-2xl">
-                            Referencia consolidada del Sistema Visual vigente. Página interna
-                            (noindex). Última actualización: post sprint 15/05/2026 (HEAD d20dc41).
+                            Referencia consolidada del Sistema Visual v3 vigente — capa marca
+                            (<code className="text-accent-300">accent</code>/<code className="text-accent-300">deep</code>) +
+                            capa estado (<code className="text-accent-300">success</code>/<code className="text-accent-300">danger</code>/<code className="text-accent-300">warning</code>/<code className="text-accent-300">info</code>).
+                            Página interna (noindex). Última actualización: 2026-09-15 (sprint bloque-f, rewrite v3).
                         </p>
                     </div>
                 </header>
@@ -48,7 +57,7 @@ export default function StyleGuide() {
                     <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-4">Tabla de contenidos</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {tocSections.map((s) => (
-                            <a key={s.id} href={`#${s.id}`} className="text-sm text-slate-700 hover:text-emerald-700 transition-colors">
+                            <a key={s.id} href={`#${s.id}`} className="text-sm text-slate-700 hover:text-accent-600 transition-colors">
                                 {s.label}
                             </a>
                         ))}
@@ -71,7 +80,7 @@ export default function StyleGuide() {
                                 tw="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900"
                             >
                                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-slate-900 leading-tight">
-                                    Servicios para tu mascota, <span className="text-emerald-700">cerca de ti</span>
+                                    Servicios para tu mascota, <span className="text-accent-600">cerca de ti</span>
                                 </h1>
                             </TypoRow>
 
@@ -136,16 +145,16 @@ export default function StyleGuide() {
                                 tw="text-sm text-slate-500"
                             >
                                 <div className="flex gap-6">
-                                    <a className="text-sm text-slate-500 hover:text-emerald-700">Blog</a>
-                                    <a className="text-sm text-slate-500 hover:text-emerald-700">Explorar servicios</a>
+                                    <a className="text-sm text-slate-500 hover:text-accent-600">Blog</a>
+                                    <a className="text-sm text-slate-500 hover:text-accent-600">Explorar servicios</a>
                                 </div>
                             </TypoRow>
 
                             <TypoRow
                                 label="Botón CTA primario"
-                                tw="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2"
+                                tw="bg-accent-600 hover:bg-accent-700 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2"
                             >
-                                <button className="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2">
+                                <button className="bg-accent-600 hover:bg-accent-700 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2">
                                     Buscar servicios
                                 </button>
                             </TypoRow>
@@ -163,11 +172,11 @@ export default function StyleGuide() {
 
                             <TypoRow
                                 label="Sidebar item activo"
-                                tw="text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg"
+                                tw="text-sm font-semibold text-accent-600 bg-accent-50 px-3 py-2 rounded-lg"
                             >
                                 <div className="bg-white border border-slate-200 rounded-xl p-2 w-fit">
-                                    <button className="flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg">
-                                        <Briefcase size={16} className="text-emerald-700" /> Mis Servicios
+                                    <button className="flex items-center gap-2 text-sm font-semibold text-accent-600 bg-accent-50 px-3 py-2 rounded-lg">
+                                        <Briefcase size={16} className="text-accent-600" /> Mis Servicios
                                     </button>
                                 </div>
                             </TypoRow>
@@ -231,69 +240,69 @@ export default function StyleGuide() {
                     {/* ═══════════════════════════════════════════════════════════════
                         SECCIÓN 3 — COLOR DE MARCA EMERALD-700
                     ═══════════════════════════════════════════════════════════════ */}
-                    <section id="emerald" className="scroll-mt-8">
-                        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">3. Color de marca emerald-700</h2>
-                        <p className="text-sm text-slate-500 mb-8">El color emerald-700 ancla la identidad. Se restringe a 4 lugares específicos para preservar su peso visual.</p>
+                    <section id="accent" className="scroll-mt-8">
+                        <h2 className="text-2xl font-semibold tracking-tight text-slate-900 mb-2">3. Color de marca accent-600</h2>
+                        <p className="text-sm text-slate-500 mb-8">El color accent-600 ancla la identidad. Se restringe a 4 lugares específicos para preservar su peso visual.</p>
 
                         <h3 className="text-lg font-semibold text-slate-900 mb-4">Permitido SOLO en estos 4 lugares:</h3>
 
                         <div className="space-y-6 mb-12">
 
                             {/* 1. CTA primario */}
-                            <EmeraldExample
+                            <AccentExample
                                 titulo="1. CTAs primarios"
-                                descripcion="Botones bg-emerald-700 — anchor de acción en cada página."
+                                descripcion="Botones bg-accent-600 — anchor de acción en cada página."
                             >
-                                <button className="bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2">
+                                <button className="bg-accent-600 hover:bg-accent-700 text-white text-sm font-medium tracking-wide rounded-lg px-4 py-2">
                                     Buscar servicios
                                 </button>
-                            </EmeraldExample>
+                            </AccentExample>
 
                             {/* 2. Sidebar item activo */}
-                            <EmeraldExample
+                            <AccentExample
                                 titulo="2. Sidebar item activo"
-                                descripcion="Background + texto en emerald para indicar tab/sección activa."
+                                descripcion="Background + texto en accent para indicar tab/sección activa."
                             >
                                 <div className="bg-white border border-slate-200 rounded-xl p-2 w-fit space-y-1">
                                     <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg w-48">
                                         <Briefcase size={16} className="text-slate-400" /> Mi Perfil
                                     </button>
-                                    <button className="flex items-center gap-2 text-sm font-semibold text-emerald-700 bg-emerald-50 px-3 py-2 rounded-lg w-48">
-                                        <Briefcase size={16} className="text-emerald-700" /> Mis Servicios
+                                    <button className="flex items-center gap-2 text-sm font-semibold text-accent-600 bg-accent-50 px-3 py-2 rounded-lg w-48">
+                                        <Briefcase size={16} className="text-accent-600" /> Mis Servicios
                                     </button>
                                     <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg w-48">
                                         <Briefcase size={16} className="text-slate-400" /> Evaluaciones
                                     </button>
                                 </div>
-                            </EmeraldExample>
+                            </AccentExample>
 
                             {/* 3. Hover directorio SEO */}
-                            <EmeraldExample
+                            <AccentExample
                                 titulo="3. Hover de links del directorio SEO del Footer"
-                                descripcion="Links de directorio comuna × categoría: idle slate-500, hover emerald-700."
+                                descripcion="Links de directorio comuna × categoría: idle slate-500, hover accent-600."
                             >
                                 <ul className="space-y-2">
                                     <li>
-                                        <a className="text-[13px] text-slate-500 hover:text-emerald-700 transition-colors">Hospedaje en Providencia</a>
+                                        <a className="text-[13px] text-slate-500 hover:text-accent-600 transition-colors">Hospedaje en Providencia</a>
                                     </li>
                                     <li>
-                                        <a className="text-[13px] text-slate-500 hover:text-emerald-700 transition-colors">Paseadores en Las Condes</a>
+                                        <a className="text-[13px] text-slate-500 hover:text-accent-600 transition-colors">Paseadores en Las Condes</a>
                                     </li>
                                     <li>
-                                        <a className="text-[13px] text-slate-500 hover:text-emerald-700 transition-colors">Veterinario a domicilio en Ñuñoa</a>
+                                        <a className="text-[13px] text-slate-500 hover:text-accent-600 transition-colors">Veterinario a domicilio en Ñuñoa</a>
                                     </li>
                                 </ul>
-                            </EmeraldExample>
+                            </AccentExample>
 
                             {/* 4. Acentos hero excepción */}
-                            <EmeraldExample
+                            <AccentExample
                                 titulo="4. Acentos del hero del home (excepción documentada)"
                                 descripcion="Span con palabra clave en hero, label PARA DUEÑOS y stats numéricos del home. Ver excepción 3 en sección 6."
                             >
                                 <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900 leading-tight">
-                                    Servicios para tu mascota, <span className="text-emerald-700">cerca de ti</span>
+                                    Servicios para tu mascota, <span className="text-accent-600">cerca de ti</span>
                                 </h1>
-                            </EmeraldExample>
+                            </AccentExample>
 
                         </div>
 
@@ -304,8 +313,8 @@ export default function StyleGuide() {
                             <NoSiPair
                                 no={
                                     <>
-                                        <p className="text-sm text-slate-700 mb-2">Ícono decorativo en emerald-700:</p>
-                                        <MapPin size={20} className="text-emerald-700" />
+                                        <p className="text-sm text-slate-700 mb-2">Ícono decorativo en accent-600:</p>
+                                        <MapPin size={20} className="text-accent-600" />
                                     </>
                                 }
                                 si={
@@ -318,22 +327,22 @@ export default function StyleGuide() {
                             <NoSiPair
                                 no={
                                     <>
-                                        <p className="text-sm text-slate-700 mb-2">Checkmark en emerald-700:</p>
-                                        <Check size={20} className="text-emerald-700" />
+                                        <p className="text-sm text-slate-700 mb-2">Checkmark en accent-600:</p>
+                                        <Check size={20} className="text-accent-600" />
                                     </>
                                 }
                                 si={
                                     <>
-                                        <p className="text-sm text-slate-700 mb-2">Checkmark en emerald-500 (acento suave):</p>
-                                        <Check size={20} className="text-emerald-500" />
+                                        <p className="text-sm text-slate-700 mb-2">Checkmark en accent-500 (acento suave):</p>
+                                        <Check size={20} className="text-accent-500" />
                                     </>
                                 }
                             />
                             <NoSiPair
                                 no={
                                     <>
-                                        <p className="text-sm text-slate-700 mb-2">h3 fuera de contexto CTA en emerald-700:</p>
-                                        <h3 className="text-lg font-semibold text-emerald-700">¿Por qué confiar en Pawnecta?</h3>
+                                        <p className="text-sm text-slate-700 mb-2">h3 fuera de contexto CTA en accent-600:</p>
+                                        <h3 className="text-lg font-semibold text-accent-600">¿Por qué confiar en Pawnecta?</h3>
                                     </>
                                 }
                                 si={
@@ -381,7 +390,7 @@ export default function StyleGuide() {
                                 uso="EXCEPCIÓN — CTA grande del hero + botón Buscar del searchbar"
                                 excepcion
                             >
-                                <button className="bg-emerald-700 hover:bg-emerald-800 text-white text-base font-medium tracking-wide px-6 py-3 rounded-xl">
+                                <button className="bg-accent-600 hover:bg-accent-700 text-white text-base font-medium tracking-wide px-6 py-3 rounded-xl">
                                     Buscar servicios
                                 </button>
                             </RadiusExample>
@@ -403,7 +412,7 @@ export default function StyleGuide() {
                                 uso="Avatars, FAB, chips de filtro de estado"
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-700 font-semibold text-sm">
+                                    <div className="w-10 h-10 rounded-full bg-accent-100 flex items-center justify-center text-accent-600 font-semibold text-sm">
                                         CM
                                     </div>
                                     <span className="text-sm font-medium text-slate-700 bg-slate-100 rounded-full px-3 py-1">
@@ -503,7 +512,7 @@ export default function StyleGuide() {
                                 razon="Jerarquía visual del CTA principal de la página. El resto de botones medianos usa rounded-lg."
                             >
                                 <div className="flex items-center gap-3 flex-wrap">
-                                    <button className="bg-emerald-700 hover:bg-emerald-800 text-white text-base font-medium tracking-wide px-6 py-3 rounded-xl flex items-center gap-2">
+                                    <button className="bg-accent-600 hover:bg-accent-700 text-white text-base font-medium tracking-wide px-6 py-3 rounded-xl flex items-center gap-2">
                                         <Search size={18} /> Buscar
                                     </button>
                                     <span className="text-xs text-slate-400">vs.</span>
@@ -515,15 +524,15 @@ export default function StyleGuide() {
 
                             <Excepcion
                                 numero={3}
-                                regla="emerald-700 en acentos del hero del home"
+                                regla="accent-600 en acentos del hero del home"
                                 razon="Anclaje de marca en zona principal de identidad. Span con palabra clave, label PARA DUEÑOS y stats numéricos. No es decoración."
                             >
                                 <div className="space-y-3">
                                     <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 leading-tight">
-                                        Servicios para tu mascota, <span className="text-emerald-700">cerca de ti</span>
+                                        Servicios para tu mascota, <span className="text-accent-600">cerca de ti</span>
                                     </h1>
-                                    <p className="text-emerald-700 font-medium uppercase tracking-widest text-xs">Para dueños de mascotas</p>
-                                    <div className="text-3xl font-bold text-emerald-700 tracking-tighter">12</div>
+                                    <p className="text-accent-600 font-medium uppercase tracking-widest text-xs">Para dueños de mascotas</p>
+                                    <div className="text-3xl font-bold text-accent-600 tracking-tighter">12</div>
                                 </div>
                             </Excepcion>
 
@@ -545,8 +554,8 @@ export default function StyleGuide() {
                             />
 
                             <AntiItem
-                                no="emerald-700 en decoración (íconos sin semántica, checkmarks de feature lists)"
-                                si="Usar text-slate-400 (neutro) o text-emerald-500 (acento suave)."
+                                no="accent-600 en decoración (íconos sin semántica, checkmarks de feature lists)"
+                                si="Usar text-slate-400 (neutro) o text-accent-500 (acento suave)."
                             />
 
                             <AntiItem
@@ -593,7 +602,7 @@ export default function StyleGuide() {
                                 <Card hoverable>
                                     <h3 className="text-lg font-semibold text-slate-900">Hoverable Card</h3>
                                     <p className="text-sm text-slate-700 mt-2">
-                                        Transform: -y-1 en hover. Cursor: pointer. Sin emerald decorativo en el title.
+                                        Transform: -y-1 en hover. Cursor: pointer. Sin accent decorativo en el title.
                                     </p>
                                 </Card>
                             </div>
@@ -682,7 +691,7 @@ function PaletaSwatch({ hex, clase, uso, sample }: { hex: string; clase: string;
     );
 }
 
-function EmeraldExample({ titulo, descripcion, children }: { titulo: string; descripcion: string; children: React.ReactNode }) {
+function AccentExample({ titulo, descripcion, children }: { titulo: string; descripcion: string; children: React.ReactNode }) {
     return (
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <h4 className="text-sm font-semibold text-slate-900 mb-1">{titulo}</h4>
@@ -701,8 +710,8 @@ function NoSiPair({ no, si }: { no: React.ReactNode; si: React.ReactNode }) {
                 </span>
                 <div>{no}</div>
             </div>
-            <div className="border border-emerald-100 bg-emerald-50/50 rounded-lg p-4">
-                <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium uppercase tracking-widest rounded-md px-2 py-0.5 mb-3">
+            <div className="border border-accent-100 bg-accent-50/50 rounded-lg p-4">
+                <span className="inline-block bg-accent-50 text-accent-600 text-xs font-medium uppercase tracking-widest rounded-md px-2 py-0.5 mb-3">
                     SÍ
                 </span>
                 <div>{si}</div>
