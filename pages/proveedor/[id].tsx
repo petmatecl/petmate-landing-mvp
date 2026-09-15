@@ -322,9 +322,20 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 </p>
                             )}
 
+                            {/* Sprint E UBI-PROV-LEG (2026-09-15) — línea de
+                                ubicación legible del proveedor bajo el título.
+                                Muestra "Comuna, Región" cuando ambos están
+                                poblados; si solo hay comuna, muestra solo
+                                comuna (cero regresión con proveedores
+                                históricos sin region cargada). El dato ya
+                                existe en `proveedores_publicos.comuna` y
+                                `.region` (verificado 2026-09-15 vía MCP prod,
+                                todos los proveedores reales tienen region
+                                poblada = "Metropolitana"). Ver BACKLOG L117-121. */}
                             <p className="text-slate-500 text-sm mb-4 flex items-center gap-1.5 justify-center sm:justify-start">
                                 <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 {proveedor.comuna}
+                                {proveedor.region ? `, ${proveedor.region}` : ''}
                             </p>
 
                             {/* Stat chips */}
@@ -783,7 +794,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const { data: proveedor, error: provError } = await supabase
             .from('proveedores_publicos')
             .select(`
-                id, auth_user_id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna,
+                id, auth_user_id, nombre, apellido_p, nombre_publico, foto_perfil, bio, comuna, region,
                 tipo_entidad, razon_social, nombre_fantasia, giro,
                 ocupacion, anios_experiencia,
                 certificaciones, primera_ayuda, rut_verificado,

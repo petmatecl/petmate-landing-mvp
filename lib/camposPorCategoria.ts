@@ -208,7 +208,13 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         { key: 'numero_registro', label: 'N.° de registro profesional', tipo: 'text', placeholder: 'Ej: 12345' },
         { key: 'especialidades', label: 'Especialidades', tipo: 'text', placeholder: 'Ej: Dermatología, Cirugía...' },
         { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura a domicilio (km)', tipo: 'number', placeholder: 'Ej: 10' },
-        { key: 'comunas_cobertura', label: 'Comunas atendidas a domicilio', tipo: 'text', placeholder: 'Ej: Providencia, Las Condes, Vitacura' },
+        // Sprint E DUP-CAMPOS-CATEGORIA (2026-09-15) — removido el campo
+        // text libre `comunas_cobertura`. La cobertura estructurada vive en
+        // la columna `servicios_publicados.comunas_cobertura` (text[])
+        // editable como chips en ServiceFormModal L2472. El texto libre en
+        // `detalles.comunas_cobertura` era duplicado + ruido. Migración
+        // aplicada 2026-09-15: valores existentes reubicados a
+        // `detalles.notas` con prefijo "Cobertura declarada: ...".
         { key: 'emite_boleta', label: 'Emisión de boleta o factura', tipo: 'boolean' },
         { key: 'inclusiones', label: 'Servicios ofrecidos', tipo: 'multiselect', opciones: [
             { value: 'consulta_general', label: 'Consulta general' },
@@ -231,7 +237,11 @@ export const CAMPOS_POR_CATEGORIA: Record<string, CampoDinamico[]> = {
         ], requerido: true },
         { key: 'capacidad_mascotas', label: 'Capacidad máxima de mascotas por viaje', tipo: 'number', placeholder: 'Ej: 2' },
         { key: 'radio_cobertura_km', label: 'Radio máximo de cobertura (km)', tipo: 'number', placeholder: 'Ej: 20' },
-        { key: 'comunas_cobertura', label: 'Comunas de origen y destino cubiertas', tipo: 'text', placeholder: 'Ej: Todo Santiago, Región Metropolitana' },
+        // Sprint E DUP-CAMPOS-CATEGORIA (2026-09-15) — removido el campo
+        // text libre `comunas_cobertura`. Mismo motivo que veterinario: la
+        // cobertura estructurada vive en la columna
+        // `servicios_publicados.comunas_cobertura` (text[]) editable como
+        // chips. Migración aplicada 2026-09-15.
         { key: 'tiene_empresa', label: 'Empresa formal o emisión de boleta', tipo: 'boolean' },
         { key: 'inclusiones', label: 'Qué incluye el servicio', tipo: 'multiselect', opciones: [
             { value: 'jaula_propia', label: 'Jaula / transportín propio' },
