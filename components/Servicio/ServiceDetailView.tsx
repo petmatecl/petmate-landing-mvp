@@ -1,7 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { useStickyBox } from 'react-sticky-box';
 import Head from 'next/head';
 import Link from 'next/link';
+
+// Sprint E-4 MAP-FICHA (2026-09-15) — mapa en /servicio/[id] solo
+// cuando modalidad = casa_cuidador. Reutiliza LocationMap (Leaflet,
+// tiene que cargarse dinámico sin SSR). Ver BACKLOG L101 MAP-FICHA.
+const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
+    ssr: false,
+    loading: () => (
+        <div className="h-[300px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
+            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+        </div>
+    ),
+});
 import { useRouter } from 'next/router';
 import { supabase } from '../../lib/supabaseClient';
 import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
@@ -1120,6 +1133,41 @@ export default function ServiceDetailView({
                                         </span>
                                     ))}
                                 </div>
+                            </div>
+                        )}
+
+                        {/* 3-bis. Sprint E-4 MAP-FICHA (2026-09-15) — mapa del
+                            proveedor en la ficha del servicio SOLO cuando la
+                            modalidad es "casa_cuidador" (el tutor se traslada
+                            hasta el proveedor). Otras modalidades (casa_tutor,
+                            recinto) NO muestran el mapa por decisión PO:
+                              - casa_tutor: proveedor va donde el tutor.
+                                Lista de comunas de cobertura ya cubre.
+                              - recinto: instalación con dirección pública que
+                                el proveedor debería informar aparte (backlog
+                                distinto).
+
+                            LocationMap reusa el círculo aproximado ~1000m
+                            (privacidad — no expone dirección exacta) del
+                            perfil `/proveedor/[id]`. Cero superficie nueva.
+                            Ver BACKLOG L101 MAP-FICHA. */}
+                        {Array.isArray(service.detalles?.modalidad)
+                          && service.detalles.modalidad.includes('casa_cuidador')
+                          && service.proveedor_lat != null
+                          && service.proveedor_lng != null && (
+                            <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm">
+                                <h3 className="text-xl font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                    <MapPin size={22} className="text-accent-600" />
+                                    Ubicación del proveedor
+                                </h3>
+                                <p className="text-sm text-slate-500 mb-4">
+                                    Área aproximada en {service.proveedor_comuna || 'la comuna del proveedor'}. La dirección exacta no se comparte públicamente.
+                                </p>
+                                <LocationMap
+                                    lat={service.proveedor_lat}
+                                    lng={service.proveedor_lng}
+                                    approximate={true}
+                                />
                             </div>
                         )}
 

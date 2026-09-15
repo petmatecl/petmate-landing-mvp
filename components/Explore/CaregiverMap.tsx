@@ -1,5 +1,13 @@
 import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Circle } from "react-leaflet";
 import L from "leaflet";
+// Sprint E-4 MAP-BURBUJAS (2026-09-15) — clustering con conteo via
+// leaflet.markercluster wrapper react-leaflet-cluster. Al hacer zoom,
+// los clusters se separan en burbujas individuales de precio. Zonas
+// densas de Santiago (donde antes las burbujas $15k/$50k/$100k se
+// pisaban) ahora muestran "5" (o el N) hasta zoom lejano.
+import MarkerClusterGroup from "react-leaflet-cluster";
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 // CSS is imported in _app.tsx
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -160,6 +168,38 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                 <ZoomControl position="topleft" />
                 <MapUpdater services={services} />
 
+                {/* Sprint E-4 MAP-BURBUJAS (2026-09-15) — Circles de cobertura
+                    quedan fuera del MarkerClusterGroup (son overlays, no
+                    clusterizables). El clustering aplica solo a los pill
+                    markers de precio; al hacer zoom se separan y se ven
+                    individuales.
+
+                    Antes: burbujas $50k/$100k/$15k se pisaban en zonas densas
+                    (centro Santiago con 17 servicios). El PO reportó UX rota.
+                    Ahora: el cluster muestra "5" (o el N) hasta zoom lejano,
+                    los individuales aparecen al hacer zoom. Comportamiento
+                    estándar Google/Airbnb. Ver BACKLOG L91 MAP-BURBUJAS. */}
+                {markers.map((s, idx) => (
+                    <Circle
+                        key={`circle-${s.servicio_id}-${idx}`}
+                        center={[s.lat, s.lng]}
+                        radius={600}
+                        pathOptions={{
+                            color: '#16A34A',
+                            fillColor: '#22C55E',
+                            fillOpacity: 0.07,
+                            weight: 1,
+                            dashArray: '4, 4'
+                        }}
+                    />
+                ))}
+                <MarkerClusterGroup
+                    chunkedLoading
+                    showCoverageOnHover={false}
+                    spiderfyOnMaxZoom={true}
+                    disableClusteringAtZoom={15}
+                    maxClusterRadius={40}
+                >
                 {markers.map((s, idx) => {
                     const price = s.precio_desde;
                     const formattedPrice = price >= 1000
@@ -183,22 +223,8 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                     const coverImage = s.fotos?.[0] || s.proveedor_foto || null;
 
                     return (
-                        <div key={`${s.servicio_id}-${idx}`}>
-                            {/* Area de cobertura aproximada */}
-                            <Circle
-                                center={[s.lat, s.lng]}
-                                radius={600}
-                                pathOptions={{
-                                    color: '#16A34A',
-                                    fillColor: '#22C55E',
-                                    fillOpacity: 0.07,
-                                    weight: 1,
-                                    dashArray: '4, 4'
-                                }}
-                            />
-
-                            {/* Precio pill marker */}
                             <Marker
+                                key={`marker-${s.servicio_id}-${idx}`}
                                 position={[s.lat, s.lng]}
                                 icon={priceIcon}
                             >
@@ -299,9 +325,9 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                                     </div>
                                 </Popup>
                             </Marker>
-                        </div>
                     );
                 })}
+                </MarkerClusterGroup>
             </MapContainer>
 
             <style jsx global>{`
