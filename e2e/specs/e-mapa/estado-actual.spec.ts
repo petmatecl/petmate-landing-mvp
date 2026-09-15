@@ -14,31 +14,55 @@ import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-test('[e-mapa MAP-BURBUJAS] CaregiverMap usa MarkerClusterGroup', async () => {
+test('[e-mapa MAP-BURBUJAS] CaregiverMap usa leaflet.markercluster imperativo', async () => {
     const source = await readFile(path.join(REPO_ROOT, 'components/Explore/CaregiverMap.tsx'), 'utf-8');
-    // Import del wrapper.
-    expect(source, 'import MarkerClusterGroup').toMatch(
-        /import MarkerClusterGroup from ['"]react-leaflet-cluster['"]/,
+    // Import directo de la librería base (sin wrapper React).
+    expect(source, 'import "leaflet.markercluster"').toMatch(
+        /import ['"]leaflet\.markercluster['"];/,
     );
     // CSS del plugin.
     expect(source, 'import CSS MarkerCluster').toMatch(
         /import ['"]leaflet\.markercluster\/dist\/MarkerCluster\.css['"]/,
     );
-    // Wrapper renderizado con props razonables (spiderfyOnMaxZoom + disableClusteringAtZoom).
-    expect(source, '<MarkerClusterGroup ...>').toMatch(
-        /<MarkerClusterGroup[\s\S]{0,500}spiderfyOnMaxZoom=\{true\}[\s\S]{0,200}disableClusteringAtZoom=\{15\}/,
+    // Cero import del wrapper react-leaflet-cluster.
+    expect(source, 'sin import react-leaflet-cluster').not.toMatch(
+        /react-leaflet-cluster/,
+    );
+    // Componente hijo ClusteredPriceMarkers que usa useMap + L.markerClusterGroup.
+    expect(source, 'ClusteredPriceMarkers declarado').toMatch(
+        /function ClusteredPriceMarkers\(/,
+    );
+    expect(source, 'L.markerClusterGroup imperativo').toMatch(
+        /\(L as any\)\.markerClusterGroup\(\{[\s\S]{0,500}spiderfyOnMaxZoom:\s*true[\s\S]{0,200}disableClusteringAtZoom:\s*15/,
     );
 });
 
 test('[e-mapa MAP-BURBUJAS] Circles overlays quedan fuera del cluster', async () => {
     const source = await readFile(path.join(REPO_ROOT, 'components/Explore/CaregiverMap.tsx'), 'utf-8');
-    // El bloque de Circles debe estar ANTES del <MarkerClusterGroup> — se
-    // rendean sueltos como overlays, no clusterizables.
+    // El bloque de Circles debe estar ANTES del <ClusteredPriceMarkers />.
+    // Los Circles renderean sueltos como overlays; el cluster solo aplica
+    // a los pill markers de precio (dentro del componente hijo imperativo).
     const idxCircleMap = source.indexOf(`markers.map((s, idx) => (\n                    <Circle`);
-    const idxClusterOpen = source.indexOf('<MarkerClusterGroup');
+    const idxCluster = source.indexOf('<ClusteredPriceMarkers');
     expect(idxCircleMap > 0, 'existe map de Circles').toBe(true);
-    expect(idxClusterOpen > 0, 'existe MarkerClusterGroup').toBe(true);
-    expect(idxCircleMap < idxClusterOpen, 'Circles renderean antes que MarkerClusterGroup').toBe(true);
+    expect(idxCluster > 0, 'existe ClusteredPriceMarkers').toBe(true);
+    expect(idxCircleMap < idxCluster, 'Circles renderean antes que ClusteredPriceMarkers').toBe(true);
+});
+
+test('[e-mapa MAP-BURBUJAS] cero .npmrc con legacy-peer-deps en el repo', async () => {
+    // Anti-regresión: el fix imperativo evita el peer dep conflict de
+    // react-leaflet-cluster con react-leaflet 4. NO debe haber `.npmrc`
+    // en la raíz con `legacy-peer-deps=true`.
+    let contenido = '';
+    try {
+        contenido = await readFile(path.join(REPO_ROOT, '.npmrc'), 'utf-8');
+    } catch {
+        // Archivo no existe — perfecto, es el estado esperado.
+        return;
+    }
+    expect(contenido, '.npmrc no debe contener legacy-peer-deps=true').not.toMatch(
+        /legacy-peer-deps\s*=\s*true/,
+    );
 });
 
 test('[e-mapa MAP-FICHA] ServiceDetailView renderea LocationMap condicional', async () => {

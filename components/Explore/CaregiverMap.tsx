@@ -1,16 +1,20 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap, ZoomControl, Circle } from "react-leaflet";
+import { MapContainer, TileLayer, useMap, ZoomControl, Circle } from "react-leaflet";
 import L from "leaflet";
 // Sprint E-4 MAP-BURBUJAS (2026-09-15) — clustering con conteo via
-// leaflet.markercluster wrapper react-leaflet-cluster. Al hacer zoom,
-// los clusters se separan en burbujas individuales de precio. Zonas
-// densas de Santiago (donde antes las burbujas $15k/$50k/$100k se
-// pisaban) ahora muestran "5" (o el N) hasta zoom lejano.
-import MarkerClusterGroup from "react-leaflet-cluster";
+// leaflet.markercluster (la librería base, sin wrapper React). Cero peer
+// dep conflict con react-leaflet 4. El wrapper `react-leaflet-cluster`
+// que probamos primero declara peer `@react-leaflet/core ^3.0.0` que
+// choca con nuestro `react-leaflet 4.2.1` (core 2.x); ver historia en
+// el commit `9f7a776` que se revirtió con este approach. Al importar
+// directamente `leaflet.markercluster`, extiende el namespace global de
+// Leaflet con `L.markerClusterGroup(...)` sin tocar React. Usamos
+// `useMap()` del react-leaflet para obtener la instancia del mapa y
+// gestionamos el clusterGroup manualmente en un useEffect.
+import "leaflet.markercluster";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 // CSS is imported in _app.tsx
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { ServiceResult } from "./ServiceCard";
 import { COMUNA_COORDS, CENTER_SANTIAGO, getComunaCoords } from "../../lib/comunas";
 
@@ -33,6 +37,12 @@ const fixLeafletIcons = () => {
 
 interface CaregiverMapProps {
     services: ServiceResult[];
+}
+
+interface MarkerData extends ServiceResult {
+    lat: number;
+    lng: number;
+    hasRealCoords: boolean;
 }
 
 // Re-centers map when services change
@@ -67,6 +77,133 @@ function MapUpdater({ services }: { services: ServiceResult[] }) {
     return null;
 }
 
+// Escapa un string para uso seguro dentro de un atributo HTML de doble
+// comilla (title, href, alt). Sin este escape, valores con `"` romperían
+// el HTML del popup (bindPopup) al inyectarse en runtime.
+function escapeHtml(s: string): string {
+    return s
+        .replace(/&/g, '&amp;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+}
+
+// Sprint E-4 MAP-BURBUJAS (2026-09-15) — HTML del popup construido como
+// string. Antes vivía como JSX dentro del <Popup> del react-leaflet.
+// Al mover el clustering al approach imperativo (bindPopup nativo), el
+// contenido pasa a HTML plano. Cambios semánticos:
+//   - `<Link>` de Next.js → `<a href>` plano. Trade-off aceptado: el
+//     click gatilla navegación full page en vez de client-side routing.
+//     Aceptable para un CTA de popup — el user viene desde la vista mapa
+//     con la intención de saltar a la ficha; el reload de una página
+//     no compromete UX.
+//   - `object-cover object-top` + `h-32` + `min-w-[200px]` + `p-4` +
+//     tipografía slate/accent: mismas clases Tailwind — Tailwind procesa
+//     este archivo (safelist automática), así que las clases están
+//     disponibles en el bundle CSS.
+function buildPopupHtml(s: MarkerData): string {
+    const price = s.precio_desde;
+    const formattedPrice = price >= 1000
+        ? `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`
+        : `$${price.toLocaleString('es-CL')}`;
+    const coverImage = s.fotos?.[0] || s.proveedor_foto || null;
+    const imgHtml = coverImage
+        ? `<img src="${escapeHtml(coverImage)}" alt="${escapeHtml(s.titulo)}" class="w-full h-32 object-cover object-top" />`
+        : '';
+    // Mismo copy y clases que el <Popup> anterior; solo pasa de JSX a HTML.
+    return `
+        <div class="min-w-[200px]">
+            ${imgHtml}
+            <div class="p-4">
+                <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">${escapeHtml(s.categoria_nombre)}</p>
+                <h3 class="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">${escapeHtml(s.titulo)}</h3>
+                <p class="text-xs text-slate-500 mb-2 truncate">${escapeHtml(s.proveedor_nombre)} · ${escapeHtml(s.proveedor_comuna)}</p>
+
+                <div class="flex items-center gap-1.5 mb-3">
+                    <div class="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
+                        <span class="text-accent-600 mr-1">★</span>
+                        ${Number(s.rating_promedio).toFixed(1)}
+                    </div>
+                    <span class="text-xs text-slate-400">(${s.total_evaluaciones} reseñas)</span>
+                </div>
+
+                <div class="flex items-baseline gap-1 mb-3">
+                    <span class="font-semibold text-lg text-slate-900">$${price.toLocaleString('es-CL')}</span>
+                    <span class="text-xs text-slate-500">/ ${escapeHtml(s.unidad_precio)}</span>
+                </div>
+
+                <a href="/proveedor/${encodeURIComponent(s.proveedor_id)}" class="block w-full py-2 bg-accent-600 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm">
+                    Ver perfil completo
+                </a>
+            </div>
+        </div>
+    `;
+}
+
+// Sprint E-4 MAP-BURBUJAS (2026-09-15) — clustering imperativo.
+// Componente hijo del MapContainer que usa useMap() para obtener la
+// instancia y gestiona el markerClusterGroup en un useEffect. La lib
+// leaflet.markercluster extiende `L` globalmente al importarse; el
+// tipo se resuelve via `@types/leaflet.markercluster`. Cuando `markers`
+// cambia, se limpia y se re-crea el grupo — barato dado <100 servicios.
+function ClusteredPriceMarkers({ markers }: { markers: MarkerData[] }) {
+    const map = useMap();
+
+    useEffect(() => {
+        // L.markerClusterGroup existe en runtime tras el import top-level;
+        // los tipos vienen de @types/leaflet.markercluster.
+        const clusterGroup = (L as any).markerClusterGroup({
+            showCoverageOnHover: false,
+            spiderfyOnMaxZoom: true,
+            disableClusteringAtZoom: 15,
+            maxClusterRadius: 40,
+            chunkedLoading: true,
+        });
+
+        markers.forEach((s) => {
+            const price = s.precio_desde;
+            const formattedPrice = price >= 1000
+                ? `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`
+                : `$${price.toLocaleString('es-CL')}`;
+
+            const priceIcon = L.divIcon({
+                className: 'bg-transparent border-none',
+                html: `
+                    <div class="relative group cursor-pointer transform transition-transform hover:scale-110 hover:z-50">
+                        <div class="bg-white text-slate-900 font-semibold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.18)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
+                            ${formattedPrice}
+                        </div>
+                        <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 transition-colors"></div>
+                    </div>
+                `,
+                iconSize: [56, 40],
+                iconAnchor: [28, 40],
+            });
+
+            const marker = L.marker([s.lat, s.lng], { icon: priceIcon });
+            marker.bindPopup(buildPopupHtml(s), {
+                className: 'custom-popup',
+                closeButton: false,
+                offset: [0, -32],
+                maxWidth: 220,
+            });
+            clusterGroup.addLayer(marker);
+        });
+
+        map.addLayer(clusterGroup);
+
+        return () => {
+            // Al desmontar (o cambio de markers), limpiar el grupo entero.
+            // Alternativa .removeLayers() por marker es innecesaria para
+            // <100 servicios: la re-creación completa es simple y correcta.
+            map.removeLayer(clusterGroup);
+        };
+    }, [map, markers]);
+
+    return null;
+}
+
 export default function CaregiverMap({ services }: CaregiverMapProps) {
     const [mounted, setMounted] = useState(false);
 
@@ -83,7 +220,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
     // buscar_servicios no devuelve estos campos, asi que hasRealCoords es
     // casi siempre false y este componente cae al fallback de comuna —
     // pero si el RPC vuelve a incluirlos, las coords ya vienen capadas.
-    const markers = useMemo(() => {
+    const markers = useMemo<MarkerData[]>(() => {
         return services.map(s => {
             const hasRealCoords = s.proveedor_lat != null && s.proveedor_lng != null;
             let lat: number;
@@ -169,16 +306,10 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                 <MapUpdater services={services} />
 
                 {/* Sprint E-4 MAP-BURBUJAS (2026-09-15) — Circles de cobertura
-                    quedan fuera del MarkerClusterGroup (son overlays, no
-                    clusterizables). El clustering aplica solo a los pill
-                    markers de precio; al hacer zoom se separan y se ven
-                    individuales.
-
-                    Antes: burbujas $50k/$100k/$15k se pisaban en zonas densas
-                    (centro Santiago con 17 servicios). El PO reportó UX rota.
-                    Ahora: el cluster muestra "5" (o el N) hasta zoom lejano,
-                    los individuales aparecen al hacer zoom. Comportamiento
-                    estándar Google/Airbnb. Ver BACKLOG L91 MAP-BURBUJAS. */}
+                    quedan como overlays react-leaflet (no clusterizables). El
+                    clustering aplica solo a los pill markers de precio, via
+                    el componente hijo ClusteredPriceMarkers que gestiona el
+                    L.markerClusterGroup imperativo. */}
                 {markers.map((s, idx) => (
                     <Circle
                         key={`circle-${s.servicio_id}-${idx}`}
@@ -193,141 +324,7 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
                         }}
                     />
                 ))}
-                <MarkerClusterGroup
-                    chunkedLoading
-                    showCoverageOnHover={false}
-                    spiderfyOnMaxZoom={true}
-                    disableClusteringAtZoom={15}
-                    maxClusterRadius={40}
-                >
-                {markers.map((s, idx) => {
-                    const price = s.precio_desde;
-                    const formattedPrice = price >= 1000
-                        ? `$${(price / 1000).toLocaleString('es-CL', { maximumFractionDigits: 0 })}k`
-                        : `$${price.toLocaleString('es-CL')}`;
-
-                    const priceIcon = L.divIcon({
-                        className: 'bg-transparent border-none',
-                        html: `
-                            <div class="relative group cursor-pointer transform transition-transform hover:scale-110 hover:z-50">
-                                <div class="bg-white text-slate-900 font-semibold text-xs px-2.5 py-1.5 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.18)] border border-slate-200 flex items-center justify-center whitespace-nowrap hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-colors">
-                                    ${formattedPrice}
-                                </div>
-                                <div class="absolute -bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-b border-r border-slate-200 transition-colors"></div>
-                            </div>
-                        `,
-                        iconSize: [56, 40],
-                        iconAnchor: [28, 40],
-                    });
-
-                    const coverImage = s.fotos?.[0] || s.proveedor_foto || null;
-
-                    return (
-                            <Marker
-                                key={`marker-${s.servicio_id}-${idx}`}
-                                position={[s.lat, s.lng]}
-                                icon={priceIcon}
-                            >
-                                {/* Sprint popup-fix commit 2 (2026-09-04) — reestructuración del JSX
-                                    del popup para arreglar el bug de imagen recortada a la derecha.
-
-                                    MECANISMO DEL BUG (verificado empíricamente por PO en consola de prod):
-                                      - .leaflet-popup-content-wrapper (padre): 253px de ancho (Leaflet
-                                        calcula dinámicamente basado en content).
-                                      - .leaflet-popup-content (con override margin: 16px uniforme): 221px
-                                        de ancho (253 - 32 de margin). Confirmado por
-                                        `getComputedStyle(...).margin` = "16px".
-                                      - <img w-full>: 221px de ancho (100% del content). Confirmado por
-                                        Leaflet inline `width: 221px` en el content.
-                                      - Hack anterior: `w-full` + `style={{ width: 'calc(100% + 32px)' }}`
-                                        + `marginLeft: -16px`. Intención: imagen 253px alineada al borde
-                                        izquierdo del wrapper.
-                                      - Bug: **Tailwind reset aplica `img { max-width: 100% }`** por
-                                        default. Confirmado por PO con
-                                        `getComputedStyle('.leaflet-popup-content img').maxWidth` = "100%".
-                                        El `calc(100% + 32px)` intenta pedir 253px pero max-width limita
-                                        a 221px. **La imagen NO crece**. Sí se corre 16px a la izquierda
-                                        (marginLeft aplica sin restricción), pero sin crecer.
-                                      - Resultado: imagen de 221px corrida 16px a la izquierda cubre desde
-                                        `-16px` hasta `205px`. Wrapper mide 253px. **Franja blanca de
-                                        48-60px sin cubrir a la derecha** (48 en cálculo estricto, ~60 en
-                                        percepción del PO por bordes redondeados).
-
-                                    LO CONFUSO ERA QUE EL HACK FUNCIONABA A MEDIAS: el desplazamiento
-                                    izquierdo sí (margin negativo sin límite), el ensanchamiento NO
-                                    (limitado por max-width). Si ninguna hubiera funcionado, la imagen
-                                    estaría centrada y nadie habría notado nada.
-
-                                    FIX ESTRUCTURAL (Opción R, aprobada por PO 2026-09-04):
-                                    - CSS override: `.leaflet-popup-content { margin: 0 }` (era 16px).
-                                      Content pasa a ocupar todo el wrapper (253px de content).
-                                    - JSX: imagen SIN hacks negativos ni width extendido — solo `w-full
-                                      h-32 object-cover`. Al 100% del content nuevo (253px), llega
-                                      naturalmente a los dos bordes del wrapper.
-                                    - Div interno `p-4` (padding 16px, equivalente al margin original)
-                                      contiene solo el texto — reemplaza el "aire" que daba el margin
-                                      del content, pero sin afectar la imagen.
-
-                                    ROBUSTEZ: cero número hardcodeado en el hack de la imagen. Un upgrade
-                                    de Leaflet que cambie el padding default del content NO rompe nada —
-                                    la imagen sigue al 100% del content, que sigue ocupando el wrapper.
-                                    El único CSS override que sigue dependiendo del layout de Leaflet es
-                                    el `margin: 0` del content, pero es una assertion clara y auditable
-                                    ("queremos que el content ocupe el wrapper entero"), no un hack de
-                                    valor mágico.
-                                    ═══════════════════════════════════════════════════════════════════ */}
-                                <Popup className="custom-popup" closeButton={false} offset={[0, -32]} maxWidth={220}>
-                                    <div className="min-w-[200px]">
-                                        {coverImage && (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img
-                                                src={coverImage}
-                                                alt={s.titulo}
-                                                className="w-full h-32 object-cover object-top"
-                                            />
-                                        )}
-                                        <div className="p-4">
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">{s.categoria_nombre}</p>
-                                            <h3 className="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">{s.titulo}</h3>
-                                            <p className="text-xs text-slate-500 mb-2 truncate">{s.proveedor_nombre} · {s.proveedor_comuna}</p>
-
-                                            <div className="flex items-center gap-1.5 mb-3">
-                                                <div className="flex items-center text-xs font-semibold text-slate-700 bg-slate-100 px-1.5 py-0.5 rounded">
-                                                    <span className="text-accent-600 mr-1">★</span>
-                                                    {Number(s.rating_promedio).toFixed(1)}
-                                                </div>
-                                                <span className="text-xs text-slate-400">({s.total_evaluaciones} reseñas)</span>
-                                            </div>
-
-                                            <div className="flex items-baseline gap-1 mb-3">
-                                                <span className="font-semibold text-lg text-slate-900">${price.toLocaleString('es-CL')}</span>
-                                                <span className="text-xs text-slate-500">/ {s.unidad_precio}</span>
-                                            </div>
-
-                                            {/* Sprint prelaunch MAP-4 (2026-09-15) — se removió `!text-white`
-                                                inline. El override token-based ahora vive en
-                                                `styles/globals.css > .leaflet-container a[class*="bg-accent-"]`
-                                                y cubre cualquier CTA con fondo accent-* dentro de un container
-                                                Leaflet, sin necesitar `!important` por componente. Ver comentario
-                                                extenso en globals.css con la razón del override (Leaflet inyecta
-                                                `.leaflet-container a { color: #0078A8 }` con especificidad
-                                                (0,0,1,1) que gana sobre `.text-white`).
-                                                Historia: sprint popup-fix (2026-09-04) aplicó `!text-white`
-                                                inline como primera pasada; el sprint prelaunch consolidó a
-                                                token-based porque el patrón se iba a repetir en futuros popups. */}
-                                            <Link
-                                                href={`/proveedor/${s.proveedor_id}`}
-                                                className="block w-full py-2 bg-accent-600 text-white text-center rounded-xl text-sm font-medium tracking-wide hover:bg-accent-700 transition-colors shadow-sm"
-                                            >
-                                                Ver perfil completo
-                                            </Link>
-                                        </div>
-                                    </div>
-                                </Popup>
-                            </Marker>
-                    );
-                })}
-                </MarkerClusterGroup>
+                <ClusteredPriceMarkers markers={markers} />
             </MapContainer>
 
             <style jsx global>{`
