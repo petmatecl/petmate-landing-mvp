@@ -73,9 +73,28 @@ Aldo ejecuta manualmente. Cada instrucción es autónoma (no depende de las otra
 
 **Contexto**: 79 archivos en bucket `avatars` de prod sin referencia en ninguna de las 6 columnas cross-referenciadas ([scripts/audit-avatars-orphans.sql](scripts/audit-avatars-orphans.sql)). Costo bajo pero limpio.
 
-**Paso**: abrir Supabase Studio prod (`ouezpeeiwjwawauidrqq`) → SQL Editor → pegar el archivo [scripts/audit-avatars-orphans.sql](scripts/audit-avatars-orphans.sql) sección (2) primero para SELECT de listado, verificar contra `RETURNING` para confirmar los 79 esperados. Después descomentar sección (3) DELETE y ejecutar. Cierra con un SELECT COUNT posterior para verificar 0 huérfanos.
+**Por qué no SQL directo**: un `DELETE FROM storage.objects` borra el registro de metadata en Postgres pero no elimina el binario en S3 — Supabase Storage no garantiza GC async de binarios sin referencia. Quedarían orphans reales invisibles. El script [scripts/cleanup-avatars-orphans.ts](scripts/cleanup-avatars-orphans.ts) usa la API oficial `supabase.storage.from('avatars').remove([paths])` que borra metadata + binario en la misma llamada.
 
-**Verificación**: SELECT posterior del audit script debe retornar 0 filas.
+**Verificación previa en staging (2026-09-15)**: 3 fake orphans subidos → dry-run los detectó → `--apply` los borró → `SELECT COUNT(*) FROM storage.objects WHERE bucket_id='avatars'` bajó de 4 → 1 (exacto baseline). Ciclo cerrado.
+
+**Paso — dry-run primero (obligatorio)**:
+
+```bash
+SUPABASE_URL="https://ouezpeeiwjwawauidrqq.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="<service_role_jwt_de_prod>" \
+npx tsx scripts/cleanup-avatars-orphans.ts
+```
+
+Verifica que reporte `Huérfanos encontrados: 79 (~78 MB)` con listado que coincide con el audit previo. Si el conteo o los nombres divergen inesperadamente, no correr apply — reportar.
+
+**Paso — apply**:
+
+```bash
+SUPABASE_URL="..." SUPABASE_SERVICE_ROLE_KEY="..." \
+npx tsx scripts/cleanup-avatars-orphans.ts --apply
+```
+
+**Verificación posterior**: re-correr sin `--apply` → debe decir `Huérfanos encontrados: 0`. Opcionalmente, contra Supabase Studio prod SQL Editor: `SELECT COUNT(*) FROM storage.objects WHERE bucket_id='avatars';` debe haber bajado en exactamente 79.
 
 ### 4.2 Mailtrap SMTP staging — email confirmación signup
 
@@ -85,13 +104,15 @@ Aldo ejecuta manualmente. Cada instrucción es autónoma (no depende de las otra
 
 **Verificación**: signup con email de prueba en preview staging → email debe aparecer en inbox Mailtrap sandbox, no en `AUDIT_INBOX`.
 
-### 4.3 Vercel Speed Insights install (item 12a PERF-1)
+### 4.3 Vercel Speed Insights — activación dashboard (item 12a PERF-1)
 
-**Contexto**: `@vercel/speed-insights` no instalado (verificado en [package.json](package.json)). El PO decidió install manual post-launch para medir Core Web Vitals reales.
+**Contexto**: el install de `@vercel/speed-insights` y el mount del `<SpeedInsights />` en [pages/_app.tsx:26](pages/_app.tsx#L26) aterrizan en este mismo PR de correcciones (`f-correcciones-po`). Cuando ese PR mergee a `main`, el deploy prod tendrá el script cargado; solo queda una activación explícita en el dashboard Vercel.
 
-**Paso**: `npm install @vercel/speed-insights` + agregar `<SpeedInsights />` a [pages/_app.tsx](pages/_app.tsx) al lado del `<Analytics />` existente (patrón idéntico). Commit + push a `main` — deploy automático Vercel.
+**Paso**: Vercel Dashboard → project `pawnecta-landing-mvp` → **Speed Insights** tab (sidebar izquierdo) → botón **"Enable Speed Insights"** si aparece. Si el tab ya está inicializado (el mount del componente lo detecta automáticamente y crea el proyecto en su primera carga), no hay que hacer nada — la data empieza a llegar sola.
 
-**Verificación**: 24h post-deploy → Vercel Dashboard → Speed Insights tab debe mostrar Core Web Vitals reales.
+**Verificación**: 24h post-deploy con tráfico real → Vercel Dashboard → Speed Insights tab debe mostrar Core Web Vitals por route (LCP p75, INP p75, CLS p75).
+
+**Nota de costo**: Speed Insights en plan Pro cobra por data points/mes — revisar el modelo de pricing vigente antes de dejarlo prendido si el volumen de tráfico crece agresivo. Post-launch baja probabilidad de sorpresa.
 
 ### 4.4 DNS DMARC-RUA record (item 13 DNS-DMARC)
 
@@ -124,3 +145,21 @@ Foto lanzamiento del bloque F:
 - **SQL/config prod pendiente**: 4 instrucciones de un paso al PO (sección 4).
 
 Chain deuda técnica menor cerrada.
+
+---
+
+## 7. Correcciones PO post-cierre (PR #46 F-CORRECCIONES-PO, 2026-09-15)
+
+El PO devolvió dos correcciones sobre las instrucciones originales:
+
+1. **AVATARS-HUER**: el DELETE crudo sobre `storage.objects` no elimina binarios en S3 — Supabase Storage no garantiza GC async, quedarían orphans reales invisibles. Retirada la sección DELETE del SQL; nuevo script Node [scripts/cleanup-avatars-orphans.ts](scripts/cleanup-avatars-orphans.ts) usa la API oficial `supabase.storage.from('avatars').remove([paths])` (metadata + binario en la misma llamada). **Verificado en staging (2026-09-15)**: 3 fake orphans subidos vía script separado → dry-run los detecta → `--apply` los borra → `SELECT COUNT(*) FROM storage.objects WHERE bucket_id='avatars'` baja de 4 → 1 (exacto baseline). Sección 4.1 actualizada con el flujo dry-run → apply → verify.
+2. **Speed Insights**: es código, no instrucción PO. `npm install @vercel/speed-insights` + mount `<SpeedInsights />` en [pages/_app.tsx](pages/_app.tsx) aterrizados en PR #46. Sección 4.3 reducida a la eventual activación explícita en el dashboard Vercel (si el mount automático no crea el proyecto solo).
+
+**Decisiones PO sobre los 4 items saltados** (reflejadas en BACKLOG y [docs/sprints/bloque-f-skipped.md](docs/sprints/bloque-f-skipped.md)):
+
+- **SELF-CALLS-PREVIEW**: **Opción B** (helper `withProtectionBypass()` gated por env, ~1h). Cero refactor de endpoints — preserva `verifyInternalSecret` + `emailLimiter`.
+- **SENTRY-WRAP-API + SENTRY-FLUSH**: sprint dedicado propio, mecánico, **con tests API** (spec que verifica que un throw en el handler emite evento con tag `route:<pattern>` en Sentry). Split en 5 PRs por directorio.
+- **BUTTON-CANON restante** (~25 botones): sprint dedicado con **regresión visual automática** (Percy/Chromatic free tier). Setup 4-6h + 5 PRs incrementales de 5 botones c/u con evidencia visual automática.
+- **ROADMAP-CRON-RESOLVERS**: sin cambio — sigue como propuesta ~2h con render-diff automático via `scripts/render-emails-diff.ts`.
+
+**Mailtrap + DMARC**: quedan como instrucciones directas al PO sin cambio (secciones 4.2 y 4.4).

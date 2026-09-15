@@ -98,20 +98,32 @@ otros PRs son incrementales de 30-45 min c/u.
    a-byte del HTML output de emails render antes/después). Es cero
    riesgo si se hace bien, pero el setup del render-diff toma tiempo.
 
-**Propuesta de sprint dedicado**:
+**Propuesta de sprint dedicado (actualizada 2026-09-15 con decisiones PO)**:
 
-- **PR-1 SENTRY-WRAP+FLUSH** (~4h): script bash que enumera endpoints,
-  detecta patrón handler, aplica wrap + flush, corre build, corre
-  spec de regresión sentry-init. Split en 5 PRs por directorio para
-  no explotar review.
-- **PR-2 SELF-CALLS-PREVIEW** (~2h): agregar header
-  `x-vercel-protection-bypass` al fetch en preview (gate por env).
-  Cero refactor, solo header condicional. Import directo queda como
-  opción B si el header no resuelve.
+- **PR-1 SENTRY-WRAP+FLUSH** (~4h + tests): script bash que enumera
+  endpoints, detecta patrón handler, aplica wrap + flush, corre build,
+  corre spec de regresión sentry-init + **tests de API que verifican
+  que un throw dentro del handler emite evento con tag `route:<pattern>`
+  en Sentry**. Split en 5 PRs por directorio (`admin/`, `agendamientos/`,
+  `cron/`, `notifications/` + `push/`, resto) para no explotar review.
+- **PR-2 SELF-CALLS-PREVIEW** (~1h): **Decisión PO 2026-09-15 = Opción B**.
+  Agregar helper `withProtectionBypass(headers)` en `lib/apiAuth.ts` que
+  agrega el header `x-vercel-protection-bypass: ${VERCEL_AUTOMATION_BYPASS_SECRET}`
+  gated por `NEXT_PUBLIC_APP_ENV !== 'production'` (o presencia de la
+  env var). Aplicar a los 6 call-sites del BACKLOG L318-324. Cero
+  refactor de endpoints — preserva `verifyInternalSecret` + `emailLimiter`.
 - **PR-3 ROADMAP-CRON-RESOLVERS** (~2h): auditar cada cron
   (`recordatorio-*`, `invitacion-*`, `cleanup-*`, `reset-*`) contra
   `lib/emails/resolvers`. Migrar los que dupliquen. Render-diff
   automático via `scripts/render-emails-diff.ts` (ya existe en repo).
+
+**BUTTON-CANON restante — actualización 2026-09-15**: **Decisión PO** =
+sprint dedicado con **regresión visual automática** (pantallazos por
+página comparados píxel a píxel, ej. Percy o Chromatic free tier).
+Setup 4-6h + 5 PRs incrementales de 5 botones c/u con evidencia visual
+automática. NO ejecutar sin la infra de regresión visual — el patrón
+de deuda light "cuando se toque el archivo" del BACKLOG sigue vigente
+hasta que el sprint dedicado aterrice.
 
 ## Items totales del bloque F
 
