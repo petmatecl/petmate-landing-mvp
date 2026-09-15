@@ -504,7 +504,11 @@ export default function MisSolicitudesPage() {
                             <div
                                 role="tablist"
                                 aria-label="Filtro de reservas por etapa"
-                                className="flex gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar border-b border-slate-100"
+                                // Sprint d-ui-paneles MIS-RESERVAS-TABS — removida la línea
+                                // `border-b border-slate-100` que sostenía el hack
+                                // `border-b-2 -mb-[1px]` del estilo apagado. Con pill-style
+                                // (bg-accent-600 activo) ya no hace falta la baseline visual.
+                                className="flex gap-2 overflow-x-auto pb-2 mb-4 hide-scrollbar"
                             >
                                 {tabs.map(tab => {
                                     const isActive = activeTab === tab.id;
@@ -526,16 +530,23 @@ export default function MisSolicitudesPage() {
                                                 setFiltroProveedor(null);
                                                 setFiltroMascota(null);
                                             }}
-                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-colors whitespace-nowrap border-b-2 -mb-[1px] ${
+                                            // Sprint d-ui-paneles MIS-RESERVAS-TABS (2026-09-15) —
+                                            // migrado del border-b-2 apagado al pill-style del
+                                            // panel admin: activo con fondo accent-600 + texto
+                                            // blanco, inactivo con hover slate-50. El PO reportó
+                                            // que las 3 pestañas se leían apagadas contra el
+                                            // fondo; el estilo admin es más marcado y ya
+                                            // funciona bien allá. Cero cambio de comportamiento.
+                                            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
                                                 isActive
-                                                    ? 'text-accent-700 border-accent-600'
-                                                    : 'text-slate-600 border-transparent hover:text-slate-900 hover:border-slate-300'
+                                                    ? 'bg-accent-600 text-white font-semibold'
+                                                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                             }`}
                                         >
                                             {tab.label}
                                             <span className={`inline-flex items-center justify-center min-w-[1.5rem] h-5 text-xs font-semibold rounded-full px-1.5 ${
                                                 isActive
-                                                    ? 'bg-accent-100 text-accent-700'
+                                                    ? 'bg-white text-accent-700'
                                                     : 'bg-slate-100 text-slate-600'
                                             }`}>
                                                 {tab.count}

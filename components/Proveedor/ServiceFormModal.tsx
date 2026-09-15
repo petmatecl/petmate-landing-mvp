@@ -3,7 +3,7 @@ import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { logSupabaseError } from '../../lib/logSupabaseError';
 import { toast } from 'sonner';
-import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
+import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search, Info } from 'lucide-react';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { getCategoriasCached, type Categoria } from '../../lib/catalogoCategorias';
@@ -2015,15 +2015,30 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         );
                                                     })}
                                                 </div>
-                                                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
-                                                    Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado.
+                                                {/* Sprint d-ui-paneles EDITOR-UX (2026-09-15) —
+                                                    hint 1-línea con tooltip nativo. El detalle
+                                                    largo va al `title` (accesible al hover +
+                                                    keyboard focus del button icon). */}
+                                                <p className="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
+                                                    <span>Tu semana tipo se repite cada semana.</span>
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Más información sobre franjas horarias"
+                                                        title="Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado abajo."
+                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                    >
+                                                        <Info size={12} />
+                                                    </button>
                                                 </p>
                                             </div>
 
                                             {/* Excepciones — bloqueos ad-hoc futuros. Solo se
                                                 muestran/gestionan las futuras (fecha >= hoy);
-                                                las historicas quedan en BD sin tocar. */}
-                                            <div>
+                                                las historicas quedan en BD sin tocar.
+                                                Sprint d-ui-paneles EDITOR-UX — agregado `mt-6
+                                                pt-6 border-t border-slate-100` para más
+                                                separación visual entre secciones. */}
+                                            <div className="mt-6 pt-6 border-t border-slate-100">
                                                 <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
                                                     <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Excepciones</p>
                                                     <button
@@ -2113,8 +2128,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         })}
                                                     </div>
                                                 )}
-                                                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
-                                                    Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras.
+                                                <p className="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
+                                                    <span>Vacaciones o días bloqueados puntuales.</span>
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Más información sobre excepciones"
+                                                        title="Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras."
+                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                    >
+                                                        <Info size={12} />
+                                                    </button>
                                                 </p>
                                             </div>
                                         </div>
@@ -2379,8 +2402,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         })}
                                                     </div>
                                                 )}
-                                                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
-                                                    Estas fechas quedan bloqueadas para nuevas reservas. Las estadías ya confirmadas en esas fechas se mantienen — te sugerimos coordinar con el tutor por chat.
+                                                <p className="text-xs text-slate-500 mt-3 flex items-center gap-1.5">
+                                                    <span>Fechas bloqueadas para nuevas reservas.</span>
+                                                    <button
+                                                        type="button"
+                                                        aria-label="Más información sobre bloqueos F2"
+                                                        title="Estas fechas quedan bloqueadas para nuevas reservas. Las estadías ya confirmadas en esas fechas se mantienen — te sugerimos coordinar con el tutor por chat."
+                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                    >
+                                                        <Info size={12} />
+                                                    </button>
                                                 </p>
                                             </div>
                                         </div>
