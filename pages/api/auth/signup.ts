@@ -3,6 +3,7 @@ import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import * as Sentry from '@sentry/nextjs';
 import { authLimiter } from '../../../lib/rateLimit';
+import { buildProtectionBypassHeaders } from '../../../lib/withProtectionBypass';
 import { z } from 'zod';
 
 const signupSchema = z.object({
@@ -224,6 +225,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           headers: {
             'Content-Type': 'application/json',
             'x-internal-secret': internalSecret,
+            ...buildProtectionBypassHeaders(),
           },
           body: JSON.stringify({ userId, email, nombre: nombre.trim(), rol, confirmationUrl }),
         });
@@ -267,6 +269,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           headers: {
             'Content-Type': 'application/json',
             'x-internal-secret': internalSecret,
+            ...buildProtectionBypassHeaders(),
           },
         };
 
