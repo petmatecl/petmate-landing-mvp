@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { createClient } from "@supabase/supabase-js";
 import { emailLimiter } from '../../../lib/rateLimit';
@@ -19,7 +20,7 @@ import { logSupabaseError } from '../../../lib/logSupabaseError';
  * messageId. Defensa contra payload manipulado: contenido del email no
  * es el que el cliente declare, sino el que esta efectivamente en BD.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== "POST") return res.status(405).end();
     if (!(await emailLimiter(req, res))) return;
 
@@ -122,3 +123,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/notifications/new-message');
