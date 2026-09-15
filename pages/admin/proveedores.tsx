@@ -1,8 +1,9 @@
-﻿import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import { useModalDialog } from '../../lib/useModalDialog';
 import {
     ArrowLeft, Search, CheckCircle2, XCircle, Clock, AlertTriangle,
     Eye, ShieldCheck, User as UserIcon, Briefcase, Star, MapPin
@@ -33,6 +34,17 @@ function GestionProveedores() {
     const [provServicios, setProvServicios] = useState<any[]>([]);
     const [provEvaluaciones, setProvEvaluaciones] = useState<any[]>([]);
     const [detailsLoading, setDetailsLoading] = useState(false);
+
+    // Sprint E-3 M-ADMIN-1..4 (2026-09-15) — migración de los 4 modales
+    // inline a useModalDialog (patrón zonab-1). 4 refs distintas (una por
+    // tipo de modal) + 4 llamadas al hook. React garantiza que solo el
+    // modal cuyo `isOpen` es true activa su listener + focus trap; los
+    // otros son no-op. Cerrado con `closeModal` (mismo callback existente).
+    // Ver BACKLOG M-ADMIN-1..4 + REPORTE_UX_WALKTHROUGH_1.md.
+    const aprobarModalRef = useRef<HTMLDivElement>(null);
+    const rechazarModalRef = useRef<HTMLDivElement>(null);
+    const suspenderModalRef = useRef<HTMLDivElement>(null);
+    const detalleModalRef = useRef<HTMLDivElement>(null);
 
     const fetchProveedores = async () => {
         setLoading(true);
@@ -107,6 +119,35 @@ function GestionProveedores() {
     const closeModal = () => {
         setModalConfig({ type: null, prov: null });
     };
+
+    // Sprint E-3 M-ADMIN-1..4 (2026-09-15) — 4 llamadas useModalDialog
+    // (una por tipo de modal). React garantiza que las 4 se llaman en
+    // el mismo orden en cada render (regla de hooks). `blockClose` en
+    // los modales con submit para que Escape no cierre mientras hay
+    // acción en curso.
+    useModalDialog({
+        isOpen: modalConfig.type === 'aprobar',
+        onClose: closeModal,
+        containerRef: aprobarModalRef,
+        blockClose: actionLoading,
+    });
+    useModalDialog({
+        isOpen: modalConfig.type === 'rechazar',
+        onClose: closeModal,
+        containerRef: rechazarModalRef,
+        blockClose: actionLoading,
+    });
+    useModalDialog({
+        isOpen: modalConfig.type === 'suspender' || modalConfig.type === 'reactivar',
+        onClose: closeModal,
+        containerRef: suspenderModalRef,
+        blockClose: actionLoading,
+    });
+    useModalDialog({
+        isOpen: modalConfig.type === 'detalle',
+        onClose: closeModal,
+        containerRef: detalleModalRef,
+    });
 
 
     const handleAprobar = async () => {
@@ -424,6 +465,7 @@ function GestionProveedores() {
                     {/* Modal Aprobar */}
                     {modalConfig.type === 'aprobar' && (
                         <div
+                            ref={aprobarModalRef}
                             role="dialog"
                             aria-modal="true"
                             aria-labelledby="admin-proveedores-aprobar-title"
@@ -450,6 +492,7 @@ function GestionProveedores() {
                     {/* Modal Rechazar */}
                     {modalConfig.type === 'rechazar' && (
                         <div
+                            ref={rechazarModalRef}
                             role="dialog"
                             aria-modal="true"
                             aria-labelledby="admin-proveedores-rechazar-title"
@@ -505,6 +548,7 @@ function GestionProveedores() {
                         suspender = warning (pausa reversible, no danger porque no es terminal). */}
                     {(modalConfig.type === 'suspender' || modalConfig.type === 'reactivar') && (
                         <div
+                            ref={suspenderModalRef}
                             role="dialog"
                             aria-modal="true"
                             aria-labelledby="admin-proveedores-estado-title"
@@ -533,6 +577,7 @@ function GestionProveedores() {
                     {/* Modal Detalle */}
                     {modalConfig.type === 'detalle' && (
                         <div
+                            ref={detalleModalRef}
                             role="dialog"
                             aria-modal="true"
                             aria-labelledby="admin-proveedores-detalle-title"
@@ -542,8 +587,12 @@ function GestionProveedores() {
                                 <h3 id="admin-proveedores-detalle-title" className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
                                     <UserIcon className="text-slate-400" /> Ficha del Proveedor
                                 </h3>
-                                <button onClick={closeModal} className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors">
-                                    <XCircle size={24} />
+                                <button
+                                    onClick={closeModal}
+                                    aria-label="Cerrar ficha"
+                                    className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors"
+                                >
+                                    <XCircle size={24} aria-hidden="true" />
                                 </button>
                             </div>
 
