@@ -17,13 +17,14 @@ export const RoleSelectionInterceptor: React.FC = () => {
     // Special case: If user is in onboarding (no roles yet), don't intercept here (Register page handles it)
     if (roles.length === 0) return null;
 
-    // If we are already on a page that handles this (like login or register), maybe don't intercept?
-    // Actually, Login page redirects to /usuario or /sitter.
-    // If we are here, we might be on / or /usuario (protected).
-    // If we are on / (HomePage), maybe we want to let them browse as guest? 
-    // BUT user IS authenticated. "Logged in as guest" is weird.
-    // Pawnecta logic: If logged in, you act as Client or Sitter.
-    // So YES, intercept everywhere except maybe 'register' or 'logout'.
+    // Sprint c-higiene DEAD-USR (2026-09-15): la ruta /usuario fue retirada
+    // (redirect 307 → /explorar en next.config.js:207-210, commit 4d0f42d
+    // abril 2026). Los comentarios previos hablaban de "Login redirects to
+    // /usuario or /sitter" y "we might be on /usuario (protected)" — ambos
+    // stale. Hoy el gate real es: login redirige por rol al panel apropiado
+    // (/proveedor si es proveedor, /admin si es admin, /explorar si es tutor
+    // puro). Este interceptor solo aplica cuando el user autenticado tiene
+    // 2+ roles y necesita elegir activeRole al primer aterrizaje.
 
     // Exclude Admin from interception too
     const isExcludedRoute = ['/logout', '/register', '/login', '/admin', '/reset-password', '/forgot-password'].includes(router.pathname);

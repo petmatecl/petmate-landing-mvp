@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useCallback, useId, useRef, useMemo } from 'react';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
+import { logSupabaseError } from '../../lib/logSupabaseError';
 import { toast } from 'sonner';
 import { X, Upload, Loader2, Image as ImageIcon, ChevronDown, MapPin, Search } from 'lucide-react';
 import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
@@ -952,7 +954,16 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             if (existingServiceId) {
                 const { error } = await supabase.from('servicios_publicados').update(payload).eq('id', existingServiceId);
                 if (error) {
-                    toast.error('Error al actualizar: ' + error.message);
+                    // Sprint c-higiene ORPH-EDIT-EXT (2026-09-15) — antes:
+                    // `toast.error('Error al actualizar: ' + error.message)` exponía
+                    // el `error.message` crudo de PostgREST (nombres de columnas,
+                    // RLS hints, códigos internos). Ahora: copy amigable +
+                    // Sentry.captureException con contexto.
+                    Sentry.captureException(error, {
+                        tags: { subsystem: 'service-form-modal', action: 'update-service' },
+                        extra: { servicioId: existingServiceId, errorCode: error.code },
+                    });
+                    toast.error('No pudimos actualizar el servicio. Reintenta en unos minutos.');
                     return false;
                 }
             } else {
@@ -962,7 +973,11 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     .select('id')
                     .single();
                 if (error) {
-                    toast.error('Error al publicar: ' + error.message);
+                    Sentry.captureException(error, {
+                        tags: { subsystem: 'service-form-modal', action: 'insert-service' },
+                        extra: { errorCode: error.code },
+                    });
+                    toast.error('No pudimos publicar el servicio. Reintenta en unos minutos.');
                     return false;
                 }
                 savedServicioId = inserted?.id ?? null;
@@ -1014,13 +1029,19 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     }
                 }
 
-                let franjasErr: string | null = null;
+                // Sprint c-higiene ORPH-EDIT-EXT (2026-09-15) — antes:
+                // `franjasErr: string | null = error.message` acumulaba el
+                // mensaje crudo de PostgREST y lo concatenaba al toast al
+                // final. Ahora: boolean flag + `logSupabaseError` en cada
+                // punto de captura → Sentry ve el error completo, el user
+                // ve copy amigable sin leak de detalles internos.
+                let franjasErr = false;
                 if (toDelete.length > 0) {
                     const { error } = await supabase
                         .from('disponibilidad_semanal')
                         .delete()
                         .in('id', toDelete.map(f => f.id!));
-                    if (error) franjasErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:franjas_delete', error, { savedServicioId, count: toDelete.length }); franjasErr = true; }
                 }
                 if (!franjasErr && toInsert.length > 0) {
                     const { error } = await supabase
@@ -1031,7 +1052,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             hora_desde: f.hora_desde,
                             hora_hasta: f.hora_hasta,
                         })));
-                    if (error) franjasErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:franjas_insert', error, { savedServicioId, count: toInsert.length }); franjasErr = true; }
                 }
                 if (!franjasErr) {
                     for (const f of toUpdate) {
@@ -1043,12 +1064,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 hora_hasta: f.hora_hasta,
                             })
                             .eq('id', f.id!);
-                        if (error) { franjasErr = error.message; break; }
+                        if (error) { logSupabaseError('sfm:save-agenda:franjas_update', error, { savedServicioId, franjaId: f.id }); franjasErr = true; break; }
                     }
                 }
 
                 if (franjasErr) {
-                    toast.error('Servicio guardado, pero hubo un problema con la agenda: ' + franjasErr);
+                    toast.error('Servicio guardado, pero hubo un problema con la agenda. Revisa esa sección y reintenta.');
                     return false;
                 }
 
@@ -1074,13 +1095,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     }
                 }
 
-                let excErr: string | null = null;
+                // Sprint c-higiene ORPH-EDIT-EXT (2026-09-15) — mismo patrón
+                // que franjas arriba: boolean flag + Sentry, copy amigable.
+                let excErr = false;
                 if (excToDelete.length > 0) {
                     const { error } = await supabase
                         .from('excepciones_disponibilidad')
                         .delete()
                         .in('id', excToDelete.map(e => e.id!));
-                    if (error) excErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:excepciones_delete', error, { savedServicioId, count: excToDelete.length }); excErr = true; }
                 }
                 if (!excErr && excToInsert.length > 0) {
                     const { error } = await supabase
@@ -1092,7 +1115,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             hora_hasta: e.hora_hasta,
                             motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
                         })));
-                    if (error) excErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:excepciones_insert', error, { savedServicioId, count: excToInsert.length }); excErr = true; }
                 }
                 if (!excErr) {
                     for (const e of excToUpdate) {
@@ -1105,12 +1128,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 motivo: e.motivo && e.motivo.trim() ? e.motivo.trim() : null,
                             })
                             .eq('id', e.id!);
-                        if (error) { excErr = error.message; break; }
+                        if (error) { logSupabaseError('sfm:save-agenda:excepciones_update', error, { savedServicioId, excepcionId: e.id }); excErr = true; break; }
                     }
                 }
 
                 if (excErr) {
-                    toast.error('Servicio guardado, pero hubo un problema con las excepciones: ' + excErr);
+                    toast.error('Servicio guardado, pero hubo un problema con las excepciones. Revisa esa sección y reintenta.');
                     return false;
                 }
             }
@@ -1141,13 +1164,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     }
                 }
 
-                let blkErr: string | null = null;
+                // Sprint c-higiene ORPH-EDIT-EXT (2026-09-15) — mismo patrón.
+                let blkErr = false;
                 if (blkToDelete.length > 0) {
                     const { error } = await supabase
                         .from('excepciones_disponibilidad')
                         .delete()
                         .in('id', blkToDelete.map(b => b.id!));
-                    if (error) blkErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:blackouts_delete', error, { savedServicioId, count: blkToDelete.length }); blkErr = true; }
                 }
                 if (!blkErr && blkToInsert.length > 0) {
                     // hora_desde/hora_hasta = null explicitos (dominio F2 por
@@ -1162,7 +1186,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             hora_hasta: null,
                             motivo: b.motivo && b.motivo.trim() ? b.motivo.trim() : null,
                         })));
-                    if (error) blkErr = error.message;
+                    if (error) { logSupabaseError('sfm:save-agenda:blackouts_insert', error, { savedServicioId, count: blkToInsert.length }); blkErr = true; }
                 }
                 if (!blkErr) {
                     for (const b of blkToUpdate) {
@@ -1174,12 +1198,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 motivo: b.motivo && b.motivo.trim() ? b.motivo.trim() : null,
                             })
                             .eq('id', b.id!);
-                        if (error) { blkErr = error.message; break; }
+                        if (error) { logSupabaseError('sfm:save-agenda:blackouts_update', error, { savedServicioId, blackoutId: b.id }); blkErr = true; break; }
                     }
                 }
 
                 if (blkErr) {
-                    toast.error('Servicio guardado, pero hubo un problema con los bloqueos: ' + blkErr);
+                    toast.error('Servicio guardado, pero hubo un problema con los bloqueos. Revisa esa sección y reintenta.');
                     return false;
                 }
             }

@@ -727,7 +727,10 @@ export const ICONO_POR_CAMPO_KEY: Record<string, LucideIcon> = {
     // Especialidad médica / veterinaria.
     especialidades: Stethoscope,
     especialidades_conductuales: Stethoscope,
-    especies_atendidas: Stethoscope,
+    // Sprint c-higiene ICO-HUER (2026-09-15) — `especies_atendidas` fue
+    // removido del preset Etología en sprint panel-prov-fixes (`83d9312`,
+    // 2026-08-27). Su icon map lookup quedó residual sin caller (cero
+    // usos de la key post-remove). Eliminado ahora que se toca el archivo.
     trabaja_con_veterinario: Stethoscope,
 
     // Modalidad (dónde se hace el servicio).

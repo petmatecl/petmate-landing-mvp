@@ -15,6 +15,7 @@
 // SOLO MOBILE (lg:hidden). Desktop usa la sticky right como panel de accion.
 // ----------------------------------------------------------------------------
 import React, { useEffect, useRef } from 'react';
+import { usePersistentOverlayClose } from '../../lib/hooks/usePersistentOverlayClose';
 import { X } from 'lucide-react';
 import { useModalDialog } from '../../lib/useModalDialog';
 
@@ -39,6 +40,17 @@ export default function MobileActionSheet({
     // el patrón completo. El body scroll lock queda como useEffect propio —
     // no es parte del hook (que solo se ocupa de foco y teclado).
     useModalDialog({ isOpen, onClose, containerRef });
+
+    // Sprint c-higiene def 4 ext (2026-09-15) — aplicación proactiva del
+    // hook `usePersistentOverlayClose` para consistencia con
+    // NotificationBell + FeedbackWidget. Cubre: Escape (redundante con
+    // useModalDialog, sin efecto), routeChangeStart (nuevo — cierra el
+    // sheet si el user navega mientras está abierto), y overlay:open (event
+    // bus, cierra el sheet si se abre otro overlay). Aunque hoy
+    // MobileActionSheet se monta/desmonta con su caller (no vive en
+    // _app.tsx), aplicar el hook proactivamente reduce riesgo si un futuro
+    // refactor lo mueve a un contenedor persistente.
+    usePersistentOverlayClose(isOpen, onClose, 'mobile-sheet');
 
     // Body scroll lock cuando esta abierto (independiente del hook).
     useEffect(() => {
