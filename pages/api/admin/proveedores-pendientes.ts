@@ -12,6 +12,7 @@
 // GATE: verifySession + isAdmin (patrón id-only del proyecto).
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { verifySession, isAdmin } from '../../../lib/apiAuth';
 import { apiLimiter } from '../../../lib/rateLimit';
@@ -19,7 +20,7 @@ import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 const TEST_EMAIL_DOMAIN = '@pawnecta-test.com';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'GET') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await apiLimiter(req, res))) return;
 
@@ -98,3 +99,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         return res.status(500).json({ error: 'Internal error' });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/admin/proveedores-pendientes');

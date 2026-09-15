@@ -158,13 +158,27 @@ function getRedis(): Redis | null {
           vercel_env: process.env.VERCEL_ENV || 'unknown',
         },
       });
-      // No await flush acá — la primera request no debe pagar el costo del
-      // flush ni bloquear. La cola drena en el próximo await de Sentry
-      // (los endpoints que ya usan flushSentryEvents lo harán). Peor caso:
-      // el mensaje se pierde en el primer container si termina antes de
-      // drenar. En el segundo container (post cold-start) missingCredsReported
-      // se resetea a false → vuelve a intentar → eventual visibilidad
-      // garantizada.
+      // Sprint bloque-g G-1 (2026-09-15) — flush explícito del path config
+      // error. Antes: "no flush, la cola drena en el próximo await de
+      // Sentry" — supuesto NO verificado en Fluid Compute (deuda anotada
+      // BACKLOG L1156). En la práctica, la primera request de un container
+      // puede terminar antes de que otro caller drene la cola compartida,
+      // perdiendo el mensaje. El costo (~50-500ms al primer request) es
+      // aceptable — este path solo dispara con config error operacional
+      // (env vars faltantes), no en el hot path del signup normal.
+      // try/catch defensivo para que un timeout del flush no rompa el
+      // fallback in-memory del limiter.
+      try {
+        // Fire-and-forget dentro del proceso — el void hace la promesa
+        // detached del flujo síncrono del handler que llamó al limiter.
+        // El await interno garantiza que si el flush termina antes del
+        // shutdown del proceso, el evento se envía; si no, el retry
+        // en el segundo container sigue siendo la red de seguridad.
+        void Sentry.flush(500);
+      } catch {
+        // flush puede throw si el SDK no está inicializado (dev sin dsn).
+        // Silencioso: el fallback in-memory sigue funcionando.
+      }
     }
     return null;
   }

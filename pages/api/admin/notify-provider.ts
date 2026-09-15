@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { createClient } from '@supabase/supabase-js';
 import { emailLimiter } from '../../../lib/rateLimit';
@@ -23,7 +24,7 @@ import { verifySession, isAdmin } from '../../../lib/apiAuth';
  * actualizado), el email es notificacion no transaccional. Errores de
  * envio → 200 con `skipped: true` para no romper el flow del admin.
  */
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
     if (!(await emailLimiter(req, res))) return;
 
@@ -125,3 +126,5 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         });
     }
 }
+
+export default wrapApiHandlerWithSentry(handler, '/api/admin/notify-provider');
