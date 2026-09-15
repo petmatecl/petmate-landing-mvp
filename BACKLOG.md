@@ -1039,6 +1039,10 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 
 **Estado post-Fase E2 (2026-08-07)**: **PERF-1 CERRADO — Buckets A + C en producción** (`main = 6ecd2b3`). Ver `ACTA_SPRINT_PERF-1.md` sección 10 con tabla comparativa canónica prod-vs-prod. Buckets B (mobile Agentic Browsing) + D (Vercel Speed Insights monitoring) siguen candidatos, gatillo PO.
 
+**PERF-1 bucket B — CERRADO 2026-09-15 sprint bloque-f como investigación**: reporte en [docs/PERF1_BUCKET_B_MOBILE_AUDIT_20260915.md](docs/PERF1_BUCKET_B_MOBILE_AUDIT_20260915.md). Audit estático de aria-labels en `MobileActionSheet` + `SidebarFiltros` (drawer mobile) + sticky action bar de ficha: los aria-labels que motivaron el bucket están OK; el score AB=50 en mobile no es diagnosticable sin ejecutar el AI-scraper contra el DOM real. Recomendación: re-medir post-launch cuando haya reporte AB actualizado; si el score sigue en 50 con superficies similares, ejecutar Agentic Browsing headless local sobre staging para diagnóstico específico. Cero código en este cierre.
+
+**PERF-1 bucket D — pendiente instrucción PO (bloque-f)**: instalar `@vercel/speed-insights` + agregar `<SpeedInsights />` en `_app.tsx` + activar en Vercel Dashboard. Instrucción de un paso consolidada en el acta final del bloque F.
+
 ### ~~Sprint PERF-2 — micro-candidato CLS ficha~~ · **CERRADO 2026-08-11 `7c8859b` (`remate-1-prod-20260811`) — verificado 2026-08-18**
 
 Aterrizado en batch REMATE-1 (`7c8859b feat(remate-1): R1 CLS width/height + R2a middleware bots 404 + R2b rename mis-reservas`). `components/Servicio/ServiceDetailView.tsx:727-728` tiene `width={1200} height={800}` en el hero `<img>` con comentario inline explícito "Sprint PERF-2 Ítem R1 (2026-08-11) — width/height intrínsecos para reservar aspect ratio ANTES del image decode". Verificación 2026-08-18 durante Tanda 6 (13ª instancia de estado obsoleto en BACKLOG). Detalle histórico:
