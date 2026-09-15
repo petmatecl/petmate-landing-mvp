@@ -845,7 +845,7 @@ export default function ExplorarPage() {
                                             </span>
                                         )}
                                     </p>
-                                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
+                                    <div className="flex flex-wrap items-center gap-2 shrink-0 self-end sm:self-auto w-full sm:w-auto">
                                         {/* Toggle Lista / Mapa */}
                                         <div role="radiogroup" aria-label="Vista de resultados" className="flex items-center border border-slate-200 rounded-xl overflow-hidden bg-white">
                                             <button
