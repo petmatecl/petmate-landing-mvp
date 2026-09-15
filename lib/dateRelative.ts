@@ -114,6 +114,18 @@ interface FormatOpts {
      *     pasó o está por venir.
      */
     modo?: 'creacion' | 'evento';
+    /**
+     * Sprint E-5 F2-NOTIF-0000 (2026-09-15) — cuando true, el modo
+     * 'evento' omite el `HH:MM` en las 3 variantes que lo incluyen
+     * ("Hoy a las HH:MM", "Mañana a las HH:MM", "Fue ayer a las HH:MM",
+     * "El D de MMMM, HH:MM", "Fue el D de MMMM, HH:MM"). Uso: reservas
+     * F2 (rango de noches) donde el timestamp es midnight local del día
+     * de check-in — mostrar "Mañana a las 00:00" lee raro y engaña.
+     * Con sinHora=true queda como "Mañana", "Hoy", "El 12 de septiembre",
+     * etc. El modo 'creacion' ignora este flag (siempre muestra HH:MM
+     * porque es cuándo se emitió el dato, precisión importa).
+     */
+    sinHora?: boolean;
 }
 
 /**
@@ -132,6 +144,7 @@ interface FormatOpts {
 export function formatFechaRelativa(iso: string, opts: FormatOpts = {}): string {
     const now = opts.now ?? new Date();
     const modo = opts.modo ?? 'creacion';
+    const sinHora = opts.sinHora ?? false;
     const d = new Date(iso);
 
     // Diff en segundos. Positivo = fecha en pasado, negativo = en futuro.
@@ -148,11 +161,17 @@ export function formatFechaRelativa(iso: string, opts: FormatOpts = {}): string 
         // Modo 'evento' — NO usa "hace unos segundos" ni "hace X min".
         // Para un evento calendarizado, la hora exacta importa más que
         // la proximidad. Marca pasado/futuro con "Fue"/"El".
-        if (dayDelta === 0) return `Hoy a las ${hora}`;
-        if (dayDelta === 1) return `Mañana a las ${hora}`;
-        if (dayDelta === -1) return `Fue ayer a las ${hora}`;
+        //
+        // Sprint E-5 F2-NOTIF-0000 (2026-09-15) — sinHora omite HH:MM
+        // en las 5 variantes que lo incluyen. Reservas F2 (rango de
+        // noches) el timestamp es midnight local (00:00) — mostrarlo
+        // engaña al usuario. Con sinHora=true queda "Mañana" limpio.
+        if (dayDelta === 0) return sinHora ? 'Hoy' : `Hoy a las ${hora}`;
+        if (dayDelta === 1) return sinHora ? 'Mañana' : `Mañana a las ${hora}`;
+        if (dayDelta === -1) return sinHora ? 'Fue ayer' : `Fue ayer a las ${hora}`;
 
-        // Distinto año — sin hora (evento distante, ruido).
+        // Distinto año — sinHora aplica pero el default también omite
+        // HH:MM (evento distante, ruido). Comportamiento idéntico.
         if (anio !== now.getFullYear()) {
             return dayDelta > 0
                 ? `El ${dia} de ${mes} de ${anio}`
@@ -160,8 +179,13 @@ export function formatFechaRelativa(iso: string, opts: FormatOpts = {}): string 
         }
 
         // Mismo año, > 1 día.
-        return dayDelta > 0
-            ? `El ${dia} de ${mes}, ${hora}`
+        if (dayDelta > 0) {
+            return sinHora
+                ? `El ${dia} de ${mes}`
+                : `El ${dia} de ${mes}, ${hora}`;
+        }
+        return sinHora
+            ? `Fue el ${dia} de ${mes}`
             : `Fue el ${dia} de ${mes}, ${hora}`;
     }
 
