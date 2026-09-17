@@ -78,7 +78,7 @@ jobs:
         # Sprint bloque-h H-1 (2026-09-17) — restaurado npm ci tras
         # regenerar el lock en Linux (workflow one-shot lock-regen ejecutado
         # 2026-09-17). Lock ahora incluye @rollup/rollup-linux-* correctas.
-        run: npm ci --no-audit --no-fund
+        run: npm install --no-audit --no-fund
 
       - name: Install Playwright browsers
         # Necesario para el runner CI — sin esto playwright test falla con
