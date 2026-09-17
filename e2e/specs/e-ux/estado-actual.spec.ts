@@ -61,8 +61,8 @@ test('[e-ux DUP-CAMPOS-CATEGORIA] camposPorCategoria sin comunas_cobertura text'
     ).toMatch(/comunas_cobertura:\s*MapPin/);
 });
 
-// FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: migration file no matchea el assertion pattern esperado.
-test.fixme('[e-ux DUP-CAMPOS-CATEGORIA] migration file existe con assertion post-migración', async () => {
+// Refactor 2026-09-15 (sprint E DUP-CAMPOS-CATEGORIA): el DO block del archivo tiene el orden `RAISE EXCEPTION 'DUP-CAMPOS-CATEGORIA: ...'` (RAISE antes que el tag, no después); assertion actualizada al orden real del literal.
+test('[e-ux DUP-CAMPOS-CATEGORIA] migration file existe con assertion post-migración', async () => {
     const source = await readFile(
         path.join(REPO_ROOT, 'migrations/20260915_dup_campos_categoria_comunas_cobertura.sql'),
         'utf-8',
@@ -71,8 +71,9 @@ test.fixme('[e-ux DUP-CAMPOS-CATEGORIA] migration file existe con assertion post
     expect(source, 'UPDATE con prefijo "Cobertura declarada"').toMatch(
         /Cobertura declarada:/,
     );
-    // DO $$ assertion post-migración que verifica 0 remanentes.
-    expect(source, 'DO $$ block con assertion cero remanente').toMatch(
-        /DO\s*\$\$[\s\S]*DUP-CAMPOS-CATEGORIA[\s\S]*RAISE EXCEPTION/,
+    // DO $$ assertion post-migración: RAISE EXCEPTION con tag DUP-CAMPOS-CATEGORIA
+    // (el RAISE viene antes que el tag dentro de la string del mensaje).
+    expect(source, 'DO $$ block con RAISE EXCEPTION tag DUP-CAMPOS-CATEGORIA').toMatch(
+        /DO\s*\$\$[\s\S]*RAISE EXCEPTION[\s\S]*DUP-CAMPOS-CATEGORIA/,
     );
 });

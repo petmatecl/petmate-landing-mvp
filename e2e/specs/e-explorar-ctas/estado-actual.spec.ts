@@ -58,22 +58,29 @@ test('[e-explorar-ctas UX-2] cero CTA /register?rol=proveedor dentro de pages/ex
     ).toBeNull();
 });
 
-// FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: encontró Link CTA en ServicePlaceholderCard, esperaba cero.
-test.fixme('[e-explorar-ctas UX-2] ServicePlaceholderCard sin Link CTA', async () => {
+// Refactor 2026-09-15 (sprint E-2 UX-2): ServicePlaceholderCard fue refactorizado a card informacional (cero `<Link>`, cero "Publica gratis"), pero el JSDoc del sprint cita `<Link href="...">` y "Publica gratis" como referencia histórica; assertion actualizada a comparar código activo (strip líneas `//` + bloque `/** ... */`).
+test('[e-explorar-ctas UX-2] ServicePlaceholderCard sin Link CTA', async () => {
     const source = await readFile(
         path.join(REPO_ROOT, 'components/Explore/ServicePlaceholderCard.tsx'),
         'utf-8',
     );
+    // Strip comentarios (`//` y bloques `/** */`) — el JSDoc del refactor
+    // cita el CTA viejo como referencia histórica (esperado).
+    const codeOnly = source
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .split('\n')
+        .filter(l => !l.trim().startsWith('//'))
+        .join('\n');
     // Ya no debería importar Link ni buildRegisterUrl.
-    expect(source, 'ServicePlaceholderCard NO importa Link').not.toMatch(
+    expect(codeOnly, 'ServicePlaceholderCard NO importa Link').not.toMatch(
         /from ['"]next\/link['"]/,
     );
     // Ya no debería usar el CTA "Publica gratis".
-    expect(source, 'sin footer CTA "Publica gratis"').not.toMatch(
+    expect(codeOnly, 'sin footer CTA "Publica gratis" en código activo').not.toMatch(
         /Publica gratis/,
     );
-    // No debe haber ningún <Link>.
-    expect(source, 'sin ningún <Link>').not.toMatch(/<Link[\s>]/);
+    // No debe haber ningún <Link> activo.
+    expect(codeOnly, 'sin ningún <Link> en código activo').not.toMatch(/<Link[\s>]/);
 });
 
 test('[e-explorar-ctas UX-3] ExampleCTAModal copy "a un proveedor real, regístrate"', async () => {

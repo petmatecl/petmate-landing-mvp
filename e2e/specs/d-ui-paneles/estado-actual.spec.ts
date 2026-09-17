@@ -37,15 +37,18 @@ test('[d-ui-paneles SCROLL-TAB] admin.tsx + proveedor/index.tsx importan y usan 
     }
 });
 
-// FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: /mis-reservas no usa el pill style bg-accent-600 esperado.
-test.fixme('[d-ui-paneles MIS-RESERVAS-TABS] mis-reservas usa pill style admin (bg-accent-600 activo)', async () => {
+// Refactor 2026-09-15 (sprint d-ui-paneles MIS-RESERVAS-TABS): el pill style aterrizó (bg-accent-600 activo), pero el sprint dejó un comentario que cita el hack viejo `border-b-2 -mb-[1px]` como referencia histórica; assertion actualizada a comparar código activo (strip líneas `//`).
+test('[d-ui-paneles MIS-RESERVAS-TABS] mis-reservas usa pill style admin (bg-accent-600 activo)', async () => {
     const source = await readFile(path.join(REPO_ROOT, 'pages/mis-reservas.tsx'), 'utf-8');
+    // Strip líneas `//` — el sprint dejó comentarios que citan la firma
+    // vieja como referencia (esperado).
+    const codeOnly = source.split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
     // Pill style activo: bg-accent-600 + text-white + font-semibold
-    expect(source, 'estilo activo pill accent').toMatch(/isActive[\s\S]{0,80}bg-accent-600[\s\S]{0,80}text-white/);
-    // Removido border-b-2 -mb-[1px] hack
-    expect(source, 'sin border-b-2 hack en tabs').not.toMatch(/border-b-2\s+-mb-\[1px\]/);
-    // Removida baseline border-b del container
-    expect(source, 'sin baseline border-b del container tabs').not.toMatch(/pb-2 mb-4 hide-scrollbar border-b border-slate-100/);
+    expect(codeOnly, 'estilo activo pill accent').toMatch(/isActive[\s\S]{0,80}bg-accent-600[\s\S]{0,80}text-white/);
+    // Removido border-b-2 -mb-[1px] hack (código activo)
+    expect(codeOnly, 'sin border-b-2 hack en tabs (código activo)').not.toMatch(/border-b-2\s+-mb-\[1px\]/);
+    // Removida baseline border-b del container (código activo)
+    expect(codeOnly, 'sin baseline border-b del container tabs (código activo)').not.toMatch(/pb-2 mb-4 hide-scrollbar border-b border-slate-100/);
 });
 
 test('[d-ui-paneles EDITOR-UX] SFM tiene 3 hints con tooltip + separación entre secciones', async () => {
