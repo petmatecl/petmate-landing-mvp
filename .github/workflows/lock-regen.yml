@@ -1,51 +1,37 @@
 # .github/workflows/lock-regen.yml
 # ---------------------------------------------------------------------------
-# ⚠️ NO DISPARAR — workflow INERTE conservado como referencia.
+# Sprint bloque-h H-1 (2026-09-17) — workflow de UN SOLO USO para regenerar
+# el package-lock.json en un runner Linux (ubuntu-latest).
 #
-# INTENTO 1 (2026-09-08, run 34284251713) DETENIDO: el output del workflow
-# (npm install --package-lock-only en ubuntu-latest) trae bump masivo de
-# ~275 paquetes NO-rollup (26464 líneas de diff), incumpliendo el criterio
-# de aceptación original "solo entradas @rollup/rollup-* y metadatos".
+# MOTIVO:
+#   ci.yml + e2e-error-audit.yml usan `npm install` (no `npm ci`) por bug
+#   conocido del lock: fue generado en Windows y le faltan las optional deps
+#   @rollup/rollup-linux-*, lo cual hace fallar `npm ci` en Linux.
+#   Este workflow regenera el lock en Linux (con optional deps completas)
+#   para poder restaurar `npm ci` en ambos workflows (más rápido + más
+#   determinístico).
 #
-# ESTRATEGIA ELEGIDA POR PO 2026-09-09 = alternativa (c):
-# regenerar en Linux + aceptar el bump masivo con auditoría de dependency
-# changes en sprint dedicado post-lanzamiento. Alternativas (a), (b), (d),
-# (e) descartadas. Ver BACKLOG.md > "chore-lock-linux-regen" para el
-# detalle completo del análisis + estrategia.
+# ESTRATEGIA (c) del kickoff PO: aceptar el bump con auditoría.
+#   1. Borra package-lock.json.
+#   2. Corre `npm install` completo → genera un lock nuevo con todas las
+#      versiones más recientes que package.json permite (semver ranges).
+#   3. Sube el lock como artifact para que el auditor lo descargue y
+#      compare vs current.
+#   4. NO commitea al branch — el commit + análisis lo hace el auditor.
 #
-# El workflow queda en main para no re-autorlo cuando el sprint dedicado
-# se abra. Prioridad BAJA — no bloquea nada; el workaround
-# `npm install --no-audit --no-fund` en ci.yml + e2e-error-audit.yml
-# funciona, y la suite e2e (17 tests error-audit + form-post) cubre
-# regressions de código que un bump podría introducir.
+# CONDICIÓN DE PARADA (regla PO): si aparece cualquier major en `next`,
+# `react`, `@supabase/*`, `@sentry/*`, `leaflet`, `react-day-picker`, o
+# `playwright`, el auditor reporta y no mergea.
 #
-# NO DISPARAR VÍA gh workflow run / UI hasta que el sprint dedicado esté
-# abierto explícitamente — un disparo accidental genera un artefacto que
-# no se puede aterrizar sin auditoría de deps.
-# ---------------------------------------------------------------------------
-#
-# HISTORIA (para el sprint dedicado cuando se abra):
-# Sprint chore-lock-linux-regen (2026-09-08) — workflow ONE-SHOT diseñado
-# para regenerar package-lock.json en Linux (ubuntu-latest) e incluir las
-# entradas @rollup/rollup-linux-* (~10 opcionales platform-specific) que
-# el lock generado en Windows omite. Objetivo original: cerrar el workaround
-# `npm install --no-audit --no-fund` aplicado en PR #3 y restaurar `npm ci`
-# estricto.
-#
-# Trigger: workflow_dispatch únicamente. NO se dispara en push/PR.
-#
-# Output: package-lock.json regenerado como artefacto de build. En el
-# sprint dedicado: PO descarga el artefacto, corre auditoría de dependency
-# changes (matriz de bumps por paquete, cross-check contra changelogs de
-# breaking changes conocidos, suite e2e verde contra preview del lock
-# nuevo), commitea si la auditoría es limpia.
+# ESTE WORKFLOW SE BORRA al cerrar H-1 (workflow de un solo uso).
 # ---------------------------------------------------------------------------
 
-name: lock-regen (one-shot)
+name: lock-regen
 
 on:
   workflow_dispatch:
 
+# No concurrency group — este workflow es rarísimo (una vez por sprint).
 jobs:
   regen:
     runs-on: ubuntu-latest
@@ -57,33 +43,56 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          # Misma versión que ci.yml (20.x) para asegurar que el lock
-          # generado sea compatible con el runtime de los otros workflows.
           node-version: '20'
-          cache: 'npm'
+          # Sin cache — queremos un install limpio desde cero.
 
-      - name: Regenerate package-lock.json (Linux platform)
-        # --package-lock-only: solo regenera el lock, cero side effects en
-        # node_modules. Al correr en Linux, npm resuelve las optional deps
-        # rollup-linux-* y las incluye en el lock.
-        run: npm install --package-lock-only
-
-      - name: Verify lock includes @rollup/rollup-linux-x64-gnu
-        # Assertion crítica: si el lock regenerado NO incluye la entrada
-        # linux-x64-gnu (la que fallaba en CI original), el workflow es
-        # inútil. Falla el step con mensaje claro.
+      - name: Show current lock (SHA + size)
         run: |
-          if grep -q '"@rollup/rollup-linux-x64-gnu":' package-lock.json; then
-            echo "OK — lock incluye @rollup/rollup-linux-x64-gnu"
-            grep -c '"@rollup/rollup-' package-lock.json | xargs echo "Total entries @rollup/rollup-*:"
+          echo "=== Current package-lock.json ==="
+          if [ -f package-lock.json ]; then
+            wc -l package-lock.json
+            sha1sum package-lock.json
           else
-            echo "FAIL — lock regenerado NO incluye @rollup/rollup-linux-x64-gnu"
-            exit 1
+            echo "No lock file present."
           fi
 
-      - name: Upload package-lock.json as artifact
+      - name: Delete package-lock.json + node_modules
+        run: |
+          rm -f package-lock.json
+          rm -rf node_modules
+          echo "Deleted."
+
+      - name: Fresh npm install
+        # Sin --no-audit --no-fund para tener output completo si algún
+        # paquete falla.
+        run: npm install
+
+      - name: Show new lock (SHA + size)
+        run: |
+          echo "=== New package-lock.json ==="
+          wc -l package-lock.json
+          sha1sum package-lock.json
+
+      - name: Upload new lock as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: package-lock-regen-${{ github.run_id }}
+          name: package-lock-regenerated
           path: package-lock.json
           retention-days: 7
+
+      - name: Summary of top-level dependencies
+        # Volcar lista de deps top-level con versiones resueltas — el
+        # auditor las compara vs el lock actual para detectar majors.
+        run: |
+          echo "=== Top-level installed versions (from new lock) ==="
+          node -e "
+            const lock = require('./package-lock.json');
+            const deps = lock.packages[''].dependencies || {};
+            const devDeps = lock.packages[''].devDependencies || {};
+            const all = { ...deps, ...devDeps };
+            for (const [name, range] of Object.entries(all)) {
+              const pkg = lock.packages['node_modules/' + name];
+              const resolved = pkg?.version || '?';
+              console.log(name.padEnd(50), range.padEnd(15), '→', resolved);
+            }
+          "
