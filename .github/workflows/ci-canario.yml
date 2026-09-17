@@ -1,0 +1,122 @@
+name: ci-canario
+
+# Sprint bloque-i I-1 (2026-09-17) — canario del CI, prueba viva de que el
+# pipefail (y en general la propagación de exit code de un test que falla)
+# sigue funcionando en los workflows.
+#
+# Origen: hotfix P12 (2026-09-17) — un `| tee` sin `set -o pipefail` enmascaró
+# 19 tests F2 que fallaban en el PR #60, reportando el step como success con
+# conclusion=success. Merge autónomo con CI verde falso. Sin este canario,
+# la próxima regresión del pipefail (o cualquier mecanismo de propagación de
+# exit code) puede pasar meses inadvertida hasta que un fail productivo la
+# revele. Ver ACTA_HOTFIX_P12.md + CLAUDE.md > REGLA P12.
+#
+# Diseño:
+#   1. Corre un spec que SIEMPRE falla (`e2e/specs/ci-canario/fail-a-proposito.spec.ts`).
+#   2. El wrapping bash EXPECTS non-zero exit code.
+#   3. Si npx playwright retorna 0 (spec pasó) → CI está roto → abre issue.
+#   4. Si retorna non-zero (spec falló) → todo bien, exit 0.
+#
+# Frecuencia: schedule semanal (lunes 11:00 UTC = 08:00 CLT) + workflow_dispatch
+# manual para trigger inmediato tras cambios estructurales al pipeline.
+
+on:
+  schedule:
+    # Lunes 11:00 UTC = 08:00 CLT (Chile UTC-3 estable).
+    - cron: '0 11 * * 1'
+  workflow_dispatch:
+
+concurrency:
+  group: ci-canario
+  cancel-in-progress: false
+
+jobs:
+  canario:
+    name: Canario — verifica que un test que falla propaga exit code
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      issues: write  # necesario para abrir issue automático en caso de CI ciego
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browser (chromium only)
+        run: npx playwright install chromium --with-deps
+
+      - name: Compose minimal .env.test (canario sin creds staging)
+        run: |
+          # El spec canario no navega ni toca red — solo throwea. Pero los
+          # guards de playwright.config (assertBypass + assertCredencialesReales)
+          # corren al arranque de cualquier `npx playwright test`, así que
+          # sembramos valores non-placeholder para satisfacerlos. Cero request
+          # real: el spec canario tiene testMatch en un project 'canario' con
+          # dependencies vacías, no dispara setup ni fixture de auth.
+          mkdir -p e2e
+          cat > e2e/.env.test <<'ENV'
+          PLAYWRIGHT_BASE_URL=https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app
+          PLAYWRIGHT_BYPASS=canario-satisface-guard-no-usa-red
+          E2E_SUPABASE_URL=https://jmtadvdkicyylcwjcmcl.supabase.co
+          E2E_SUPABASE_ANON_KEY=canario-satisface-guard-no-usa-red
+          E2E_STAGING_EMAIL=canario@localhost
+          E2E_STAGING_PASSWORD=canario-satisface-guard
+          ENV
+
+      - name: Ejecutar canario — spec DEBE fallar; step OK solo si exit != 0
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -o pipefail
+          # Corremos el spec canario. Esperamos exit code != 0 (spec throwea).
+          # El `if` invierte la lógica: entramos al `then` solo si npx pasó
+          # (exit 0), que es EL BUG que queremos detectar.
+          if npx playwright test e2e/specs/ci-canario/ --reporter=list --project=canario 2>&1 | tee /tmp/canario.log; then
+            echo ""
+            echo "========================================================="
+            echo "CI CIEGO DETECTADO: canario pasó cuando debía fallar."
+            echo "El spec e2e/specs/ci-canario/fail-a-proposito.spec.ts"
+            echo "está diseñado para throwear siempre; si npx playwright"
+            echo "retorna 0, algún mecanismo de propagación de exit code"
+            echo "en el pipeline está roto (típicamente pipefail o similar)."
+            echo "========================================================="
+            echo ""
+            gh issue create \
+              --title "CI ciego — canario del pipefail pasó cuando debía fallar" \
+              --body "El workflow \`ci-canario\` detectó que el spec canario terminó con exit code 0, cuando el diseño exige que siempre falle. Esto indica que la propagación de exit code de tests que fallan en algún workflow está rota — cualquier PR podría estar mergeando con tests rojos sin señal visible.
+
+              **Run**: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              **Trigger**: ${{ github.event_name }}
+              **Commit**: ${{ github.sha }}
+
+              **Qué revisar**:
+              1. \`.github/workflows/*.yml\` — buscar \`| tee\` sin \`set -o pipefail\` (regla P12 del proyecto).
+              2. Cambios recientes a la config de playwright (\`playwright.config.ts\`, \`--reporter\`, \`--project\`).
+              3. Verificar el log del canario en el artifact del run.
+
+              **Acción**: hotfix inmediato + verificar que los últimos merges no aterrizaron con tests rojos silenciosos. Cerrar el issue una vez el pipefail (u otro mecanismo) se restaure." \
+              --label "ci"
+            exit 1
+          fi
+          echo ""
+          echo "========================================================="
+          echo "✓ CANARIO OK: el spec falló como estaba diseñado."
+          echo "  La propagación de exit code del pipeline funciona."
+          echo "========================================================="
+
+      - name: Upload log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: canario-log-${{ github.run_id }}
+          path: /tmp/canario.log
+          retention-days: 14

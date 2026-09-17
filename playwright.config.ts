@@ -300,5 +300,17 @@ export default defineConfig({
             dependencies: ['setup'],
             testMatch: /specs[\\/]visits-doble[\\/].*\.spec\.ts$/,
         },
+        {
+            // Sprint bloque-i I-1 (2026-09-17) — spec canario del CI.
+            // Cero dependencies (no setup, no auth, no navegación). El spec
+            // solo throwea con `expect(false).toBe(true)`. El workflow
+            // `.github/workflows/ci-canario.yml` invierte la lógica: espera
+            // exit != 0. Si Playwright retorna 0, abre issue "CI ciego".
+            name: 'canario',
+            use: {
+                ...devices['Desktop Chrome'],
+            },
+            testMatch: /specs[\\/]ci-canario[\\/].*\.spec\.ts$/,
+        },
     ],
 });
