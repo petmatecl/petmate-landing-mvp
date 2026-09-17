@@ -72,16 +72,39 @@ Orden explícito PO: I-1 → I-2 → I-4 → I-3.
 
 **Verificación**: baselines commiteadas + primera PR de BUTTON-CANON con visual verde.
 
-## Estado en curso
+## Estado FINAL
 
-- [ ] I-1 canario CI
-- [ ] I-2 Node 22 CI
-- [ ] I-4 RPC-C Lote 2 (con SQL prod)
-- [ ] I-3 Baselines visuales
+- [x] I-1 canario CI — PR #64 mergeado (SHA `8001597`). Workflow `.github/workflows/ci-canario.yml` + spec `e2e/specs/ci-canario/fail-a-proposito.spec.ts` + project `canario` en playwright.config.
+- [x] I-2 Node 22 CI — PR #65 mergeado (SHA `5879476`). 4 workflows alineados + `engines.node ">=22"` en package.json. `@supabase/supabase-js@~2.84.0` mantenido intencional.
+- [x] I-4 RPC-C Lote 2 (admin-only) — PR #66 mergeado (SHA `80ff8fc`). REVOKE aplicado en staging via `supabase-staging-rw`; ACL post-verify `anon=false, authenticated=true, service_role=true`. SQL para prod en `migrations/20260917_lote2_rpc_c_admin_only_prod.sql` — **espera ejecución PO en prod**.
+- [x] I-3 Baselines visuales — 2 PRs + 1 direct-fix:
+  - PR #68 bootstrap `PLAYWRIGHT_VISUAL_BOOTSTRAP` (SHA `80a45d6`) — cerró el chicken-and-egg del gate `test.skip` que impedía la primera generación.
+  - Direct main `160a63c` — hotfix workflow-only: `git add e2e/specs/visual/` reemplaza el pattern `**/*-snapshots/*.png` que no expandía en bash sin globstar. Sin este fix, los PNGs quedaban sin stage y el commit era no-op.
+  - Commit CI runner `e19154c` — **12 PNGs baseline commitedas** en `e2e/specs/visual/paginas-clave.spec.ts-snapshots/` (home/explorar/login/proveedor/admin/mis-reservas × desktop+mobile). BUTTON-CANON PRs incrementales están habilitados a partir de este SHA.
 
-## Cierre esperado
+## Deuda registrada del bloque
 
-- Acta breve `docs/sprints/bloque-i.md` (este archivo, actualizado con SHAs, PRs, verificaciones).
-- BACKLOG.md conciliado — mover ítems cerrados de "pendiente" a "cerrado", agregar nuevos ítems descubiertos.
-- Lista consolidada de SQL de prod pendiente (Lote 1 REVOKE + Lote 2 REVOKE + Lote 3 cuando corresponda).
-- Reporte final al PO con enlaces a los PRs mergeados + los bloques SQL para ejecución manual en prod.
+- **ficha-servicio visual (2 baselines faltantes)**: los tests desktop + mobile de la ficha `/servicio/[id]` fallaron en el dispatch de generación (spec navega a `/explorar` y clickea `a[href*="/servicio/"]` con storage state vacío — cero servicios visibles al visitante anon con la data actual staging). Trigger: seed más data pública en staging o cambiar el spec a un ID conocido. Sprint chico post-lanzamiento; no bloquea BUTTON-CANON de las otras 12 páginas.
+- **Warnings Node 20 → 24 en action runners**: annotation persistente `actions/checkout@v4, actions/setup-node@v4, actions/upload-artifact@v4` corren en Node 24 forzado. Cuando GitHub Actions retire Node 20 (fecha en la annotation), migrar a `actions/*@v5` que declaren Node 24 native. Sprint chico.
+
+## Lista consolidada de SQL de prod PENDIENTE ejecución PO
+
+1. **Lote 1 RPC-C dead code** (bloque-h H-2, mergeado como PR #59 en `h2-lote1-staging`) — 3 funciones sin callers reales: `incrementar_vistas_servicio`, `send_notification`, `try_jsonb`. SQL final en `docs/auditorias/rpc-c-20260917.md §6`.
+2. **Lote 2 RPC-C admin-only** (bloque-i I-4, este bloque) — `calcular_perfil_completo_proveedor`. SQL en `migrations/20260917_lote2_rpc_c_admin_only_prod.sql`.
+3. **Lote 3 RPC-C legacy** (bloque-h H-2, pendiente) — `incrementar_vistas` reemplazado por `registrar_visita`. Requiere sprint separado con grep exhaustivo previo (potential false-positive detected en `FeedbackList.tsx`).
+
+## PRs del bloque
+
+| PR | Alcance | SHA merge | Estado |
+|---|---|---|---|
+| #64 | I-1 canario CI + kickoff doc | `8001597` | MERGED |
+| #65 | I-2 Node 22 en 4 workflows + engines | `5879476` | MERGED |
+| #66 | I-4 RPC-C Lote 2 admin-only (staging OK + SQL prod) | `80ff8fc` | MERGED |
+| #68 | I-3 bootstrap `PLAYWRIGHT_VISUAL_BOOTSTRAP` | `80a45d6` | MERGED |
+| direct main | hotfix workflow visual `git add` pattern | `160a63c` | pushed |
+| CI runner | 12 PNGs baseline generadas por dispatch | `e19154c` | pushed |
+| _(este)_ | acta bloque-i + BACKLOG conciliado | pendiente | pendiente |
+
+## Timing efectivo
+
+Kickoff → cierre funcional: ~2h wall clock. Cuello observado: concurrency queue eviction del workflow `e2e-error-audit` (nueva runs pending cancelaban a las anteriores en la cola `e2e-staging` con `cancel-in-progress: false`) — requirió empty commits para retriggering, y afectó orden de merges. Costo neto ~30 min extra en los merges de I-2 (bloque-i-2) y I-4 (bloque-i-4).
