@@ -8,6 +8,18 @@ export default function QuienesSomos() {
             <Head>
                 <title>Quiénes Somos — Pawnecta</title>
                 <meta name="description" content="La historia detrás de Pawnecta: una pareja, dos gatitos y la búsqueda del cuidado perfecto." />
+                <link rel="canonical" href="https://www.pawnecta.com/quienes-somos" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://www.pawnecta.com/quienes-somos" />
+                <meta property="og:title" content="Quiénes Somos — Pawnecta" />
+                <meta property="og:description" content="La historia detrás de Pawnecta." />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Quiénes Somos — Pawnecta" />
+                <meta name="twitter:description" content="La historia detrás de Pawnecta." />
+                <meta name="twitter:image" content="https://www.pawnecta.com/og-image.jpg" />
             </Head>
 
             <div className="bg-white">

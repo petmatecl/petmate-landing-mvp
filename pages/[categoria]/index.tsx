@@ -28,8 +28,18 @@ export default function CategoryPage({ categoria, services }: CategoryPageProps)
             <Head>
                 <title>{pageTitle}</title>
                 <meta name="description" content={pageDescription} />
+                <link rel="canonical" href={`https://www.pawnecta.com/${categoria.slug}`} />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={`https://www.pawnecta.com/${categoria.slug}`} />
                 <meta property="og:title" content={pageTitle} />
                 <meta property="og:description" content={pageDescription} />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={pageTitle} />
+                <meta name="twitter:description" content={pageDescription} />
+                <meta name="twitter:image" content="https://www.pawnecta.com/og-image.jpg" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

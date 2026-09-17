@@ -5,6 +5,15 @@ export default function TerminosPage() {
         <div className="bg-slate-50 min-h-screen py-12">
             <Head>
                 <title>Términos y Condiciones | Pawnecta</title>
+                <meta name="description" content="Reglas de uso de Pawnecta: cuenta, publicación de servicios, contratación, responsabilidades y limitaciones de la plataforma." />
+                <link rel="canonical" href="https://www.pawnecta.com/terminos" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://www.pawnecta.com/terminos" />
+                <meta property="og:title" content="Términos y Condiciones | Pawnecta" />
+                <meta property="og:description" content="Reglas de uso de Pawnecta." />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
             </Head>
             <div className="mx-auto max-w-4xl px-6 lg:px-8">
                 <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border-2 border-slate-300">
