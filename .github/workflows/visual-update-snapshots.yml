@@ -132,6 +132,12 @@ jobs:
         env:
           PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.preview_url }}
           CI: 'true'
+          # Sprint bloque-i I-3 bootstrap (2026-09-17) — bypass del skip
+          # gate en `e2e/specs/visual/paginas-clave.spec.ts` cuando el dir
+          # de baselines aún no existe. Sin este flag, chicken-and-egg:
+          # tests skipean → cero snapshots → dir no se crea → tests siempre
+          # skipean. El flag es no-op post-bootstrap (existsSync ya cubre).
+          PLAYWRIGHT_VISUAL_BOOTSTRAP: '1'
         run: |
           # --workers=1 evita que los 2 setups (proveedor + tutor) golpeen
           # Supabase Auth staging en paralelo — cuello de infra observado en
