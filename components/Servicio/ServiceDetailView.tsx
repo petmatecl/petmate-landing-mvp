@@ -238,17 +238,24 @@ export default function ServiceDetailView({
         };
     }, [router.query.resenar, isExample, user, service?.id, miReviewLoaded, miReviewEstado]);
 
-    // Tracking: registrar vista al entrar a la pagina
+    // Tracking: registrar vista al entrar a la página.
+    // Sprint vistas-doble (2026-09-17): eliminada la llamada legacy
+    // `supabase.rpc('incrementar_vistas', {...})` — duplicaba el bump del
+    // contador porque `useTrackVisit` (hook llamado desde
+    // `pages/servicio/[id].tsx`) ya invoca `registrar_visita`, que es
+    // idempotente por (visitor_hash, día). El legacy path sin idempotencia
+    // sumaba en cada mount, inflando visitas_total en ~96% (medido en
+    // prod 2026-09-17: 50 declarado vs 2 visitor_days reales en 10 servicios
+    // con contador positivo). Ver ACTA + PR de este sprint.
+    // Se preserva la escritura a `eventos_tracking` (registro completo del
+    // evento con referrer/metadata para métricas — distinto del contador).
     React.useEffect(() => {
         if (isExample || !service?.id) return;
-        // Fire-and-forget — no bloquea el render
         void supabase.from('eventos_tracking').insert({
             tipo: 'vista_servicio',
             servicio_id: service.id,
             metadata: { source: typeof document !== 'undefined' ? document.referrer : '' },
         });
-        // Incrementar contador de vistas en servicios_publicados
-        void supabase.rpc('incrementar_vistas', { p_servicio_id: service.id });
     }, [isExample, service?.id]);
 
     // Derived state
