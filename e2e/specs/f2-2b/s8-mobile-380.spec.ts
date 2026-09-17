@@ -18,7 +18,7 @@ test.describe('S8 — Mobile 380px', () => {
     let servicio: ServicioEfimero;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanos(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -29,7 +29,7 @@ test.describe('S8 — Mobile 380px', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

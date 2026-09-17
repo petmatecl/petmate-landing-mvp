@@ -1,0 +1,85 @@
+name: cleanup-staging-e2e
+
+# Sprint estab-e2e-i (2026-09-17) — cleanup nocturno de residuo fixture en
+# staging. La suite e2e genera servicios, agendamientos y notifications
+# taggeados; cuando un test aborta a mitad, el afterAll no llega a limpiar
+# y queda residuo. Sin barrido periódico, el residuo acumulado degrada
+# cleanup en runs futuros (37-43 s por servicio observados 2026-09-17)
+# hasta cascadear en fallos de auth por duración del run.
+#
+# El workflow requiere estos secrets configurados en GitHub Settings →
+# Secrets and variables → Actions:
+#   SUPABASE_STAGING_URL             — https://jmtadvdkicyylcwjcmcl.supabase.co
+#   SUPABASE_STAGING_SERVICE_ROLE_KEY — service_role key del proyecto staging
+#
+# El script `scripts/cleanup-staging-e2e.ts` aborta si SUPABASE_STAGING_URL
+# no contiene el ref del proyecto staging — imposible correr contra prod
+# aunque alguien pase la env var equivocada.
+
+on:
+  schedule:
+    # 07:00 UTC = 04:00 CLT (Chile invierno UTC-3). En verano CLST UTC-3
+    # también, así que 04:00 Chile ambos regímenes (Chile eliminó DST en
+    # varias regiones y la RM sigue en UTC-3 estable).
+    - cron: '0 7 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: 'Aplicar los DELETE (default: dry-run reporta target set sin borrar)'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: cleanup-staging-e2e
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    name: Cleanup residuo fixtures > 24h
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install deps (script + @supabase/supabase-js)
+        run: npm install --no-audit --no-fund
+
+      - name: Ejecutar cleanup script
+        # dry-run por default en el schedule; APLICA solo cuando el trigger
+        # es workflow_dispatch con input `apply=true`, o forzado permanente
+        # en schedule tras validar 1-2 corridas dry-run (edita este step).
+        run: |
+          set -o pipefail
+          if [ "${{ github.event.inputs.apply }}" = "true" ]; then
+            echo "[cleanup-staging-e2e] APPLY mode (workflow_dispatch input)"
+            npx tsx scripts/cleanup-staging-e2e.ts --apply 2>&1 | tee /tmp/cleanup.log
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            # Schedule: APPLY (barrido nocturno real).
+            echo "[cleanup-staging-e2e] APPLY mode (schedule)"
+            npx tsx scripts/cleanup-staging-e2e.ts --apply 2>&1 | tee /tmp/cleanup.log
+          else
+            echo "[cleanup-staging-e2e] DRY-RUN mode (workflow_dispatch default)"
+            npx tsx scripts/cleanup-staging-e2e.ts 2>&1 | tee /tmp/cleanup.log
+          fi
+        env:
+          SUPABASE_STAGING_URL: ${{ secrets.SUPABASE_STAGING_URL }}
+          SUPABASE_STAGING_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_STAGING_SERVICE_ROLE_KEY }}
+
+      - name: Upload log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanup-log-${{ github.run_id }}
+          path: /tmp/cleanup.log
+          retention-days: 14

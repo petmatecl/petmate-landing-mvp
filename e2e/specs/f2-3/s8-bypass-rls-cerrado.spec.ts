@@ -48,8 +48,8 @@ test.describe.serial('S8 — Bypass RLS cerrado post-migration F2-3-D', () => {
     let reservaF2Id: string;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
@@ -73,12 +73,12 @@ test.describe.serial('S8 — Bypass RLS cerrado post-migration F2-3-D', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
     test('UPDATE directo como tutor sobre reserva F2 confirmada → 0 filas', async () => {
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseTutor = await getSupabaseAsTutor();
 
         // Attempt bypass: mismo query que un tutor con devtools ejecutaría.
         const { data, error } = await supabaseTutor

@@ -51,8 +51,8 @@ test.describe.serial('S7 — Cancelación fuera de ventana rechazada', () => {
     let reservaId: string;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
@@ -78,7 +78,7 @@ test.describe.serial('S7 — Cancelación fuera de ventana rechazada', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
@@ -126,7 +126,7 @@ test.describe.serial('S7 — Cancelación fuera de ventana rechazada', () => {
         expect(body.reason).toBe('ventana_cerrada');
 
         // BD: la reserva sigue confirmada.
-        const supabaseCheck = getSupabaseAsTutor();
+        const supabaseCheck = await getSupabaseAsTutor();
         const { data: r } = await supabaseCheck
             .from('agendamientos')
             .select('estado')

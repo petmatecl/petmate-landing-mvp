@@ -58,8 +58,8 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
 
     test.beforeAll(async () => {
         test.skip(SKIP_UNTIL_DEPLOY, 'requiere deploy del sweep #2 en staging');
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
@@ -80,7 +80,7 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

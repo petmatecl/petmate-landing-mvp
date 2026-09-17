@@ -67,8 +67,8 @@ test.describe.serial('S1 — dryRun elegibles por familia (F1/F2/legacy)', () =>
     const ids: { F1: string; F2: string; legacy: string } = { F1: '', F2: '', legacy: '' };
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
 
@@ -100,8 +100,8 @@ test.describe.serial('S1 — dryRun elegibles por familia (F1/F2/legacy)', () =>
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = getSupabaseAsTutor();
-        const supabaseProv = getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
         await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
         await borrarServicioResiliente(supabaseProv, servicio.id);
     });
@@ -164,8 +164,8 @@ test.describe.serial('S2 — corrida real + idempotencia', () => {
     const ids: { F1: string; F2: string; legacy: string } = { F1: '', F2: '', legacy: '' };
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
 
@@ -195,8 +195,8 @@ test.describe.serial('S2 — corrida real + idempotencia', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = getSupabaseAsTutor();
-        const supabaseProv = getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
         await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
         await borrarServicioResiliente(supabaseProv, servicio.id);
     });
@@ -223,7 +223,7 @@ test.describe.serial('S2 — corrida real + idempotencia', () => {
         expect(nuestrosFailures).toEqual([]);
 
         // BD: 6 marcas populadas.
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         for (const familia of ['F1', 'F2', 'legacy'] as const) {
             const marcas = await getMarcasAgendamiento(supabase, ids[familia]);
             expect(marcas.tutor, `${familia} tutor mark`).not.toBeNull();
@@ -267,7 +267,7 @@ test.describe.serial('S2 — corrida real + idempotencia', () => {
 
         // Refuerzo BD: marcas siguen populadas (no NULL). No comparamos
         // timestamps porque no hicimos UPDATE (dryRun).
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         for (const familia of ['F1', 'F2', 'legacy'] as const) {
             const marcas = await getMarcasAgendamiento(supabase, ids[familia]);
             expect(marcas.tutor, `${familia} tutor mark sigue populada`).not.toBeNull();
@@ -287,8 +287,8 @@ test.describe.serial('S3 — marcas independientes (parcial)', () => {
     const startIso = new Date().toISOString();
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
 
@@ -309,8 +309,8 @@ test.describe.serial('S3 — marcas independientes (parcial)', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = getSupabaseAsTutor();
-        const supabaseProv = getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
         await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
         await borrarServicioResiliente(supabaseProv, servicio.id);
     });
@@ -332,7 +332,7 @@ test.describe.serial('S3 — marcas independientes (parcial)', () => {
         // Proveedor mark: ISO nuevo (>= startIso). Comparación por epoch —
         // PG devuelve '+00:00' y JS toISOString() devuelve 'Z' (equivalentes
         // como instante, distintos como string).
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         const marcas = await getMarcasAgendamiento(supabase, agendamientoId);
         expect(marcas.tutor).not.toBeNull();
         expect(new Date(marcas.tutor!).getTime()).toBe(new Date(marcaTutorVieja).getTime());
@@ -349,8 +349,8 @@ test.describe.serial('S4 — no elegibles (fuera ventana + estado != confirmada)
     const misIds = new Set<string>();
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
 
@@ -382,8 +382,8 @@ test.describe.serial('S4 — no elegibles (fuera ventana + estado != confirmada)
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = getSupabaseAsTutor();
-        const supabaseProv = getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
         await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
         await borrarServicioResiliente(supabaseProv, servicio.id);
     });
@@ -416,7 +416,7 @@ test.describe.serial('S4 — no elegibles (fuera ventana + estado != confirmada)
         const nuestrosFailures = (bodyReal.failures ?? []).filter((f: { agendamientoId: string }) => misIds.has(f.agendamientoId));
         expect(nuestrosFailures).toEqual([]);
 
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         const { data } = await supabase
             .from('agendamientos')
             .select('id, recordatorio_tutor_enviado_at, recordatorio_proveedor_enviado_at')
