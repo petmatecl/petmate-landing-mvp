@@ -5,6 +5,15 @@ export default function PrivacidadPage() {
         <div className="bg-slate-50 min-h-screen py-12">
             <Head>
                 <title>Política de Privacidad | Pawnecta</title>
+                <meta name="description" content="Cómo tratamos tus datos personales en Pawnecta: qué recopilamos, para qué lo usamos, con quién los compartimos y tus derechos como titular." />
+                <link rel="canonical" href="https://www.pawnecta.com/privacidad" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://www.pawnecta.com/privacidad" />
+                <meta property="og:title" content="Política de Privacidad | Pawnecta" />
+                <meta property="og:description" content="Cómo tratamos tus datos personales en Pawnecta." />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
             </Head>
             <div className="mx-auto max-w-4xl px-6 lg:px-8">
                 <div className="bg-white rounded-3xl p-8 md:p-14 shadow-sm border-2 border-slate-300">

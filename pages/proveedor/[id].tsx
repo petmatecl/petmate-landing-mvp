@@ -132,6 +132,14 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={desc} />
                 <meta property="og:image" content={proveedor.foto_perfil || 'https://www.pawnecta.com/og-image.jpg'} />
+                <meta property="og:type" content="profile" />
+                <meta property="og:url" content={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={title} />
+                <meta name="twitter:description" content={desc} />
+                <meta name="twitter:image" content={proveedor.foto_perfil || 'https://www.pawnecta.com/og-image.jpg'} />
                 <link rel="canonical" href={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
                 <script
                     type="application/ld+json"

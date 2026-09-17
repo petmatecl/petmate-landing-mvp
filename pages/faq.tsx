@@ -67,6 +67,18 @@ export default function FAQ() {
             <Head>
                 <title>Preguntas Frecuentes | Pawnecta</title>
                 <meta name="description" content="Resuelve tus dudas sobre Pawnecta. Aprende cómo conectamos tutores con cuidadores de confianza en Chile." />
+                <link rel="canonical" href="https://www.pawnecta.com/faq" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://www.pawnecta.com/faq" />
+                <meta property="og:title" content="Preguntas Frecuentes | Pawnecta" />
+                <meta property="og:description" content="Resuelve tus dudas sobre Pawnecta." />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Preguntas Frecuentes | Pawnecta" />
+                <meta name="twitter:description" content="Resuelve tus dudas sobre Pawnecta." />
+                <meta name="twitter:image" content="https://www.pawnecta.com/og-image.jpg" />
             </Head>
 
             <div className="flex-grow py-12 px-4 sm:px-6 lg:px-8 font-sans text-slate-900">

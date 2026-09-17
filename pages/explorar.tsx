@@ -538,6 +538,18 @@ export default function ExplorarPage() {
             <Head>
                 <title>Explorar Servicios | Pawnecta</title>
                 <meta name="description" content="Busca y encuentra proveedores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
+                <link rel="canonical" href="https://www.pawnecta.com/explorar" />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content="https://www.pawnecta.com/explorar" />
+                <meta property="og:title" content="Explorar Servicios | Pawnecta" />
+                <meta property="og:description" content="Busca y encuentra proveedores, paseadores, entrenadores y veterinarios verificados en tu comuna." />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content="Explorar Servicios | Pawnecta" />
+                <meta name="twitter:description" content="Busca y encuentra proveedores verificados en tu comuna." />
+                <meta name="twitter:image" content="https://www.pawnecta.com/og-image.jpg" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{

@@ -122,8 +122,18 @@ export default function CategoriaComuna({ categoria, comuna, services, errorLoad
             <Head>
                 <title>{title}</title>
                 <meta name="description" content={description} />
+                <link rel="canonical" href={`https://www.pawnecta.com/${categoria.slug}/${encodeURIComponent(comuna.toLowerCase())}`} />
+                <meta property="og:type" content="website" />
+                <meta property="og:url" content={`https://www.pawnecta.com/${categoria.slug}/${encodeURIComponent(comuna.toLowerCase())}`} />
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={description} />
+                <meta property="og:image" content="https://www.pawnecta.com/og-image.jpg" />
+                <meta property="og:locale" content="es_CL" />
+                <meta property="og:site_name" content="Pawnecta" />
+                <meta name="twitter:card" content="summary_large_image" />
+                <meta name="twitter:title" content={title} />
+                <meta name="twitter:description" content={description} />
+                <meta name="twitter:image" content="https://www.pawnecta.com/og-image.jpg" />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
