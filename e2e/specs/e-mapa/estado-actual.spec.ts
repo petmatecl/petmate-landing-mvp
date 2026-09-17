@@ -14,9 +14,12 @@ import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-// FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: CaregiverMap no matchea la firma imperativa esperada de leaflet.markercluster.
-test.fixme('[e-mapa MAP-BURBUJAS] CaregiverMap usa leaflet.markercluster imperativo', async () => {
+// Refactor 2026-09-15 (sprint E-4 MAP-BURBUJAS): CaregiverMap migró al approach imperativo con `leaflet.markercluster`, pero el bloque explicativo del refactor cita el wrapper `react-leaflet-cluster` como referencia (por qué se descartó); assertion actualizada a comparar código activo para "sin import react-leaflet-cluster" (strip líneas `//`).
+test('[e-mapa MAP-BURBUJAS] CaregiverMap usa leaflet.markercluster imperativo', async () => {
     const source = await readFile(path.join(REPO_ROOT, 'components/Explore/CaregiverMap.tsx'), 'utf-8');
+    // Strip líneas `//` — el bloque explicativo del sprint cita
+    // `react-leaflet-cluster` como referencia histórica (esperado).
+    const codeOnly = source.split('\n').filter(l => !l.trim().startsWith('//')).join('\n');
     // Import directo de la librería base (sin wrapper React).
     expect(source, 'import "leaflet.markercluster"').toMatch(
         /import ['"]leaflet\.markercluster['"];/,
@@ -25,8 +28,8 @@ test.fixme('[e-mapa MAP-BURBUJAS] CaregiverMap usa leaflet.markercluster imperat
     expect(source, 'import CSS MarkerCluster').toMatch(
         /import ['"]leaflet\.markercluster\/dist\/MarkerCluster\.css['"]/,
     );
-    // Cero import del wrapper react-leaflet-cluster.
-    expect(source, 'sin import react-leaflet-cluster').not.toMatch(
+    // Cero import del wrapper react-leaflet-cluster en código activo.
+    expect(codeOnly, 'sin import react-leaflet-cluster en código activo').not.toMatch(
         /react-leaflet-cluster/,
     );
     // Componente hijo ClusteredPriceMarkers que usa useMap + L.markerClusterGroup.

@@ -21,21 +21,21 @@ import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-// FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: esperaba img del popup con object-top en CaregiverMap; no lo encontró.
-test.fixme('[d-explorar-mapa MAP-5] CaregiverMap popup img usa object-top', async () => {
+// Refactor 2026-09-15 (sprint E-4 MAP-BURBUJAS): el popup migró de JSX `<Popup>` a HTML template via `bindPopup` imperativo, así que `className="..."` (JSX) pasa a ser `class="..."` (HTML string); assertion actualizada al literal actual.
+test('[d-explorar-mapa MAP-5] CaregiverMap popup img usa object-top', async () => {
     const source = await readFile(
         path.join(REPO_ROOT, 'components/Explore/CaregiverMap.tsx'),
         'utf-8',
     );
-    // La <img> del popup (dentro del Popup con className="custom-popup").
+    // La <img> del popup (dentro del bindPopup con className="custom-popup").
     // Debe llevar object-top explícito para preservar la cabeza/rostro
-    // del sujeto en lugar del crop center default.
+    // del sujeto en lugar del crop center default. HTML template usa `class=`.
     expect(source, 'img del popup con object-top').toMatch(
-        /className=["'`][^"'`]*object-top[^"'`]*["'`]/,
+        /class=["'`][^"'`]*object-top[^"'`]*["'`]/,
     );
     // Y sigue con object-cover + h-32 (no revertidos).
     expect(source, 'img preserva h-32 object-cover').toMatch(
-        /className=["'`][^"'`]*w-full h-32 object-cover object-top["'`]/,
+        /class=["'`][^"'`]*w-full h-32 object-cover object-top["'`]/,
     );
 });
 
