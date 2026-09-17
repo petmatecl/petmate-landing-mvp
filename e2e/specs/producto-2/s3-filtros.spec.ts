@@ -45,8 +45,8 @@ let ctx: Ctx;
 test.describe.configure({ mode: 'serial' });
 
 test.beforeAll(async () => {
-    const supaProv = getSupabaseAsProveedor();
-    const supaTutor = getSupabaseAsTutor();
+    const supaProv = await getSupabaseAsProveedor();
+    const supaTutor = await getSupabaseAsTutor();
     const proveedorId = await getProveedorId();
     const tutorId = await getTutorId();
 
@@ -94,8 +94,8 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
     if (!ctx) return;
-    const supaTutor = getSupabaseAsTutor();
-    const supaProv = getSupabaseAsProveedor();
+    const supaTutor = await getSupabaseAsTutor();
+    const supaProv = await getSupabaseAsProveedor();
     await cleanupAgendamientosDeTest(supaTutor, ctx.servicioId);
     await borrarServicioResiliente(supaProv, ctx.servicioId);
 });

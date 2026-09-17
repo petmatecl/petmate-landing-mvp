@@ -60,8 +60,8 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
     let reservaYear = 0;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
         servicio = await crearServicioCuidadoConF2(supabaseProv, {
@@ -94,7 +94,7 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

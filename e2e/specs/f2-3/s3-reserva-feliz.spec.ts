@@ -33,7 +33,7 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
     const hastaDay = 22;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -48,7 +48,7 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
@@ -85,7 +85,7 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
 
         // Verificación BD via Supabase MCP tutor: la reserva existe con los
         // campos F2 esperados.
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const tutorId = await getTutorId();
         const { data: reservas, error } = await supabaseTutor
             .from('agendamientos')

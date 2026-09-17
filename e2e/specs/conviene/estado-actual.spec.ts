@@ -43,7 +43,7 @@ const SERVICIO_SOLO_PERROS_ID = '385063f9-8fd0-4322-aa33-a866fa7cd2b4';
 // -- Helpers reusados ------------------------------------------------------
 
 async function pickServicioIdConAgenda(): Promise<{ servicioId: string; proveedorId: string }> {
-    const supabase = getSupabaseAsTutor();
+    const supabase = await getSupabaseAsTutor();
     const { data, error } = await supabase
         .from('servicios_publicados')
         .select('id, proveedor_id')
@@ -247,7 +247,7 @@ test.describe('[RES-MASC] modal reserva filtra mascotas por especie aceptada', (
     let mascotaGatoId: string | null = null;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         const { data: perro, error: errP } = await supabase
             .from('mascotas')
             .insert({
@@ -276,7 +276,7 @@ test.describe('[RES-MASC] modal reserva filtra mascotas por especie aceptada', (
     });
 
     test.afterAll(async () => {
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         if (mascotaPerroId) {
             const { error } = await supabase.from('mascotas').delete().eq('id', mascotaPerroId);
             if (error) console.warn(`[RES-MASC] cleanup perro ${mascotaPerroId}: ${error.message}`);
@@ -367,7 +367,7 @@ test.describe.skip('[MIS-RESERVAS-TABS-fixture] deshabilitado — RLS bloquea in
     let reservaId: string | null = null;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         const { servicioId, proveedorId } = await pickServicioIdConAgenda();
         // Reserva confirmada, 5 días en el futuro → cae en pestaña Próximas
         // por el estadoDerivado (fecha_preferida > hoy + estado='confirmada').
@@ -393,7 +393,7 @@ test.describe.skip('[MIS-RESERVAS-TABS-fixture] deshabilitado — RLS bloquea in
     });
 
     test.afterAll(async () => {
-        const supabase = getSupabaseAsTutor();
+        const supabase = await getSupabaseAsTutor();
         if (reservaId) {
             const { error } = await supabase.from('agendamientos').delete().eq('id', reservaId);
             if (error) console.warn(`[MIS-RESERVAS-TABS] cleanup reserva ${reservaId}: ${error.message}`);

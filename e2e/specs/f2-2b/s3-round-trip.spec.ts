@@ -27,7 +27,7 @@ test.describe('S3 — Round-trip de bloqueos (persistencia por UI)', () => {
     let servicio: ServicioEfimero;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanos(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -38,7 +38,7 @@ test.describe('S3 — Round-trip de bloqueos (persistencia por UI)', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

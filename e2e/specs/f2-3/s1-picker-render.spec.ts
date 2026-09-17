@@ -18,7 +18,7 @@ test.describe.serial('S1 — Picker de rango de noches se renderiza con F2 ON', 
     let servicio: ServicioCuidadoListo;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -38,7 +38,7 @@ test.describe.serial('S1 — Picker de rango de noches se renderiza con F2 ON', 
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

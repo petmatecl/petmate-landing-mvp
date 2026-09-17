@@ -46,8 +46,8 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
     let reservaId: string;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
@@ -74,7 +74,7 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
@@ -104,7 +104,7 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
             .toBeVisible({ timeout: 15_000 });
 
         // BD via MCP tutor: la reserva está cancelada.
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const { data: r, error } = await supabaseTutor
             .from('agendamientos')
             .select('estado')

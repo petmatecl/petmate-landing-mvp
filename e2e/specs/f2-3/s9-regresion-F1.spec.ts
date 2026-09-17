@@ -44,8 +44,8 @@ test.describe.serial('S9 — Regresión F1: UPDATE client de cancelación sigue 
     let reservaF1Id: string;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
         await cleanupHuerfanosF23(supabaseProv, proveedorId);
@@ -108,12 +108,12 @@ test.describe.serial('S9 — Regresión F1: UPDATE client de cancelación sigue 
 
     test.afterAll(async () => {
         if (!servicioF1Id) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicioF1Id);
     });
 
     test('UPDATE directo como tutor sobre reserva F1 confirmada → 1 fila, cancelada', async () => {
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseTutor = await getSupabaseAsTutor();
 
         // Camila cancela SU reserva F1 vía UPDATE anon key. La política del
         // baseline `agendamientos_tutor_cancel` (post-migration F2-3-D)

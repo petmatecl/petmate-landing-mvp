@@ -45,8 +45,8 @@ test.describe.configure({ mode: 'serial' });
 test.beforeAll(async () => {
     // Servicio F2 creado por proveedor (Aldo). El tutor (Camila) crea las
     // reservas contra él. Las 3 fixtures cubren los 3 caminos del helper.
-    const supaProv = getSupabaseAsProveedor();
-    const supaTutor = getSupabaseAsTutor();
+    const supaProv = await getSupabaseAsProveedor();
+    const supaTutor = await getSupabaseAsTutor();
     const proveedorId = await getProveedorId();
     const tutorId = await getTutorId();
 
@@ -117,8 +117,8 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => {
     if (!ctx) return;
-    const supaTutor = getSupabaseAsTutor();
-    const supaProv = getSupabaseAsProveedor();
+    const supaTutor = await getSupabaseAsTutor();
+    const supaProv = await getSupabaseAsProveedor();
     await cleanupAgendamientosDeTest(supaTutor, ctx.servicioId);
     await borrarServicioResiliente(supaProv, ctx.servicioId);
 });
@@ -190,7 +190,7 @@ test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
         // (opción A) hace cancel-then-navigate — la vencida queda cancelada
         // ANTES de la navegación, liberando la constraint.
 
-        const supaTutor = getSupabaseAsTutor();
+        const supaTutor = await getSupabaseAsTutor();
 
         // PRE-contra-test: INSERT pending sobre el mismo servicio DEBE fallar
         // (23505 = unique_violation). Prueba el bug antes del fix.

@@ -34,7 +34,7 @@ test.describe.serial('S7 — Guard descripción-100 con señal visible', () => {
     let servicio: ServicioEfimero;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanos(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -55,7 +55,7 @@ test.describe.serial('S7 — Guard descripción-100 con señal visible', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

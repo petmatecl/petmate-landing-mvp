@@ -40,7 +40,7 @@ test.describe.serial('S9 — Bloque legacy oculto/reaparece según toggle', () =
     let servicioPaseos: ServicioEfimero;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanos(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -51,7 +51,7 @@ test.describe.serial('S9 — Bloque legacy oculto/reaparece según toggle', () =
     });
 
     test.afterAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         if (servicioCuidado) await borrarServicioResiliente(supabase, servicioCuidado.id);
         if (servicioPaseos) await borrarServicioResiliente(supabase, servicioPaseos.id);
     });
