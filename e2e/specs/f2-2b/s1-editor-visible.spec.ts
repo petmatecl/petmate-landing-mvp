@@ -54,10 +54,30 @@ test.describe.serial('S1 — Editor de bloqueos visible con F2 ON', () => {
         // Empty state con referente chileno (Pucón)
         await expect(page.getByText(/Sin bloqueos.*Pucón/i)).toBeVisible();
 
-        // Pie sobre estadías ya confirmadas
-        await expect(
-            page.getByText(/Estas fechas quedan bloqueadas para nuevas reservas.*ya confirmadas/i)
-        ).toBeVisible();
+        // Sprint estab-e2e-i (2026-09-17) — refactor sprint d-ui-paneles
+        // (commit a9b56a7, EDITOR-UX) reformateó los hints del editor F2:
+        // el copy largo sobre "Estas fechas quedan bloqueadas para nuevas
+        // reservas ... ya confirmadas" pasó de `<p>` visible a `title=`
+        // attribute (tooltip) de un `<Info>` button. `getByText` no matchea
+        // HTML attributes, así que el spec quedó desactualizado (roto).
+        // Fix: (a) verificar el texto corto visible que quedó como resumen
+        // en el `<p>`, (b) validar que el botón hint existe con su aria-label,
+        // (c) verificar el copy largo en el title attribute via getAttribute.
+        // Sirve al mismo espíritu del test original — comprobar que el hint
+        // sigue transmitiendo la política sobre reservas confirmadas — sin
+        // depender del DOM structural exacto pre-refactor.
+
+        // (a) Copy corto visible directo en el `<p>` (sprint d-ui-paneles).
+        await expect(page.getByText('Fechas bloqueadas para nuevas reservas.', { exact: true })).toBeVisible();
+
+        // (b) Botón hint del tooltip con aria-label estable.
+        const hintBloqueos = page.getByRole('button', { name: 'Más información sobre bloqueos F2' });
+        await expect(hintBloqueos).toBeVisible();
+
+        // (c) title attribute contiene el copy sobre estadías confirmadas.
+        const title = await hintBloqueos.getAttribute('title');
+        expect(title, 'title del hint incluye "ya confirmadas"').toMatch(/ya confirmadas/i);
+        expect(title, 'title del hint incluye "coordinar con el tutor por chat"').toMatch(/coordinar con el tutor/i);
 
         // Hint principal del toggle F2 (semántica invertida + reemplazo del legacy)
         await expect(
