@@ -56,8 +56,8 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
     let proveedorAuthId: string;
 
     test.beforeAll(async () => {
-        const supabaseProv = getSupabaseAsProveedor();
-        const supabaseTutor = getSupabaseAsTutor();
+        const supabaseProv = await getSupabaseAsProveedor();
+        const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
 
@@ -88,7 +88,7 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         // Limpiar notifications creadas por la corrida (por agendamiento_id
         // en metadata jsonb). Cero deja rastro en staging.
         await supabase.from('notifications')
@@ -134,7 +134,7 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
             .toBeGreaterThanOrEqual(2);
 
         // 2. Query las notifs creadas para NUESTRO agendamiento.
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const { data: notifs, error } = await supabase
             .from('notifications')
             .select('user_id, title, message, metadata')

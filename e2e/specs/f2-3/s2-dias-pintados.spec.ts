@@ -30,7 +30,7 @@ test.describe.serial('S2 — Días pintados: blackout + semi-abierto check-out l
     const blackoutHasta = ymdEnFuturo(12);   // check-out (día 12 = LIBRE)
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
         if (cleanup.borrados > 0) {
@@ -46,7 +46,7 @@ test.describe.serial('S2 — Días pintados: blackout + semi-abierto check-out l
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 

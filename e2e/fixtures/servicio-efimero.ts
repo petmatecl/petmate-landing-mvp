@@ -147,16 +147,59 @@ export async function borrarServicioResiliente(
     // las 3 tablas hijas (todas FK a servicios_publicados), luego el
     // DELETE del padre. Orden respeta las FK.
     //
-    // Efecto medido esperado: ~50-100ms por servicio (era ~1-2s cuando
-    // el FK del agendamientos cascadeaba). Con 30 huérfanos: ~2-3s en
-    // vez de 30-45s.
-    const hijos = await Promise.allSettled([
-        supabase.from('agendamientos').delete().eq('servicio_id', id),
+    // Sprint estab-e2e-i (2026-09-17) — enmienda: también barrer las
+    // `notifications` con `metadata->>agendamiento_id` en el set del
+    // servicio antes de borrar los agendamientos. Sin este paso, notifs
+    // apuntando a agendamientos ya borrados se acumulan en staging (el
+    // metadata jsonb no es FK, cero cascade automático). El cleanup
+    // manual del sprint reportó 1067 notifs residuales antes del barrido.
+    // Orden:
+    //   1) SELECT ids de agendamientos del servicio (necesario para el
+    //      filter .in() de notifs — el jsonb PATH no permite subquery).
+    //   2) DELETE notifs (por agendamiento_id) EN PARALELO con DELETE de
+    //      disponibilidad_semanal + excepciones_disponibilidad (todas
+    //      independientes; solo agendamientos comparte con notifs vía
+    //      metadata pero cero FK real).
+    //   3) DELETE agendamientos.
+    //   4) DELETE servicio.
+    // Efecto medido esperado: ~100-200ms por servicio limpio (el step 1
+    // agrega 1 SELECT, ~50ms; step 2 los 3 DELETEs en paralelo comparten
+    // wall-time con el step ex-mismo). Con 30 huérfanos: ~3-4s en vez
+    // de 30-45s.
+    let agendIds: string[] = [];
+    try {
+        const { data } = await supabase
+            .from('agendamientos')
+            .select('id')
+            .eq('servicio_id', id);
+        agendIds = (data as Array<{ id: string }> | null)?.map(r => r.id) ?? [];
+    } catch (err) {
+        console.warn(`[servicio-efimero] SELECT agend ids ${id} falló:`, err);
+    }
+    // PostgrestFilterBuilder es PromiseLike (thenable) pero no Promise real
+    // — `Promise.allSettled` acepta thenables, así que PromiseLike alcanza
+    // sin `Promise.resolve()` extra.
+    const paralelas: Array<PromiseLike<unknown>> = [
         supabase.from('disponibilidad_semanal').delete().eq('servicio_id', id),
         supabase.from('excepciones_disponibilidad').delete().eq('servicio_id', id),
+    ];
+    if (agendIds.length > 0) {
+        // postgrest-js `.filter(jsonb->>key, 'in', '(...)')` acepta el path
+        // jsonb como columna virtual. Los UUIDs no requieren quoting en el
+        // `in` list de PostgREST (patrón `in.(uuid1,uuid2,...)`).
+        const inList = `(${agendIds.join(',')})`;
+        paralelas.push(
+            supabase.from('notifications').delete().filter('metadata->>agendamiento_id', 'in', inList) as PromiseLike<unknown>,
+        );
+    }
+    const hijos = await Promise.allSettled([
+        supabase.from('agendamientos').delete().eq('servicio_id', id),
+        ...paralelas,
     ]);
+    const tablas = ['agendamientos', 'disponibilidad_semanal', 'excepciones_disponibilidad'];
+    if (agendIds.length > 0) tablas.push('notifications');
     hijos.forEach((r, i) => {
-        const tabla = ['agendamientos', 'disponibilidad_semanal', 'excepciones_disponibilidad'][i];
+        const tabla = tablas[i];
         if (r.status === 'rejected') {
             console.warn(`[servicio-efimero] delete ${tabla} ${id} rejected:`, r.reason);
         } else if ((r.value as { error: unknown }).error) {

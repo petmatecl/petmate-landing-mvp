@@ -44,7 +44,7 @@ test.describe.serial('PR1 S1 — badge "Reserva online" en /explorar', () => {
     let servicioSinAgenda: ServicioEfimero;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
 
         // Limpiar residuos previos (misma protección que las suites F2).
@@ -66,7 +66,7 @@ test.describe.serial('PR1 S1 — badge "Reserva online" en /explorar', () => {
     });
 
     test.afterAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         if (servicioConAgenda) await borrarServicioResiliente(supabase, servicioConAgenda.id);
         if (servicioSinAgenda) await borrarServicioResiliente(supabase, servicioSinAgenda.id);
     });

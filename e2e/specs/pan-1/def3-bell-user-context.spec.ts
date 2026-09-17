@@ -65,7 +65,7 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         // El caso reproducido del bug productivo pre-fix. Aldo tiene N unread
         // en BD; navegar /admin (route gated con auth check "Verificando
         // acceso..."); abrir bell; panel debe mostrar >0 filas (antes 0).
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const { data: userRes } = await supabase.auth.getUser();
         const uid = userRes!.user!.id;
         const { count: unreadCount } = await supabase
@@ -89,7 +89,7 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         // BD tiene N unread + M read. Panel muestra unread + últimas 10 read.
         // Visible count = unread + min(read, 10). Test PASS solo si BD tiene
         // ≥1 read para diagnosticar.
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const { data: userRes } = await supabase.auth.getUser();
         const uid = userRes!.user!.id;
         const [readRes, unreadRes] = await Promise.all([
@@ -133,8 +133,8 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         // en QUALQUIER cambio de user.id (mount inicial o cross-tab), este
         // test cubre la forma más determinista de reproducir el cambio.
 
-        const supabase_aldo = getSupabaseAsProveedor();
-        const supabase_camila = getSupabaseAsTutor();
+        const supabase_aldo = await getSupabaseAsProveedor();
+        const supabase_camila = await getSupabaseAsTutor();
         const uid_aldo = (await supabase_aldo.auth.getUser()).data.user!.id;
         const uid_camila = (await supabase_camila.auth.getUser()).data.user!.id;
         expect(uid_aldo).not.toBe(uid_camila);

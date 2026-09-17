@@ -23,7 +23,7 @@ test.describe.serial('S5 — Validaciones inline min/max noches', () => {
     let servicio: ServicioCuidadoListo;
 
     test.beforeAll(async () => {
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
         await cleanupHuerfanosF23(supabase, proveedorId);
         servicio = await crearServicioCuidadoConF2(supabase, {
@@ -35,7 +35,7 @@ test.describe.serial('S5 — Validaciones inline min/max noches', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = getSupabaseAsProveedor();
+        const supabase = await getSupabaseAsProveedor();
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
