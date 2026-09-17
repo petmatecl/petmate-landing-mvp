@@ -75,8 +75,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        # Mismo criterio que ci.yml: npm install (no ci) por bug rollup+lock.
-        run: npm install --no-audit --no-fund
+        # Sprint bloque-h H-1 (2026-09-17) — restaurado npm ci tras
+        # regenerar el lock en Linux (workflow one-shot lock-regen ejecutado
+        # 2026-09-17). Lock ahora incluye @rollup/rollup-linux-* correctas.
+        run: npm ci --no-audit --no-fund
 
       - name: Install Playwright browsers
         # Necesario para el runner CI — sin esto playwright test falla con
