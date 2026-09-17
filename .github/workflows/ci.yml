@@ -22,13 +22,12 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        # npm install en vez de npm ci — el lock file tiene el bug conocido
-        # de rollup 4.x + optional deps cross-platform: `npm ci` en Linux
-        # exige `@rollup/rollup-linux-*` que el lock generado en Windows no
-        # tiene, y viceversa. `npm install` resuelve las optional deps en
-        # runtime. Fix mientras no regeneremos el lock en Linux.
-        # --no-audit --no-fund mantienen el output limpio en CI.
-        run: npm install --no-audit --no-fund
+        # Sprint bloque-h H-1 (2026-09-17) — restaurado `npm ci` tras
+        # regenerar el lock en Linux via workflow one-shot lock-regen.
+        # El lock nuevo incluye las optional deps @rollup/rollup-linux-*
+        # que el lock generado en Windows omitía. Cero majors críticos
+        # detectados en la auditoría (ver ACTA_SPRINT_BLOQUE_H.md).
+        run: npm ci --no-audit --no-fund
 
       - name: Type check
         run: npx tsc --noEmit
