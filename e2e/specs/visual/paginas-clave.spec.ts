@@ -48,9 +48,18 @@ import { join } from 'node:path';
 // fallaría con "snapshot doesn't exist" en primera corrida CI. Con el gate,
 // el spec queda listo para activarse solo cuando la infra completa esté en
 // su lugar. Cero acción manual post-baseline — el existsSync flip lo activa.
+//
+// Sprint bloque-i I-3 bootstrap (2026-09-17): agregar bypass del skip cuando
+// `PLAYWRIGHT_VISUAL_BOOTSTRAP=1` está seteado — necesario para que el
+// workflow `visual-update-snapshots` pueda ejecutar los 14 tests con
+// `--update-snapshots` la PRIMERA vez (antes existe el dir). Sin el bypass,
+// chicken-and-egg: los tests skipean → cero snapshots → dir no se crea →
+// tests siempre skipean. Post-bootstrap el flag no es necesario (existsSync
+// ya retorna true y el skip queda deshabilitado por default).
 const SNAPSHOT_DIR = join(__dirname, 'paginas-clave.spec.ts-snapshots');
 const BASELINES_EXIST = existsSync(SNAPSHOT_DIR);
-test.skip(!BASELINES_EXIST, 'Visual regression baselines pending — correr workflow visual-update-snapshots desde main una vez para generarlos');
+const BOOTSTRAP = process.env.PLAYWRIGHT_VISUAL_BOOTSTRAP === '1';
+test.skip(!BASELINES_EXIST && !BOOTSTRAP, 'Visual regression baselines pending — correr workflow visual-update-snapshots desde main una vez para generarlos (o setear PLAYWRIGHT_VISUAL_BOOTSTRAP=1 en el bootstrap inicial)');
 
 // Umbral canónico del sprint. Cualquier ajuste requiere GO PO explícito.
 const SNAPSHOT_OPTS = {
