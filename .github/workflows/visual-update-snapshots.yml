@@ -154,10 +154,19 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add e2e/specs/visual/**/*-snapshots/*.png || true
+          # Sprint bloque-i I-3 fix (2026-09-17) — pattern anterior
+          # `e2e/specs/visual/**/*-snapshots/*.png` no matcheaba en bash
+          # sin globstar habilitado. Reemplazado por `git add` sobre la
+          # carpeta entera del spec — Playwright escribe los .png exactamente
+          # ahí (`e2e/specs/visual/paginas-clave.spec.ts-snapshots/`).
+          git add "e2e/specs/visual/" || true
           if git diff --staged --quiet; then
             echo "No snapshot changes to commit."
             exit 0
           fi
+          # Log de lo que se va a commitear (audit trail).
+          echo "=== Files staged for commit ==="
+          git diff --staged --stat
+          echo "==============================="
           git commit -m "${{ github.event.inputs.commit_message }}"
           git push origin HEAD:${{ github.ref_name }}
