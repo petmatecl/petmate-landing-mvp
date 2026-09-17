@@ -202,7 +202,7 @@ export default defineConfig({
             // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
             // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
             // acá porque tiene "proveedor" en el filename.
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -282,6 +282,23 @@ export default defineConfig({
             },
             dependencies: ['setup', 'setup-tutor'],
             testMatch: /specs[\\/]visual[\\/].*\.spec\.ts$/,
+        },
+        {
+            // Sprint vistas-doble (2026-09-17) — spec de idempotencia del
+            // contador de visitas (registrar_visita idempotente por
+            // (visitor_hash, día); el legacy incrementar_vistas fue
+            // eliminado en este mismo sprint). Corre anónimo (storageState
+            // vacío overrideado por spec via test.use).
+            name: 'visits-doble',
+            use: {
+                ...devices['Desktop Chrome'],
+                // storageState default es proveedor.json; el spec overridea
+                // a vacío para simular visitante sin sesión (caso real del
+                // catálogo público). Cero deps de setup.
+                storageState: 'e2e/.auth/proveedor.json',
+            },
+            dependencies: ['setup'],
+            testMatch: /specs[\\/]visits-doble[\\/].*\.spec\.ts$/,
         },
     ],
 });
