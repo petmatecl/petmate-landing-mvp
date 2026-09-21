@@ -1,6 +1,7 @@
 import React, { useId, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useModalDialog } from '../../lib/useModalDialog';
+import Button from '../UI/Button';
 
 interface LoginRequiredModalProps {
     isOpen: boolean;
@@ -58,12 +59,37 @@ export default function LoginRequiredModal({
                 </p>
 
                 <div className="flex flex-col gap-3">
-                    <button
+                    {/*
+                     * BUTTON-CANON batch bloque-j-2-b2 (2026-09-21):
+                     * migrado al componente `<Button>` con `size="modal-cta"`
+                     * (legacy size, ver components/UI/Button.tsx JSDoc). El
+                     * className renderizado matchea exact al ad-hoc previo:
+                     * `bg-accent-600 hover:bg-accent-700 text-white
+                     * font-medium tracking-wide px-4 py-3 text-sm rounded-xl
+                     * w-full inline-flex items-center justify-center
+                     * transition-colors`. Suite visual OK (este modal no
+                     * está en las 8 baselines del gate — validación por
+                     * grep del className en runtime).
+                     */}
+                    <Button
                         onClick={() => router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`)}
-                        className="w-full bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
+                        variant="primary"
+                        size="modal-cta"
+                        weight="medium"
+                        fullWidth
                     >
                         Ingresar a mi cuenta
-                    </button>
+                    </Button>
+                    {/*
+                     * BUTTON-CANON justificado FUERA (2026-09-21):
+                     * variant custom "outlined-accent" (bg-white +
+                     * border-2 border-accent-600 + text-accent-700) no
+                     * cubierta por las 4 variants canónicas (primary /
+                     * secondary / ghost / danger). Cap PO = 4 variants,
+                     * no se agrega una nueva. Sprint visual dedicado
+                     * post-J decide si outlined-accent entra como 5º
+                     * variant o si este botón unifica hacia secondary.
+                     */}
                     <button
                         onClick={() => router.push('/register')}
                         className="w-full bg-white hover:bg-slate-50 text-accent-700 border-2 border-accent-600 font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
