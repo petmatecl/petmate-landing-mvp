@@ -108,10 +108,10 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -266,7 +266,7 @@ jobs:
 
       - name: Upload Playwright HTML report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report-rapido-${{ github.run_id }}
           path: e2e/.report
@@ -274,7 +274,7 @@ jobs:
 
       - name: Upload test-results
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-test-results-rapido-${{ github.run_id }}
           path: test-results
@@ -297,10 +297,10 @@ jobs:
     needs: e2e-rapido
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22'
           cache: 'npm'
@@ -398,7 +398,7 @@ jobs:
 
       - name: Upload Playwright HTML report + timing
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-report-f2-${{ github.run_id }}
           path: |
@@ -408,7 +408,7 @@ jobs:
 
       - name: Upload test-results
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: playwright-test-results-f2-${{ github.run_id }}
           path: test-results
