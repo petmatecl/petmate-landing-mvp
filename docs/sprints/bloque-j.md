@@ -77,14 +77,19 @@ Root cause hipótesis: los paneles autenticados muestran contadores dinámicos (
 ## Estado FINAL
 
 - [x] **J-1 ficha-servicio seed ID + baselines** — PR #70 mergeado (`6ab7d03`). Refactor del gate visual a skip granular per-baseline con helper `skipIfBaselineMissing()`. Fix del ficha-servicio spec a seed ID estable `c1000001-0000-4000-8000-000000000006`. 6 tests panels marcados como `test.fixme` por drift dashboard (ver J-4 candidato abajo). Dispatch post-merge generó los 2 baselines ficha (`e19154c` + hotfix workflow `160a63c`, luego regeneración `2382347`, luego ficha commit `82f5abd` — corregido revert `ac5ddae`).
-- [ ] **J-2 BUTTON-CANON incremental** — **NO EJECUTADO en este bloque**. Inventario confirmado (`components/UI/Button.tsx` existe con 4 variants; ~25 botones ad-hoc restantes en BACKLOG). Sprint requiere batches 5-8 botones cada uno con visual gate. Descubrimiento en J-1: 6 baselines panels (proveedor/admin/mis-reservas × 2 vp) sufren drift dashboard → visual gate reducido a 8 páginas (home/explorar/login/ficha-servicio × 2 vp). Los 8 baselines cubren superficie pública + ficha; superficie auth queda sin cobertura visual hasta J-4. **Continuación**: bloque futuro con batches BUTTON-CANON + eventualmente J-4 (masks dashboard) restaurando cobertura completa.
+- [x] **J-2 BUTTON-CANON incremental** — **CERRADO 2026-09-21** con lo migrado + informe una-página para decisión visual PO:
+  - PR #73 J-2 prep (`components/UI/Button.tsx` 6 sizes + 4 variants + doc canonical/legacy) — mergeado.
+  - PR #74 J-2 batch 2 (2 CTAs: `LoginRequiredModal L61` + `[categoria]/[comuna] L88`) — mergeado post-rebase (`c60039b`).
+  - **Total migrado**: 4/17 botones (2 CookieBanner seed D-3 + 2 batch 2). **13/17 justificados fuera** con clasificación (variant/size custom, tracking-wide, shape responsive, HTML Leaflet).
+  - Informe visual: [docs/sprints/bloque-j-2-informe-visual.md](bloque-j-2-informe-visual.md). Recomendaciones para sprint visual dedicado (PO decide expansion vs unificación con sus ojos, no con umbral).
+  - **Cero PRs incrementales rentables** sin decisión de sprint visual — no se fuerzan lotes de cero migraciones per instrucción PO.
 - [x] **J-3 actions/*@v5** — PR #71 mergeado (`12c9ced`). 18 líneas modificadas en 5 workflows (5 checkout + 5 setup-node + 8 upload-artifact). Canario post-merge dispatch (35659570262) → SUCCESS confirmando propagación de exit code sin regresión.
 
 ## Deuda registrada del bloque
 
-- **J-2 BUTTON-CANON pendiente**: sprint continuo — batches 5-8 botones cada uno. Prerequisito parcial cumplido (baselines 8/14; los 6 panels quedan sin gate hasta J-4). Puede arrancarse cuando corresponda.
-- **J-4 dashboard baselines drift** (candidato — descubierto en J-1): 6 tests fixme'd para panels autenticados (proveedor/admin/mis-reservas × 2 vp). Root cause: contadores + timestamps dinámicos del dashboard drifean entre corridas. Fix opciones: (a) `mask: [locator(...)]` sobre elementos dinámicos, (b) sub-vista estática, (c) fixture "estado congelado". Prioridad media — no bloquea BUTTON-CANON de las 8 páginas restantes.
-- **15 fixmes prod-OK sin unmark en staging**: sprint fixmes-prodok (subagente + PR #72) reveló que los 15 tests marcados fixme por bug P12 (2026-09-17) fallan en staging pese a que la feature está OK en prod (verificación PO 2026-09-21). Diagnóstico requerido per-test para cerrar el gap fixture/config staging vs prod. PR #72 dejado abierto con comentario explicativo (11 tests re-fixme'd en `ac5ddae` tras revert del accidental include de `82f5abd`; 4 tests siguen sin unmark en la rama pero fallan en CI).
+- **Sprint visual dedicado post-J** (candidato — decisión PO con los ojos, no con umbral): decidir con [bloque-j-2-informe-visual.md](bloque-j-2-informe-visual.md) qué hacer con los 13 justificados fuera. Opciones típicas: (a) agregar `outlined-accent` variant, (b) `nav-cta` size, (c) unificar visualmente aceptando 1-2px de diff en algunos, (d) mantener ad-hoc los 4-5 más particulares (SearchBar responsive, CaregiverMap HTML). Cambio de píxeles requiere regeneración de baselines + review manual del PO.
+- **J-4 encolado**: 15 fixmes prod-OK sin unmark en staging + 6 dashboard baselines drift. Kickoff en [bloque-j-4.md](bloque-j-4.md). Método per PO: descargar artifacts → clasificar A/B/C → fix por clase (fixture, auto-wait, alinear staging). Cero timeouts subidos, cero aserciones relajadas. 3 PRs de 5 tests cada uno.
+- **LINK-CONFIRM-EMAIL** (encolado post-J-4): helper `e2e/fixtures/signupLink.ts` con admin.generateLink desde runner + spec end-to-end. Esperando carga de `E2E_SUPABASE_SERVICE_KEY` por PO.
 
 ## Lista consolidada de SQL prod
 
@@ -102,8 +107,12 @@ Root cause hipótesis: los paneles autenticados muestran contadores dinámicos (
 | direct main | Revert 11 spec fixmes (WIP subagente accidental) | `ac5ddae` | pushed |
 | #71 | J-3 actions/*@v5 en 5 workflows | `12c9ced` | MERGED |
 | Canario dispatch | prueba post-v5 propagación exit code | `35659570262` | SUCCESS |
-| #72 | fixmes-prodok (4 tests: c5-l92 + tim1) | — | OPEN, CI red — comentario explicativo |
+| #72 | fixmes-prodok (4 tests: c5-l92 + tim1) | — | OPEN, CI red — encolado para J-4 |
+| #73 | J-2 prep Button.tsx 6 sizes + doc canonical/legacy | (SHA a completar) | MERGED |
+| #74 | J-2 batch 2: LoginRequiredModal + [categoria]/[comuna] | `c60039b` | MERGED (post-rebase) |
+| direct main | J-2 cierre acta + informe visual + BACKLOG | (SHA a completar) | pushed |
+| tag | `button-canon-prod-20260921` (4 CTAs migrados, 13 justificados fuera) | (SHA a completar) | tag creado |
 
 ## Timing
 
-Kickoff → cierre funcional (J-1 + J-3): ~4h wall clock. Cuello: (a) J-1 v2 requirió refactor del skip gate + 6 tests fixme'd tras diff detectado en primer PR; (b) subagente para fixmes-prodok reveló que "prod OK" ≠ "staging test OK" — 15 tests requieren diagnóstico per-test.
+Kickoff → cierre funcional (J-1 + J-2 + J-3): ~5h wall clock. Cuellos: (a) J-1 v2 requirió refactor del skip gate + 6 tests fixme'd tras diff detectado en primer PR; (b) subagente para fixmes-prodok reveló que "prod OK" ≠ "staging test OK" — 15 tests requieren diagnóstico per-test (J-4 encolado); (c) J-2 constraint estricto (6 sizes + 4 variants cap) + puerta visual sin diff = 4/17 botones migrables sin decisión sprint visual del PO.
