@@ -22,10 +22,29 @@ Orden explícito PO: J-1 → J-2 → J-3.
 
 **Entregable**:
 - Modificar `e2e/specs/visual/paginas-clave.spec.ts` para navegar directo a un seed conocido y estable: `c1000001-0000-4000-8000-000000000006` — "Adiestramiento canino con refuerzo positivo en Vitacura" (seed 2026-05-05, 4 fotos, 498 chars descripción). Verificado activo vía `supabase-prod-ro`.
-- Push del PR + verificar CI verde (los 12 baselines ya generados no deben cambiar; los 2 nuevos fallan la primera vez con "snapshot doesn't exist" pero eso es el behavior esperado del gate).
-- Post-merge: dispatch de `visual-update-snapshots --ref main` para generar los 2 nuevos PNGs. Commit + push al main.
+- **Refactor del skip gate a nivel per-test** (`skipIfBaselineMissing(name)` helper) para que un baseline faltante no bloquée todo el spec — un test cuyo PNG existe corre normal, uno sin PNG se skipea unless `PLAYWRIGHT_VISUAL_BOOTSTRAP=1`. El gate a nivel file de I-3 era demasiado grueso.
+- Push del PR + verificar CI verde: los 12 baselines existentes validan; los 2 de ficha se skipean por ausencia; los 6 con drift (ver J-4 abajo) se marcan como `test.fixme`.
+- Post-merge: dispatch de `visual-update-snapshots --ref main` con `PLAYWRIGHT_VISUAL_BOOTSTRAP=1` para generar los 2 nuevos PNGs de ficha. Commit + push al main.
 
-**Verificación**: `git ls-tree -r main | grep "ficha-servicio.*png"` debe listar 2 archivos post-dispatch. Suite visual verde en el siguiente PR (baselines vs baseline = idénticas).
+**Verificación**: `git ls-tree -r main | grep "ficha-servicio.*png"` debe listar 2 archivos post-dispatch. Suite visual verde en el siguiente PR (12 baselines idénticas + 2 ficha idénticas + 6 fixme por drift).
+
+### J-4 · [candidato — descubierto en J-1] Dashboard baselines drift
+
+**Motivación**: primer PR post-I-3 (PR #70, run 35655191730) reveló que 6 baselines de I-3 no reproducen entre corridas:
+- `panel proveedor` desktop: `8936 pixels (ratio 0.01)` diff — supera el `maxDiffPixels: 100`.
+- `panel proveedor` mobile, `panel admin` × 2 vp, `mis-reservas` × 2 vp: mismo síntoma.
+
+Root cause hipótesis: los paneles autenticados muestran contadores dinámicos (stats de dashboard, count de reservas), timestamps relativos ("hace X minutos"), y listados de actividad reciente. Entre la generación del baseline (2026-09-17 21:23) y el PR #70 (2026-09-21 21:09), los valores drifearon lo suficiente para superar el umbral.
+
+**Estado inmediato en J-1**: los 6 tests afectados marcados como `test.fixme` con reason "baseline drift dashboard counters — sprint J-4". El spec queda mergeable + los otros 8 tests siguen validando.
+
+**Entregable J-4 (sprint separado, candidato)**:
+- Analizar cada uno de los 6 tests → identificar los elementos dinámicos concretos que drifean (stats counters, timestamps, listado activity).
+- Opción A: `mask: [page.locator('.dashboard-stat-count'), ...]` en el `toHaveScreenshot` — reemplaza esas zonas por un rectángulo negro en el diff, la comparación las ignora.
+- Opción B: navegar a una sub-vista estática del panel (ej. `/proveedor?tab=servicios` en vez de `/proveedor` con dashboard-first-view).
+- Opción C: fijar la data test para que sea estática (fixture "estado congelado" seedeado antes de cada corrida). Costoso — solo si A y B no aplican.
+- Regenerar los 6 baselines con la solución elegida + destildar los `test.fixme`.
+- Prioridad: **media** — no bloquea BUTTON-CANON en las 8 páginas restantes.
 
 ### J-2 · BUTTON-CANON incremental
 
