@@ -3,6 +3,8 @@
 **Fecha**: 2026-09-15
 **Estado**: consolidado tras cierre de Bloques B (tipo-cd), C (higiene), D (explorar/paneles/base-UI) y E (UX).
 
+**✅ CERRADO 2026-09-21** — todos los items de este archivo aplicados en prod por el PO. Ver notas por bloque abajo.
+
 Todo lo que sigue debe ejecutarlo **Aldo** manualmente en Supabase Studio (Project `ouezpeeiwjwawauidrqq`, rol `postgres`) — el auditor no tiene RW en prod. Reglas P2 (evidencia por fase), P5 (evidencia commiteada), P6 (verificación previa contra `information_schema`) aplican.
 
 ---
@@ -13,7 +15,13 @@ Todo lo que sigue debe ejecutarlo **Aldo** manualmente en Supabase Studio (Proje
 
 ## Bloque E-1 · DUP-CAMPOS-CATEGORIA — migración `detalles.comunas_cobertura` → `detalles.notas`
 
-**Impacto empírico prod** (verificado 2026-09-15 vía MCP `supabase-prod-ro`):
+**✅ APLICADO EN PROD 2026-09-21** (verificación PO):
+- **1 fila afectada** — servicio `2713b823-6439-49d7-ab03-fe748bda2454`.
+- `notas_final` con el sufijo "Cobertura declarada:" correctamente concatenado al `notas` previo.
+- Assertion `DO $$` verificó cero remanente de la key `detalles.comunas_cobertura`.
+- Migración prod CERRADA.
+
+**Impacto empírico prod** (verificado 2026-09-15 vía MCP `supabase-prod-ro`, previo al apply):
 - **1 fila** con la key duplicada: servicio `2713b823-6439-49d7-ab03-fe748bda2454` ("Lo acompaño a sus tramites", categoría `traslado`), con `detalles.comunas_cobertura = "Todo Santiago"`.
 
 **Migración canónica** (idempotente, `RETURNING` para evidencia P5):
