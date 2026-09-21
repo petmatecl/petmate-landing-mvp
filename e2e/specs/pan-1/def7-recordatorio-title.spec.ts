@@ -98,8 +98,8 @@ test.describe('PAN-1 def 7 · notif title sin "Mañana:" congelado', () => {
         await borrarServicioResiliente(supabase, servicio.id);
     });
 
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: cron notif title no empieza con "Recordatorio:" en la corrida real. Candidato prioritario — comportamiento producción del cron recordatorio-reserva (título en notif visible al user).
-    test.fixme('corrida real cron → notif title empieza con "Recordatorio:", NO "Mañana:"', async ({ request, baseURL }) => {
+    // Sprint fixmes-prodok (2026-09-21): desmarcado tras verificación notifs prod OK (title empieza con "Recordatorio:"). Prod OK verificado (smoke Aldo 2026-09-21).
+    test('corrida real cron → notif title empieza con "Recordatorio:", NO "Mañana:"', async ({ request, baseURL }) => {
         // 1. Hit cron con dryRun=false para insertar notifs reales.
         //
         // Sprint conviene Paso 0 (2026-09-12) — cambio `fetch()` global → `request`.
