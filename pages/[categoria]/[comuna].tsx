@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import Button from '../../components/UI/Button';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
@@ -85,9 +86,21 @@ export default function CategoriaComuna({ categoria, comuna, services, errorLoad
                 <div className="text-center max-w-md">
                     <h1 className="text-xl font-semibold text-slate-900 mb-3">No pudimos cargar esta página</h1>
                     <p className="text-slate-500 mb-6">Tuvimos un problema temporal al leer los datos. Intenta explorar todas las categorías o vuelve a cargar en unos minutos.</p>
-                    <Link href="/explorar" className="inline-flex items-center gap-2 px-6 py-3 bg-accent-600 text-white font-semibold rounded-xl hover:bg-accent-700 transition-colors">
+                    {/*
+                     * BUTTON-CANON batch bloque-j-2-b2 (2026-09-21):
+                     * migrado a `<Button>` con `size="cta-hero"` (legacy
+                     * size, ver components/UI/Button.tsx JSDoc). El
+                     * className renderizado matchea exact al ad-hoc
+                     * previo: `bg-accent-600 hover:bg-accent-700 text-white
+                     * px-6 py-3 text-base font-semibold rounded-xl gap-2
+                     * inline-flex items-center justify-center
+                     * transition-colors`. Página `/{categoria}/{comuna}`
+                     * NO está en las 8 baselines del gate visual —
+                     * validación estructural por grep del className.
+                     */}
+                    <Button href="/explorar" variant="primary" size="cta-hero" className="gap-2">
                         Ir a explorar
-                    </Link>
+                    </Button>
                 </div>
             </div>
         );
