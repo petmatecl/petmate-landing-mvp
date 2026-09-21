@@ -45,8 +45,8 @@ const FAKE_PNG_BUFFER = Buffer.from(
 );
 
 test.describe('e2e-error-audit C5-L92 — reorden verificar-antes-de-upload', () => {
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: timeout 1m esperando "Usuario Verificado" o "No disponible aún" en /usuario/mascotas mobile. Candidato prioritario — comportamiento producción upload avatar tutor (control anti-orphan del bucket).
-    test.fixme('1) control positivo: sin bloqueo → modal "No disponible aún" + cero upload al bucket', async ({ page }) => {
+    // Sprint fixmes-prodok (2026-09-21): desmarcado tras walkthrough prod OK (/usuario/mascotas mobile muestra "Usuario Verificado" en pocos segundos). Prod OK verificado (smoke Aldo 2026-09-21).
+    test('1) control positivo: sin bloqueo → modal "No disponible aún" + cero upload al bucket', async ({ page }) => {
         // Rastrear todas las requests al bucket avatars.
         const avatarRequests: string[] = [];
         page.on('request', (req: Request) => {
@@ -81,8 +81,8 @@ test.describe('e2e-error-audit C5-L92 — reorden verificar-antes-de-upload', ()
         expect(avatarRequests, `Cero requests esperados al bucket, hubo: ${avatarRequests.join('; ')}`).toEqual([]);
     });
 
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: timeout 1m con bloqueo simulado en usuarios_buscadores. Candidato prioritario — comportamiento producción upload avatar tutor bajo error de BD.
-    test.fixme('2) negativo: bloqueo usuarios_buscadores* → toast error + cero upload al bucket', async ({ page }) => {
+    // Sprint fixmes-prodok (2026-09-21): desmarcado tras verificación anti-orphan (reorden verificar-antes-de-upload en ClientLayout). Prod OK verificado (smoke Aldo 2026-09-21).
+    test('2) negativo: bloqueo usuarios_buscadores* → toast error + cero upload al bucket', async ({ page }) => {
         // Idem tracking.
         const avatarRequests: string[] = [];
         page.on('request', (req: Request) => {

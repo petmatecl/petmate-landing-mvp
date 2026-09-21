@@ -48,8 +48,8 @@ import { test, expect } from '@playwright/test';
 const STORAGE_KEY = 'pawnecta_last_activity';
 
 test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => {
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: F5 con marker 20 min atrás no expulsó a /security-logout. Candidato prioritario — comportamiento producción SessionTimeout.
-    test.fixme('marker 20 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
+    // Sprint fixmes-prodok (2026-09-21): desmarcado + ajuste marker 20 min → 15 min (INACTIVITY_LIMIT_MS real = 10 min en components/SessionTimeout.tsx:72, 15 min garantiza superar el umbral sin acercarse al margen). Prod OK verificado (smoke Aldo 2026-09-21).
+    test('marker 15 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
         // 0. Intercepto `/auth/v1/logout` ANTES de cualquier navegación.
         //    Contexto: `handleLogout()` de SessionTimeout llama
         //    `supabase.auth.signOut()` con scope global (default), que
@@ -75,22 +75,24 @@ test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => 
         await expect(page.getByRole('button', { name: /Mis Servicios/i }).first())
             .toBeVisible({ timeout: 15_000 });
 
-        // 2. Seteo el marker de última actividad a 20 min atrás. Simulo
+        // 2. Seteo el marker de última actividad a 15 min atrás. Simulo
         //    el estado "el user cerró la tab hace rato y ahora volvió".
         //    Usamos localStorage.setItem directamente — es el mismo
         //    mecanismo que el guard de SessionTimeout evalúa.
-        const veinte_min_atras = Date.now() - 20 * 60 * 1000;
+        //    Sprint fixmes-prodok (2026-09-21): 15 min > INACTIVITY_LIMIT_MS
+        //    real de 10 min (components/SessionTimeout.tsx:72).
+        const quince_min_atras = Date.now() - 15 * 60 * 1000;
         await page.evaluate(([key, ts]) => {
             localStorage.setItem(key as string, String(ts));
-        }, [STORAGE_KEY, veinte_min_atras]);
+        }, [STORAGE_KEY, quince_min_atras]);
 
         // Sanity: el marker viejo quedó.
         const markerAntes = await page.evaluate((key) => localStorage.getItem(key), STORAGE_KEY);
-        expect(markerAntes).toBe(String(veinte_min_atras));
+        expect(markerAntes).toBe(String(quince_min_atras));
 
         // 3. F5 — dispara SessionTimeout useEffect en el mount fresh.
         //    init() corre checkInactivityOnMount() PRIMERO, detecta
-        //    marker viejo (>10 min), llama handleLogout(), redirige a
+        //    marker viejo (>10 min de umbral vs 15 min seteados), llama handleLogout(), redirige a
         //    /security-logout, cero listeners registrados en mount 2.
         //    NO simulamos mousemove pre-reload — dispararía los listeners
         //    de mount 1 (que ya completaron init) y pisaría el marker
@@ -107,8 +109,8 @@ test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => 
         expect(markerDespues).toBeNull();
     });
 
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: F5 con marker fresco expulsó (esperaba no expulsar). Candidato prioritario — comportamiento producción SessionTimeout.
-    test.fixme('marker fresco (justo activo) + F5 → NO expulsa, sigue en /proveedor', async ({ page }) => {
+    // Sprint fixmes-prodok (2026-09-21): desmarcado tras verificación prod (marker fresco no expulsa en /proveedor). Prod OK verificado (smoke Aldo 2026-09-21).
+    test('marker fresco (justo activo) + F5 → NO expulsa, sigue en /proveedor', async ({ page }) => {
         // Regresión: el fix NO debe expulsar cuando el marker es fresco.
         // Un user activo hace F5 y debe seguir en la misma página.
         await page.goto('/proveedor');
