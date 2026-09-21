@@ -48,8 +48,8 @@ import { test, expect } from '@playwright/test';
 const STORAGE_KEY = 'pawnecta_last_activity';
 
 test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => {
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: F5 con marker 20 min atrás no expulsó a /security-logout. Candidato prioritario — comportamiento producción SessionTimeout.
-    test.fixme('marker 20 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
+    // J-4 batch 1 (2026-09-21): unmark para artifacts diagnóstico. Fix pendiente.
+    test('marker 20 min atrás + F5 → expulsa a /security-logout', async ({ page }) => {
         // 0. Intercepto `/auth/v1/logout` ANTES de cualquier navegación.
         //    Contexto: `handleLogout()` de SessionTimeout llama
         //    `supabase.auth.signOut()` con scope global (default), que
@@ -107,8 +107,8 @@ test.describe('L1-3 · TIM-1 · SessionTimeout expulsa tras inactividad', () => 
         expect(markerDespues).toBeNull();
     });
 
-    // FIXME [ci-pipefail-2026-09-17]: oculto por tee sin pipefail; triage en sprint I-tests-triage. Síntoma: F5 con marker fresco expulsó (esperaba no expulsar). Candidato prioritario — comportamiento producción SessionTimeout.
-    test.fixme('marker fresco (justo activo) + F5 → NO expulsa, sigue en /proveedor', async ({ page }) => {
+    // J-4 batch 1 (2026-09-21): unmark para artifacts diagnóstico. Fix pendiente.
+    test('marker fresco (justo activo) + F5 → NO expulsa, sigue en /proveedor', async ({ page }) => {
         // Regresión: el fix NO debe expulsar cuando el marker es fresco.
         // Un user activo hace F5 y debe seguir en la misma página.
         await page.goto('/proveedor');
