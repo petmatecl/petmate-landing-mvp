@@ -125,15 +125,21 @@ test.describe('visual público', () => {
             });
 
             test(`ficha de servicio (/servicio/[id])`, async ({ page }) => {
-                // ID semilla staging — el proveedor Aldo tiene servicios activos
-                // en staging. Uso el primero disponible via /explorar.
-                await page.goto('/explorar');
-                await waitForStablePaint(page);
-                const firstCard = page.locator('a[href*="/servicio/"]').first();
-                await firstCard.waitFor({ state: 'visible', timeout: 15_000 });
-                const href = await firstCard.getAttribute('href');
-                if (!href) throw new Error('No se encontró ficha de servicio en /explorar');
-                await page.goto(href);
+                // Sprint bloque-j J-1 (2026-09-21) — navegación directa al
+                // seed servicio estable, en vez de buscar el primer link en
+                // /explorar como anon (fallaba: staging no muestra servicios
+                // públicos al visitante sin sesión con la data actual, y el
+                // click no encontraba target → cero snapshot).
+                //
+                // Seed usado: c1000001-0000-4000-8000-000000000006 —
+                // "Adiestramiento canino con refuerzo positivo en Vitacura y
+                // comunas cercanas" — creado 2026-05-05, 498 chars de
+                // descripción, 4 fotos. Verificado activo via
+                // supabase-prod-ro 2026-09-21. Mismo seed usa el spec de
+                // visits-doble (idempotencia contador) — patrón compartido
+                // que evita dependencia de listing anon.
+                const SEED_SERVICIO = 'c1000001-0000-4000-8000-000000000006';
+                await page.goto(`/servicio/${SEED_SERVICIO}`);
                 await waitForStablePaint(page);
                 await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, SNAPSHOT_OPTS);
             });
