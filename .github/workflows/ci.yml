@@ -5,6 +5,10 @@ on:
     branches: [main, staging]
   pull_request:
     branches: [main]
+  # Sprint J-4 F2-3-CLEANUP (2026-09-22) — rerun manual sin depender del
+  # trigger `pull_request synchronize` (que ocasionalmente no dispara post
+  # concurrency skip). Ver auth-mail-phish diagnóstico 2026-09-22.
+  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
