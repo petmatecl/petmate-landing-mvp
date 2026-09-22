@@ -250,6 +250,85 @@ Agregado en el commit siguiente — 3 verificaciones nuevas al spec T1:
 
 **Sobre el spec bajo carga**: si el CI corre con carga alta y el watchdog llega tarde, el spec puede fallar aunque el watchdog funcione en prod. Propuesta: aumentar el timeout del `page.waitForTimeout` de 18s a 30s en el spec (no el watchdog, solo el wait del test). Con 30s hay margen para carga alta. Cambio propuesto pero requiere GO del PO — no lo aplico solo porque cambia el criterio del test.
 
+### cue-1.2 — waitForTimeout revertido a 18s (commit)
+
+Cambio en `e2e/specs/prelaunch/cue-1-watchdog.spec.ts:99`: `waitForTimeout(25_000)` → `waitForTimeout(18_000)`. Motivo del revert: subir el timeout del spec **enmascara la señal real** — si bajo carga el watchdog llega tarde, ESO es la señal del cuelgue estructural (cubierto por sprint cue-1-fix con AbortController). Volvemos a 18s original (15s watchdog + 3s margen del mount) hasta que el fix aterrice en prod y podamos comparar antes/después con la misma vara del watchdog 15s. Regla del PO ratificada.
+
+Aplicado en commit siguiente a este write (mismo commit del reporte).
+
+### cue-1.3 — Camino anónimo: archivo:línea + SW + reproducción
+
+**Archivo:línea del path anónimo (por qué loading no resuelve sin sesión)**:
+
+- `contexts/UserContext.tsx:631`: `supabase.auth.getSession().then(...)` — **sin timeout ni catch**. Si `getSession()` cuelga por ADV-LOCK interno del SDK o por interferencia SW, el `.then` nunca dispara → `hydrateFromSession` no corre → `isLoading` queda `true` (initial state en L125) → watchdog dispara a los 15s.
+- `contexts/UserContext.tsx:311-338`: en path guest esperado, `session=null` → `setIsLoading(false)` en L338 → cero cuelgue. **Contradicción empírica**: 66% de events Sentry tienen `has_storage_session=false` (guests puros). Si el path guest normal cerrara `isLoading`, no aparecerían — significa que el propio `getSession()` (L631) es el que se cuelga antes de llegar a L311.
+
+**Reproducción en staging sin login (queda para sprint cue-1-fix punto A3)**: requiere abrir `/`, `/explorar`, `/forgot-password` en incognito de staging preview + medir con Playwright MCP si el spinner queda pegado + capturar `navigator.locks.query()` + `navigator.serviceWorker.controller`. Este PR (cue-1-p8) documenta la hipótesis; el sprint dedicado ejecuta el P8 y decide el fix.
+
+**Service Worker**:
+- **Cuál es**: `@ducanh2912/next-pwa@10.2.9` (registrado en `next.config.js:withPWA`). Solo activo en prod (gate `IS_PROD = NEXT_PUBLIC_APP_ENV === 'production' || VERCEL_ENV === 'production'`). En dev y en preview el SW es el "demoledor" auto-destructivo (`scripts/write-sw-demolisher.js` hook prebuild — ver CLAUDE.md > PWA / Service Worker).
+- **Qué intercepta**: workbox runtime caching con defaults del plugin:
+  - **NetworkFirst** para HTML documentos + `/api/*` no-auth (timeout 10s + fallback `_offline`).
+  - **StaleWhileRevalidate** para JS chunks, CSS, imágenes, `_next/data/*.json`, `_next/image`.
+  - **CacheFirst** para fonts (`gstatic`, audio, video).
+- **¿Toca supabase.co?** El SW default de `next-pwa` NO tiene runtimeCaching para dominios de terceros — solo mismo origin. Las requests a `*.supabase.co` DEBERÍAN pasar directo (network, no SW). **Confirmar en A2 del cue-1-fix con `chrome://serviceworker-internals/`** que el SW no aparece como controller de esas fetches.
+- **¿Toca storage de sesión?** El SW no toca `localStorage` ni `IndexedDB` (donde vive `sb-<ref>-auth-token`), pero puede interferir con `BroadcastChannel`/`postMessage` que Supabase Auth SDK usa entre pestañas.
+- **56% de events con `sw_controlling=true`**: no es correlación directa 100% pero es notable — hipótesis A2 del cue-1-fix.
+
+### cue-1.4 — Distribución transaction + navegadores/dispositivos + coincidencia con pruebas PO
+
+Datos de los 32 events extraídos via `scripts/sentry-query-cue1.ts` (deep dive `/issues/JAVASCRIPT-NEXTJS-7/tags/`):
+
+**Distribución por `transaction` (URL de la página al cuelgue)**:
+
+| Transaction | Events | % |
+|---|---:|---:|
+| `/` (landing) | **9** | 28% |
+| `/proveedor` (dashboard proveedor) | 7 | 22% |
+| `/security-logout` (post-logout limbo) | 5 | 16% |
+| `/forgot-password` | 2 | 6% |
+| `/blog/[slug]` | 2 | 6% |
+| `/admin` | 2 | 6% |
+| Otros (7 events sin transaction en topValues, distribuidos) | 5 | 16% |
+
+**Navegadores / OS distintos**:
+
+| browser.name | Events |
+|---|---:|
+| Chrome Mobile (Android) | 17 |
+| Chrome (Desktop) | 13 |
+| Chrome Mobile iOS | 2 |
+
+| os.name | Events |
+|---|---:|
+| Android (10 + 15) | 17 |
+| Windows | 12 |
+| iOS | 2 |
+| Mac OS X | 1 |
+
+| device.family | Events |
+|---|---:|
+| (vacío / no detectado) | 12 |
+| K (Android generic) | 9 |
+| Pixel 9 | 8 |
+| iPhone | 2 |
+| Mac | 1 |
+
+**Coincidencia con pruebas del PO**:
+
+De los 10 events más recientes (rango 2026-09-21 21:27 → 2026-09-22 17:02), reviso los que coinciden con las ventanas conocidas de smoke del PO:
+
+- **`/forgot-password`** (2 events totales, uno de ellos 2026-09-22 17:02Z release `e5b30628` = BELL-150 merge de hoy, uno 2026-09-22 00:46Z release `9fcdef65` = LINK-CONFIRM-EMAIL merge del 2026-09-21). Ambos coinciden con smokes del sprint AUTH-MAIL-PHISH (reset password desde Gmail confirmado por PO en la ventana). **Los 2 events de forgot-password son 100% del PO smokeando**.
+- **`/admin`** (2 events, ambos 2026-09-22 release `9fcdef65` LINK-CONFIRM-EMAIL merge): probable smoke admin del PO en esa ventana.
+- **`/security-logout`** (5 events, distribuidos): puede ser mix — algunos del PO (logout post-smoke), otros de usuarios reales.
+- **`/`** (9 events landing): distribución en 7 días, difícil discriminar sin IPs (Sentry no expone `ip_address` por default). **Probable mayoría usuarios reales**.
+- **`/proveedor`** (7 events): mix probable — proveedores reales entrando a su dashboard + Aldo smokeando post-merge.
+- **`/blog/[slug]`** (2 events): la URL específica `https://www.pawnecta.com/blog/mitos-verdades-gato-indoor-100-por-ciento` es tráfico orgánico externo (blog SEO landing). **100% usuarios reales anónimos**.
+
+**Total combinaciones browser+OS+device distintas de los últimos 10 events**: **4** (Chrome 153 Windows, Chrome 152 Windows, Chrome Mobile 153 Android K, Chrome Mobile 152 Pixel 9). Sobre el total de 32 events la diversidad es más alta (5 browsers + 4 OS + 5 device families).
+
+**Conclusión coincidencia**: aproximadamente **4-6 events del PO** (los `/forgot-password` + `/admin` recientes). Los **~26 restantes son usuarios reales** — proveedores en `/proveedor`, tráfico orgánico en `/` y `/blog/*`, users post-logout en `/security-logout`. **NO todos los events son ruido del PO smokeando** — la mayoría es señal real de cuelgues productivos.
+
 ### Decisión final CUE-1 (con evidencia Sentry prod)
 
 **CUE-1 pasa a BLOQUEA**. Justificación empírica:

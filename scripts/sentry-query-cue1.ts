@@ -156,7 +156,7 @@ async function main() {
         try {
             const tags = await api<Array<{ key: string; name: string; totalValues: number; topValues: Array<{ value: string; count: number }> }>>(`/issues/${topIssue.id}/tags/`);
             console.log(`    Tags disponibles: ${tags.map(t => t.key).join(', ')}`);
-            const interesting = ['stuck_reason', 'subsystem', 'sw_controlling', 'has_storage_session', 'hydration_state', 'environment', 'browser'];
+            const interesting = ['stuck_reason', 'subsystem', 'sw_controlling', 'has_storage_session', 'hydration_state', 'environment', 'browser', 'browser.name', 'device.family', 'device', 'os.name', 'os', 'transaction', 'url', 'release'];
             for (const key of interesting) {
                 const t = tags.find(x => x.key === key);
                 if (t) {
@@ -168,14 +168,62 @@ async function main() {
             console.log(`    tags fetch fail: ${err instanceof Error ? err.message : err}`);
         }
 
-        // Último evento del issue — full detail para ver la ruta + contexto.
+        // Todos los eventos del issue — timeline completo + per-event tags.
         try {
-            const events = await api<Array<{ id: string; dateCreated: string; tags: Array<{ key: string; value: string }>; contexts?: Record<string, unknown> }>>(`/issues/${topIssue.id}/events/?limit=1`);
-            if (events.length > 0) {
-                const ev = events[0];
-                console.log('');
-                console.log(`    Último evento (${ev.id}, ${ev.dateCreated}):`);
-                console.log(`      Tags: ${ev.tags.map(t => `${t.key}=${t.value}`).join(', ')}`);
+            const events = await api<Array<{ id: string; dateCreated: string; tags: Array<{ key: string; value: string }>; user?: { ip_address?: string; id?: string } | null }>>(`/issues/${topIssue.id}/events/?full=true`);
+            console.log('');
+            console.log(`    Todos los eventos (${events.length}):`);
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const trans = t.get('transaction') ?? '?';
+                const url = t.get('url') ?? '?';
+                const browser = t.get('browser') ?? '?';
+                const os = t.get('os') ?? '?';
+                const device = t.get('device') ?? t.get('device.family') ?? '?';
+                const storage = t.get('has_storage_session') ?? '?';
+                const sw = t.get('sw_controlling') ?? '?';
+                const release = (t.get('release') ?? '?').slice(0, 8);
+                const ip = ev.user?.ip_address ?? '?';
+                console.log(`      ${ev.dateCreated} | trans=${trans} | url=${url.slice(0, 60)} | ${browser} / ${os} / ${device} | sess=${storage} sw=${sw} | rel=${release} | ip=${ip}`);
+            }
+
+            // Distribución por transaction.
+            console.log('');
+            console.log('    Distribución por transaction (URL page):');
+            const byTrans = new Map<string, number>();
+            for (const ev of events) {
+                const key = ev.tags.find(x => x.key === 'transaction')?.value ?? '<sin_tag>';
+                byTrans.set(key, (byTrans.get(key) ?? 0) + 1);
+            }
+            for (const [k, v] of Array.from(byTrans.entries()).sort((a, b) => b[1] - a[1])) {
+                console.log(`      ${k}: ${v}`);
+            }
+
+            // Distribución por ip_address (dispositivo/red única aproximada).
+            console.log('');
+            console.log('    Distribución por ip_address (aproximación de dispositivos únicos):');
+            const byIp = new Map<string, number>();
+            for (const ev of events) {
+                const key = ev.user?.ip_address ?? '<sin_ip>';
+                byIp.set(key, (byIp.get(key) ?? 0) + 1);
+            }
+            console.log(`      Total IPs distintas: ${byIp.size}`);
+            for (const [k, v] of Array.from(byIp.entries()).sort((a, b) => b[1] - a[1])) {
+                console.log(`      ${k}: ${v}`);
+            }
+
+            // Distribución por combinación browser+os+device.
+            console.log('');
+            console.log('    Distribución por navegador+OS+device:');
+            const byBrowser = new Map<string, number>();
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const key = `${t.get('browser') ?? '?'} / ${t.get('os') ?? '?'} / ${t.get('device') ?? t.get('device.family') ?? '?'}`;
+                byBrowser.set(key, (byBrowser.get(key) ?? 0) + 1);
+            }
+            console.log(`      Total combinaciones distintas: ${byBrowser.size}`);
+            for (const [k, v] of Array.from(byBrowser.entries()).sort((a, b) => b[1] - a[1])) {
+                console.log(`      ${k}: ${v}`);
             }
         } catch (err) {
             console.log(`    events fetch fail: ${err instanceof Error ? err.message : err}`);

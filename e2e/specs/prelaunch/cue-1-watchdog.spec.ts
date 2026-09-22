@@ -108,14 +108,14 @@ test('[CUE-1] watchdog dispara console.warn + Sentry.captureMessage cuando UserC
     // UserContext se mount al render de _app.tsx en cualquier ruta.
     await page.goto('/', { waitUntil: 'domcontentloaded' });
 
-    // Esperar >15s para dar tiempo al watchdog. 25s = 15s watchdog + 10s
-    // margen para el mount inicial + primer paint + event loop saturado bajo
-    // carga alta del CI runner (con workers=2 + otras suites concurrentes).
-    // Sprint J-4 cue-1 fix umbral: el spec anterior con 18s falló bajo carga
-    // (run 35735575685 durante F2-3-CLEANUP diagnostic) porque el event loop
-    // del browser saturado retrasaba el setTimeout(15000) por 3-5s extra.
-    // 25s da margen razonable sin cambiar el watchdog en producción.
-    await page.waitForTimeout(25_000);
+    // Esperar >15s para dar tiempo al watchdog. 18s = 15s watchdog + 3s
+    // margen para el mount inicial + primer paint. El PO 2026-09-22 ratificó
+    // que subir el waitForTimeout enmascara el problema real: si bajo carga
+    // el watchdog llega tarde, eso ES la señal del cuelgue estructural (fix
+    // está en sprint cue-1-fix con AbortController timeout 10s + fallback).
+    // Volvemos a 18s original hasta que el fix aterrice y podamos comparar
+    // antes/después con la misma vara.
+    await page.waitForTimeout(18_000);
 
     // Assertion (a): al menos 1 console.warn (path !isProd gate).
     expect(
