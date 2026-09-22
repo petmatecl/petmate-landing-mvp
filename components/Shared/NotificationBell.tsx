@@ -44,6 +44,15 @@ const REF_TIPOS: Array<{
     { metaKey: 'servicio_id', tabla: 'servicios_publicados', prefijo: 'servicio' },
 ];
 
+// Sprint J-4 BELL-150 (2026-09-22) — render limit para la query unread.
+// Bell no muestra N>50 divs visualmente; con este cap el URL del batch
+// REF_TIPOS de abajo se mantiene <2 KB (max 50 UUIDs × 37 chars ≈ 1.85 KB),
+// muy por debajo del 8 KB de nginx/Postgrest → cero 414 URI Too Long.
+// El badge muestra el count TOTAL real desde una query separada COUNT HEAD
+// — el user ve "160 sin leer" en el bell aunque el panel abra las 50 más
+// recientes. Ver comentario del try/catch en fetchNotifications.
+const UNREAD_RENDER_LIMIT = 50;
+
 type AgendaFecha = {
     fecha_preferida?: string;
     fecha_fin?: string;
@@ -219,113 +228,167 @@ export default function NotificationBell() {
 
     const fetchNotifications = async (uid: string) => {
         // Sprint pan-1 PR-3 — flag ON al iniciar fetch. Cuando termine (success
-        // o error) volvemos a false en el `finally` implícito abajo (setter
-        // explícito antes de cada return path).
+        // o error) volvemos a false en el `finally` del try/catch abajo
+        // (garantiza recuperación aunque una query reviente).
         setLoadingNotifs(true);
 
-        // Sprint pan-1 PR-3 (2026-09-11) — Opción B revisada del PO: unread
-        // + últimas 10 read. Reemplaza D2 del sprint notifs-panel (que traía
-        // solo unread — el user perdía visibilidad del histórico reciente
-        // hasta que existiera la página /notificaciones dedicada). Con este
-        // fetch el panel muestra todo lo NO-atendido + las 10 más recientes
-        // ya atendidas, agrupadas visualmente por estilo (bg-accent-50/30
-        // marca unread — ver el render). Dos queries paralelas (no una sola
-        // ordenada por read asc + created_at desc) porque no hay guarantee
-        // de que Postgres ordene NULL-safely + evita cargar filas read=true
-        // que se descartarían.
-        const [unreadRes, readRes] = await Promise.all([
-            supabase
-                .from('notifications')
-                .select('*')
-                .eq('user_id', uid)
-                .eq('read', false)
-                .order('created_at', { ascending: false }),
-            supabase
-                .from('notifications')
-                .select('*')
-                .eq('user_id', uid)
-                .eq('read', true)
-                .order('created_at', { ascending: false })
-                .limit(10),
-        ]);
+        try {
+            // Sprint J-4 BELL-150 (2026-09-22) — resilencia bajo carga natural.
+            // Diagnóstico F2-3-CLEANUP encontró Aldo con 160 unread en staging,
+            // rompiendo el bell (panel muestra 0 filas). Root cause:
+            //
+            //   1. Batch REF_TIPOS abajo hace `.in('id', <N ids>)` con TODOS los
+            //      ids de unread; con 160 UUIDs (36 chars c/u + comas) la URL
+            //      ronda 6-7 KB — cerca del límite 8 KB de nginx/Postgrest
+            //      → 414 URI Too Long ocasional.
+            //   2. `Promise.all` rechaza si UNA query batch falla → sin try/catch
+            //      la excepción propaga, `setLoadingNotifs(false)` de L328 nunca
+            //      corre, panel queda "Cargando notificaciones..." indefinido.
+            //   3. En prod hoy max unread = 7 (verificado 2026-09-22 vía
+            //      supabase-prod-ro top 5); pero staging acumula por tests + el
+            //      test debe ser resiliente a carga real futura post-launch.
+            //
+            // Fix 3 piezas:
+            //   (a) `.limit(UNREAD_RENDER_LIMIT)` en unread render — bell no
+            //       muestra 160 divs visualmente. Los N más recientes alcanzan.
+            //   (b) Query COUNT separada (HEAD, sin data) para el badge — así el
+            //       badge sigue mostrando el total real aunque la render lista
+            //       esté acotada.
+            //   (c) try/catch/finally que garantiza setLoadingNotifs(false) en
+            //       cualquier path — recuperación silenciosa ante fail parcial.
+            //
+            // Sprint pan-1 PR-3 (2026-09-11) — Opción B revisada del PO: unread
+            // + últimas 10 read. Reemplaza D2 del sprint notifs-panel.
+            const [unreadCountRes, unreadRes, readRes] = await Promise.all([
+                supabase
+                    .from('notifications')
+                    .select('*', { count: 'exact', head: true })
+                    .eq('user_id', uid)
+                    .eq('read', false),
+                supabase
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', uid)
+                    .eq('read', false)
+                    .order('created_at', { ascending: false })
+                    .limit(UNREAD_RENDER_LIMIT),
+                supabase
+                    .from('notifications')
+                    .select('*')
+                    .eq('user_id', uid)
+                    .eq('read', true)
+                    .order('created_at', { ascending: false })
+                    .limit(10),
+            ]);
 
-        if (unreadRes.error) {
-            console.warn('[NotificationBell] fetch unread failed:', unreadRes.error.message);
-        }
-        if (readRes.error) {
-            console.warn('[NotificationBell] fetch read failed:', readRes.error.message);
-        }
+            if (unreadRes.error) {
+                console.warn('[NotificationBell] fetch unread failed:', unreadRes.error.message);
+            }
+            if (readRes.error) {
+                console.warn('[NotificationBell] fetch read failed:', readRes.error.message);
+            }
+            if (unreadCountRes.error) {
+                console.warn('[NotificationBell] count unread failed:', unreadCountRes.error.message);
+            }
 
-        // Orden final: unread primero (urgentes), read después (histórico).
-        // Cada bloque interno ya viene ordenado desc por created_at desde
-        // el server.
-        const unread = (unreadRes.data ?? []) as Notification[];
-        const read = (readRes.data ?? []) as Notification[];
-        const notifs = [...unread, ...read];
-        setNotifications(notifs);
-        setUnreadCount(unread.length);
+            // Orden final: unread primero (urgentes), read después (histórico).
+            // Cada bloque interno ya viene ordenado desc por created_at desde
+            // el server. `notifs.length` es max (UNREAD_RENDER_LIMIT + 10);
+            // el badge muestra el count real desde la query separada.
+            const unread = (unreadRes.data ?? []) as Notification[];
+            const read = (readRes.data ?? []) as Notification[];
+            const notifs = [...unread, ...read];
+            setNotifications(notifs);
+            // Sprint J-4 BELL-150 — badge desde count exacto, no unread.length.
+            // Fallback a unread.length si la count query falló (defensivo — con
+            // el count roto al menos el badge muestra "N+" implícito de los
+            // items renderizados).
+            const totalUnread = unreadCountRes.count ?? unread.length;
+            setUnreadCount(totalUnread);
 
-        // Sprint notifs-panel C4 — batch query para render defensivo + fecha
-        // del evento (Opción Y). Extraer ids distintos por tipo, después 3
-        // queries paralelas (una por tabla). Skip la tabla si el array de ids
-        // está vacío — evita queries innecesarias.
-        const idsPorTipo = new Map<string, Set<string>>();
-        for (const { metaKey, tabla } of REF_TIPOS) {
-            idsPorTipo.set(tabla, new Set());
-        }
-        for (const n of notifs) {
+            // Sprint notifs-panel C4 — batch query para render defensivo + fecha
+            // del evento (Opción Y). Extraer ids distintos por tipo, después 3
+            // queries paralelas (una por tabla). Skip la tabla si el array de ids
+            // está vacío — evita queries innecesarias.
+            // Sprint J-4 BELL-150 — con `.limit(UNREAD_RENDER_LIMIT)` en unread
+            // y `.limit(10)` en read, la lista de ids del batch está capada a
+            // ~60 UUIDs (~2.2 KB URL) — muy por debajo del 8 KB de nginx/Postgrest.
+            const idsPorTipo = new Map<string, Set<string>>();
             for (const { metaKey, tabla } of REF_TIPOS) {
-                const id = n.metadata?.[metaKey];
-                if (typeof id === 'string' && id) idsPorTipo.get(tabla)!.add(id);
+                idsPorTipo.set(tabla, new Set());
             }
-        }
-
-        const queries = REF_TIPOS.map(async ({ tabla }) => {
-            const ids = Array.from(idsPorTipo.get(tabla) ?? []);
-            if (ids.length === 0) return { tabla, rows: [] as Array<Record<string, unknown>> };
-
-            // Opción Y: agendamientos trae también fecha_preferida/fecha_fin/duracion_min
-            // para el modo 'evento' del helper. Las otras tablas solo id.
-            const columns = tabla === 'agendamientos'
-                ? 'id, fecha_preferida, fecha_fin, duracion_min'
-                : 'id';
-            const { data: rows, error: qerr } = await supabase.from(tabla).select(columns).in('id', ids);
-            if (qerr) {
-                console.warn(`[NotificationBell] batch query ${tabla} failed:`, qerr);
-                return { tabla, rows: [] as Array<Record<string, unknown>> };
-            }
-            // Cast a unknown primero — supabase-js pierde la inferencia del
-            // genérico cuando `columns` es string variable (no literal). Los
-            // rows retornados tienen el shape { id, fecha_preferida?, ... }
-            // dependiendo de la tabla, tratados como Record genérico abajo.
-            return { tabla, rows: (rows ?? []) as unknown as Array<Record<string, unknown>> };
-        });
-
-        const results = await Promise.all(queries);
-
-        const nextRefs = new Set<string>();
-        const nextAgendaFechas = new Map<string, AgendaFecha>();
-
-        for (const { tabla, rows } of results) {
-            const prefijo = REF_TIPOS.find((r) => r.tabla === tabla)!.prefijo;
-            for (const row of rows) {
-                const id = row.id as string;
-                nextRefs.add(`${prefijo}:${id}`);
-                if (tabla === 'agendamientos') {
-                    nextAgendaFechas.set(id, {
-                        fecha_preferida: row.fecha_preferida as string | undefined,
-                        fecha_fin: row.fecha_fin as string | undefined,
-                        duracion_min: row.duracion_min as number | undefined,
-                    });
+            for (const n of notifs) {
+                for (const { metaKey, tabla } of REF_TIPOS) {
+                    const id = n.metadata?.[metaKey];
+                    if (typeof id === 'string' && id) idsPorTipo.get(tabla)!.add(id);
                 }
             }
-        }
 
-        setExistingRefs(nextRefs);
-        setAgendaFechas(nextAgendaFechas);
-        // Sprint pan-1 PR-3 — fetch completó (success o parcial con errors
-        // manejados con warn); OK renderizar estado terminal (filas o empty).
-        setLoadingNotifs(false);
+            const queries = REF_TIPOS.map(async ({ tabla }) => {
+                const ids = Array.from(idsPorTipo.get(tabla) ?? []);
+                if (ids.length === 0) return { tabla, rows: [] as Array<Record<string, unknown>> };
+
+                // Opción Y: agendamientos trae también fecha_preferida/fecha_fin/duracion_min
+                // para el modo 'evento' del helper. Las otras tablas solo id.
+                const columns = tabla === 'agendamientos'
+                    ? 'id, fecha_preferida, fecha_fin, duracion_min'
+                    : 'id';
+                const { data: rows, error: qerr } = await supabase.from(tabla).select(columns).in('id', ids);
+                if (qerr) {
+                    console.warn(`[NotificationBell] batch query ${tabla} failed:`, qerr);
+                    return { tabla, rows: [] as Array<Record<string, unknown>> };
+                }
+                // Cast a unknown primero — supabase-js pierde la inferencia del
+                // genérico cuando `columns` es string variable (no literal). Los
+                // rows retornados tienen el shape { id, fecha_preferida?, ... }
+                // dependiendo de la tabla, tratados como Record genérico abajo.
+                return { tabla, rows: (rows ?? []) as unknown as Array<Record<string, unknown>> };
+            });
+
+            const results = await Promise.all(queries);
+
+            const nextRefs = new Set<string>();
+            const nextAgendaFechas = new Map<string, AgendaFecha>();
+
+            for (const { tabla, rows } of results) {
+                const prefijo = REF_TIPOS.find((r) => r.tabla === tabla)!.prefijo;
+                for (const row of rows) {
+                    const id = row.id as string;
+                    nextRefs.add(`${prefijo}:${id}`);
+                    if (tabla === 'agendamientos') {
+                        nextAgendaFechas.set(id, {
+                            fecha_preferida: row.fecha_preferida as string | undefined,
+                            fecha_fin: row.fecha_fin as string | undefined,
+                            duracion_min: row.duracion_min as number | undefined,
+                        });
+                    }
+                }
+            }
+
+            setExistingRefs(nextRefs);
+            setAgendaFechas(nextAgendaFechas);
+            // Sprint pan-1 PR-3 — fetch completó (success o parcial con errors
+            // manejados con warn); OK renderizar estado terminal (filas o empty).
+            // Sprint J-4 BELL-150 (2026-09-22) — el setLoadingNotifs(false)
+            // canónico está en el `finally` abajo; este setter interno se
+            // conserva por compatibilidad pero es redundante — el finally corre
+            // siempre.
+            setLoadingNotifs(false);
+        } catch (err) {
+            // Sprint J-4 BELL-150 (2026-09-22) — recuperación silenciosa ante
+            // cualquier fail no manejado (URL Too Long, timeout, RLS reject,
+            // network). Sin este catch, `Promise.all` rechaza y la excepción
+            // propaga → setLoadingNotifs(false) del try nunca corre → panel
+            // queda "Cargando notificaciones..." indefinido → test bell
+            // asserta 0 filas.
+            console.warn('[NotificationBell] fetchNotifications catch:', err);
+        } finally {
+            // Garantía absoluta de estado terminal — panel deja de mostrar
+            // "Cargando..." aunque el fetch se haya roto. Con notifications
+            // vacío el panel renderea "No tienes notificaciones", pero al
+            // menos deja de bloquear al user en el loader.
+            setLoadingNotifs(false);
+        }
     };
 
     // Sprint notifs-panel C4 (2026-09-01) — Render defensivo.

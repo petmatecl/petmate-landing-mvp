@@ -1,5 +1,127 @@
 # Bloque J-4 — Kickoff (ampliado 2026-09-22 con ítems del sprint AUTH-MAIL-PHISH)
 
+## Diagnóstico BELL-150 (PR #80, respuesta 4 puntos + push directo, 2026-09-22)
+
+Aterrizado a pedido del PO antes de decidir el merge del PR #80.
+
+### a) Causa técnica exacta del "0 filas con >150 unread"
+
+**Archivo:línea**: `components/Shared/NotificationBell.tsx:229` (`fetchNotifications`).
+
+**Mecanismo empíricamente observado**: el test asserta `visibles > 0` con Aldo=160 unread; falla con `visibles=0` (log: `"Panel muestra 0 filas; BD tiene unread=160"`). El único path del componente que produce `visibles=0` con notifs en BD es el panel quedando en estado `loadingNotifs=true` indefinido — el spec espera `data-testid="notifs-loading"` con `state:'hidden'` timeout 15s; si el loader nunca desaparece, `contarNotifsVisibles` timeout → cuenta 0.
+
+**Cadena que produce el loader colgado** (pre-fix):
+- L262-282: `Promise.all([unreadCountRes, unreadRes, readRes])` — 3 queries paralelas sobre `notifications` (2 pre-fix).
+- L262 unread `.select('*').eq('read', false).order(...)` **sin `.limit()`** → trae N filas literales (160 para Aldo).
+- L333: `.from(tabla).select(columns).in('id', ids)` sobre 3 tablas (`REF_TIPOS`) con `ids` = todos los UUIDs de unread. Con 160 UUIDs × 37 chars ≈ 5.9 KB solo la lista `IN`, URL total ~6.5 KB.
+- L345: segundo `Promise.all` — batch REF_TIPOS.
+- Sin try/catch (verificado con `grep "try\|catch"` sobre L220-370 pre-fix, cero matches): si UNA query rechaza (URL Too Long en el borde 8 KB nginx, RLS timeout, network flake, etc), `Promise.all` rechaza → excepción propaga → `setLoadingNotifs(false)` de L369 nunca corre → loader indefinido.
+
+**Confesión de precisión limitada**: el diagnóstico exacto de POR QUÉ el batch revienta específicamente con 160 (URL 6.5 KB vs límite 8 KB estándar deja margen) no lo confirmé empíricamente en el runner CI. Hipótesis principal: 414 URI Too Long en Kong/Postgrest cuya config real puede diferir del estándar nginx. Hipótesis alternativa: render de 160 divs + resolves de refs + `esClickeable()` per row tarda >15s en el runner. **Server SQL no es el bottleneck** — `EXPLAIN ANALYZE` sobre la query batch con 160 ids retornó `Execution Time: 1.1 ms`.
+
+El fix cubre **ambas hipótesis** por diseño (limitar render + garantizar setLoadingNotifs con try/catch), independientemente de cuál específica se dispara en el runner. El PR no reclama haber aislado empíricamente la hipótesis correcta.
+
+### b) Top 5 no-leídas por usuario en prod (via `supabase-prod-ro`, 2026-09-22)
+
+| user_id (prefix 8 chars) | unread |
+|---|---:|
+| `b1000006` | 7 |
+| `aff2a90d` | 7 |
+| `b1000004` | 4 |
+| `b1000002` | 3 |
+| `b1000007` | 3 |
+
+Max = 7. Cero user prod con >10 unread.
+
+### c) Alcanzabilidad del umbral 150 con volumen actual
+
+Ritmo prod últimas 8 semanas (via `supabase-prod-ro`):
+
+| Semana | notifs_creadas | users_notificados |
+|---|---:|---:|
+| 2026-08-10 | 3 | 2 |
+| 2026-07-27 | 3 | 1 |
+
+**Promedio ~0.75 notifs/semana globales**, distribuidas entre 1-2 users por semana. A este ritmo, para que un user acumule 150 unread necesitaría **~200 semanas** (~4 años) si concentra todo el flujo — improbable, hoy los users marcan/leen.
+
+**Conclusión honesta**: al volumen actual, el umbral 150 **NO es alcanzable en meses ni en años** — hoy prod está muy lejos del punto que dispara el bug. **Es riesgo latente para post-launch** cuando el volumen crezca 10-100x (más proveedores + reservas + notifs). El PR ataca fragilidad estructural pre-launch, no un bug con impacto actual en prod.
+
+### d) Qué cambia el fix del PR #80 + cómo lo prueba el spec
+
+**Cambios de componente** en `components/Shared/NotificationBell.tsx`:
+
+1. **Nueva constante `UNREAD_RENDER_LIMIT = 50`** (L46) — cap del render unread.
+2. **Query COUNT separada** (L262-267) — HEAD sin data, retorna solo count exacto para el badge.
+3. **Query unread con `.limit(50)`** (L268-274) — bell muestra top 50 más recientes visualmente; badge muestra count real desde query separada.
+4. **try/catch/finally alrededor del bloque completo** (L235, L374-388) — garantiza `setLoadingNotifs(false)` en cualquier path (success, catch, finally). Recuperación silenciosa ante fail parcial.
+
+**Cómo lo prueba el spec** — pre-PR + PR:
+
+- **Pre-PR (main)**: T1/T2/T3 dependen del estado natural de Aldo en staging. Post F2-3-CLEANUP Aldo tiene 4 unread → T1/T2 pasan trivialmente **sin ejercer el fix**. **El fix del componente NO estaba probado empíricamente**.
+- **PR #80 primera versión (SHA 97de11d)**: solo cambio de assertion en T2 al nuevo criterio ratio. **Seguía sin ejercer el fix**.
+- **PR #80 versión con T4 (agregada 2026-09-22 tras pedido explícito PO)**: agrega **T4 stress inducido** que:
+  1. Usa `service_role` client (via `E2E_SUPABASE_SERVICE_KEY`) para bypass RLS.
+  2. INSERT masivo de **200 notifs** con `metadata.stress_tag` único por corrida para Aldo.
+  3. Verifica en BD que `unread ≥ 200` post-INSERT (smoke del INSERT).
+  4. Abre bell + asserta `visibles > 0` (garantía que el bell no se cuelga → prueba el try/catch/finally).
+  5. Asserta `visibles ∈ [50, 60]` (prueba que el `.limit(50)` funciona + read cap de 10).
+  6. `try/finally` con DELETE por `metadata->>stress_tag` — cleanup determinista aunque el test falle a mitad, cero riesgo de contaminar la BD ni tocar notifs de otros tests paralelos o data real de Aldo.
+
+**Con T4 el fix del componente queda verificado empíricamente**. Sin T4 el ítem seguiría abierto como bug de producto sin cobertura de test.
+
+**Refinamiento T4 v3 (post-fail Playwright browser)**: T4 usa **user dedicado efímero**, no Aldo ni Camila.
+
+**Historia**: la primera versión con Playwright browser + `addInitScript(localStorage)` para simular auth del user dedicado falló empíricamente en CI (run 35768221273). El session shape que devuelve `signInWithPassword` no coincide con lo que el SDK Supabase browser espera leer de localStorage → user null en UserContext → bell no monta → visibles=0.
+
+**Decisión honesta**: cambiar T4 a **verificación de query directa** (mismo shape que el bell hace), NO flow browser. Motivo: el flow browser bajo carga ya lo cubre T1/T2 con Aldo real (post F2-3-CLEANUP unread=4). T4 cubre la lógica del fix bajo carga real (200 unread + 15 read).
+
+**Flujo T4 v3**:
+1. `admin.createUser({email: 'bell-150-stress-<ts>@pawnecta-test.example', email_confirm: true})` — user efímero (nunca Aldo/Camila).
+2. INSERT 200 notifs unread + 15 read vía service_role con `metadata.stress_tag` único.
+3. Ejecuta EXACTAMENTE las 3 queries que hace el bell (`components/Shared/NotificationBell.tsx:262-282`): `COUNT unread` + `unread .limit(50)` + `read .limit(10)`.
+4. **5 assertions** de la lógica del fix:
+   - (a) `countRes.count === 200` — badge muestra total real.
+   - (b) `unreadRes.data.length === 50` — lista cap 50 con 200 disponibles.
+   - (c) `readRes.data.length === 10` — read cap 10 con 15 disponibles.
+   - (d) `combinedRendered === 60` — visible total = min(200, 50) + min(15, 10).
+   - (e) `idxsUnread.includes(199)` — orden desc por created_at (más reciente primero, no cualquier 50 arbitrario).
+5. `try/finally` con dos steps: DELETE notifs por stress_tag + `admin.deleteUser(uid)`. Corre siempre.
+
+Confirmación: T4 nunca toca `acanocts@gmail.com` (Aldo) ni `acanocts+tutor@gmail.com` (Camila).
+
+**Limitación reconocida**: T4 v3 no ejerce el try/catch/finally del componente bajo carga real browser (solo la lógica de query). Ese path lo cubre T1/T2 con Aldo natural — que ejerce el flow completo bell mount → fetch → panel render con la query nueva `.limit(50)` post-fix. Si en el futuro se necesita cobertura browser bajo carga con user dedicado, sprint separado para setup de auth simulada canónico (probable: crear user + guardarStorageState en tmp file + `test.use({storageState: ...})`).
+
+**Sobre punto 2 del pedido PO — badge vs lista en caso normal (<50)**: verificado en T1 y T2 con Aldo. T2 asserta `visibles = min(unread, 50) + min(read, 10)`; cuando unread<50 (caso Aldo actual), `visibles - min(read, 10) = unread`, que es el count real reflejado en el badge (query COUNT separada devuelve mismo valor). El badge en el DOM es un dot binario (`bg-notification-500 rounded-full`) sin número, se renderea cuando `unreadCount > 0` — T1 asserta visibles>0 (badge visible por definición). Cuando unread ≥ 50, T4 (query directa) verifica que la query COUNT sigue devolviendo el total real y `.limit(50)` acota la lista.
+
+## Push directo `f0955d3` + protección de main (2026-09-22)
+
+**`f0955d3` fue push directo a main.** Confirmado. Error del auditor — violó el flujo PR-only. Dos consecuencias:
+
+1. Disparó deploy prod Vercel sin gate.
+2. Rompió patrón PR-only.
+
+**Estado protección rama `main`**: `gh api repos/petmatecl/petmate-landing-mvp/branches/main/protection` retornó **HTTP 404 "Branch not protected"**. **Cero regla activa hoy** — cualquier push directo a main funciona.
+
+**Regla nueva** aterrizada en `CLAUDE.md > Workflow` via PR #79 (merge `c51d269`): "Ningún push directo a main, ni docs-only". Cero excepción por `docs-only` / `1 línea`. Durante congelamiento del Tramo 2 (2026-09-29 al 2026-10-27) esto incluye docs. Antídoto operativo: verificar `git branch --show-current` NO devuelve `main` antes de cualquier `git push`.
+
+**Ajuste exacto que el PO debe aplicar en `Settings → Branches` sobre `main`** (Add branch ruleset o Add classic branch protection rule):
+
+- **Rule name**: `main protection`. **Target branches**: `main`.
+- **Require a pull request before merging** ✅ REQUIRED.
+  - Sub-checkbox recomendado: "Dismiss stale pull request approvals when new commits are pushed".
+- **Require status checks to pass** ✅ REQUIRED — agregar como required (nombres exactos, coincidir con `gh pr checks 80` output):
+  - `typecheck-and-build`
+  - `Playwright suite error-audit`
+  - `Playwright suite F2`
+  - `Vercel` (el deployment check de Vercel)
+  - Sub-checkbox: "Require branches to be up to date before merging".
+- **Block force pushes** ✅ REQUIRED (evita `git push --force main`).
+- **Restrict deletions** ✅ REQUIRED (evita `git push origin --delete main`).
+- **Restrict pushes** ✅ (en Rulesets moderno) o **Restrict who can push to matching branches** con lista vacía (classic) — bloquea direct push a main desde cualquier actor; solo aceptar PR merges.
+- **Bypass**: solo PO como bypass explícito para emergencias (hotfix Sentry, ver excepción del Tramo 2). Auditor NUNCA en bypass.
+
+**Verificación previa post-ajuste**: `git push origin main` desde una copia limpia debe rechazar con `protected branch hook declined`. Si permite el push, la protección no está aplicada correctamente y hay que revisitar.
+
 ## Cierre F2-3-CLEANUP — verificación post-merge (PR #78, merge `9b58553`)
 
 Respuesta punto por punto a las verificaciones pedidas por el PO antes
