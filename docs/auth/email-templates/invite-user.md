@@ -47,7 +47,7 @@ Te invitamos a Pawnecta
         {{ .ConfirmationURL }}
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Este enlace vale por 7 días.
+        Este enlace es válido por 7 días.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no esperabas esta invitación, ignora este correo. La cuenta quedará sin activar y no podrá usarse.
