@@ -170,7 +170,7 @@ async function main() {
 
         // Todos los eventos del issue — timeline completo + per-event tags.
         try {
-            const events = await api<Array<{ id: string; dateCreated: string; tags: Array<{ key: string; value: string }>; user?: { ip_address?: string; id?: string } | null }>>(`/issues/${topIssue.id}/events/?full=true`);
+            const events = await api<Array<{ id: string; dateCreated: string; tags: Array<{ key: string; value: string }>; user?: { ip_address?: string; id?: string; username?: string; email?: string } | null }>>(`/issues/${topIssue.id}/events/?full=true`);
             console.log('');
             console.log(`    Todos los eventos (${events.length}):`);
             for (const ev of events) {
@@ -184,8 +184,79 @@ async function main() {
                 const sw = t.get('sw_controlling') ?? '?';
                 const release = (t.get('release') ?? '?').slice(0, 8);
                 const ip = ev.user?.ip_address ?? '?';
-                console.log(`      ${ev.dateCreated} | trans=${trans} | url=${url.slice(0, 60)} | ${browser} / ${os} / ${device} | sess=${storage} sw=${sw} | rel=${release} | ip=${ip}`);
+                const uid = ev.user?.id ?? '<no-uid>';
+                console.log(`      ${ev.dateCreated} | trans=${trans} | url=${url.slice(0, 60)} | ${browser} / ${os} / ${device} | sess=${storage} sw=${sw} | rel=${release} | ip=${ip} | uid=${uid}`);
             }
+
+            // Distribución por user.id (Sentry user ids — SOLO IDS, sin PII).
+            // PO 2026-09-22: "los 8 eventos del Pixel 9 y los 7 de /proveedor
+            // pueden ser Eduardo u otro proveedor real; anota los user ids
+            // si Sentry los tiene (solo ids, sin datos personales) para
+            // cruzarlos después".
+            //
+            // Cero print de username/email — SOLO id.
+            console.log('');
+            console.log('    Distribución por user.id (Sentry) — solo ids:');
+            const byUid = new Map<string, { count: number; transactions: Set<string>; devices: Set<string> }>();
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const uid = ev.user?.id ?? '<no-uid>';
+                const trans = t.get('transaction') ?? '?';
+                const device = `${t.get('browser') ?? '?'} / ${t.get('device') ?? t.get('device.family') ?? '?'}`;
+                if (!byUid.has(uid)) byUid.set(uid, { count: 0, transactions: new Set(), devices: new Set() });
+                const bucket = byUid.get(uid)!;
+                bucket.count += 1;
+                bucket.transactions.add(trans);
+                bucket.devices.add(device);
+            }
+            console.log(`      Total user.ids distintos: ${byUid.size} (guests = <no-uid>)`);
+            for (const [uid, info] of Array.from(byUid.entries()).sort((a, b) => b[1].count - a[1].count)) {
+                const transList = Array.from(info.transactions).join(' | ');
+                const devList = Array.from(info.devices).join(' | ');
+                console.log(`      ${uid}: ${info.count} events | trans=[${transList}] | dev=[${devList}]`);
+            }
+
+            // Cruce específico solicitado por PO:
+            // (a) Pixel 9 (8 events) → qué user.ids aparecen ahí.
+            // (b) /proveedor (7 events) → qué user.ids aparecen ahí.
+            console.log('');
+            console.log('    Cruce Pixel 9 (device incluye "Pixel 9"):');
+            const pixel9Uids = new Set<string>();
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const dev = t.get('device') ?? t.get('device.family') ?? '';
+                if (/Pixel\s*9/i.test(dev)) {
+                    pixel9Uids.add(ev.user?.id ?? '<no-uid>');
+                }
+            }
+            console.log(`      user.ids únicos en eventos Pixel 9: ${pixel9Uids.size}`);
+            Array.from(pixel9Uids).forEach(uid => console.log(`        - ${uid}`));
+
+            console.log('');
+            console.log('    Cruce /proveedor (transaction incluye "/proveedor"):');
+            const provUids = new Set<string>();
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const trans = t.get('transaction') ?? '';
+                if (trans.includes('/proveedor')) {
+                    provUids.add(ev.user?.id ?? '<no-uid>');
+                }
+            }
+            console.log(`      user.ids únicos en eventos /proveedor: ${provUids.size}`);
+            Array.from(provUids).forEach(uid => console.log(`        - ${uid}`));
+
+            console.log('');
+            console.log('    Cruce /security-logout (transaction incluye "/security-logout"):');
+            const secLogoutUids = new Set<string>();
+            for (const ev of events) {
+                const t = new Map(ev.tags.map(x => [x.key, x.value]));
+                const trans = t.get('transaction') ?? '';
+                if (trans.includes('/security-logout')) {
+                    secLogoutUids.add(ev.user?.id ?? '<no-uid>');
+                }
+            }
+            console.log(`      user.ids únicos en eventos /security-logout: ${secLogoutUids.size}`);
+            Array.from(secLogoutUids).forEach(uid => console.log(`        - ${uid}`));
 
             // Distribución por transaction.
             console.log('');

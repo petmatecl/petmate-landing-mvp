@@ -20,17 +20,55 @@ Antes de escribir el fix, reproducir el cuelgue de forma DETERMINISTA
 para cada hipótesis. Reporta cuál reproduce el cuelgue antes de tocar
 el código productivo. Sin reproducción → escribir el fix es adivinar.
 
-**A1. Lock de auth de supabase-js (hipótesis ADV-LOCK del backlog)**:
-- **¿Usa `navigator.locks`?** Verificar el código de `@supabase/supabase-js@2.84.x` (`node_modules/@supabase/auth-js/dist/main/GoTrueClient.js`). El proyecto pasa `lock: noOpLock` en `lib/supabaseClient.ts:33` que teóricamente reemplaza la implementación del lock. CLAUDE.md L622 (P10 sprint deadlock-fix) documenta: "Reemplazar la implementación del lock no alcanza. El SDK mantiene su propio estado de reentrada (`lockAcquired` / `pendingInLock`) independiente del lock que se le pase". La noOpLock evita orphan Web Locks entre pestañas pero no elimina el deadlock interno.
-- **P8**: abrir 2 pestañas del mismo user en staging preview + medir `navigator.locks.query()` cuando el spinner queda pegado. Si aparece un lock retenido por otra pestaña → confirmación ADV-LOCK. Playwright MCP con 2 contextos + capturar `page.evaluate(() => navigator.locks.query())` cuando el user_context_stuck warn dispare.
-- **Escenario alternativo** (sin Web Locks): el `pendingInLock` interno del SDK tiene una promesa pendiente que nunca resuelve porque el callback subyacente no notifica (bug del propio SDK versión 2.84.x). Reproducir con signInWithPassword mid-hydrate.
+**A1. Lock de auth de supabase-js — PRIMERO (precisión PO 2026-09-22)**:
 
-**A2. Service Worker (`next-pwa@10.2.9`)**:
-- **Cuál es**: `@ducanh2912/next-pwa` (`next.config.js:withPWA`). Registrado solo en prod (gate `IS_PROD`). Workbox runtime caching con defaults del plugin.
-- **Qué intercepta**: NetworkFirst para navigations (HTML documento) + StaleWhileRevalidate para JS chunks/CSS/imágenes + CacheFirst para fonts Google. `_offline` fallback si NetworkFirst timeout.
-- **¿Toca supabase.co?** El SW default `next-pwa` NO tiene runtimeCaching para dominios de terceros — solo mismo origin (`pawnecta.com`, `www.pawnecta.com`). Confirmar con `chrome://serviceworker-internals/` en prod que las requests a `*.supabase.co` pasan directo (network, no SW).
-- **¿Toca storage de sesión?** El SW no toca `localStorage` ni `IndexedDB` — sí puede interferir con `postMessage` del SDK. Verificar si Supabase Auth SDK usa BroadcastChannel/postMessage entre pestañas.
-- **P8**: reproducir cuelgue con SW registrado + reproducir con SW desregistrado (`navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()))`). Si cuelgue desaparece con SW off → confirmación A2.
+**Racional del PO**: `getSession()` (UserContext.tsx:631) se cuelga también para invitados sin sesión (que NO tienen perfil que cargar). Eso apunta al lock de auth del SDK más que al camino de perfil (queries `.from('proveedores')`/`usuarios_buscadores`). El path guest normal (L311-338) resuelve rápido con `session=null` → `setIsLoading(false)`; que 66% de events sean guests sin storage session es evidencia fuerte de que el cuelgue está en `getSession()` mismo, ANTES de llegar al hydrateFromSession.
+
+**Caso `/security-logout` (5 events, 16%)**: notable — todos son POST-logout inmediato. El path del logout dispara `onAuthStateChange` con `event='SIGNED_OUT'`; según CLAUDE.md > P10 (sprint deadlock-fix 2026-08-28), llamadas asíncronas al cliente Supabase dentro del callback de `onAuthStateChange` producen deadlock circular en el lock interno de auth. Aunque el fix P10 aterrizó `setTimeout(0)` para diferir el trabajo, puede haber path residual sin la protección. Hipótesis fuerte que A1 + P10 son el mismo bug.
+
+**P8 A1 — 4 sub-experimentos, todos con `navigator.locks.query()` capturado al cuelgue**:
+- **A1.a — Guest sin sesión, 1 pestaña**: incognito staging preview `/`, sin login. Si `getSession()` se cuelga aquí, el lock interno del SDK es sospechoso (cero conflicto entre pestañas — es un lock que se queda tomado).
+- **A1.b — Guest sin sesión, 2 pestañas simultáneas**: incognito 2 tabs paralelas a `/`. Si una tab cuelga y la otra no → contienda del lock intra-cliente confirmada.
+- **A1.c — Autenticado, 2 pestañas misma sesión**: perfil Aldo (proveedor.json) en 2 tabs → `/proveedor`. Reproduce el patrón cross-tab clásico ADV-LOCK — la 2ª tab espera al lock que la 1ª tomó.
+- **A1.d — `/security-logout` post-signOut**: login normal → click logout → llegar a `/security-logout` → medir `navigator.locks.query()` + observar si watchdog dispara. Aísla el path P10 del `onAuthStateChange`.
+
+**Captura obligatoria en cada P8**: `page.evaluate(() => navigator.locks.query())` cuando el spinner queda pegado (>10s en la UI) + `navigator.serviceWorker.controller?.scriptURL` para descartar A2 en ese instante + timestamp.
+
+**Verificación de issues conocidos en `@supabase/supabase-js@~2.84.0`**:
+- Buscar en `https://github.com/supabase/supabase-js/issues` y `https://github.com/supabase/auth-js/issues` con queries: `getSession hang`, `deadlock auth`, `navigator.locks`, `lock never released`, `pendingInLock`. Rango de versiones afectadas: 2.84.x (pin actual del proyecto por P12 CLAUDE.md 2026-09-17).
+- Reporte del hallazgo: **citar issue exacto (URL + título + status) si existe**. Si el issue está resuelto en 2.85+ → decisión PO sobre bump vs workaround local. Si no hay issue → abrir uno con nuestro repro determinista (opción productiva).
+- El proyecto documenta ya P10 con stack trace verificado contra `node_modules/@supabase/auth-js/dist/main/GoTrueClient.js` v2.84.0 (sprint deadlock-fix 2026-08-28). Extender esa investigación es la base del A1.
+
+**Escenario alternativo verificable en A1**: el `pendingInLock` interno del SDK tiene una promesa pendiente que nunca resuelve porque el callback subyacente no notifica (bug del propio SDK versión 2.84.x, precedente P10). Reproducir con `signInWithPassword` mid-hydrate y ver si el flag `pendingInLock` queda `true` indefinido — inspeccionable en `page.evaluate` a través del cliente exportado.
+
+**A2. Service Worker (`next-pwa@10.2.9`) — SW REAL, no demoledor (precisión PO 2026-09-22)**:
+
+**Precisión del PO**: el SW `next-pwa` solo se registra en prod (gate `IS_PROD` de `next.config.js`). En previews Vercel el `scripts/write-sw-demolisher.js` hook prebuild escribe un `public/sw.js` auto-destructivo (unregister + purga caches). **NO se puede reproducir A2 en staging preview** — el SW real nunca corre allí.
+
+**Reproducción canónica del A2** (dos rutas posibles, decisión PO):
+- **Ruta 1 — local con next start**: `NEXT_PUBLIC_APP_ENV=production npm run build && npm run start` fuerza `IS_PROD=true` → el prebuild NO ejecuta el demoledor → `next-pwa` genera el `sw.js` workbox real. Playwright/browser manual apunta a `http://localhost:3000` y reproduce el cuelgue con SW registrado vs `navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister()))`. Cero contacto con prod real, cero riesgo de deploy.
+- **Ruta 2 — preview desechable con SW forzado**: cambiar temporalmente en la rama `cue-1-fix` el gate del hook prebuild + el `disable` de `withPWA` para forzar SW en un preview específico. **Requiere tocar código productivo temporalmente** — decisión PO si vale la pena vs Ruta 1.
+
+**Recomendación**: **Ruta 1 primero** (cero riesgo, cero touch al código productivo, ejecutable inmediato con `npm run build` local). Si el cuelgue no reproduce local pero sí en prod → sub-hipótesis de infra de Vercel + SW (difícil aislar) — evaluar Ruta 2.
+
+**Qué intercepta el SW real**:
+- **NetworkFirst** para HTML documentos + `/api/*` no-auth (timeout 10s + fallback `_offline`).
+- **StaleWhileRevalidate** para JS chunks, CSS, imágenes, `_next/data/*.json`, `_next/image`.
+- **CacheFirst** para fonts Google + `gstatic`.
+- **No toca terceros por default**: `*.supabase.co` no está en runtimeCaching, pasa directo a network. Confirmar con `chrome://serviceworker-internals/` en cualquiera de las rutas de reproducción que el SW no aparece como controller de las requests a `*.supabase.co`.
+- **BroadcastChannel/postMessage**: verificar si Supabase Auth SDK v2.84.x usa BroadcastChannel para sincronizar sesión entre pestañas — si el SW intercepta esos messages (workbox tiene handlers de messages para SW updates), puede corromper la sincronización de auth.
+
+**P8 A2** — matriz reproducibilidad:
+| Sub | Ambiente | SW | Sesión | ¿Cuelga? |
+|---|---|---|---|---|
+| A2.a | Local `next start` (IS_PROD=true) | registrado (workbox real) | guest | Medir |
+| A2.b | Local `next start` (IS_PROD=true) | unregister runtime | guest | Medir |
+| A2.c | Local `next start` (IS_PROD=true) | registrado | autenticado 1 tab | Medir |
+| A2.d | Local `next start` (IS_PROD=true) | registrado | autenticado 2 tabs | Medir |
+
+Si A2.a cuelga y A2.b no → confirmación A2. Si A2.b también cuelga → A2 no es la causa, es A1.
+
+**Sub-decisión PO al arrancar**: ¿arranco A2 con Ruta 1 (local) sin pedir GO, o dejo A2 en pausa hasta que valides que quieres Ruta 1 vs Ruta 2? Mi propuesta: **Ruta 1 automática** (cero riesgo, cero código productivo tocado). Si prefieres Ruta 2 o pausar A2, dime en el reporte pre-fix.
 
 **A3. Camino anónimo** (bug adicional descubierto en cue-1.3):
 - **Archivo:línea**: `contexts/UserContext.tsx:631` — `supabase.auth.getSession().then(...)` sin timeout ni catch. Si `getSession()` cuelga por A1 o A2, el `.then` nunca dispara → `hydrateFromSession` no corre → `isLoading` queda true → watchdog dispara.

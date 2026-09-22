@@ -329,6 +329,43 @@ De los 10 events más recientes (rango 2026-09-21 21:27 → 2026-09-22 17:02), r
 
 **Conclusión coincidencia**: aproximadamente **4-6 events del PO** (los `/forgot-password` + `/admin` recientes). Los **~26 restantes son usuarios reales** — proveedores en `/proveedor`, tráfico orgánico en `/` y `/blog/*`, users post-logout en `/security-logout`. **NO todos los events son ruido del PO smokeando** — la mayoría es señal real de cuelgues productivos.
 
+### user.ids Sentry (precisión PO 2026-09-22 kickoff cue-1-fix)
+
+**PO pidió**: "los 8 eventos del Pixel 9 y los 7 de /proveedor pueden ser Eduardo u otro proveedor real; anota los user ids si Sentry los tiene (solo ids, sin datos personales) para cruzarlos después".
+
+**Hallazgo del script actualizado** (`scripts/sentry-query-cue1.ts` — extrae `user.id` de cada event via `/events/?full=true`, sin username/email):
+
+| Cruce | user.ids distintos | Valor |
+|---|---:|---|
+| Todos los events (últimos 10) | 1 | `<no-uid>` (guest, sin `Sentry.setUser`) |
+| Pixel 9 (device incluye "Pixel 9") | 1 | `<no-uid>` |
+| /proveedor (transaction incluye "/proveedor") | 0 | (ninguno en los últimos 10) |
+| /security-logout (transaction incluye "/security-logout") | 1 | `<no-uid>` |
+
+**Sentry `userCount = 0` en el issue completo (32 events).** Todos los 32 events son "guest" desde el punto de vista de Sentry — cero user.id capturado.
+
+**Causa raíz del hallazgo**: **no hay `Sentry.setUser({ id })` en el codebase**. Grep confirmatorio:
+```
+grep -rn "Sentry\.setUser\|scope\.setUser" contexts/ pages/ lib/ components/
+→ 0 matches
+```
+
+El SDK `@sentry/nextjs` no identifica automáticamente al user desde Supabase Auth — requiere llamada explícita `Sentry.setUser({ id: user.id })` post-hidratación en UserContext (idealmente en L342 justo después de `setUser(session.user)`), y `Sentry.setUser(null)` en signOut (L915). Sin eso:
+- Los events no muestran a qué usuario le pasó.
+- El dashboard Sentry "Users Affected" siempre reporta 0.
+- Cruzar "Pixel 9 = Eduardo?" es imposible desde los datos capturados.
+
+**Implicancias operativas**:
+1. **Los 7 events de `/proveedor` no puedo atribuirlos a Eduardo u otro proveedor real desde los datos actuales**. Los 8 events de Pixel 9 tampoco. Ambos quedan como "usuarios reales anónimos hasta el punto de vista de Sentry".
+2. **La atribución empírica que hice en cue-1.4** ("~26 de 32 events son usuarios reales, ~4-6 son PO smokeando") es hipótesis basada en distribución de `transaction` + ventanas temporales de smokes conocidos, **NO datos de user.id de Sentry**. Es evidencia circunstancial válida para la decisión BLOQUEA pero no atribución individual.
+3. **Fix del gap** = 3 líneas de código en UserContext.tsx (setUser positivo, setUser(null) en logout, setUser(null) en `session=null` path del hydrateFromSession). **NO es parte del sprint cue-1-fix**. Es sprint independiente **CUE-1-SENTRY-USER** (~15 min de código + verificación).
+4. **Decisión operativa**: aterrizar CUE-1-SENTRY-USER **DENTRO** del sprint cue-1-fix como sub-tarea del reporte pre-fix — sin `user.id` capturado, no puedo validar empíricamente si el fix aterrizado resuelve los cuelgues de "el proveedor específico X" vs "cualquier proveedor". El fix aterriza + primer event capturado con user.id post-fix = verificación empírica del cierre.
+5. **Alternativa si el PO prefiere separar**: sprint aparte post-cue-1-fix (cero riesgo, feature de observabilidad, cero cambio funcional).
+
+**Decisión mía por defecto** (PO ratifica o cambia): aterrizar `Sentry.setUser` en el mismo commit que el fix estructural F1+F2 del sprint cue-1-fix. Cero surface adicional (3 líneas), habilita atribución individual desde el primer cuelgue post-fix.
+
+**Nota para el acta**: los 8 events de Pixel 9 y los 7 de /proveedor no son atribuibles a un user real específico hoy. Al cerrar cue-1-fix con Sentry.setUser aterrizado, cualquier cuelgue nuevo va a permitir el cruce que el PO pidió.
+
 ### Decisión final CUE-1 (con evidencia Sentry prod)
 
 **CUE-1 pasa a BLOQUEA**. Justificación empírica:
