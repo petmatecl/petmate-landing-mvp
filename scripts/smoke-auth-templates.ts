@@ -164,28 +164,33 @@ async function main() {
         }
 
         case 'change-email': {
-            // Dos pasos: (1) crear user con email A (auto-confirmed para
-            // saltarnos Confirm signup); (2) admin.updateUserById cambiando
-            // email a B — dispara "Change email address" al email nuevo B.
-            // El correo al viejo A lo dispara el flow client-side
-            // updateUser({email}); admin.updateUserById solo dispara al nuevo.
+            // admin.updateUserById cambia el email en silencio (200 sin correo).
+            // Para disparar el template "Change email" hay que usar el flow
+            // client-side updateUser({email}) desde una sesión activa. Bootstrap:
+            // (1) createUser auto-confirmed, (2) signInWithPassword, (3)
+            // userClient.auth.updateUser({email: nuevo}) → dispara al viejo Y al
+            // nuevo (Supabase Secure Email Change enabled=default).
+            const password = `TmplSmoke-${Date.now()}!`;
             const emailNew = `staging-authtmpl-new-${Date.now()}@pawnecta-test.example`;
             const { data: created, error: createErr } = await admin.auth.admin.createUser({
                 email,
-                password: `TmplSmoke-${Date.now()}!`,
+                password,
                 email_confirm: true,
             });
             if (createErr) throw new Error(`createUser fail: ${createErr.message}`);
             const userId = created.user?.id;
             if (!userId) throw new Error('createUser: no userId');
 
-            const { error: updateErr } = await admin.auth.admin.updateUserById(userId, {
-                email: emailNew,
-            });
-            if (updateErr) throw new Error(`updateUserById fail: ${updateErr.message}`);
+            // Cliente separado con sesión propia — updateUser desde sesión activa.
+            const userClient = createClient(url, key);
+            const { error: signInErr } = await userClient.auth.signInWithPassword({ email, password });
+            if (signInErr) throw new Error(`signInWithPassword fail: ${signInErr.message}`);
+
+            const { error: updateErr } = await userClient.auth.updateUser({ email: emailNew });
+            if (updateErr) throw new Error(`updateUser fail: ${updateErr.message}`);
             console.log(`[OK] Change email disparado. userId=${userId} email_new=${emailNew}`);
-            console.log('    Nota: admin.updateUserById dispara solo al email NUEVO. Para probar la variante');
-            console.log('    del email viejo, hacer signInWithPassword como el user + updateUser({email}) client-side.');
+            console.log('    Nota: Supabase Secure Email Change dispara 2 correos (al viejo y al nuevo).');
+            console.log('    El helper solo revisa el más reciente en Mailtrap — puede ser cualquiera de los 2.');
             break;
         }
 
