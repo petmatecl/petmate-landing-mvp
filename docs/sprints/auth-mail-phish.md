@@ -194,6 +194,46 @@ confirmación explícita** del tipo "confirmado, save persistido, dashboard
 muestra Updated at con fecha de hoy en las N plantillas modificadas"
 antes de disparar el smoke.
 
+## Hallazgo prod (reportado por PO 2026-09-22)
+
+Prod TAMBIÉN tenía la plantilla residual de 2024 en **[Confirm sign up]** —
+misma que apareció en staging durante el primer smoke (HTML con
+`<title>Bienvenido a Pawnecta</title>` + tabla presentation +
+`background-color: #10B981` header + emoji ❤️ en el footer + copyright
+`© 2024`). Nadie recordaba haberla pegado.
+
+**HTML previo respaldado por el PO** como
+`docs/auth/email-templates/prod-pre-sprint/prod-pre-confirm-signup.html`
+antes de pisarla con la plantilla nueva del sprint. Rollback disponible
+en caso de necesidad.
+
+Refuerza la utilidad de la checklist "Antes de pegar en prod" agregada
+al `01-como-aplicar.md`: **cualquier plantilla del Dashboard puede tener
+una versión personalizada antigua olvidada; snapshot antes de pisar
+es evidencia de rollback**.
+
+## Corrección de copy (2026-09-22, ronda staging cerrada)
+
+Chile: "vale por X horas" tiene connotación de cupón/promoción. Uso
+natural = "es válido por X horas". Cambio en las 6 plantillas de
+`docs/auth/email-templates/*.md`. Cero cambio de estructura, semántica ni
+variables. Frase final:
+
+- Confirm signup: "Este enlace es válido por 24 horas."
+- Reset password: "Este enlace es válido por 1 hora."
+- Magic link: "Este enlace es válido por 1 hora y se puede usar una sola vez."
+- Change email address: "... Este enlace es válido por 24 horas."
+- Invite user: "Este enlace es válido por 7 días."
+- Reauthentication: "Este código es válido por 10 minutos y se puede usar una sola vez."
+
+Vigencias declaradas contra defaults canónicos de Supabase Auth
+(`GOTRUE_MAILER_OTP_EXP=3600` para reset/magic, `mailer_autoconfirm`
+default 24 h, `invite_link_expires_in` default 7 días, reauth OTP 10 min).
+No pude leer la config efectiva vía MCP (`auth.config` no expuesto por
+schema Postgres; los settings viven en variables gotrue-server). Si algún
+valor del Dashboard difiere del default declarado, el PO lo reporta y el
+auditor actualiza la plantilla — cero rework de otro texto.
+
 ## Constraints explícitos del PO
 
 - **NO** aplicar nada en prod desde el auditor.
