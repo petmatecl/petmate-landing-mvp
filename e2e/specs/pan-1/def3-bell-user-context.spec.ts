@@ -324,13 +324,18 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
                 `Total visible en panel = ${combinedRendered}, esperado 60 (min(200, 50) + min(15, 10)).`
             ).toBe(UNREAD_RENDER_LIMIT + 10);
 
-            // Verificación (e) — orden desc por created_at (más recientes primero).
-            // El row idx=199 fue el último insertado → debe estar entre los 50 primeros.
-            const idxsUnread = (unreadRes.data ?? []).map(n => (n.metadata as { idx: number })?.idx);
+            // Verificación (e) — todas las 50 filas devueltas son del stress_tag
+            // actual (cero contaminación de otros tests concurrentes / data real).
+            // El INSERT batch da timestamps idénticos al microsecond, así que
+            // ORDER BY created_at DESC no es diferenciable entre filas del batch;
+            // Postgres puede devolver cualquier orden interno. Cero valor
+            // asertar orden específico bajo esta condición — sí es útil verificar
+            // que todo lo devuelto pertenece al set del test.
+            const stressTags = (unreadRes.data ?? []).map(n => (n.metadata as { stress_tag?: string })?.stress_tag);
             expect(
-                idxsUnread,
-                `Los 50 unread devueltos deben incluir idx=199 (más reciente insertado). Recibí: ${idxsUnread.slice(0, 3)}...`
-            ).toContain(199);
+                stressTags.every(t => t === stressTag),
+                `Las 50 unread deben tener metadata.stress_tag=${stressTag}. Encontrados distintos: ${stressTags.filter(t => t !== stressTag).slice(0, 3).join(', ')}`
+            ).toBe(true);
         } finally {
             // Cleanup determinista — corre siempre.
             await admin
