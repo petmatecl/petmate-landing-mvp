@@ -131,6 +131,29 @@ los CTAs de los correos dependen del Site URL para el fallback de
 el redirect_to de Confirm signup salió con localhost hasta que se
 corrigió a la URL del preview staging).
 
+**Paso 2b — Email OTP Expiration del ambiente**
+
+Leer `Dashboard → Auth → Settings → Email → Email OTP Expiration` (o donde
+esté vigente el label en la versión actual del Dashboard) y **confirmar que
+las plantillas declaran esa vigencia**.
+
+Un único parámetro `Email OTP Expiration` gobierna la vigencia de TODOS
+los enlaces + códigos de Auth (Confirm signup, Reset password, Magic
+link, Change email, Invite user, Reauthentication OTP). No hay TTL
+independiente por template.
+
+Valor efectivo verificado por PO 2026-09-22 en prod: **3600 segundos (1
+hora)** + Email OTP Length = 6. Las 6 plantillas del sprint declaran esa
+vigencia. Si el valor del Dashboard difiere del declarado en las
+plantillas, actualizar la plantilla puntual antes de pegar — no dejar
+"vigencia declarada ≠ vigencia real". Es misinformación al usuario y cae
+en el mismo antipatrón que la pantalla que afirma una causa sin verificar
+(`CLAUDE.md > "Una pantalla de estado no debe afirmar una causa que no
+verificó"`).
+
+Verificar también `Email OTP Length` (default 6). Si difiere, actualizar
+la plantilla `reauthentication.md` — hoy dice "código de 6 dígitos".
+
 **Paso 3 — Sender del SMTP Auth prod**
 
 Verificar `Dashboard → Auth → SMTP Settings` de prod: Sender email debe

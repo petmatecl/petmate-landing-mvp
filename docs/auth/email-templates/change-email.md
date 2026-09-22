@@ -57,7 +57,7 @@ Confirma el cambio de correo en Pawnecta
         {{ .ConfirmationURL }}
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Necesitas confirmar desde ambos correos (el actual y el nuevo) para que el cambio se aplique. Este enlace es válido por 24 horas.
+        Necesitas confirmar desde ambos correos (el actual y el nuevo) para que el cambio se aplique. Este enlace es válido por 1 hora.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no pediste este cambio, ignora este correo. Tu cuenta seguirá con el correo actual.

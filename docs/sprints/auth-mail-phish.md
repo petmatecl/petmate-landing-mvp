@@ -226,13 +226,30 @@ variables. Frase final:
 - Invite user: "Este enlace es válido por 7 días."
 - Reauthentication: "Este código es válido por 10 minutos y se puede usar una sola vez."
 
-Vigencias declaradas contra defaults canónicos de Supabase Auth
-(`GOTRUE_MAILER_OTP_EXP=3600` para reset/magic, `mailer_autoconfirm`
-default 24 h, `invite_link_expires_in` default 7 días, reauth OTP 10 min).
-No pude leer la config efectiva vía MCP (`auth.config` no expuesto por
-schema Postgres; los settings viven en variables gotrue-server). Si algún
-valor del Dashboard difiere del default declarado, el PO lo reporta y el
-auditor actualiza la plantilla — cero rework de otro texto.
+**Hallazgo 2026-09-22 (post-copy fix)**: los "defaults canónicos" que
+declaré (24 h signup/change-email, 7 días invite, 10 min reauth OTP) **no
+existen** en Supabase Auth. Un único parámetro `Email OTP Expiration`
+gobierna TODAS las vigencias (Confirm signup, Reset password, Magic link,
+Change email, Invite user, Reauthentication OTP). El PO verificó en
+prod: `Email OTP Expiration = 3600 segundos (1 hora)` + `Email OTP
+Length = 6`.
+
+Corrección aplicada — las 6 plantillas declaran "1 hora":
+- Reset password: ya decía 1 hora, sin cambio.
+- Magic link: ya decía 1 hora, sin cambio.
+- Confirm signup: 24 h → 1 hora.
+- Change email address: 24 h → 1 hora.
+- Invite user: 7 días → 1 hora.
+- Reauthentication OTP: 10 min → 1 hora + agregado "código de 6 dígitos"
+  (Email OTP Length = 6, verificado en Dashboard).
+
+**Lección** (aterriza como caso canónico en `01-como-aplicar.md > Paso 2b`):
+**las vigencias declaradas en correos se leen de la config real, nunca se
+asumen** — ni siquiera cuando "el default está documentado" en fuentes de
+terceros. El único mecanismo válido es Dashboard del ambiente
+(`Auth → Settings → Email → Email OTP Expiration`). Es el corolario P8
+11ª aplicado a copy: no afirmar sin verificar; la fuente autoritativa es
+el sistema, no la memoria ni las docs.
 
 ## Constraints explícitos del PO
 
