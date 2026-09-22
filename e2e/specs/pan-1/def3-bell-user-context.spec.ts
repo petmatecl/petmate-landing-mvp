@@ -86,9 +86,16 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
     });
 
     test('T2 — mezcla unread + read visible (opción B revisada)', async ({ page }) => {
-        // BD tiene N unread + M read. Panel muestra unread + últimas 10 read.
-        // Visible count = unread + min(read, 10). Test PASS solo si BD tiene
-        // ≥1 read para diagnosticar.
+        // BD tiene N unread + M read. Panel muestra min(unread, UNREAD_RENDER_LIMIT)
+        // + min(read, 10). Test PASS solo si BD tiene ≥1 read para diagnosticar.
+        //
+        // Sprint J-4 BELL-150 (2026-09-22) — antes se asertaba `visibles >= unread + 1`
+        // que asumía que TODAS las unread se rendereaban. Con el `.limit(50)` del
+        // fix BELL-150, el panel muestra máximo 50 unread aunque BD tenga 160.
+        // La assertion nueva es sobre el rango esperado:
+        //   min(unread, 50) + min(read, 10) <= visibles <= unread + 10
+        // El badge muestra unread total real (query COUNT separada).
+        const UNREAD_RENDER_LIMIT = 50; // debe coincidir con NotificationBell.tsx L46
         const supabase = await getSupabaseAsProveedor();
         const { data: userRes } = await supabase.auth.getUser();
         const uid = userRes!.user!.id;
@@ -104,12 +111,14 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         await page.goto('/admin');
         await openBell(page);
         const visibles = await contarNotifsVisibles(page);
-        // Panel visible = unread + min(read, 10).
-        const esperadoMin = unreadCount + Math.min(readCount, 10);
+        // Panel visible = min(unread, UNREAD_RENDER_LIMIT) + min(read, 10).
+        const unreadRenderizado = Math.min(unreadCount, UNREAD_RENDER_LIMIT);
+        const readRenderizado = Math.min(readCount, 10);
+        const esperado = unreadRenderizado + readRenderizado;
         expect(
             visibles,
-            `Panel visibles=${visibles}; BD unread=${unreadCount} read=${readCount}. Opción B espera ~${esperadoMin} visibles (unread + últimas 10 read).`
-        ).toBeGreaterThanOrEqual(unreadCount + 1);
+            `Panel visibles=${visibles}; BD unread=${unreadCount} (renderizado max ${UNREAD_RENDER_LIMIT}) read=${readCount} (renderizado max 10). Opción B espera exact=${esperado} — panel muestra top ${UNREAD_RENDER_LIMIT} unread + top 10 read.`
+        ).toBe(esperado);
     });
 
     test('T3 — logout + login otro user misma pestaña: bell se vacía y recarga', async ({ browser }) => {
