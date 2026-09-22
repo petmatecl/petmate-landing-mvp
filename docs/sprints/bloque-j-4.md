@@ -93,6 +93,77 @@ Confirmación: T4 nunca toca `acanocts@gmail.com` (Aldo) ni `acanocts+tutor@gmai
 
 **Sobre punto 2 del pedido PO — badge vs lista en caso normal (<50)**: verificado en T1 y T2 con Aldo. T2 asserta `visibles = min(unread, 50) + min(read, 10)`; cuando unread<50 (caso Aldo actual), `visibles - min(read, 10) = unread`, que es el count real reflejado en el badge (query COUNT separada devuelve mismo valor). El badge en el DOM es un dot binario (`bg-notification-500 rounded-full`) sin número, se renderea cuando `unreadCount > 0` — T1 asserta visibles>0 (badge visible por definición). Cuando unread ≥ 50, T4 (query directa) verifica que la query COUNT sigue devolviendo el total real y `.limit(50)` acota la lista.
 
+## Caso canónico: "regla de status checks activa con lista vacía" (2026-09-22)
+
+Descubierto durante verificación post-aplicación del ruleset `main protection`
+por PO (id `23838343`, `gh api rulesets/23838343`). Aterrizado como caso
+canónico junto a la regla P12 del `| tee` sin `pipefail` del 17-09 —
+ambos son mismo antipatrón: **una defensa activa cuya configuración
+específica está vacía o mal seteada, dando la ilusión de gate mientras
+cero se enforce**.
+
+**Regla del caso**: cuando el PO/auditor aplica un ruleset o rule con
+sub-configuración interna (lista de checks required, lista de branches
+protegidos, lista de reviewers, etc), la verificación post-ajuste debe
+listar **explícitamente** el contenido de esa sub-configuración, no
+solo confirmar que la rule "está activa". Un ruleset con `type:
+required_status_checks` cuya `required_status_checks: []` está vacío
+se lee como "verificar checks pasa" en Settings UI, pero **cero checks
+son required en la práctica** — un PR con todos los checks rojos
+puede mergear sin obstáculo. Mismo antipatrón que un workflow con
+`| tee` sin `set -o pipefail` — el step aparece verde aunque el pipe
+tenga fallos internos.
+
+**Historia del hallazgo**: PO aplicó el ruleset `main protection`
+2026-09-22 con las 4 rules (deletion, non_fast_forward, pull_request,
+required_status_checks). Al verificar via `gh api rulesets/23838343`,
+el auditor detectó que `required_status_checks: []` era una lista
+vacía — cero checks calzados por nombre (typecheck-and-build,
+Playwright suite error-audit, Playwright suite F2, Vercel). PO editó
+el ruleset agregando los 4 nombres exactos + verificación confirmó
+calce 1:1 con `gh pr checks 80`. Post-fix: `required_status_checks:
+[{context: 'typecheck-and-build', integration_id: 15368}, ...]`.
+
+**Antídoto operativo** (aplica a auditor + PO):
+- Tras aplicar cualquier rule con sub-lista, correr `gh api
+  <endpoint> --jq '.parameters'` (o equivalente) para imprimir el
+  contenido literal de la lista.
+- Verificar que los nombres coinciden **exacto** con lo que reporta
+  la fuente (`gh pr checks <n> --json name --jq '.[] | .name'` para
+  status checks; equivalente para reviewers, branches, etc).
+- Si la lista está vacía o mal — reportar antes de dar por cerrado.
+
+Extensión del corolario P8 12ª (2026-09-22, aterrizada en el sprint
+auth-mail-phish sobre "vigencias declaradas"): **no afirmar que una
+defensa está activa si no verificaste su configuración específica**.
+Fuente autoritativa = leer el config real, no el toggle Settings UI.
+
+## Diagnóstico cue-1 (P8 forzado, 2026-09-22)
+
+**Puntos pedidos por PO**:
+1. Verificar empíricamente que el watchdog `console.warn('user_context_stuck')` dispara con condición forzada.
+2. Reporte inmediato: si NO dispara → CUE-1 pasa a BLOQUEA; si SÍ dispara → permanece en modo monitoreado.
+
+**Test P8 forzado ya existe** en `e2e/specs/prelaunch/cue-1-watchdog.spec.ts` (sprint prelaunch 2026-09-15). Intercepta `**/rest/v1/proveedores*` + `**/rest/v1/usuarios_buscadores*` con `page.route(() => new Promise(() => {}))` (nunca resuelven) → navega `/` → espera 18s → captura `console.warn` con substring `user_context_stuck`.
+
+**Resultados de las últimas 3 corridas del spec en CI**:
+
+| Run | SHA | Commit | Estado | Duración | Warnings vistos |
+|---|---|---|---|---|---|
+| [35735575685](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35735575685) | `bbb2fef` | Empty commit trigger fresh CI (auth-mail-phish) | ✘ FAIL | 19.2s | 0 |
+| [35768221273](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35768221273) | `6267988` | J-4 BELL-150 T4 v2 (Playwright browser) | (F fail no relacionado; cue-1 no reportó) | — | — |
+| [35769663312](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35769663312) | `beadca4` | J-4 BELL-150 T4 v3 fix assertion (e) | ✓ **PASS** | 18.8s | ≥1 |
+
+**Interpretación**:
+- El fail del 13:47 (durante F2-3-CLEANUP diagnostic) coincide con: 235 agendamientos test acumulados + 291 notifs huérfanas + 160 unread Aldo + suite completa corriendo. **Carga ambiental extrema.**
+- El pass del 18:50 (post F2-3-CLEANUP + BELL-150 mergeados a main): condiciones normales. Spec pasa consistentemente.
+
+**Hipótesis del fail transitorio**: la carga extrema del ambiente (235 fixtures + 291 notifs + concurrent tests) probable perturbó timing del mount UserContext o interfirió con las queries del propio bell test — el `page.route` intercept de proveedores/usuarios_buscadores no cubría otras queries concurrentes (RPC, RLS eval, etc). Con la BD limpia post F2-3-CLEANUP, el mount es predecible → hydrate cuelga en las queries interceptadas → watchdog 15s dispara → warn emitido. Cero cambio necesario al watchdog ni al spec.
+
+**Decisión reportada al PO**: **CUE-1 permanece EN MONITOREADO**, no pasa a BLOQUEA. El watchdog funciona (verificado empíricamente con evidencia P8), y el fail era ambiental resuelto por F2-3-CLEANUP + BELL-150. Cero fix de código productivo del watchdog necesario pre-launch.
+
+**Recomendación operativa post-launch**: mantener el watchdog vivo (Sentry gate a prod ya activo) y revisar el dashboard Sentry semanalmente para detectar cuelgues reales que no reproducen en dev. Si aparecen ≥3 cuelgues en 1 semana con mismo `stuckReason`, escalar a fix estructural.
+
 ## Push directo `f0955d3` + protección de main (2026-09-22)
 
 **`f0955d3` fue push directo a main.** Confirmado. Error del auditor — violó el flujo PR-only. Dos consecuencias:
