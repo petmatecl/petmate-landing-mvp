@@ -160,6 +160,40 @@ anotados acá para trazabilidad:
   BACKLOG.md como DMARC cerrado + DMARC-2 (subir a `p=reject`)
   disparador "un mes de reportes limpios".**
 
+## Diferencia entre From de staging y prod (aclarada 2026-09-22)
+
+- **Staging** — Sender email del SMTP Auth staging (que apunta a Mailtrap
+  Sandbox) es `noreply@pawnecta.com`. Es **configuración deliberada de
+  staging en Supabase Dashboard**, no reescritura de Mailtrap. Todos los
+  correos Auth staging llegan con `from='noreply@pawnecta.com'` — así
+  aparece en el inbox 4922101.
+- **Prod** — Custom SMTP Auth prod apunta a Resend con Sender email
+  `hola@pawnecta.com` (confirmado por PO 2026-09-21, `Dashboard → Auth →
+  SMTP Settings`).
+
+**No confundir en actas futuras**: si aparece `noreply@` en un correo Auth
+prod, es un problema; si aparece `noreply@` en un correo Auth staging via
+Mailtrap, es esperado.
+
+## Regla operativa nueva (2026-09-22, tras incidente confirm-signup 2024)
+
+**No se dispara ninguna verificación de plantillas hasta recibir
+confirmación explícita del PO de que el pegado está completo y guardado.**
+
+Historia: la primera ronda de smoke del sprint (2026-09-22 12:20) disparó
+el helper contra staging apenas 4 minutos después de que el PO dijera "las
+6 plantillas están pegadas y guardadas". El Save del Dashboard aún no
+había persistido para al menos una plantilla (Confirm signup) → el
+disparo agarró la plantilla previa de 2024 (default anterior con emoji
+❤️ en el footer y copyright viejo). Costo: falsa alarma "el HTML pegado
+no coincide con la rama", investigación de 15 minutos por el auditor,
+turno extra del PO explicando el timing.
+
+Antídoto operativo: cuando el PO diga "pegado", el auditor **pide
+confirmación explícita** del tipo "confirmado, save persistido, dashboard
+muestra Updated at con fecha de hoy en las N plantillas modificadas"
+antes de disparar el smoke.
+
 ## Constraints explícitos del PO
 
 - **NO** aplicar nada en prod desde el auditor.
