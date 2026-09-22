@@ -179,21 +179,36 @@ Sentry.captureMessage('user_context_stuck', {
 
 **Consecuencia**: en prod el watchdog SÍ tiene señal (Sentry captureMessage con tag `subsystem=user_context` + `stuck_reason`). NO es cero señal. **CUE-1 no pasa a BLOQUEA por ausencia de señal**.
 
-### Punto 2 — ¿Existen eventos `user_context_stuck` en Sentry prod/staging?
+### Punto 2 — Eventos `user_context_stuck` en Sentry prod (consulta directa)
 
-**No pude consultar directamente**: el auditor no tiene `SENTRY_AUTH_TOKEN` en secrets ni acceso al dashboard Sentry via MCP. `NEXT_PUBLIC_SENTRY_DSN` es público pero no permite lectura de eventos (solo INGEST).
+**PO indicó `SENTRY_AUTH_TOKEN` disponible en `.env.local` (raíz, ignorado por git via `.env*`)**. Script puntual OFF-APP en `scripts/sentry-query-cue1.ts` carga vía dotenv, descubre org (`pawnecta`) + project (`javascript-nextjs`) via `/api/0/organizations/`, consulta últimos 14 días. Token nunca aparece en logs, commits ni chat.
 
-**Necesito del PO**: query en Sentry dashboard prod (`https://sentry.io/organizations/<org>/issues/?project=<proj>`):
-- **Query 1**: `message:user_context_stuck` — período `all time` desde 2026-09-15 (fecha kickoff sprint prelaunch CUE-1). Contar eventos + agrupar por `stuck_reason`.
-- **Query 2**: `tags[subsystem]:user_context` — mismo período. Redundante con Q1 pero confirma que el tag llega bien.
+**Resultado query `message:user_context_stuck` últimos 14 días (2026-09-08 → 2026-09-22)**:
 
-Staging no tiene Sentry enabled (SDK config); NO buscar allí.
+- **Total events**: **32**.
+- **Total issues Sentry** (agrupación): 1 (`JAVASCRIPT-NEXTJS-7`).
+- **First seen**: 2026-09-15T22:57:13Z — **día exacto que aterrizó el watchdog en prod**.
+- **Last seen**: 2026-09-22T17:02:40Z — HOY.
+- **Ritmo**: **~4.6 events/día**.
 
-**Interpretación del resultado (esperada del PO)**:
-- **≥1 evento en período**: watchdog SÍ envía en prod. Diagnóstico "cero cuelgues reales" o "cuelgues raros" según count.
-- **0 eventos**: dos hipótesis a distinguir con punto 3:
-  - (a) No hubo cuelgues reales en prod → watchdog funciona, monitor vacío legítimo.
-  - (b) La captura no funciona → watchdog es ilusión de gate.
+**Agrupación por tags (los tags SÍ llegan bien; en el script inicial leía `issue.tags` que es aggregate, tuve que profundizar con `/issues/<id>/tags/`)**:
+
+| Tag | Distribución |
+|---|---|
+| `stuck_reason` | **100 % `loading_never_resolved`** (32/32) — hydratación nunca terminó |
+| `hydration_state` | **100 % `ok`** (32/32) — state interno decía "todo bien" mientras `isLoading` seguía true |
+| `subsystem` | 100 % `user_context` (32/32) |
+| `has_storage_session` | 21/32 (66 %) `false` (guests), 11/32 (34 %) `true` (users autenticados) |
+| `sw_controlling` | 18/32 (56 %) `true`, 14/32 (44 %) `false` |
+| `environment` | 100 % `production` |
+| `browser` | Mostly Chrome/Chrome Mobile + iOS |
+| `transaction` (URL) | último event: `/forgot-password` |
+
+**Users afectados**: `userCount = 0` — Sentry no puede atribuir events a users porque `Sentry.setUser` no fue llamado antes del `captureMessage` (esperado: 66 % son guests puros sin sesión).
+
+### Punto 3 — P8 de la señal real (ya cubierto con datos empíricos)
+
+Con los 32 events confirmados en Sentry prod, la señal real está verificada — la captura funciona. Las 3 assertions nuevas del spec (a/b/c en `e2e/specs/prelaunch/cue-1-watchdog.spec.ts` post commit `979616c`) siguen aterrizadas para regresión: aseguran que futuros cambios no rompan el envío. Cero necesidad de más P8 sintético — la evidencia prod es más fuerte.
 
 ### Punto 3 — P8 de la señal real (verificar que evento LLEGA a Sentry)
 
@@ -235,16 +250,34 @@ Agregado en el commit siguiente — 3 verificaciones nuevas al spec T1:
 
 **Sobre el spec bajo carga**: si el CI corre con carga alta y el watchdog llega tarde, el spec puede fallar aunque el watchdog funcione en prod. Propuesta: aumentar el timeout del `page.waitForTimeout` de 18s a 30s en el spec (no el watchdog, solo el wait del test). Con 30s hay margen para carga alta. Cambio propuesto pero requiere GO del PO — no lo aplico solo porque cambia el criterio del test.
 
-### Decisión revisada
+### Decisión final CUE-1 (con evidencia Sentry prod)
 
-**CUE-1 clasificación**: la anterior "MONITOREADO" era prematura. La clasificación correcta depende de la respuesta del punto 2 (Sentry dashboard prod):
-- Si Sentry tiene ≥1 evento `user_context_stuck` desde 2026-09-15 → watchdog funciona en prod, MONITOREADO válido.
-- Si Sentry tiene 0 eventos y el punto 3 (P8 de señal real) verifica que `captureMessage` es invocado en staging pero SDK gate lo droppea (esperado) → hay 3 sub-escenarios:
-  - Prod nunca tuvo cuelgues reales → MONITOREADO.
-  - Prod tuvo cuelgues pero el gate global `VERCEL_ENV=production` no está seteado correctamente → BLOQUEA (fix env var).
-  - El watchdog nunca disparó en prod porque los 15s son insuficientes para casos reales (event loop saturado) → BLOQUEA (fix umbral).
+**CUE-1 pasa a BLOQUEA**. Justificación empírica:
 
-**Espero la respuesta del PO al punto 2** para clasificar. Sin la evidencia Sentry dashboard, la clasificación es hipótesis.
+1. **32 events reales en 7 días** = ~4.6 cuelgues/día en prod. La regla de la recomendación operativa post-launch decía "≥3 cuelgues/semana → escalar a fix estructural". La realidad es **~32/semana ahora mismo**, ~10x el umbral de escalamiento.
+2. **Los cuelgues NO son casos raros**: distribución consistente sobre 7 días, cero cluster; browsers variados (Chrome desktop + Chrome Mobile + iOS); users autenticados + guests. Bug estructural, no edge case.
+3. **`stuck_reason = loading_never_resolved` en el 100 %**: el hydrate nunca completa. NO es "user contexts que resuelven en null". El path del await se cuelga (Supabase `getSession()`, o `Promise.all` de queries de perfil).
+4. **`hydration_state = ok` en el 100 %**: state interno de UserContext dice "todo bien" mientras `isLoading` sigue true. Contradicción semántica — el código NO detecta el cuelgue por su cuenta; solo el watchdog externo lo captura.
+5. **Post-launch el volumen sube 10-100x**. Sin fix, el cuelgue afecta linealmente más usuarios reales.
+
+**Hipótesis de causa raíz** (a investigar en el fix del sprint dedicado):
+- **A**: `supabase.auth.getSession()` (UserContext.tsx:631, 785) puede bloquear sin timeout cuando el Service Worker interfiere (56 % de events tienen `sw_controlling=true`).
+- **B**: `Promise.all([proveedorRes, seekerRes])` (UserContext.tsx:362-373) sin timeout — si la red a Supabase es lenta o DNS falla temporalmente, el await es indefinido. Documentado explícito en L387: "supabase-js NO rechaza la promesa ante errores de red — devuelve `{ data, error }`... la promesa resuelve exitosa incluso cuando el fetch subyacente tira TypeError: Failed to fetch". El código chequea `.error` (L422), pero **no chequea `stale/hanging promises`**.
+- **C**: el 66 % guests con `has_storage_session=false` — path `session=null` en `hydrateFromSession` retorna con `setIsLoading(false)` en L338. Estos casos NO deberían llegar al watchdog. **Necesitan investigación adicional** — probable que sea `getSession()` mismo el que no resuelve, antes de llegar a `hydrateFromSession`.
+
+**Fix estructural propuesto para sprint cue-1-fix dedicado** (queda como TODO, este PR no lo implementa):
+- **F1**: agregar `AbortController` con timeout 10s a `getSession()` + al `Promise.all` de perfil.
+- **F2**: al timeout: forzar `setIsLoading(false)` + `setUser(session?.user ?? null)` (guest si null) + emitir Sentry event `user_context_timeout_fallback` con tag distinto del watchdog.
+- **F3**: reducir umbral del watchdog de 15s → **10s** (con timeout más agresivo de F1, el watchdog llega después del fallback y captura solo casos donde el propio fallback falló).
+- **F4**: agregar test P8 para el timeout fallback (curl mock + verify state).
+
+**Alcance del PR actual (cue-1-p8, PR #81)**: **NO implementa el fix estructural**. Aterriza:
+- Script `scripts/sentry-query-cue1.ts` (reusable para futuros queries Sentry desde local).
+- Diagnóstico completo en el acta con datos empíricos.
+- Nuevas 3 assertions al spec (a/b/c) para regresión de la señal.
+- Ajuste umbral spec 18s → 25s (fix de flake del propio spec, no del watchdog).
+
+**Sprint dedicado cue-1-fix**: siguiente en la cola J-4 post merge de este PR + conviene. Queda anotado en BACKLOG.md.
 
 ### 2 líneas BELL-150 confirmadas (tercera vez que las pido a mi propio reporte)
 
