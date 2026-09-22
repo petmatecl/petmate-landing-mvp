@@ -43,7 +43,7 @@ Tu código de verificación de Pawnecta
         </div>
     </div>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Este código vale por 10 minutos y se puede usar una sola vez.
+        Este código es válido por 10 minutos y se puede usar una sola vez.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no pediste este código, ignora este correo y considera cambiar tu contraseña por precaución.

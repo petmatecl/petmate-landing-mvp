@@ -47,7 +47,7 @@ Restablece tu contraseña de Pawnecta
         {{ .ConfirmationURL }}
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Este enlace vale por 1 hora.
+        Este enlace es válido por 1 hora.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no lo pediste, ignora este correo. Tu contraseña seguirá igual.

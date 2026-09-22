@@ -44,7 +44,7 @@ Tu enlace para iniciar sesión en Pawnecta
         {{ .ConfirmationURL }}
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Este enlace vale por 1 hora y se puede usar una sola vez.
+        Este enlace es válido por 1 hora y se puede usar una sola vez.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no lo pediste, ignora este correo. Nadie entrará a tu cuenta a menos que abras el enlace.
