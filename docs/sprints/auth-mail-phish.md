@@ -1,3 +1,75 @@
+# Sprint AUTH-MAIL-PHISH — cerrado 2026-09-22
+
+## Cierre — evidencia PO (14:02 CLT)
+
+- Las 6 plantillas Auth pegadas en prod desde commit `1ca6c73` (rama
+  `auth-mail-phish`, docs-only + copy fix vigencias).
+- Reset real ejecutado por PO desde `pawnecta.com` con cuenta tutor real.
+- **Gmail entrega sin banner de phishing** (criterio de éxito principal
+  del sprint cumplido).
+- Asunto: `Restablece tu contraseña de Pawnecta`.
+- From: `hola@pawnecta.com`.
+- Cabeceras verificadas: SPF PASS, DKIM PASS, DMARC PASS con
+  `p=quarantine`.
+- Enlace del CTA aterriza en `pawnecta.com/reset-password`.
+
+**Estado previo del Dashboard prod** (snapshot PO antes de pegar):
+- Confirm sign up → plantilla residual de **2024** (`prod-pre-confirm-signup.html`
+  respaldado por PO).
+- Las otras 5 (Reset password, Magic link, Change email, Invite user,
+  Reauthentication) → en inglés default de Supabase.
+
+**Estado post-sprint**: 6/6 plantillas en español chileno con marca Pawnecta,
+vigencias reales del Dashboard, criterios anti-phishing satisfechos.
+
+## Hallazgos secundarios (estado final)
+
+| # | Hallazgo | Estado |
+|---|---|---|
+| 1 | `notificaciones@pawnecta.com` rebotaba respuestas hasta 2026-09-22 (PO creó alias en Zoho sobre `contacto@`) | ✅ cerrado con NOTIF-FROM-HARDCODE fix en `pages/api/notifications/new-message.ts:100` (env fallback) |
+| 2 | `hola@pawnecta.com` rebotaba hasta 2026-09-21 (PO creó el alias ese día para SMTP prod Auth) | ✅ cerrado por PO 2026-09-21, alias activo |
+| 3 | Plantilla Confirm sign up residual de 2024 en **staging** (emoji ❤️ + copyright viejo) | ✅ cerrado — repegada plantilla del sprint, verificada en run [35728710973](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35728710973) |
+| 4 | Plantilla Confirm sign up residual de 2024 también en **prod** (mismo template, backup PO `prod-pre-confirm-signup.html`) | ✅ cerrado — repegada por PO 2026-09-22, evidencia reset real Gmail sin banner |
+| 5 | Site URL de Auth staging apuntaba a `http://localhost:3000` (redirect_to salía con localhost en el CTA de Confirm signup) | ✅ cerrado por PO — cambiado a `https://pawnecta-landing-mvp-git-staging-*.vercel.app` + verificado run [35734427443](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35734427443) |
+| 6 | Vigencias asumidas en las plantillas iniciales (24 h signup/change, 7 días invite, 10 min reauth) | ✅ cerrado — corregidas todas a 1 hora (Email OTP Expiration = 3600 s + Email OTP Length = 6, verificado PO en Dashboard prod). Ver "Lección de vigencias" |
+| 7 | Sender email difiere staging (`noreply@pawnecta.com` desde Mailtrap Sandbox) vs prod (`hola@pawnecta.com` desde Resend) | ✅ documentado en el acta como config deliberada, no problema |
+| 8 | DMARC prod configurado (PO 2026-09-21: alias `hola@` + `dmarc-reports@`, TXT `_dmarc` con rua/ruf + `p=quarantine`) | ✅ cerrado — verificado con mxtoolbox + cabeceras Gmail |
+
+## Lección de vigencias (corregida 2026-09-22 tras cierre)
+
+**Diagnóstico previo era incorrecto**: no fue "defaults canónicos"
+faltantes en docs de terceros — la [documentación oficial de Supabase
+Auth](https://supabase.com/docs/guides/auth/passwords#password-recovery)
+ya decía **1 hora y de un solo uso**. **El error fue asumir sin leer** —
+ni la config real del ambiente ni la documentación oficial fueron
+consultadas antes de escribir "24 horas" / "7 días" / "10 minutos" en las
+plantillas iniciales.
+
+**Regla aterrizada como caso canónico** (aplica a todo sprint futuro,
+no solo Auth):
+
+> Toda cifra que se le promete al usuario (vigencias, plazos, montos,
+> tiempos de espera, cupos) se lee de la config real del ambiente o de
+> la documentación oficial, y se cita la fuente en el PR. Nunca se
+> asume, ni siquiera cuando "el default suele ser X" o "eso vi en un
+> ejemplo".
+
+Antídoto operativo: cuando el auditor esté por escribir una cifra en
+copy visible al usuario, pausar y responder por escrito una de las dos:
+- "verificado contra Dashboard `<ruta exacta>`, valor efectivo `<X>`", o
+- "verificado contra docs oficial `<URL>`, valor documentado `<X>`".
+
+Si ninguna se puede responder en el momento, la cifra no va — se
+reemplaza por copy causa-neutral que no promete un número concreto (ej.
+"el enlace expira; si ya no funciona, pídelo de nuevo") o se difiere el
+copy hasta obtener la evidencia.
+
+Corolario P8 12ª instancia: aplicado a promesas cuantitativas en copy.
+Familiar del corolario 11 ("no afirmar sin verificar" aplicado a
+atribución causal); acá aplicado a cifras.
+
+---
+
 # Sprint AUTH-MAIL-PHISH — kickoff
 
 **Fecha**: 2026-09-21.
