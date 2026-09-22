@@ -39,8 +39,20 @@ test.describe('LINK-CONFIRM-EMAIL · verificación P8 del helper', () => {
     test('POSITIVO: helper genera action_link válido + abrir link aterriza en /email-confirmado', async ({ page, baseURL }) => {
         const email = freshEmail();
 
+        // Paso 0: navegar al login con bypass Vercel para setear la cookie
+        // `_vercel_jwt` en el context. Sin esto, la API POST subsiguiente
+        // cae en el auth prompt de Vercel Deployment Protection (401
+        // "Protected deployment"). Mismo patrón que authenticate.ts:33-37.
+        const bypassToken = process.env.PLAYWRIGHT_BYPASS ?? '';
+        const bypassQuery = bypassToken
+            ? `?x-vercel-protection-bypass=${encodeURIComponent(bypassToken)}&x-vercel-set-bypass-cookie=samesitenone`
+            : '';
+        await page.goto(`/login${bypassQuery}`);
+        await page.waitForLoadState('networkidle').catch(() => { /* ok */ });
+
         // Paso 1: signup vía endpoint productivo (crea el user en auth.users).
-        // password random cumple política mínima (8 chars, mix).
+        // password random cumple política mínima (8 chars, mix). El request
+        // reusa la cookie _vercel_jwt del context (seteada arriba).
         const password = `TestPwd-${Date.now()}!`;
         const signupResp = await page.request.post(`${baseURL}/api/auth/signup`, {
             data: {
