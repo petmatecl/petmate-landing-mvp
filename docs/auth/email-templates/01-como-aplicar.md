@@ -84,6 +84,78 @@ SMTP Settings` (staging + prod) y verificar el valor del campo
 `hola@pawnecta.com` / `contacto@pawnecta.com` → reportar al auditor
 antes de ejecutar el pegado en prod.
 
+## Antes de pegar en prod — checklist obligatoria
+
+Aprendizaje operativo de la ronda staging (2026-09-22): pueden existir
+plantillas personalizadas antiguas ya pegadas en el Dashboard prod que se
+desconocen. La ronda staging encontró una plantilla de 2024 con emoji
+❤️ + copy "Enviado con ❤️ para las mascotas" — nadie recordaba haberla
+pegado. Antes de pisar cualquier plantilla en prod, hacer inventario del
+estado actual.
+
+**Paso 1 — Snapshot del estado prod actual** (`https://supabase.com/dashboard/project/ouezpeeiwjwawauidrqq/auth/templates`):
+
+Por cada una de las 6 plantillas, anotar:
+
+| # | Template | Subject actual (prod) | Updated at (prod) | ¿Personalizada previa? |
+|---|---|---|---|---|
+| 1 | Reset password |   |   |   |
+| 2 | Confirm signup |   |   |   |
+| 3 | Magic link |   |   |   |
+| 4 | Change email address |   |   |   |
+| 5 | Invite user |   |   |   |
+| 6 | Reauthentication |   |   |   |
+
+Criterio para marcar "¿Personalizada previa?":
+- **SÍ** si el Subject NO empieza con el default inglés de Supabase
+  ("Confirm Your Signup", "Reset Your Password", "Your Magic Link",
+  etc.) **O** si el Updated at es distinto de la fecha original del
+  proyecto Supabase (probable 2024 o antes).
+- **NO** si Subject es el default inglés y Updated at coincide con la
+  creación del proyecto.
+
+Para las "SÍ", copiar el HTML actual a un archivo local
+`docs/auth/email-templates/prod-pre-sprint/<template>-actual-YYYYMMDD.html`
+antes de pisarla — evidencia de rollback si algo del pegado nuevo no lee
+bien y hay que restaurar la versión previa.
+
+**Paso 2 — Site URL de Auth prod**
+
+Verificar en `Dashboard → Auth → URL Configuration → Site URL` de prod:
+debe ser `https://www.pawnecta.com` (no `localhost`, no la URL de un
+preview). Si no coincide, corregir **antes** de pegar las plantillas —
+los CTAs de los correos dependen del Site URL para el fallback de
+`redirect_to`.
+
+(Contexto: en la ronda staging el Site URL apuntaba a `localhost:3000` y
+el redirect_to de Confirm signup salió con localhost hasta que se
+corrigió a la URL del preview staging).
+
+**Paso 3 — Sender del SMTP Auth prod**
+
+Verificar `Dashboard → Auth → SMTP Settings` de prod: Sender email debe
+ser `hola@pawnecta.com` (según PO 2026-09-22). Si dice otra cosa,
+reportar antes de pegar.
+
+En staging el Sender es `noreply@pawnecta.com` (deliberado); en prod
+debe ser `hola@`. No confundir.
+
+**Paso 4 — Orden de pegado en prod** (idéntico a staging):
+
+1. Reset password (ÚNICA activa hoy; cierra el hallazgo Gmail phish).
+2. Confirm signup.
+3. Magic link.
+4. Change email address.
+5. Invite user.
+6. Reauthentication.
+
+**Paso 5 — Verificación P8 en prod**
+
+- PO ejecuta reset desde Gmail real con cuenta tutor.
+- Criterio de éxito: **sin banner rojo de Gmail** + SPF/DKIM/DMARC PASS.
+- Si Gmail sigue marcando: NO rebajar criterios. Escalar a
+  AUTH-CUSTOM-DOMAIN (BACKLOG con disparador "plan Pro activo").
+
 ## Rollback
 
 Si un correo llega mal (HTML roto, variables sin resolver, banner
