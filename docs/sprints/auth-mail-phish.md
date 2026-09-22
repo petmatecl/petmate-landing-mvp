@@ -127,6 +127,39 @@ al PO (hoy ambas casillas reciben — confirmado por PO 2026-09-21).
 - Este archivo (`docs/sprints/auth-mail-phish.md`) actualizado con
   las secciones ejecutadas y los resultados.
 
+## Hallazgos secundarios (reportados por PO 2026-09-22)
+
+Durante la ejecución del sprint aparecieron hallazgos operativos que no
+son parte del alcance principal (contenido de plantillas) pero quedan
+anotados acá para trazabilidad:
+
+- **NOTIF-FROM-HARDCODE — respuestas al canal de notificaciones de
+  mensajes rebotaban hasta 2026-09-22.** El endpoint
+  `pages/api/notifications/new-message.ts:100` hardcodeaba
+  `Pawnecta <notificaciones@pawnecta.com>` como remitente. Sin código
+  que setee `reply_to`, Resend usa `From` de fallback → cualquier
+  respuesta del usuario al correo de notificación aterrizaba en
+  `notificaciones@pawnecta.com`. **Esa casilla no existía en Zoho**;
+  las respuestas rebotaban con "dirección no encontrada". El PO creó
+  el alias en Zoho sobre el buzón `contacto@` el 2026-09-22 y verificó
+  entrega desde Gmail (OK). El fix de código va en este mismo sprint
+  (ítem NOTIF-FROM-HARDCODE del BACKLOG) para retirar el hardcode y
+  cerrar la superficie a futuro — usa `EMAIL_NOTIFICATIONS_FROM` con
+  fallback a `EMAIL_FROM`.
+- **Reply-To del Custom SMTP Auth prod — sin campo en Dashboard.** PO
+  verificó 2026-09-22 en `Dashboard → Auth → SMTP Settings` de prod:
+  no expone campo Reply-To. Sender email = `hola@pawnecta.com`, Sender
+  name = `Pawnecta`. Reply-To efectivo cae al From (`hola@`) y esa
+  casilla ya recibe (alias creado por PO el 2026-09-21). **Sin
+  acción requerida** para SMTP Auth.
+- **Registro DNS complementario — DMARC + alias.** El 2026-09-21 el PO
+  creó `hola@pawnecta.com` (rebotaba antes) y `dmarc-reports@pawnecta.com`.
+  El registro TXT `_dmarc.pawnecta.com` quedó con `rua`/`ruf` apuntando
+  a `dmarc-reports@pawnecta.com` y política `p=quarantine`. Verificado
+  con mxtoolbox + cabeceras Gmail (SPF/DKIM/DMARC PASS). **Anotado en
+  BACKLOG.md como DMARC cerrado + DMARC-2 (subir a `p=reject`)
+  disparador "un mes de reportes limpios".**
+
 ## Constraints explícitos del PO
 
 - **NO** aplicar nada en prod desde el auditor.
