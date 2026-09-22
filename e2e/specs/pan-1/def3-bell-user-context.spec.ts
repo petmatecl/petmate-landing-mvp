@@ -204,93 +204,128 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         // Si ambos son 0, no hay assertion posible pero el skip se maneja arriba.
     });
 
-    // Sprint J-4 BELL-150 (2026-09-22) — stress inducido: crea 200 unread
-    // vía service_role y verifica que el bell (a) no se cuelga en "Cargando",
-    // (b) renderea top UNREAD_RENDER_LIMIT + up to 10 read, (c) cleanup determinista.
-    //
-    // Motivación: T1/T2/T3 dependen del estado natural de Aldo en staging.
-    // Con la BD limpia (post F2-3-CLEANUP) Aldo tiene 4 unread → T1/T2 pasan
-    // trivialmente sin ejercer el fix de BELL-150. Este T4 INDUCE la carga
-    // que reproduce el bug productivo — así el test VERIFICA que el fix
-    // funciona bajo la condición que originó el bug, no que la BD esté limpia.
+    // Sprint J-4 BELL-150 (2026-09-22) — stress inducido con USER DEDICADO.
     //
     // El PO 2026-09-22 pidió explícito: "el spec debe crear >150 notificaciones
-    // de prueba y ver filas, no depender de que la BD esté limpia".
-    test('T4 — stress inducido: 200 unread + bell resiliente + cleanup (BELL-150)', async ({ page }) => {
+    // de prueba y ver filas, no depender de que la BD esté limpia" +
+    // "sobre un usuario de prueba dedicado, no sobre mi cuenta ni la de Camila".
+    //
+    // Flujo del test:
+    //   1. Crear user efímero via admin.createUser (email_confirm:true) — nunca
+    //      Aldo ni Camila; email prefijado `bell-150-stress-<ts>@pawnecta-test.example`.
+    //   2. INSERT 200 notifs vía service_role para ese uid (RLS bypass).
+    //   3. signInWithPassword para obtener session del user; hidratar el
+    //      localStorage del context Playwright con addInitScript ANTES del
+    //      primer navigate (el SDK Supabase browser lee la sesión de allí).
+    //   4. Navegar a / (Header con bell disponible para todo user autenticado).
+    //   5. Abrir bell + asserta visibles ∈ [50, 60] — verifica .limit(50) + read cap.
+    //   6. try/finally con DELETE notifs por stress_tag + admin.deleteUser(uid) —
+    //      cleanup determinista aunque el test falle a mitad. Cero contaminación
+    //      cruzada con otros tests paralelos ni con datos reales del proyecto.
+    test('T4 — stress inducido user dedicado: 200 unread + bell resiliente + cleanup (BELL-150)', async ({ browser }) => {
         const UNREAD_RENDER_LIMIT = 50; // debe coincidir con NotificationBell.tsx L46
         const STRESS_COUNT = 200;
+        const STAGING_PROJECT_REF = 'jmtadvdkicyylcwjcmcl';
 
         const url = process.env.E2E_SUPABASE_URL;
         const serviceKey = process.env.E2E_SUPABASE_SERVICE_KEY;
         if (!url || !serviceKey) {
-            test.skip(true, 'E2E_SUPABASE_SERVICE_KEY requerido para T4 stress inducido (bypass RLS INSERT/DELETE masivo)');
+            test.skip(true, 'E2E_SUPABASE_SERVICE_KEY requerido para T4 stress inducido (bypass RLS INSERT/DELETE + createUser)');
         }
-        // service_role client — bypassa RLS de public.notifications para INSERT
-        // masivo + DELETE post-test (RLS actual no tiene policy DELETE para
-        // authenticated → cleanup necesita service_role).
+        // service_role client — bypassa RLS de notifications + habilita
+        // admin.createUser / admin.deleteUser.
         const admin = createClient(url!, serviceKey!, {
             auth: { persistSession: false, autoRefreshToken: false },
         });
 
-        // Obtener uid de Aldo desde su JWT (cero hardcode).
-        const supabaseAldo = await getSupabaseAsProveedor();
-        const uid = (await supabaseAldo.auth.getUser()).data.user!.id;
+        // 1. Crear user dedicado efímero. Email con prefix identificable +
+        // timestamp único → cero colisión con otros tests corriendo en paralelo.
+        const ts = Date.now();
+        const stressEmail = `bell-150-stress-${ts}@pawnecta-test.example`;
+        const stressPassword = `Bell150-${ts}!`;
+        const { data: createdRes, error: createErr } = await admin.auth.admin.createUser({
+            email: stressEmail,
+            password: stressPassword,
+            email_confirm: true, // saltea Confirm signup email; usable de inmediato.
+        });
+        if (createErr) throw new Error(`[T4 stress] createUser falló: ${createErr.message}`);
+        const uid = createdRes.user?.id;
+        if (!uid) throw new Error('[T4 stress] createUser: no uid');
 
-        // Marca única de esta corrida para cleanup determinista aunque el test
-        // falle a mitad. Cero riesgo de borrar notifs de otros tests que
-        // corran en paralelo o de datos reales de Aldo.
-        const stressTag = `bell-150-stress-${Date.now()}`;
-        const rows = Array.from({ length: STRESS_COUNT }, (_, i) => ({
-            user_id: uid,
-            type: 'info',
-            title: `[BELL-150 stress ${i}]`,
-            message: `Stress test bell-150 (${i + 1}/${STRESS_COUNT})`,
-            read: false,
-            metadata: { tipo: 'bell-150-stress', stress_tag: stressTag, idx: i },
-        }));
-
-        const { error: insErr } = await admin.from('notifications').insert(rows);
-        if (insErr) throw new Error(`[T4 stress] INSERT falló: ${insErr.message}`);
+        // Marca única de esta corrida para cleanup determinista.
+        const stressTag = `bell-150-stress-${ts}`;
 
         try {
-            // Verificar unread real en BD post-INSERT — smoke de que el INSERT
-            // aterrizó (no queremos correr el test con 200 esperadas pero cero
-            // insertadas).
-            const { count: unreadBd } = await supabaseAldo
+            // 2. INSERT 200 notifs para el user dedicado. Todas unread + tag único.
+            const rows = Array.from({ length: STRESS_COUNT }, (_, i) => ({
+                user_id: uid,
+                type: 'info',
+                title: `[BELL-150 stress ${i}]`,
+                message: `Stress test bell-150 (${i + 1}/${STRESS_COUNT})`,
+                read: false,
+                metadata: { tipo: 'bell-150-stress', stress_tag: stressTag, idx: i },
+            }));
+            const { error: insErr } = await admin.from('notifications').insert(rows);
+            if (insErr) throw new Error(`[T4 stress] INSERT falló: ${insErr.message}`);
+
+            // Smoke del INSERT — verificar count via service_role (bypass RLS).
+            const { count: unreadBd } = await admin
                 .from('notifications')
                 .select('*', { count: 'exact', head: true })
                 .eq('user_id', uid)
                 .eq('read', false);
             expect(unreadBd, `INSERT stress no aterrizó (BD unread=${unreadBd}, esperado ≥${STRESS_COUNT})`).toBeGreaterThanOrEqual(STRESS_COUNT);
 
-            // Abrir bell + medir visibles. Con el fix BELL-150 el panel muestra
-            // top UNREAD_RENDER_LIMIT (50) + min(read, 10). Con Aldo read=0
-            // (asumimos limpio; si hay N read, se suman hasta 10).
-            await page.goto('/admin');
-            await openBell(page);
-            const visibles = await contarNotifsVisibles(page);
+            // 3. signInWithPassword para obtener session del user dedicado.
+            const userClient = createClient(url!, serviceKey!);
+            const { data: signIn, error: signInErr } = await userClient.auth.signInWithPassword({
+                email: stressEmail,
+                password: stressPassword,
+            });
+            if (signInErr || !signIn.session) throw new Error(`[T4 stress] signInWithPassword falló: ${signInErr?.message ?? 'sin session'}`);
+            const session = signIn.session;
 
-            // Assertion primaria: bell NO se cuelga en "Cargando" (visibles > 0).
-            // Sin el try/catch del fix el panel quedaría en loader indefinido
-            // y contarNotifsVisibles retornaría 0 tras timeout 15s.
-            expect(visibles, `Bell renderea 0 filas con ${STRESS_COUNT} unread inducidas — el fix BELL-150 falló (panel colgado en loader o error en render)`).toBeGreaterThan(0);
+            // 4. Context Playwright con localStorage pre-hidratado. addInitScript
+            // corre ANTES de cada page.goto → SDK Supabase browser lee la sesión
+            // apenas monta.
+            const context = await browser.newContext();
+            const storageKey = `sb-${STAGING_PROJECT_REF}-auth-token`;
+            const sessionJson = JSON.stringify(session);
+            await context.addInitScript(({ key, value }) => {
+                try {
+                    window.localStorage.setItem(key, value);
+                } catch { /* private mode / storage blocked */ }
+            }, { key: storageKey, value: sessionJson });
 
-            // Assertion secundaria: bell renderea capado a UNREAD_RENDER_LIMIT + read.
-            // Con Aldo read=0 en el momento del test (asumimos limpio tras F2-3-CLEANUP),
-            // esperado exacto = UNREAD_RENDER_LIMIT = 50. Si Aldo tiene read>0 de otros
-            // fixtures, visibles hasta UNREAD_RENDER_LIMIT + 10.
-            expect(visibles, `Bell no debe renderear más de ${UNREAD_RENDER_LIMIT}+10 filas (fix BELL-150 limita render); visibles=${visibles}`).toBeLessThanOrEqual(UNREAD_RENDER_LIMIT + 10);
-            expect(visibles, `Bell debe renderear al menos ${UNREAD_RENDER_LIMIT} unread (fix BELL-150 top ${UNREAD_RENDER_LIMIT}); visibles=${visibles}, unread inducidas=${STRESS_COUNT}`).toBeGreaterThanOrEqual(UNREAD_RENDER_LIMIT);
+            const page = await context.newPage();
+            try {
+                // Navegar a / (root con Header + bell). Cualquier user autenticado
+                // ve el bell allí.
+                await page.goto('/');
+                await openBell(page);
+                const visibles = await contarNotifsVisibles(page);
+
+                // Assertion primaria: bell NO se cuelga en "Cargando" — visibles > 0.
+                // Sin try/catch del fix, panel quedaría en loader indefinido y
+                // contarNotifsVisibles retornaría 0 tras timeout 15s.
+                expect(visibles, `Bell renderea 0 filas con ${STRESS_COUNT} unread inducidas — fix BELL-150 falló (loader indefinido o render vacío)`).toBeGreaterThan(0);
+
+                // Assertion secundaria: user dedicado tiene 0 read → visibles = 50.
+                // (Cero riesgo de contaminación con read del user real).
+                expect(visibles, `Bell debe renderear exactamente ${UNREAD_RENDER_LIMIT} filas (user dedicado sin read; fix .limit(${UNREAD_RENDER_LIMIT})). Recibí visibles=${visibles}`).toBe(UNREAD_RENDER_LIMIT);
+            } finally {
+                await context.close();
+            }
         } finally {
-            // Cleanup determinista: DELETE por metadata->>stress_tag único de
-            // esta corrida. Cero riesgo de borrar notifs de otros tests
-            // paralelos o datos reales de Aldo (stress_tag es un UUID de
-            // timestamp único por invocación).
+            // Cleanup determinista — corre aunque el test falle a mitad.
+            // (a) DELETE notifs por stress_tag único.
             await admin
                 .from('notifications')
                 .delete()
                 .eq('user_id', uid)
                 .filter('metadata->>stress_tag', 'eq', stressTag);
+            // (b) DELETE user dedicado (admin API — bypass RLS auth.users).
+            await admin.auth.admin.deleteUser(uid);
         }
     });
 });

@@ -69,6 +69,18 @@ Ritmo prod últimas 8 semanas (via `supabase-prod-ro`):
 
 **Con T4 el fix del componente queda verificado empíricamente**. Sin T4 el ítem seguiría abierto como bug de producto sin cobertura de test.
 
+**Refinamiento T4 v2 (post pedido PO 2026-09-22)**: T4 usa **user dedicado efímero**, no Aldo ni Camila. Flujo:
+1. `admin.createUser({ email: 'bell-150-stress-<ts>@pawnecta-test.example', password, email_confirm: true })` — user creado on-the-fly con timestamp único (cero colisión con otros tests paralelos).
+2. INSERT 200 notifs vía service_role con `metadata.stress_tag` único para ese uid.
+3. `signInWithPassword` obtiene session del user dedicado.
+4. Nuevo Playwright context con `addInitScript` que setea `localStorage['sb-jmtadvdkicyylcwjcmcl-auth-token'] = JSON.stringify(session)` — el SDK Supabase browser lee la sesión pre-hidratada apenas monta.
+5. Navegar `/`, abrir bell, asserta `visibles > 0` (garantía try/catch/finally) + `visibles === 50` exacto (user dedicado tiene 0 read, sin contaminación de otros fixtures).
+6. **Cleanup en `try/finally`** con dos steps: (a) `DELETE FROM notifications WHERE user_id = uid AND metadata->>stress_tag = <único>`; (b) `admin.auth.admin.deleteUser(uid)`. Corre aunque el test falle a mitad.
+
+Confirmación: **T4 nunca toca `acanocts@gmail.com` (Aldo) ni `acanocts+tutor@gmail.com` (Camila)**. Cero riesgo de contaminación de datos reales durante testing.
+
+**Sobre punto 2 del pedido PO — badge vs lista en caso normal (<50)**: verificado en T1 y T2. T2 asserta `visibles = min(unread, 50) + min(read, 10)`; cuando unread<50, `visibles - min(read, 10) = unread`, que es el count real reflejado en el badge (query COUNT separada devuelve mismo valor). El badge en el DOM es un dot binario (`bg-notification-500 rounded-full`) sin número, se renderea cuando `unreadCount > 0` — T1 asserta visibles>0 (badge visible por definición). Cuando unread ≥ 50, el número real (unreadCount) sigue reflejando el total (query COUNT), y el panel muestra top 50 más recientes.
+
 ## Push directo `f0955d3` + protección de main (2026-09-22)
 
 **`f0955d3` fue push directo a main.** Confirmado. Error del auditor — violó el flujo PR-only. Dos consecuencias:
