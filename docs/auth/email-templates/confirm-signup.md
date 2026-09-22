@@ -45,7 +45,7 @@ Confirma tu correo en Pawnecta
         {{ .ConfirmationURL }}
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 8px;">
-        Este enlace es válido por 24 horas.
+        Este enlace es válido por 1 hora.
     </p>
     <p style="font-size: 14px; line-height: 1.5; color: #64748b; margin-bottom: 24px;">
         Si no te registraste en Pawnecta, ignora este correo y no compartas el enlace con nadie.
