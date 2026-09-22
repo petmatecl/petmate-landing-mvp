@@ -1,0 +1,120 @@
+# Sprint AUTH-MAIL-PHISH (2026-09-22) — verificación P8 de las 6 plantillas
+# Auth en staging. Manual dispatch: elige template, corre el smoke script
+# contra staging Supabase (secrets ya cargados), espera para que Mailtrap
+# procese, y fetchea el último mensaje del inbox 4922101 via API para
+# imprimir asunto + HTML raw en el log.
+#
+# Ver docs/sprints/auth-mail-phish.md + scripts/smoke-auth-templates.ts.
+name: smoke-auth-templates
+
+on:
+  workflow_dispatch:
+    inputs:
+      template:
+        description: 'Template a disparar'
+        required: true
+        type: choice
+        options:
+          - confirm-signup
+          - reset-password
+          - magic-link
+          - invite-user
+          - change-email
+          - reauthentication
+      email:
+        description: 'Email destinatario (opcional; default: staging-authtmpl-<ts>-<rand>@pawnecta-test.example)'
+        required: false
+        default: ''
+
+concurrency:
+  group: smoke-auth-templates-${{ inputs.template }}
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm ci --no-audit --no-fund
+
+      - name: Trigger template
+        env:
+          E2E_SUPABASE_URL: ${{ secrets.E2E_SUPABASE_URL }}
+          E2E_SUPABASE_SERVICE_KEY: ${{ secrets.E2E_SUPABASE_SERVICE_KEY }}
+        run: |
+          set -o pipefail
+          npx tsx scripts/smoke-auth-templates.ts "${{ inputs.template }}" "${{ inputs.email }}" 2>&1 | tee /tmp/smoke-out.log
+
+      - name: Wait for Mailtrap to receive
+        run: sleep 20
+
+      - name: Fetch last message from Mailtrap inbox
+        env:
+          MAILTRAP_API_TOKEN: ${{ secrets.MAILTRAP_API_TOKEN }}
+          MAILTRAP_ACCOUNT_ID: ${{ secrets.MAILTRAP_ACCOUNT_ID }}
+          MAILTRAP_INBOX_ID: ${{ secrets.MAILTRAP_SANDBOX_INBOX_ID }}
+        run: |
+          set -o pipefail
+          echo "== GET /inboxes/$MAILTRAP_INBOX_ID/messages (top 3, newest first)"
+          curl -sS -H "Api-Token: $MAILTRAP_API_TOKEN" \
+            "https://mailtrap.io/api/accounts/$MAILTRAP_ACCOUNT_ID/inboxes/$MAILTRAP_INBOX_ID/messages?page=1" \
+            | python3 -c "
+          import json, sys
+          data = json.load(sys.stdin)
+          if not isinstance(data, list):
+              print('unexpected shape:', type(data))
+              print(json.dumps(data)[:500])
+              sys.exit(1)
+          msgs = data[:3]
+          for i, m in enumerate(msgs):
+              print(f'-- msg[{i}] id={m.get(\"id\")} subject={m.get(\"subject\")!r} to={m.get(\"to_email\")!r} from={m.get(\"from_email\")!r} sent_at={m.get(\"sent_at\")}')
+          if msgs:
+              print('LAST_MSG_ID=' + str(msgs[0]['id']))
+          else:
+              print('LAST_MSG_ID=NONE')
+          " | tee /tmp/mailtrap-list.log
+
+          MSG_ID=$(grep '^LAST_MSG_ID=' /tmp/mailtrap-list.log | tail -1 | cut -d= -f2)
+          if [ "$MSG_ID" = "NONE" ] || [ -z "$MSG_ID" ]; then
+            echo "No messages in inbox — smoke inconclusive."
+            exit 1
+          fi
+
+          echo ""
+          echo "== Fetching HTML body of msg $MSG_ID"
+          curl -sS -H "Api-Token: $MAILTRAP_API_TOKEN" \
+            "https://mailtrap.io/api/accounts/$MAILTRAP_ACCOUNT_ID/inboxes/$MAILTRAP_INBOX_ID/messages/$MSG_ID/body.html" \
+            -o /tmp/mailtrap-html.html
+
+          echo "== HTML size: $(wc -c < /tmp/mailtrap-html.html) bytes"
+          echo ""
+          echo "== HTML body (first 4000 chars):"
+          head -c 4000 /tmp/mailtrap-html.html
+          echo ""
+          echo "== Variable resolution check (grep for unresolved {{ .X }} braces):"
+          if grep -E "\{\{ *\.[A-Za-z]+ *\}\}" /tmp/mailtrap-html.html; then
+            echo ""
+            echo "FAIL: variables raw sin resolver detectadas arriba."
+            exit 1
+          else
+            echo "OK: cero {{ .X }} raw."
+          fi
+
+      - name: Upload HTML artifact
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: mailtrap-${{ inputs.template }}-html
+          path: /tmp/mailtrap-html.html
+          if-no-files-found: warn
+          retention-days: 7
