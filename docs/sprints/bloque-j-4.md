@@ -69,17 +69,29 @@ Ritmo prod últimas 8 semanas (via `supabase-prod-ro`):
 
 **Con T4 el fix del componente queda verificado empíricamente**. Sin T4 el ítem seguiría abierto como bug de producto sin cobertura de test.
 
-**Refinamiento T4 v2 (post pedido PO 2026-09-22)**: T4 usa **user dedicado efímero**, no Aldo ni Camila. Flujo:
-1. `admin.createUser({ email: 'bell-150-stress-<ts>@pawnecta-test.example', password, email_confirm: true })` — user creado on-the-fly con timestamp único (cero colisión con otros tests paralelos).
-2. INSERT 200 notifs vía service_role con `metadata.stress_tag` único para ese uid.
-3. `signInWithPassword` obtiene session del user dedicado.
-4. Nuevo Playwright context con `addInitScript` que setea `localStorage['sb-jmtadvdkicyylcwjcmcl-auth-token'] = JSON.stringify(session)` — el SDK Supabase browser lee la sesión pre-hidratada apenas monta.
-5. Navegar `/`, abrir bell, asserta `visibles > 0` (garantía try/catch/finally) + `visibles === 50` exacto (user dedicado tiene 0 read, sin contaminación de otros fixtures).
-6. **Cleanup en `try/finally`** con dos steps: (a) `DELETE FROM notifications WHERE user_id = uid AND metadata->>stress_tag = <único>`; (b) `admin.auth.admin.deleteUser(uid)`. Corre aunque el test falle a mitad.
+**Refinamiento T4 v3 (post-fail Playwright browser)**: T4 usa **user dedicado efímero**, no Aldo ni Camila.
 
-Confirmación: **T4 nunca toca `acanocts@gmail.com` (Aldo) ni `acanocts+tutor@gmail.com` (Camila)**. Cero riesgo de contaminación de datos reales durante testing.
+**Historia**: la primera versión con Playwright browser + `addInitScript(localStorage)` para simular auth del user dedicado falló empíricamente en CI (run 35768221273). El session shape que devuelve `signInWithPassword` no coincide con lo que el SDK Supabase browser espera leer de localStorage → user null en UserContext → bell no monta → visibles=0.
 
-**Sobre punto 2 del pedido PO — badge vs lista en caso normal (<50)**: verificado en T1 y T2. T2 asserta `visibles = min(unread, 50) + min(read, 10)`; cuando unread<50, `visibles - min(read, 10) = unread`, que es el count real reflejado en el badge (query COUNT separada devuelve mismo valor). El badge en el DOM es un dot binario (`bg-notification-500 rounded-full`) sin número, se renderea cuando `unreadCount > 0` — T1 asserta visibles>0 (badge visible por definición). Cuando unread ≥ 50, el número real (unreadCount) sigue reflejando el total (query COUNT), y el panel muestra top 50 más recientes.
+**Decisión honesta**: cambiar T4 a **verificación de query directa** (mismo shape que el bell hace), NO flow browser. Motivo: el flow browser bajo carga ya lo cubre T1/T2 con Aldo real (post F2-3-CLEANUP unread=4). T4 cubre la lógica del fix bajo carga real (200 unread + 15 read).
+
+**Flujo T4 v3**:
+1. `admin.createUser({email: 'bell-150-stress-<ts>@pawnecta-test.example', email_confirm: true})` — user efímero (nunca Aldo/Camila).
+2. INSERT 200 notifs unread + 15 read vía service_role con `metadata.stress_tag` único.
+3. Ejecuta EXACTAMENTE las 3 queries que hace el bell (`components/Shared/NotificationBell.tsx:262-282`): `COUNT unread` + `unread .limit(50)` + `read .limit(10)`.
+4. **5 assertions** de la lógica del fix:
+   - (a) `countRes.count === 200` — badge muestra total real.
+   - (b) `unreadRes.data.length === 50` — lista cap 50 con 200 disponibles.
+   - (c) `readRes.data.length === 10` — read cap 10 con 15 disponibles.
+   - (d) `combinedRendered === 60` — visible total = min(200, 50) + min(15, 10).
+   - (e) `idxsUnread.includes(199)` — orden desc por created_at (más reciente primero, no cualquier 50 arbitrario).
+5. `try/finally` con dos steps: DELETE notifs por stress_tag + `admin.deleteUser(uid)`. Corre siempre.
+
+Confirmación: T4 nunca toca `acanocts@gmail.com` (Aldo) ni `acanocts+tutor@gmail.com` (Camila).
+
+**Limitación reconocida**: T4 v3 no ejerce el try/catch/finally del componente bajo carga real browser (solo la lógica de query). Ese path lo cubre T1/T2 con Aldo natural — que ejerce el flow completo bell mount → fetch → panel render con la query nueva `.limit(50)` post-fix. Si en el futuro se necesita cobertura browser bajo carga con user dedicado, sprint separado para setup de auth simulada canónico (probable: crear user + guardarStorageState en tmp file + `test.use({storageState: ...})`).
+
+**Sobre punto 2 del pedido PO — badge vs lista en caso normal (<50)**: verificado en T1 y T2 con Aldo. T2 asserta `visibles = min(unread, 50) + min(read, 10)`; cuando unread<50 (caso Aldo actual), `visibles - min(read, 10) = unread`, que es el count real reflejado en el badge (query COUNT separada devuelve mismo valor). El badge en el DOM es un dot binario (`bg-notification-500 rounded-full`) sin número, se renderea cuando `unreadCount > 0` — T1 asserta visibles>0 (badge visible por definición). Cuando unread ≥ 50, T4 (query directa) verifica que la query COUNT sigue devolviendo el total real y `.limit(50)` acota la lista.
 
 ## Push directo `f0955d3` + protección de main (2026-09-22)
 
