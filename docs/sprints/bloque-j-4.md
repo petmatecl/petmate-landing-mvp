@@ -1,5 +1,91 @@
 # Bloque J-4 — Kickoff (ampliado 2026-09-22 con ítems del sprint AUTH-MAIL-PHISH)
 
+## Cierre F2-3-CLEANUP — verificación post-merge (PR #78, merge `9b58553`)
+
+Respuesta punto por punto a las verificaciones pedidas por el PO antes
+del merge. Se aterriza acá tras señalamiento del PO de que el reporte
+de cierre inicial omitió estos ítems (regla nueva del proyecto: cuando
+el PO pide verificaciones antes de un merge, el reporte de cierre las
+responde punto por punto o dice por qué no).
+
+### 1) Proyecto donde corrió el DELETE
+
+- **STAGING** — `jmtadvdkicyylcwjcmcl.supabase.co`.
+- MCP usado: `supabase-staging-rw` (write-enabled).
+- `get_project_url` retornó `https://jmtadvdkicyylcwjcmcl.supabase.co`,
+  idéntico al declarado en `CLAUDE.md` como STAGING.
+- **Cero contacto con prod `ouezpeeiwjwawauidrqq`**. El MCP `supabase-prod-ro`
+  es read-only estricto (SQLSTATE `25006` en cualquier mutación); ni siquiera
+  se abrió sesión ese server durante el cleanup.
+
+### 2) Predicados exactos del DELETE
+
+**Agendamientos**:
+```sql
+DELETE FROM public.agendamientos
+ WHERE tutor_nombre LIKE '[TEST-cron-%'
+RETURNING id;
+```
+
+**Notificaciones asociadas**:
+```sql
+DELETE FROM public.notifications
+ WHERE (metadata->>'agendamiento_id') IN (
+   SELECT id::text FROM public.agendamientos WHERE tutor_nombre LIKE '[TEST-cron-%'
+ )
+RETURNING id;
+```
+
+El prefijo `'[TEST-cron-'` es el `TAG_TUTOR_NOMBRE_PREFIX` documentado en
+`e2e/fixtures/cron-recordatorio.ts` — constante única del proyecto, cero
+otro fixture usa ese prefix.
+
+### 3) Control negativo — no tomé conteo previo del set fuera del predicado
+
+**Reconocimiento explícito**: NO tomé el conteo "antes" de agendamientos
+y notificaciones FUERA del predicado (`tutor_nombre NOT LIKE '[TEST-%'` para
+agend; notifs sin `metadata->>agendamiento_id` en el set del predicado). Lo
+que sí tomé fue:
+
+- El "antes" DENTRO del predicado (via SELECT previo al DELETE + RETURNING):
+  **235 agendamientos test + 291 notifs asociadas**.
+- El "después" FUERA del predicado (via SELECT post-op):
+  **228 agendamientos NO-test + 10 notifs totales restantes**.
+
+Referencia de línea base para el "antes" fuera del predicado — **último run
+verde de la suite rápida sobre pull_request → main** que tenía referencia
+válida del estado pre-sprint:
+
+- **Run [35673021881](https://github.com/petmatecl/petmate-landing-mvp/actions/runs/35673021881)** — PR #76 lce-p8, commit `c209a7d`, 2026-09-22T00:43Z (~13 h antes del cleanup).
+- En ese run, la suite `pan-1/def3-bell-user-context` T1/T2/T3 pasó ✓ con Aldo unread = **131** (contra 160 hoy). El delta de 29 no fue por mis smokes — el diagnóstico confirmó que las 29 nuevas notifs eran del cron F2-3 corriendo en el propio CI (mensaje `"Cuidado de mascota (test F2-3) — <ts>"`, tipo `recordatorio_dia_anterior`). El count de agendamientos NO-test en ese momento no lo consulté a la BD ni fue capturado por el run.
+
+**Consecuencia operativa del reconocimiento**: para próximos DELETE
+destructivos sobre staging, tomar el snapshot del conjunto **antes** del
+DELETE (`SELECT COUNT(*) WHERE <predicado>` + `SELECT COUNT(*) WHERE NOT
+<predicado>` en el mismo bloque, ambos como CTE `antes`, y `RETURNING` en el
+propio DELETE para el "borrados exactos"). Sin ese pre-snapshot, cualquier
+afirmación de "el DELETE no tocó filas fuera del predicado" es una hipótesis
+respaldada solo por el predicado en sí + el conteo post-op, no por
+comparación medible antes/después. Regla auditor propia para próximos
+cleanups.
+
+### 4) Las 4 no-leídas de Aldo + 5 de Camila — solo informar
+
+| Notif | Destinatario | Origen | Clasificación |
+|---|---|---|---|
+| 3 tipo `recordatorio_dia_anterior` "Cuidado de mascota (test F2-3) — 1790..." de hoy 12:21 | Aldo | Cron real corrido sobre agendamientos con `tutor_nombre='e2e-fixture'` (creados por otras suites del proyecto, no por `insertarAgendamientoTest` de cron-recordatorio) | Prueba residual de otro fixture — fuera del predicado por diseño |
+| 3 iguales | Camila | idem | idem |
+| 1 tipo `recordatorio_dia_anterior` "prueba f2 — Del jueves 10 sept" del 09-sept | Aldo | Cron sobre agendamiento `Camila Figueroa Mendoza` del 23-jul-2026 (servicio "prueba f2" — probable prueba manual del PO en julio) | Prueba manual histórica del PO |
+| 1 igual | Camila | idem | idem |
+| 1 "Cuéntanos tu experiencia con Paseos dinamicos" del 22-jul | Camila | Invitación a reseña, tipo=NULL, apunta a agendamiento `Aldo Cano Cortes` del 08-jul-2026 | **Real de staging** — data histórica del testeo manual del PO en desarrollo |
+
+Resumen: **9 de 10 son residuo de fixtures fuera del prefijo `[TEST-cron-`**
+(mayormente `tutor_nombre='e2e-fixture'`) o pruebas manuales del PO de julio-sept.
+**Solo 1 semánticamente real** (invitación reseña Camila del 22-jul). Cero
+prod, todo staging. Ninguna se borra.
+
+
+
 ## Orden acordado con PO 2026-09-22
 
 Ítems nuevos descubiertos durante diagnóstico del CI fail del PR #77
