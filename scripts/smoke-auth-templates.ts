@@ -107,22 +107,40 @@ async function main() {
         }
 
         case 'reset-password': {
-            // resetPasswordForEmail() dispara "Reset password". Requiere que
-            // el user exista; si no, Supabase responde 200 igual por seguridad
-            // (para no leakear existencia) pero no manda correo. Usar un email
-            // que sabés existe en staging (Aldo/Camila).
+            // resetPasswordForEmail() requiere user existente; si no, Supabase
+            // responde 200 igual por seguridad (no leakea existencia) pero NO
+            // manda correo. Bootstrapeamos: createUser auto-confirmed → reset.
+            const { data: created, error: createErr } = await admin.auth.admin.createUser({
+                email,
+                password: `TmplBootstrap-${Date.now()}!`,
+                email_confirm: true,
+            });
+            if (createErr) throw new Error(`bootstrap createUser fail: ${createErr.message}`);
+            const userId = created.user?.id;
+            if (!userId) throw new Error('bootstrap: no userId');
+
             const { error } = await anon.auth.resetPasswordForEmail(email, {
                 redirectTo: `https://pawnecta-landing-mvp-git-staging-petmatecls-projects.vercel.app/reset-password`,
             });
             if (error) throw new Error(`resetPasswordForEmail fail: ${error.message}`);
-            console.log('[OK] Reset password disparado (correo solo llega si el email existe en Auth staging).');
+            console.log(`[OK] Reset password disparado. userId=${userId}`);
             break;
         }
 
         case 'magic-link': {
             // signInWithOtp() con shouldCreateUser:true dispara "Magic link"
-            // para user existente. Si el user no existe, dispara "Confirm signup".
-            // Usamos shouldCreateUser:false para forzar Magic link path.
+            // para user existente. Si el user no existe, dispara "Confirm
+            // signup". Bootstrapeamos user existente + shouldCreateUser:false
+            // para forzar Magic link path.
+            const { data: created, error: createErr } = await admin.auth.admin.createUser({
+                email,
+                password: `TmplBootstrap-${Date.now()}!`,
+                email_confirm: true,
+            });
+            if (createErr) throw new Error(`bootstrap createUser fail: ${createErr.message}`);
+            const userId = created.user?.id;
+            if (!userId) throw new Error('bootstrap: no userId');
+
             const { error } = await anon.auth.signInWithOtp({
                 email,
                 options: {
@@ -131,7 +149,7 @@ async function main() {
                 },
             });
             if (error) throw new Error(`signInWithOtp fail: ${error.message}`);
-            console.log('[OK] Magic link disparado (correo solo llega si el email existe en Auth staging).');
+            console.log(`[OK] Magic link disparado. userId=${userId}`);
             break;
         }
 
