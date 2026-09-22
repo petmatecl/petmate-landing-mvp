@@ -1,4 +1,42 @@
-# Bloque J-4 — Kickoff (encolado tras J-2 y LINK-CONFIRM-EMAIL)
+# Bloque J-4 — Kickoff (ampliado 2026-09-22 con ítems del sprint AUTH-MAIL-PHISH)
+
+## Orden acordado con PO 2026-09-22
+
+Ítems nuevos descubiertos durante diagnóstico del CI fail del PR #77
+(auth-mail-phish); todos son bugs vivos pre-existentes que hacían fallar
+la suite CI sin relación con AUTH-MAIL-PHISH. Se procesan **antes** del
+resto de fixmes ci-pipefail.
+
+1. **F2-3-CLEANUP** (este PR) — fixture del cron F2-3 acumula notifs
+   huérfanas en `public.notifications` (metadata.agendamiento_id apuntando
+   a agendamientos ya borrados). Cada run del CI agrega ~29 notifs a Aldo
+   sin limpieza. Causa raíz: `cleanupAgendamientosDeTest` en
+   [e2e/fixtures/cron-recordatorio.ts:132](../e2e/fixtures/cron-recordatorio.ts#L132)
+   borra `agendamientos` pero no notifs asociadas (jsonb, cero FK cascade).
+   Fix: agregar step DELETE notifs por `metadata->>agendamiento_id IN (ids)`
+   antes del DELETE agendamientos, mismo patrón que `borrarServicioResiliente`
+   de [servicio-efimero.ts:169-208](../e2e/fixtures/servicio-efimero.ts#L169-L208).
+   Incluir cleanup único de residuos actuales de staging con conteo
+   antes/después.
+2. **BELL-150** — fragilidad del bell test bajo carga (>~150 unread).
+   Después de F2-3-CLEANUP el count baja, pero el test debe ser resiliente
+   a carga natural también. Fix + cierre bell def3 T1/T2/T3.
+3. **cue-1 (P8 forzado)** — verificar empíricamente que el watchdog
+   `console.warn('user_context_stuck')` dispara cuando UserContext queda
+   ≥15s con queries colgadas. **Reporte prioritario al PO** — apenas
+   terminado, decide si CUE-1 sigue monitoreado o pasa a BLOQUEA para
+   fix inmediato pre-launch.
+4. **conviene** — [RES-MASC] gato oculto + [REDIRECT-403] flake preview
+   cold. Diagnóstico específico + fix per fail.
+5. **resto** — los 15 fixmes ci-pipefail originales (batches de 5, ver
+   más abajo).
+
+Cada ítem va en su propio PR con checks verdes y merge secuencial.
+PR #77 (auth-mail-phish) queda detrás; hay que rebasearlo tras cada
+merge de estos ítems (regla del plan de lanzamiento — cero merges
+cruzados de PRs abiertos).
+
+## Kickoff original (encolado tras J-2 y LINK-CONFIRM-EMAIL)
 
 **Fecha kickoff**: 2026-09-21.
 **Trigger**: sprint fixmes-prodok (PR #72 hold) reveló que 15 tests marcados `test.fixme [ci-pipefail-2026-09-17]` pasan en producción (smokes PO 2026-09-21) pero fallan en staging. Este bloque cierra el gap per-test.

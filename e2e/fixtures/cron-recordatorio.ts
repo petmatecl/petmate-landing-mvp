@@ -126,29 +126,93 @@ export async function insertarAgendamientoTest(
 }
 
 /**
- * Borra todos los agendamientos de un servicio (fixture). Resiliente —
- * loguea el error pero no throwea. Usado en `afterAll` de cada spec.
+ * Borra todos los agendamientos de un servicio + notificaciones
+ * asociadas (fixture). Resiliente — loguea el error pero no throwea.
+ * Usado en `afterAll` de cada spec.
+ *
+ * Sprint J-4 F2-3-CLEANUP (2026-09-22) — enmienda crítica: agregar barrido
+ * de `notifications` por `metadata->>agendamiento_id` ANTES del DELETE
+ * agendamientos. Sin este paso, las notifs que el endpoint cron real
+ * insertó apuntando a agendamientos test quedaban huérfanas en staging
+ * — el metadata jsonb no tiene FK, cero cascade. Diagnóstico F2-3-CLEANUP
+ * midió 29 notifs de Aldo + 26 de Camila por run acumuladas sin borrar,
+ * causa raíz del fail bell-def3 test (unread > ~150 rompe render). Mismo
+ * patrón que `borrarServicioResiliente` de `servicio-efimero.ts` (que ya
+ * incluía este barrido desde sprint estab-e2e-i 2026-09-17).
+ *
+ * Orden:
+ *   1) SELECT ids de agendamientos del servicio.
+ *   2) DELETE notifs por `metadata->>agendamiento_id IN (ids)` EN PARALELO
+ *      con DELETE agendamientos (jsonb metadata cero cascade real, así que
+ *      no importa el orden entre estas 2 tablas).
+ *   3) Retornar conteos separados.
  */
 export async function cleanupAgendamientosDeTest(
     supabase: SupabaseClient,
     servicioId: string,
-): Promise<{ borrados: number; error: string | null }> {
+): Promise<{ borrados: number; notifsBorradas: number; error: string | null }> {
+    // Paso 1: capturar ids de agendamientos ANTES de borrarlos (el .in()
+    // sobre metadata->>agendamiento_id requiere lista literal — cero
+    // subquery posible sobre jsonb PATH en PostgREST).
+    let agendIds: string[] = [];
     try {
-        const { data, error } = await supabase
+        const { data: idsData } = await supabase
             .from('agendamientos')
-            .delete()
-            .eq('servicio_id', servicioId)
-            .select('id');
-        if (error) {
-            console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} error:`, error.message);
-            return { borrados: 0, error: error.message };
-        }
-        return { borrados: data?.length ?? 0, error: null };
+            .select('id')
+            .eq('servicio_id', servicioId);
+        agendIds = (idsData as Array<{ id: string }> | null)?.map(r => r.id) ?? [];
     } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} throw:`, msg);
-        return { borrados: 0, error: msg };
+        console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} SELECT ids falló:`, err);
     }
+
+    // Paso 2: DELETE agendamientos + notifs asociadas en paralelo.
+    // PostgrestFilterBuilder es PromiseLike (thenable) — Promise.allSettled
+    // lo acepta sin envolver.
+    const ops: Array<PromiseLike<unknown>> = [
+        supabase.from('agendamientos').delete().eq('servicio_id', servicioId).select('id'),
+    ];
+    if (agendIds.length > 0) {
+        const inList = `(${agendIds.join(',')})`;
+        ops.push(
+            supabase.from('notifications').delete().filter('metadata->>agendamiento_id', 'in', inList).select('id') as PromiseLike<unknown>,
+        );
+    }
+    const results = await Promise.allSettled(ops);
+
+    // Paso 3: extraer conteos + primer error si hubo alguno.
+    let borrados = 0;
+    let notifsBorradas = 0;
+    let error: string | null = null;
+    const agendResult = results[0];
+    if (agendResult.status === 'rejected') {
+        error = String(agendResult.reason);
+        console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} agend rejected:`, error);
+    } else {
+        const v = agendResult.value as { data: Array<{ id: string }> | null; error: { message: string } | null };
+        if (v.error) {
+            error = v.error.message;
+            console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} agend error:`, error);
+        } else {
+            borrados = v.data?.length ?? 0;
+        }
+    }
+    if (agendIds.length > 0) {
+        const notifResult = results[1];
+        if (notifResult.status === 'rejected') {
+            console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} notifs rejected:`, notifResult.reason);
+            error = error ?? String(notifResult.reason);
+        } else {
+            const v = notifResult.value as { data: Array<{ id: string }> | null; error: { message: string } | null };
+            if (v.error) {
+                console.warn(`[cron-recordatorio] cleanupAgendamientosDeTest ${servicioId} notifs error:`, v.error.message);
+                error = error ?? v.error.message;
+            } else {
+                notifsBorradas = v.data?.length ?? 0;
+            }
+        }
+    }
+
+    return { borrados, notifsBorradas, error };
 }
 
 /**
