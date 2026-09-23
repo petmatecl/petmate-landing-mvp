@@ -15,6 +15,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import { E2E_F2_3_TITULO_PREFIX, cleanupHuerfanosF23 } from '../../fixtures/servicio-cuidado-listo';
 import { borrarServicioResiliente, resolverCategoriaIdPorSlug } from '../../fixtures/servicio-efimero';
 
@@ -48,7 +49,9 @@ test.describe.serial('S9 — Regresión F1: UPDATE client de cancelación sigue 
         const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
-        await cleanupHuerfanosF23(supabaseProv, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
 
         // Servicio de PASEOS con F1 activo (duracion_slot_min NOT NULL).
         // Lo crea el proveedor (RLS permite al owner INSERT en servicios_publicados).
@@ -108,8 +111,9 @@ test.describe.serial('S9 — Regresión F1: UPDATE client de cancelación sigue 
 
     test.afterAll(async () => {
         if (!servicioF1Id) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicioF1Id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicioF1Id);
     });
 
     test('UPDATE directo como tutor sobre reserva F1 confirmada → 1 fila, cancelada', async () => {

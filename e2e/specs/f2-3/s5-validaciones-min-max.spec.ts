@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 import { test, expect } from '@playwright/test';
 import { getSupabaseAsProveedor, getProveedorId } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -25,7 +26,9 @@ test.describe.serial('S5 — Validaciones inline min/max noches', () => {
     test.beforeAll(async () => {
         const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
-        await cleanupHuerfanosF23(supabase, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
         servicio = await crearServicioCuidadoConF2(supabase, {
             proveedorId,
             minNoches: 3,
@@ -35,8 +38,9 @@ test.describe.serial('S5 — Validaciones inline min/max noches', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('rango 2 noches (menor a min) → error "mínima de 3 noches"', async ({ page }) => {

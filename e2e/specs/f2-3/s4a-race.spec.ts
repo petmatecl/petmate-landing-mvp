@@ -15,6 +15,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -63,7 +64,9 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
         const supabaseProv = await getSupabaseAsProveedor();
         const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
-        await cleanupHuerfanosF23(supabaseProv, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
         servicio = await crearServicioCuidadoConF2(supabaseProv, {
             proveedorId,
             capacidadEstadia: 1,   // cap=1 para que EXCLUDE dispare.
@@ -94,8 +97,9 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('rango ocupado → EXCLUDE rebota → toast amable + picker refetche', async ({ page }) => {

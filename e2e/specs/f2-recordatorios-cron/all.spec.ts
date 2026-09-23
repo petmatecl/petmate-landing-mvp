@@ -27,6 +27,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     type ServicioCuidadoListo,
@@ -100,10 +101,12 @@ test.describe.serial('S1 — dryRun elegibles por familia (F1/F2/legacy)', () =>
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = await getSupabaseAsTutor();
-        const supabaseProv = await getSupabaseAsProveedor();
-        await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
-        await borrarServicioResiliente(supabaseProv, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role) para
+        // bypass de RLS FOR DELETE ausente en agendamientos. Cero afectación
+        // productiva.
+        const admin = await getSupabaseAdmin();
+        await cleanupAgendamientosDeTest(admin, servicio.id);
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('dryRun devuelve familias correctas para los 3 agendamientos test', async ({ baseURL }) => {
@@ -195,10 +198,10 @@ test.describe.serial('S2 — corrida real + idempotencia', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = await getSupabaseAsTutor();
-        const supabaseProv = await getSupabaseAsProveedor();
-        await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
-        await borrarServicioResiliente(supabaseProv, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await cleanupAgendamientosDeTest(admin, servicio.id);
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     const marcasPost1a: Record<string, { tutor: string | null; proveedor: string | null }> = {};
@@ -309,10 +312,10 @@ test.describe.serial('S3 — marcas independientes (parcial)', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = await getSupabaseAsTutor();
-        const supabaseProv = await getSupabaseAsProveedor();
-        await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
-        await borrarServicioResiliente(supabaseProv, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await cleanupAgendamientosDeTest(admin, servicio.id);
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('corrida envía solo al proveedor pendiente + tutor mark intacta', async ({ baseURL }) => {
@@ -382,10 +385,10 @@ test.describe.serial('S4 — no elegibles (fuera ventana + estado != confirmada)
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabaseTutor = await getSupabaseAsTutor();
-        const supabaseProv = await getSupabaseAsProveedor();
-        await cleanupAgendamientosDeTest(supabaseTutor, servicio.id);
-        await borrarServicioResiliente(supabaseProv, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await cleanupAgendamientosDeTest(admin, servicio.id);
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('dryRun — ninguno de los 4 aparece; corrida real no toca sus marcas', async ({ baseURL }) => {

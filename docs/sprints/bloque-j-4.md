@@ -441,6 +441,137 @@ Reconozco la tercera omisión. La regla "reporte de cierre responde punto por pu
 
 **Verificación previa post-ajuste**: `git push origin main` desde una copia limpia debe rechazar con `protected branch hook declined`. Si permite el push, la protección no está aplicada correctamente y hay que revisitar.
 
+## Sprint F2-RESERVAS-CLEANUP · reporte espejo 1-4 (2026-09-23, rama `f2-reservas-clean`)
+
+Reporte espejo mirror del pedido PO 2026-09-23 (4 fases). Sin merge hasta GO.
+
+### 1) Diagnóstico de origen
+
+**Fixtures que crean reservas sobre Camila** (tutor_id `b42cdc3f-7698-4940-b73d-a4ffe1fa3b10`, `usuarios_buscadores` email `acanocts+tutor@gmail.com`):
+
+| Fixture / helper | Ubicación | tutor_nombre | Familia | Notas |
+|---|---|---|---|---|
+| `preInsertarReservaConfirmada` | [e2e/fixtures/servicio-cuidado-listo.ts:248-273](../../e2e/fixtures/servicio-cuidado-listo.ts#L248-L273) | `'e2e-fixture'` (hardcoded L264) | F2 | Usada por specs s6/s7/s8 |
+| `preInsertarReservaConfirmada` (variante s9) | [e2e/specs/f2-3/s9-regresion-F1.spec.ts:89-106](../../e2e/specs/f2-3/s9-regresion-F1.spec.ts#L89-L106) | `'e2e-fixture-F1'` (hardcoded L99) | F1 | INSERT inline, no helper |
+| `insertarAgendamientoTest` (cron) | [e2e/fixtures/cron-recordatorio.ts:88-126](../../e2e/fixtures/cron-recordatorio.ts#L88-L126) | `'[TEST-cron-<familia>-<ts>]'` (dinámico L93) | F1/F2/legacy | 4 specs f2-recordatorios-cron `all.spec.ts` bloques S1/S2/S4/S5 |
+| Flow real S3 vía picker + endpoint | [e2e/specs/f2-3/s3-reserva-feliz.spec.ts](../../e2e/specs/f2-3/s3-reserva-feliz.spec.ts) | **`'Camila Figueroa Mendoza'`** (real, del `usuarios_buscadores`) | F2 | **Cero tag distintivo** — hallazgo del diagnóstico |
+
+**Por qué NO se borraban** (root cause):
+
+`agendamientos` no tiene policy RLS `FOR DELETE`. Verificado 2026-09-23 vía `mcp__supabase-staging-rw`:
+```
+[{"policyname":"agendamientos_tutor_insert","cmd":"INSERT"},
+ {"policyname":"agendamientos_proveedor_select","cmd":"SELECT"},
+ {"policyname":"agendamientos_tutor_select","cmd":"SELECT"},
+ {"policyname":"agendamientos_proveedor_respond","cmd":"UPDATE"},
+ {"policyname":"agendamientos_tutor_cancel","cmd":"UPDATE"}]
+```
+
+Cero `FOR DELETE`. Los afterAll de los specs F2-3 usaban `borrarServicioResiliente(supabase=getSupabaseAsProveedor(), servicio.id)`. Dentro, [servicio-efimero.ts:196](../../e2e/fixtures/servicio-efimero.ts#L196) hace `supabase.from('agendamientos').delete().eq('servicio_id', id)` con JWT del proveedor. **Bajo RLS sin `FOR DELETE`, PostgREST devuelve `{data:[], error:null}` silente — 0 filas afectadas, cero error visible**. Consecuencia: reservas quedaban vivas → FK `agendamientos_servicio_id_fkey` bloqueaba DELETE del servicio padre → error `foreign key constraint "agendamientos_servicio_id_fkey" on table "agendamientos"` visible en log F2 (que Aldo notó en el fail original).
+
+**Por qué S1 beforeAll "Limpié 241 huérfanos" NO salva a S6**:
+
+`cleanupHuerfanosF23` en [servicio-cuidado-listo.ts:168-208](../../e2e/fixtures/servicio-cuidado-listo.ts#L168-L208) filtra por prefijo de título + `created_at < NOW() - 30min` y borra en paralelo con `borrarServicioResiliente`. **Mismo cliente proveedor sin FOR DELETE** → mismo bug silente. El "Limpié 241 huérfanos" reportado en el log es contando los SERVICIOS que intentó borrar (`data.length` de `SELECT ... FROM servicios_publicados`), **NO los que efectivamente removió** — el `Promise.allSettled` puede aparecer con status="fulfilled" aunque el DELETE hijo devuelva 0 filas. Además el filtro `.lt('created_at', cutoffIso)` (30 min) NO cubre las reservas nuevas creadas por spec anterior aunque sean del mismo run (no cumplen edad). Y S6 crea una reserva propia en beforeAll → mezcla con las 158 residuales de e2e-fixture, S6 filtra por título único pero **tab "Próximas" muestra 221** — Camila renderiza el listado completo y el card correcto queda enterrado.
+
+**Error FK `agendamientos_servicio_id_fkey` = mismo residuo**:
+
+Sí, es la manifestación del mismo bug. Log F2 muestra ese error precisamente cuando el servicio padre intenta DELETE con reservas vivas — la ausencia de RLS FOR DELETE deja las reservas y la FK con `ON DELETE RESTRICT` (verificado por `20260814b_fks_agendamientos_correctiva.sql`) bloquea el padre.
+
+### 2) Fix en fixtures (afterAll + cleanupHuerfanosF23 con admin)
+
+Helper nuevo [e2e/fixtures/supabaseAdmin.ts](../../e2e/fixtures/supabaseAdmin.ts) — cliente `service_role` con guards análogos a `signupLink.ts`:
+- Guard 1: `E2E_SUPABASE_URL` (o fallback `NEXT_PUBLIC_SUPABASE_URL`) debe contener `jmtadvdkicyylcwjcmcl`.
+- Guard 2: `E2E_SUPABASE_SERVICE_KEY` debe empezar con `sb_secret_` (rechaza legacy JWT `eyJ...` y `sbp_...`).
+- Cero log del key completo — mask primeros 12 chars.
+- Cero import desde código productivo (grep de `getSupabaseAdmin` en `pages/`/`lib/`/`components/` = 0 matches).
+
+**Call sites actualizados** (13 lugares):
+- 8 specs F2-3: s1, s2, s3, s4a, s5, s6, s7, s8, s9, s10 — cambian `beforeAll cleanupHuerfanosF23(supabase, ...)` → `cleanupHuerfanosF23(admin, ...)` y `afterAll borrarServicioResiliente(supabase, ...)` → `borrarServicioResiliente(admin, ...)`.
+- 4 afterAll de `e2e/specs/f2-recordatorios-cron/all.spec.ts` (bloques S1/S2/S4/S5): cambian a `cleanupAgendamientosDeTest(admin, ...)` + `borrarServicioResiliente(admin, ...)`.
+
+Los INSERT siguen con JWT tutor/proveedor (auth path real, valida RLS INSERT). Solo DELETE cambia.
+
+Los `f2-2b` specs quedan como están (crean solo servicios, no reservas — cero riesgo actual). Anotado en BACKLOG FIXTURE-HYGIENE para consistencia post-launch.
+
+**Orden de borrado respeta la FK**: `borrarServicioResiliente` ya borraba en el orden correcto (hijos primero en `Promise.allSettled`, padre después) — el bug era el permiso, no el orden.
+
+**Tag único por spec**: el fixture `preInsertarReservaConfirmada` mantiene `tutor_nombre='e2e-fixture'` (o `'e2e-fixture-F1'` en s9), el fixture `insertarAgendamientoTest` cron mantiene `TAG_TUTOR_NOMBRE_PREFIX` = `[TEST-`. **Excepción S3**: el flow real via picker + endpoint puebla `tutor_nombre` con el nombre real de Camila desde `usuarios_buscadores` — cero tag posible sin cambiar el flow productivo. La red de seguridad es el `borrarServicioResiliente` del afterAll que ahora sí funciona con admin (borra por `servicio_id`, no por `tutor_nombre`).
+
+### 3) Limpieza única staging con predicado exacto + snapshot + conteo antes/después
+
+Ejecutada 2026-09-23 vía `mcp__supabase-staging-rw`.
+
+**Snapshot previo con conjunto complementario (CTE)**:
+
+```sql
+WITH tutor_camila AS (SELECT 'b42cdc3f-7698-4940-b73d-a4ffe1fa3b10'::uuid AS id),
+predicado AS (
+  SELECT a.id, a.tutor_nombre, a.estado, a.servicio_id
+  FROM public.agendamientos a, tutor_camila t
+  WHERE a.tutor_id = t.id
+    AND (a.tutor_nombre = 'e2e-fixture'
+      OR a.tutor_nombre = 'e2e-fixture-F1'
+      OR a.tutor_nombre LIKE '[TEST-cron-%]')
+),
+complemento AS (
+  SELECT a.id, a.tutor_nombre, a.estado
+  FROM public.agendamientos a, tutor_camila t
+  WHERE a.tutor_id = t.id
+    AND NOT (...predicado...)
+)
+```
+
+Resultado: `pred_count=342 | comp_count=71 | suma=413 | total_camila_actual=413`. ✅ Complemento excluye correctamente el predicado.
+
+**Pass 1 DELETE (tag exacto)** — transacción única BEGIN/COMMIT:
+
+```sql
+WITH ids_a_borrar AS (SELECT id FROM agendamientos WHERE tutor_id=... AND (tutor_nombre='e2e-fixture' OR ...)),
+notifs_borradas AS (DELETE FROM notifications WHERE metadata->>'agendamiento_id' IN (SELECT id::text FROM ids_a_borrar) RETURNING id),
+agend_borrados AS (DELETE FROM agendamientos WHERE ...predicado... RETURNING id)
+SELECT ...
+```
+
+Resultado: **`agend_borrados_count=342 | notifs_borradas_count=149`**.
+
+**Pass 2 DELETE (servicio_id IN huerfanos)** — cubre las 31 reservas del flow real S3 (`tutor_nombre='Camila Figueroa Mendoza'`, sin tag) + los 263 servicios F2-3 huérfanos + dependencias residuales:
+
+```sql
+BEGIN;
+WITH huerfanos AS (SELECT id FROM servicios_publicados WHERE titulo LIKE 'Cuidado de mascota (test F2-3) — %'),
+notifs_borradas AS (DELETE FROM notifications WHERE metadata->>'agendamiento_id' IN (SELECT id::text FROM agendamientos WHERE servicio_id IN (SELECT id FROM huerfanos)) RETURNING id),
+agend_borrados AS (DELETE FROM agendamientos WHERE servicio_id IN (SELECT id FROM huerfanos) RETURNING id),
+disp_borradas AS (DELETE FROM disponibilidad_semanal WHERE servicio_id IN (SELECT id FROM huerfanos) RETURNING id),
+excep_borradas AS (DELETE FROM excepciones_disponibilidad WHERE servicio_id IN (SELECT id FROM huerfanos) RETURNING id),
+serv_borrados AS (DELETE FROM servicios_publicados WHERE titulo LIKE 'Cuidado de mascota (test F2-3) — %' RETURNING id)
+SELECT ...;
+COMMIT;
+```
+
+Resultado: **`agend_borrados_extra=31 | notifs_borradas_extra=0 | disp_borradas=0 | excep_borradas=0 | servicios_borrados=263`**.
+
+**Verificación FINAL post-cleanup**:
+```
+total_camila_final = 40      (413 → 40, -373 borradas)
+aldo_final         = 5       (intacto ✅)
+servicios_f23_restantes = 0  ✅
+servicios_f22b_restantes = 0 ✅
+agend_total_global = 45      (40 + 5, cero huérfanos)
+unread_camila      = 0
+unread_aldo        = 0
+```
+
+**Reservas de Camila que NO se tocan** (40): reservas reales de Camila sobre servicios reales de staging (no fixtures F2-3). El predicado es estrecho por diseño — matchea solo tags de fixture y servicios de fixture. Reservas reales de Camila sobre servicios reales quedan intactas.
+
+### 4) PR + BACKLOG + reporte espejo
+
+- **Rama**: `f2-reservas-clean` (18 chars = límite exacto DNS Vercel preview).
+- **PR**: se abre tras commit + push (checks verdes obligatorios pre-merge por regla P11 estricta).
+- **BACKLOG.md** actualizado con ítem F2-RESERVAS-CLEANUP EN CURSO + ítem FIXTURE-HYGIENE (disparador "antes del lanzamiento nov-2026").
+- **Reporte espejo**: este bloque.
+
+**Aprendizaje meta (3ª instancia)**: tercer residuo de datos en tres sprints — notifs cron (F2-3-CLEANUP), users smoke stress (BELL-150), reservas F2 (este). Patrón raíz común: cleanup incompleto que la suite no cerraba correctamente por RLS/orden FK/tag ausente. FIXTURE-HYGIENE ítem nuevo cubre inventario exhaustivo antes del lanzamiento para no descubrir el 4º en noviembre.
+
 ## Cierre F2-3-CLEANUP — verificación post-merge (PR #78, merge `9b58553`)
 
 Respuesta punto por punto a las verificaciones pedidas por el PO antes
