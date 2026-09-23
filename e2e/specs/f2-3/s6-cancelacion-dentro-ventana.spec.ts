@@ -12,6 +12,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -50,7 +51,13 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
         const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
-        await cleanupHuerfanosF23(supabaseProv, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanupHuerfanosF23 usa admin
+        // (service_role) porque `agendamientos` no tiene policy RLS FOR DELETE
+        // → JWT proveedor devolvía `{data:[], error:null}` silente y los
+        // agendamientos residuales bloqueaban el DELETE del servicio padre por
+        // FK. El INSERT del servicio sigue con JWT proveedor (auth path real).
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
 
         servicio = await crearServicioCuidadoConF2(supabaseProv, {
             proveedorId,
@@ -74,8 +81,12 @@ test.describe.serial('S6 — Cancelación dentro de ventana vía endpoint', () =
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role) para
+        // bypass de RLS FOR DELETE ausente en `agendamientos`. Ver comentario
+        // en beforeAll. Cero afectación productiva — helper del runner con
+        // guards staging-only.
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('cancelar reserva a +10 días → toast success + BD estado=cancelada', async ({ page }) => {

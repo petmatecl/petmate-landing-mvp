@@ -15,6 +15,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -52,7 +53,9 @@ test.describe.serial('S8 — Bypass RLS cerrado post-migration F2-3-D', () => {
         const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
-        await cleanupHuerfanosF23(supabaseProv, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
 
         servicio = await crearServicioCuidadoConF2(supabaseProv, {
             proveedorId,
@@ -73,8 +76,9 @@ test.describe.serial('S8 — Bypass RLS cerrado post-migration F2-3-D', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('UPDATE directo como tutor sobre reserva F2 confirmada → 0 filas', async () => {

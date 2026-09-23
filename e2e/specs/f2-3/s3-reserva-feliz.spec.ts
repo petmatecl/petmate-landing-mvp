@@ -11,6 +11,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -35,7 +36,9 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
     test.beforeAll(async () => {
         const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
-        const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        const cleanup = await cleanupHuerfanosF23(admin, proveedorId);
         if (cleanup.borrados > 0) {
             console.log(`[S3 beforeAll] Limpié ${cleanup.borrados} huérfano(s): ${cleanup.titulos.join(', ')}`);
         }
@@ -48,8 +51,9 @@ test.describe.serial('S3 — Reserva feliz + BD', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('rango válido → toast + card en mis-solicitudes + BD verificada', async ({ page }) => {

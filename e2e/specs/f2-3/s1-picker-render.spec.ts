@@ -6,6 +6,7 @@
 // ---------------------------------------------------------------------------
 import { test, expect } from '@playwright/test';
 import { getSupabaseAsProveedor, getProveedorId } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -20,7 +21,9 @@ test.describe.serial('S1 — Picker de rango de noches se renderiza con F2 ON', 
     test.beforeAll(async () => {
         const supabase = await getSupabaseAsProveedor();
         const proveedorId = await getProveedorId();
-        const cleanup = await cleanupHuerfanosF23(supabase, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        const cleanup = await cleanupHuerfanosF23(admin, proveedorId);
         if (cleanup.borrados > 0) {
             console.log(`[S1 beforeAll] Limpié ${cleanup.borrados} huérfano(s): ${cleanup.titulos.join(', ')}`);
         }
@@ -38,8 +41,9 @@ test.describe.serial('S1 — Picker de rango de noches se renderiza con F2 ON', 
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     test('modal se abre con título "Reservar estadía" + hint de config + DayPicker visible', async ({ page }) => {

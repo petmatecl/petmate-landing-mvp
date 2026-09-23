@@ -16,6 +16,7 @@ import {
     getProveedorId,
     getTutorId,
 } from '../../fixtures/supabase';
+import { getSupabaseAdmin } from '../../fixtures/supabaseAdmin';
 import {
     crearServicioCuidadoConF2,
     cleanupHuerfanosF23,
@@ -62,7 +63,9 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
         const supabaseTutor = await getSupabaseAsTutor();
         const proveedorId = await getProveedorId();
         const tutorId = await getTutorId();
-        await cleanupHuerfanosF23(supabaseProv, proveedorId);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): cleanup con admin — ver s6.
+        const admin = await getSupabaseAdmin();
+        await cleanupHuerfanosF23(admin, proveedorId);
         servicio = await crearServicioCuidadoConF2(supabaseProv, {
             proveedorId,
             cancelacionMinHoras: 48,
@@ -80,8 +83,9 @@ test.describe.serial('S10 — A11y kbd smoke post-sweep #2', () => {
 
     test.afterAll(async () => {
         if (!servicio) return;
-        const supabase = await getSupabaseAsProveedor();
-        await borrarServicioResiliente(supabase, servicio.id);
+        // Sprint F2-RESERVAS-CLEANUP (2026-09-23): admin (service_role).
+        const admin = await getSupabaseAdmin();
+        await borrarServicioResiliente(admin, servicio.id);
     });
 
     // Sprint f2-ci-fix (2026-09-09) — guard contra cross-fire de storageState
