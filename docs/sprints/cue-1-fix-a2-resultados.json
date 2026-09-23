@@ -1,16 +1,16 @@
 [
   {
     "name": "A2.a — SW registrado, guest, /",
-    "swController": "no",
-    "swControllerScript": null,
+    "swController": "yes",
+    "swControllerScript": "http://localhost:3000/sw.js",
     "locksHeld": 0,
     "locksPending": 0,
     "locksDump": {
       "held": [],
       "pending": []
     },
-    "loadingResolvedMs": 60,
-    "wallMs": 197,
+    "loadingResolvedMs": 19,
+    "wallMs": 8775,
     "error": null
   },
   {
@@ -23,50 +23,50 @@
       "held": [],
       "pending": []
     },
-    "loadingResolvedMs": 23,
-    "wallMs": 7556,
+    "loadingResolvedMs": 21,
+    "wallMs": 1580,
     "error": null
   },
   {
     "name": "A2.c — SW registrado, auth 1 tab, /proveedor",
-    "swController": "no",
-    "swControllerScript": null,
+    "swController": "yes",
+    "swControllerScript": "http://localhost:3000/sw.js",
     "locksHeld": 0,
     "locksPending": 0,
     "locksDump": {
       "held": [],
       "pending": []
     },
-    "loadingResolvedMs": 532,
-    "wallMs": 621,
+    "loadingResolvedMs": 520,
+    "wallMs": 1601,
     "error": null
   },
   {
     "name": "A2.d1 — SW reg, auth tab1, /proveedor",
-    "swController": "no",
-    "swControllerScript": null,
+    "swController": "yes",
+    "swControllerScript": "http://localhost:3000/sw.js",
     "locksHeld": 0,
     "locksPending": 0,
     "locksDump": {
       "held": [],
       "pending": []
     },
-    "loadingResolvedMs": 529,
-    "wallMs": 630,
+    "loadingResolvedMs": 527,
+    "wallMs": 1465,
     "error": null
   },
   {
     "name": "A2.d2 — SW reg, auth tab2, /proveedor",
-    "swController": "no",
-    "swControllerScript": null,
+    "swController": "yes",
+    "swControllerScript": "http://localhost:3000/sw.js",
     "locksHeld": 0,
     "locksPending": 0,
     "locksDump": {
       "held": [],
       "pending": []
     },
-    "loadingResolvedMs": 528,
-    "wallMs": 617,
+    "loadingResolvedMs": 531,
+    "wallMs": 1456,
     "error": null
   }
 ]

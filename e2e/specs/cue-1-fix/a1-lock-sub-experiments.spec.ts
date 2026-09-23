@@ -169,6 +169,106 @@ test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)
 });
 
 // ---------------------------------------------------------------------------
+// A1.e — Simulación #2426 supabase-js: tab oculta 90s+ (refresh token pausado)
+// ---------------------------------------------------------------------------
+// Hipótesis PO 2026-09-23: patrón #2426 CLOSED en 2.10x (nuestra 2.84.0 es
+// anterior) — tab suspendida 20-30s → freeze indefinido. El mecanismo:
+// el refresh de token del SDK Supabase corre en background timer; cuando la
+// tab está oculta el timer pausa; el lock queda tomado; al reactivar la
+// tab, todas las queries que llegan quedan encoladas esperando el lock que
+// ya no se libera.
+//
+// Simulación: 2 pestañas mismo contexto autenticado, tab B se oculta via
+// document.hidden=true + dispatchEvent(visibilitychange), esperar 90s (más
+// del refresh interval del token, típicamente 60s), bringToFront a B,
+// medir getSession() + locks.query() durante la espera Y post-reactivación.
+//
+// Cero fix. Solo reportar reproducción sí/no. Si no reproduce → Memory
+// Saver real no simulable en Playwright y evidencia queda en Sentry tags.
+test.describe.serial('A1.e — Tab oculta 90s+ (simulación #2426)', () => {
+    test('reproduce cuelgue post-hidden 90s + reactivación', async ({ browser }) => {
+        test.setTimeout(180_000);   // 90s espera + margen holgado.
+
+        const ctx = await browser.newContext({ storageState: 'e2e/.auth/proveedor.json' });
+        const pageA = await ctx.newPage();
+        const pageB = await ctx.newPage();
+        const wA = trackearWarnings(pageA);
+        const wB = trackearWarnings(pageB);
+
+        const t0 = Date.now();
+        await Promise.all([
+            pageA.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+            pageB.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+        ]);
+
+        // Warm-up 3s para que UserContext hidrate en ambas tabs.
+        await pageA.waitForTimeout(3_000);
+
+        // Locks pre-hidden.
+        const locksPre = await capturarLocks(pageB);
+        console.log(`[A1.e] pre-hidden LOCKS_B: ${JSON.stringify(locksPre).slice(0, 300)}`);
+
+        // Ocultar tab B via API document.hidden + dispatchEvent.
+        await pageB.evaluate(() => {
+            Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+            Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+            document.dispatchEvent(new Event('visibilitychange'));
+        });
+        console.log('[A1.e] tab B oculta — esperando 90s...');
+
+        // Esperar 90s — más del refresh interval del token (default supabase 60s).
+        await pageA.waitForTimeout(90_000);
+
+        // Locks mid-espera (desde tab A, para no dispararla en B).
+        const locksMidA = await capturarLocks(pageA);
+        console.log(`[A1.e] mid-90s LOCKS_A: ${JSON.stringify(locksMidA).slice(0, 300)}`);
+
+        // Reactivar tab B.
+        await pageB.evaluate(() => {
+            Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+            Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+            document.dispatchEvent(new Event('visibilitychange'));
+        });
+        await pageB.bringToFront();
+
+        // Medir: intentar getSession() en B con timeout. Si el lock quedó
+        // tomado, getSession() se queda encolado indefinidamente.
+        const getSessionResult = await pageB.evaluate(async () => {
+            const start = Date.now();
+            try {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const w = window as any;
+                if (!w.supabase?.auth?.getSession) {
+                    return { ok: false, ms: 0, error: 'supabase not on window' };
+                }
+                // Race manual: getSession() vs timeout 20s.
+                const raced = await Promise.race([
+                    w.supabase.auth.getSession().then((r: unknown) => ({ ok: true, r })),
+                    new Promise((resolve) => setTimeout(() => resolve({ ok: false, timedOut: true }), 20_000)),
+                ]);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                const rr = raced as any;
+                return { ok: rr.ok === true, ms: Date.now() - start, timedOut: !!rr.timedOut };
+            } catch (err) {
+                return { ok: false, ms: Date.now() - start, error: (err as Error).message };
+            }
+        });
+
+        const locksPost = await capturarLocks(pageB);
+        const wallMs = Date.now() - t0;
+
+        console.log(`[A1.e] getSession post-reactivación: ${JSON.stringify(getSessionResult)}`);
+        console.log(`[A1.e] LOCKS_B post: ${JSON.stringify(locksPost).slice(0, 300)}`);
+        console.log(`[A1.e] wall=${wallMs}ms | tabA_warns=${wA.warnings.length} | tabB_warns=${wB.warnings.length}`);
+        if (wA.warnings.length > 0) console.log(`[A1.e] SAMPLE tabA WARN: ${wA.warnings[0].slice(0, 300)}`);
+        if (wB.warnings.length > 0) console.log(`[A1.e] SAMPLE tabB WARN: ${wB.warnings[0].slice(0, 300)}`);
+
+        expect(locksPost).toBeDefined();
+        await ctx.close();
+    });
+});
+
+// ---------------------------------------------------------------------------
 // A1.d — /security-logout post-signOut
 // ---------------------------------------------------------------------------
 // Predicción PO: 5 events /security-logout huelen a onAuthStateChange

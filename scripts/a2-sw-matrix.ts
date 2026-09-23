@@ -103,16 +103,37 @@ async function medirCelda(
     };
 
     try {
-        // Si se pidió desregistrar, navegamos primero a un placeholder,
-        // desregistramos, luego navegamos a la ruta target.
+        // v2 fix (2026-09-23 corrección PO P8): sin controller poblado el
+        // browser NO está en el estado que produce el 56% de events prod
+        // (sw_controlling=true). Método correcto:
+        //
+        // 1. Navegación inicial "warm-up" a / — dispara el register del SW.
+        // 2. Esperar navigator.serviceWorker.ready (SW instalado + activado).
+        // 3. Si desregistrarSw: unregister runtime + reload.
+        // 4. Sino: RELOAD (para que el controller se tome cargo en esta pestaña).
+        // 5. Después medir la ruta target con controller poblado.
+        //
+        // Sin este flow, controller es siempre null (primer load) y medimos
+        // la CONDICIÓN CONTRARIA a la observada en prod. Regla P8 aplica al
+        // diseño de smokes también.
+
+        // Warm-up: cargar / y esperar SW listo (registra + activa).
+        await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+        await page.evaluate(async () => {
+            if ('serviceWorker' in navigator) {
+                // ready resuelve cuando hay un SW activo controlando o
+                // instalado listo para tomar control post reload.
+                await navigator.serviceWorker.ready;
+            }
+        });
+
         if (desregistrarSw) {
-            await page.goto(`${BASE_URL}/`, { waitUntil: 'domcontentloaded' });
+            // Unregister + purga caches, luego reload → controller queda null.
             await page.evaluate(async () => {
                 if ('serviceWorker' in navigator) {
                     const regs = await navigator.serviceWorker.getRegistrations();
                     for (const r of regs) await r.unregister();
                 }
-                // Purga caches para que el próximo request no vuelva del cache.
                 if ('caches' in self) {
                     const keys = await caches.keys();
                     for (const k of keys) await caches.delete(k);
@@ -120,6 +141,13 @@ async function medirCelda(
             });
         }
 
+        // Reload — con SW ya activo, esta reload hace que controller
+        // apunte al SW (patrón estándar workbox skipWaiting + clientsClaim
+        // hace que controller aparezca inmediatamente, pero para ser
+        // conservadores hacemos un reload explícito).
+        await page.reload({ waitUntil: 'domcontentloaded' });
+
+        // Ahora navegar a la ruta target con el controller ya poblado.
         await page.goto(`${BASE_URL}${ruta}`, { waitUntil: 'domcontentloaded' });
 
         // Poll cada 500ms hasta CUELGUE_WAIT_MS por señal de "loading resolvió".
