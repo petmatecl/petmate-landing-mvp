@@ -249,7 +249,7 @@ jobs:
         # rompió la suite F2 y el CI dio verde falso al PR #60.
         run: |
           set -o pipefail
-          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
+          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ e2e/specs/cue-1-fix/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
 
       - name: Extract AUTH-RETRY marks to artifact
         # Sprint estab-e2e (2026-09-11) — el `authenticate.ts` helper hace
