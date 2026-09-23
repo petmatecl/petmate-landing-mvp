@@ -334,12 +334,24 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // en path guest (session=null) — cubre SIGNED_OUT + softReset,
             // por si el user desloguea con toast 'retrying'/'failed' vivo.
             setHydrationState('ok');
+            // Sprint cue-1-sentry-user — desasociar user de Sentry en path
+            // guest para que eventos posteriores (user_context_stuck, errores
+            // de página) no queden atribuidos al último user hidratado.
+            Sentry.setUser(null);
             setIsLoading(false);
             return;
         }
 
         // Session is valid — set user immediately
         setUser(session.user);
+        // Sprint cue-1-sentry-user — asociar user.id (SOLO id, sin email/
+        // username/name) al scope Sentry para que eventos posteriores tengan
+        // atribución en el dashboard. Enable cruce "Pixel 9 = proveedor X?"
+        // en Issues → Users Affected. Cero PII: username/email/name se dejan
+        // fuera del objeto por diseño. Referencia: BACKLOG.md CUE-1-SENTRY-USER
+        // + nota DEL-CUENTA-LEY (eventos históricos con user.id al borrar
+        // cuenta son dato a evaluar por LEY-DATOS post-launch).
+        Sentry.setUser({ id: session.user.id });
         // Sprint deadlock-fix — actualizar el ref en el MISMO tick que setUser.
         // El guard del case SIGNED_IN lee este ref para skipear hydrates
         // redundantes cuando el SDK dispara SIGNED_IN silente para la misma
@@ -912,6 +924,10 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // (El hydrateFromSession(null) subsecuente en case SIGNED_OUT
         // también resetea — cinturón y tirantes.)
         setHydrationState('ok');
+        // Sprint cue-1-sentry-user — desasociar user de Sentry en logout
+        // voluntario. Cinturón: hydrateFromSession(null) subsecuente
+        // también hace Sentry.setUser(null) en path guest.
+        Sentry.setUser(null);
         setUser(null);
         setProfile(null);
         setProveedorRow(null);
