@@ -138,6 +138,29 @@ auth-mail-phish sobre "vigencias declaradas"): **no afirmar que una
 defensa está activa si no verificaste su configuración específica**.
 Fuente autoritativa = leer el config real, no el toggle Settings UI.
 
+**Ampliación 2026-09-23 (sprint F2-RESERVAS-CLEANUP) — tercera instancia del mismo antipatrón**: `Promise.allSettled` con status `fulfilled` cuando el hijo devolvió **0 filas afectadas** (silencio de PostgREST bajo RLS DENY para DELETE). El `cleanupHuerfanosF23` del F2-3 reportaba "Limpié 241 huérfano(s)" contando la lista de servicios que *intentó* borrar (`data.length` del SELECT), no los que efectivamente removió — cada `borrarServicioResiliente` interno tenía DELETE agendamientos que devolvía `{data:[], error:null}` (RLS sin `FOR DELETE`), pero envuelto en `Promise.allSettled` aparecía como `fulfilled` (sin rejection), y el DELETE del padre después fallaba con FK violation *ruidosa* pero era demasiado tarde: los residuos ya se acumulaban.
+
+**Regla derivada (aplica a toda limpieza de fixture y a scripts de cleanup manuales)**: **toda operación de limpieza debe reportar filas efectivamente afectadas y fallar si esperaba > 0 y obtuvo 0** — no confiar en "no hubo throw" ni en "la promesa resolvió". Enforcement mínimo por sitio:
+
+```typescript
+// Antes: acepta 0 silente.
+const { error } = await supabase.from('agendamientos').delete().eq('servicio_id', id);
+if (error) throw error;
+
+// Después: exige count > 0 cuando el caller sabe que hay hijos.
+const { data, error } = await supabase.from('agendamientos').delete().eq('servicio_id', id).select('id');
+if (error) throw error;
+if (esperabaFilas && (data?.length ?? 0) === 0) {
+    throw new Error(`[cleanup] DELETE agendamientos por servicio_id=${id} devolvió 0 filas — RLS o predicado mal`);
+}
+```
+
+Aplica también a cleanups SQL manuales (los del PO en Studio): siempre `RETURNING id` + verificar `count > 0` cuando el snapshot previo mostró rows. Es el mismo antídoto del corolario P8 10ª ("verificar el método con positivo conocido") extendido a operaciones de mutación: si el DELETE reportó 0 filas y esperabas ≥1, el método está roto (permission, predicado, tipo), no el sistema.
+
+Los tres casos canónicos ahora en el archivo son: (a) `| tee` sin `set -o pipefail` (P12, 2026-09-17); (b) ruleset con `required_status_checks: []` (2026-09-22); (c) `Promise.allSettled` fulfilled con 0 filas borradas bajo RLS silente (2026-09-23). Todos son **defensa activa con sub-configuración vacía o silencio de la primitiva**, dando ilusión de éxito mientras cero se enforce.
+
+**Nota de producto — ausencia de policy `FOR DELETE` en `agendamientos` es decisión, no bug**: verificado en el diseño del schema — las reservas se cancelan cambiando `estado` a `cancelada` (via policy `agendamientos_tutor_cancel` UPDATE) o `cancelada_proveedor` (via `agendamientos_proveedor_respond`), **nunca se borran desde el cliente**. Preserva historial completo para dashboards, RPCs de estado derivado (REALIZADA/VENCIDA), auditoría de patrones de cancelación, etc. **Ningún sprint futuro debe agregar `POLICY ... FOR DELETE` en `agendamientos` "para que pase un test"** — la ruta correcta es el bypass service_role en el runner e2e (`e2e/fixtures/supabaseAdmin.ts`), lo que ya aterrizó el sprint F2-RESERVAS-CLEANUP. Si aparece un caller productivo que necesite borrar reservas (cero previsto hoy), es cambio de producto y requiere decisión PO + evaluación de impacto (RPCs, cron, dashboards, LEY-DATOS). Mientras tanto la ausencia de la policy es defensa activa contra "test fixture inadvertidamente borra reservas del user" en cualquier ambiente.
+
 ## Diagnóstico cue-1 — puntos del "Enfoque cue-1" (2026-09-22, respuesta completa)
 
 **Autocorrección**: el reporte anterior respondió los puntos del mensaje "P8 forzado" del PO (verificar warn dispara + clasificar) y omitió los 4 puntos del mensaje "Enfoque cue-1" (código watchdog, Sentry eventos reales, P8 de señal, umbral 15s bajo carga). El PO señaló la omisión como tercera del día — la regla "reporte de cierre responde punto por punto" que aterricé hoy la estoy violando. Respuesta completa acá.
