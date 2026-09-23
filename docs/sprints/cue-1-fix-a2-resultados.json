@@ -1,0 +1,72 @@
+[
+  {
+    "name": "A2.a — SW registrado, guest, /",
+    "swController": "no",
+    "swControllerScript": null,
+    "locksHeld": 0,
+    "locksPending": 0,
+    "locksDump": {
+      "held": [],
+      "pending": []
+    },
+    "loadingResolvedMs": 60,
+    "wallMs": 197,
+    "error": null
+  },
+  {
+    "name": "A2.b — SW desregistrado, guest, /",
+    "swController": "no",
+    "swControllerScript": null,
+    "locksHeld": 0,
+    "locksPending": 0,
+    "locksDump": {
+      "held": [],
+      "pending": []
+    },
+    "loadingResolvedMs": 23,
+    "wallMs": 7556,
+    "error": null
+  },
+  {
+    "name": "A2.c — SW registrado, auth 1 tab, /proveedor",
+    "swController": "no",
+    "swControllerScript": null,
+    "locksHeld": 0,
+    "locksPending": 0,
+    "locksDump": {
+      "held": [],
+      "pending": []
+    },
+    "loadingResolvedMs": 532,
+    "wallMs": 621,
+    "error": null
+  },
+  {
+    "name": "A2.d1 — SW reg, auth tab1, /proveedor",
+    "swController": "no",
+    "swControllerScript": null,
+    "locksHeld": 0,
+    "locksPending": 0,
+    "locksDump": {
+      "held": [],
+      "pending": []
+    },
+    "loadingResolvedMs": 529,
+    "wallMs": 630,
+    "error": null
+  },
+  {
+    "name": "A2.d2 — SW reg, auth tab2, /proveedor",
+    "swController": "no",
+    "swControllerScript": null,
+    "locksHeld": 0,
+    "locksPending": 0,
+    "locksDump": {
+      "held": [],
+      "pending": []
+    },
+    "loadingResolvedMs": 528,
+    "wallMs": 617,
+    "error": null
+  }
+]
