@@ -164,18 +164,51 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         );
     }
 
+    // Sprint hf-usuario-fix iteración 2 (2026-09-24) — captura ampliada para
+    // diagnosticar por qué el paso 2 falla pese a que el paso 1 confirma el
+    // token en localStorage. Run 36051500666 mostró que:
+    //   - waitForFunction PASA (token en localStorage al momento del check).
+    //   - storageState() escribe archivo con solo cookies (_vercel_jwt del
+    //     Vercel bypass), SIN origins/localStorage con sb-*-auth-token.
+    //   - snapshot post-timeout muestra al user logueado normalmente en la
+    //     UI, sesión viva en el browser.
+    //
+    // Hipótesis: Playwright storageState() captura origins que la página
+    // "conoce" (navegó). El bypass query + redirect subsecuente puede dejar
+    // el localStorage bajo un origin ligeramente distinto del que Playwright
+    // serializa. Para confirmar: capturar diagnóstico completo — page.url(),
+    // page.evaluate del origin + localStorage completo, y el JSON guardado
+    // (primeros 3000 chars, no 300, para ver el bloque `origins`).
+    const preCaptureDiag = await page.evaluate(() => {
+        const items: Array<{ key: string; valueLen: number; valuePreview: string }> = [];
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                const v = localStorage.getItem(k) ?? '';
+                items.push({ key: k, valueLen: v.length, valuePreview: v.slice(0, 80) });
+            }
+        } catch { /* ignore */ }
+        return { url: location.href, origin: location.origin, ls: items };
+    });
+
     await page.context().storageState({ path: opts.storageStatePath });
 
     // Paso 2 · guard final: verificar el archivo escrito contiene el token.
     // Si el waitForFunction pasó pero el capture perdió el token (edge case
-    // Playwright storageState vs localStorage), fallar loud con mensaje claro.
+    // Playwright storageState vs localStorage), fallar loud con diagnóstico
+    // exhaustivo (page.url + origin + dump completo del localStorage +
+    // primeros 3000 chars del JSON guardado incluyendo bloque origins).
     const savedRaw = fs.readFileSync(opts.storageStatePath, 'utf-8');
     if (!savedRaw.includes('"access_token"')) {
         throw new Error(
             `[authenticate:${opts.roleName}] storageState guardado en ${opts.storageStatePath} SIN ` +
-            `"access_token" pese a que localStorage lo tenía pre-capture. Race extraño de Playwright ` +
-            `storageState vs localStorage — considerar delay o refetch de session antes del capture. ` +
-            `Contenido guardado (primeros 300 chars): ${savedRaw.slice(0, 300)}`
+            `"access_token" pese a que localStorage lo tenía pre-capture.\n\n` +
+            `DIAG · page.url: ${preCaptureDiag.url}\n` +
+            `DIAG · origin: ${preCaptureDiag.origin}\n` +
+            `DIAG · localStorage items (${preCaptureDiag.ls.length}):\n` +
+            preCaptureDiag.ls.map(i => `  - ${i.key} (len=${i.valueLen}): ${i.valuePreview}`).join('\n') +
+            `\n\nCONTENIDO GUARDADO (primeros 3000 chars):\n${savedRaw.slice(0, 3000)}`
         );
     }
 }
