@@ -27,61 +27,69 @@ Orden: (1) Playwright reproducción + captura Postgrest → (2) RLS policies →
 
 [components/Servicio/ServiceDetailView.tsx:323-347](../../components/Servicio/ServiceDetailView.tsx#L323-L347) — `.maybeSingle()` sobre `(client_id, sitter_id, servicio_id)` ANTES del INSERT. Si la 1ª corrida creó la fila (aunque el catch se disparó por algún fallo post-INSERT), la 2ª la encuentra acá y navega directo sin volver a insertar.
 
-### Paso 1 · Playwright reproducción · pendiente en este PR
+### Paso 1 · Reproducción resuelta desde prod por PO 2026-09-24
 
-Spec [e2e/specs/chat-open-error/paso-1-repro.spec.ts](../../e2e/specs/chat-open-error/paso-1-repro.spec.ts) reproduce el escenario y captura evidencia estructurada:
+El PO reprodujo el clic en prod con la consola del navegador abierta y capturó la respuesta exacta:
 
-- **Fixture**: cleanup previo de la conversación (Camila, Aldo, servicio "Paseos dinamicos" `385063f9-...`) via `getSupabaseAdmin()` (service_role gated a staging). `afterAll` limpia también.
-- **Captura request**: `page.on('request')` filtrado por `/rest/v1/conversations*` → method, URL, `postData`, headers `Prefer` y `Range`.
-- **Captura response**: `page.on('response')` filtrado igual → status, URL, body (primeros 1500 chars), `Content-Range`, `Preference-Applied`.
-- **Captura console.error** — el `console.error('Error starting conversation:', ...)` del catch de L435 (pre-fix) o L446+ (post-fix con `captureException`).
-- **Estado BD post-clic**: `SELECT id, created_at FROM conversations WHERE client_id=Camila AND sitter_id=Aldo AND servicio_id=X` — verifica si la fila persistió pese al toast.
-- **Assertions**: `expect.soft` — spec SIEMPRE pasa, solo captura evidencia. Cuando el fix funcional aterrice en commit posterior a este PR, un spec `regresion.spec.ts` con hard-asserts verificará "1er clic siempre navega, cero toast de error".
+- **POST `/rest/v1/conversations?select=*` devuelve `409 Conflict`**.
+- Catch de `ServiceDetailView.tsx:433` dispara `toast.error(...)`.
+- Ficha reproducción: `b1bdf757` "Acompañandolo en su hogar" (Maria Constanza).
+- Contexto crítico: el PO **YA tenía conversación previa con esa proveedora para OTRO servicio**.
 
-**Reproducción paralela del PO**: el PO reproduce el mismo clic en prod con la consola del navegador abierta y comparte el objeto exacto que `console.error` recibió. La combinación de ambos (spec en staging + console de prod) confirma la hipótesis viva de causa raíz.
+**Hipótesis del race token vs INSERT SELECT: DESCARTADA**. La causa era estructural del predicado del `existingResult`, no del RETURNING.
 
-## 2. Hipótesis viva antes del paso 1
+**Causa raíz CONFIRMADA con constraints reales** (verificado via `supabase-prod-ro` + `supabase-staging-rw` 2026-09-24, mismos constraints en ambos):
 
-Con los datos de pasos 2-4:
-- RLS OK, cero triggers, path 2do clic explicado.
-- El bug requiere que el INSERT **cree la fila** pero el catch se dispare igual.
+```sql
+-- Constraint UNIQUE en public.conversations (prod y staging idénticos):
+conversations_client_id_sitter_id_key UNIQUE (client_id, sitter_id)
+-- Índice único correspondiente:
+CREATE UNIQUE INDEX conversations_client_id_sitter_id_key
+    ON public.conversations USING btree (client_id, sitter_id)
+```
 
-**Hipótesis fuerte candidata**: race entre INSERT y el SELECT implícito del `RETURNING` del `.insert(...).select().single()`. Escenario:
-1. INSERT crea la fila con `auth.uid()` A → RLS INSERT check OK.
-2. Postgrest hace el SELECT del RETURNING para armar el response body.
-3. En ese intervalo, el token de auth se refresca cliente-side → `auth.uid()` durante el SELECT resuelve como B (nuevo user_id post-refresh; puede ser el mismo id pero con jwt claims diferentes).
-4. Si RLS SELECT policy usa comparación por `auth.uid()` estricta y el token intermedio no resolvió idéntico, el SELECT filtra la fila → 0 rows en response.
-5. `.single()` en supabase-js throw "expected single, got 0" → catch → toast.
-6. La fila queda persistida por el INSERT (el rollback del rollback del token no aplica; INSERT ya committeó).
+**El constraint es sobre `(client_id, sitter_id)` — SIN `servicio_id`**. Pero el `existingResult` de [ServiceDetailView.tsx:323-347](../../components/Servicio/ServiceDetailView.tsx#L323-L347) filtraba por `(client_id, sitter_id, servicio_id)` — divergencia entre lo que la app busca y lo que la BD enforce.
 
-**Vector alternativo**: la `.insert().select()` de supabase-js pide con header `Prefer: return=representation` — Postgrest ejecuta INSERT + SELECT en 1 query, pero con `Prefer: return=representation` el SELECT usa el mismo predicate que RLS SELECT policy. Si el `auth.uid()` en el SELECT devuelve un id que la RLS no matchea, el response es 201 Created + body vacío `[]` → `.single()` throw. Es refinamiento de la misma hipótesis.
+**Mecánica del bug**:
+1. Tutor abre ficha del servicio B; ya tiene conversación con ese proveedor por servicio A.
+2. `existingResult` query `(client_id, sitter_id, servicio_id=B)` → BD tiene fila con `servicio_id=A` → **`.maybeSingle()` devuelve `data=null`**.
+3. Flujo cae al INSERT nuevo con `servicio_id=B`.
+4. Postgres rechaza por `conversations_client_id_sitter_id_key` violation → HTTP **409 Conflict**.
+5. supabase-js throw error → catch → toast → return.
+6. La fila **NO se crea** (409 = rechazado). La conversación previa (servicio_id=A) sigue intacta.
 
-**El paso 1** confirma o descarta viendo el response body del INSERT + el status. Si el status es 201 y body `[]`, la hipótesis es correcta; si es 4xx, la causa es otra (constraint violation, validator, etc).
+**Nota sobre el reporte inicial del PO** ("1er clic falla + 2do clic funciona con conversación creada"): la conversación que el 2do clic abre es la **previa que ya existía por otro servicio**, no una creada por el 1er clic. El 2do clic probablemente navegó por un path distinto (notif bell con link a la conv preexistente, o handler diferente). El 409 rechaza SIEMPRE mientras el filtro divergente esté en `existingResult`.
 
-## 3. Fix aterrizado en este PR (independiente del paso 1)
+## 2. Decisión de producto · UNA conversación por par tutor-proveedor
 
-### 3.1 [components/Servicio/ServiceDetailView.tsx:433-455](../../components/Servicio/ServiceDetailView.tsx#L433-L455)
+**Decisión PO 2026-09-24**: la BD ya enforce este modelo con el UNIQUE `(client_id, sitter_id)`. La app debe alinearse: `existingResult` busca solo por `(client_id, sitter_id)` — sin `servicio_id`. La conversación existente se reusa cross-servicio.
 
-`catch` del handler `handleChatClick` ahora llama `Sentry.captureException(error, { tags: { subsystem: 'ficha_servicio_chat_insert' }, contexts: { chat_insert: { servicio_id, proveedor_id } } })` antes del `toast.error`. `user.id` llega automático desde `Sentry.setUser({id})` de #82. `import * as Sentry from '@sentry/nextjs'` agregado a los imports.
+**`servicio_id` de la conversación existente** se conserva como **el primero** (menos churn: cero UPDATE cross-clic, semánticamente estable — la fila retiene el contexto histórico "esta conversación se abrió por primera vez para el servicio X"). El chat puede renderizar contexto adicional del servicio actual desde la UI si lo tiene, sin tocar el `servicio_id` persistido.
 
-**Efecto**: el próximo `1er clic` que reproduzca el bug deja evento Sentry con stack + user.id + `contexts.chat_insert` (servicio_id, proveedor_id) → diagnóstico posible sobre datos reales sin depender del PO como probador único.
+Alternativa descartada ("actualizar al último"): más carga BD (UPDATE por clic) + semánticamente confuso (el chat "cambia de contexto" con cada nuevo servicio abierto). Sin justificación clara sobre "primero preservado".
 
-**Regla operativa nueva** (a aterrizar en CLAUDE.md dentro del sprint SENTRY-TOAST kickoff 2026-09-28): *todo `catch` que muestre `toast.error` al usuario reporta a Sentry con `Sentry.captureException` + tag `subsystem`*. El call site de este sprint adelanta el patrón para el caso puntual sin esperar el sweep sistémico.
+**Cero cambio de esquema** requerido. El bug era del predicado del cliente, no del constraint.
 
-### 3.2 Fix funcional · pendiente commit posterior con evidencia del paso 1
+## 3. Fix aterrizado en este PR
 
-Espera el resultado del spec + console.error del PO. Opciones tentativas según lo que revele el paso 1:
+### 3.1 `captureException` en [components/Servicio/ServiceDetailView.tsx:433-465](../../components/Servicio/ServiceDetailView.tsx#L433-L465)
 
-- **Si es race token vs INSERT SELECT**: separar el INSERT del SELECT — `insert(...)` sin `.select()` + query separado con retry corto (1x) si es necesario para obtener el id. Alternativa: reutilizar el UUID del INSERT si se puede pasar client-side (Postgres `gen_random_uuid()` client-generated).
-- **Si es Postgrest bug con `Prefer: return=representation`**: workaround con `Prefer: return=minimal` + query separado.
-- **Otra causa**: TBD según evidencia.
+`catch` del handler `handleChatClick` llama `Sentry.captureException(error, { tags: { subsystem: 'ficha_servicio_chat_insert' }, contexts: { chat_insert: { servicio_id, proveedor_id } } })` antes del `toast.error`. `user.id` llega automático desde `Sentry.setUser({id})` de #82. `import * as Sentry from '@sentry/nextjs'` agregado.
 
-### 3.3 Spec regresión · pendiente commit posterior
+**Regla operativa nueva** (a aterrizar en CLAUDE.md dentro del sprint SENTRY-TOAST kickoff 2026-09-28): *todo `catch` que muestre `toast.error` al usuario reporta a Sentry con `Sentry.captureException` + tag `subsystem`*. Este call site adelanta el patrón puntual sin esperar el sweep sistémico.
 
-Después del fix funcional, agregar en el mismo dir `chat-open-error/regresion.spec.ts` con hard-asserts:
-- 1er clic desde ficha sin conversación previa → conversación creada + navega a `/mensajes?id=...` en <10s.
-- Cero `console.error` con "Error starting conversation".
-- Cero toast "Hubo un error al intentar abrir el chat" visible.
+### 3.2 Fix funcional · `existingResult` sin `servicio_id`
+
+[components/Servicio/ServiceDetailView.tsx:330-350](../../components/Servicio/ServiceDetailView.tsx#L330-L350) — quitado `.eq('servicio_id', service.id)` del query `existingResult`. Comentario extenso in-line documenta la causa raíz, la decisión de producto, la referencia al constraint UNIQUE de la BD, y el criterio "servicio_id preservado como el primero".
+
+### 3.3 Spec regresión hard-assert · [e2e/specs/chat-open-error/regresion.spec.ts](../../e2e/specs/chat-open-error/regresion.spec.ts)
+
+2 casos con hard-asserts (reemplaza al spec diagnóstico `paso-1-repro.spec.ts` con `expect.soft`, que se elimina en el mismo commit — un spec que nunca falla no se queda en la suite):
+
+- **(a) primer clic SIN conversación previa** → navega a `/mensajes?id=...` en <12s + cero toast + **exactamente 1 INSERT** + fila persiste con `servicio_id = SERVICIO_A_ID`.
+- **(b) primer clic CON conversación previa por OTRO servicio del mismo proveedor** → `beforeEach` inserta conversación con `servicio_id=SERVICIO_A`; el clic se hace desde la ficha del `SERVICIO_B`; navega a `/mensajes?id=<mismo id que preConvId>` + cero toast + **CERO INSERT nuevo** (el fix reusa la existente) + BD sigue con 1 sola conv (UNIQUE enforced) + `servicio_id` preservado como el primero (`SERVICIO_A_ID`).
+
+Fixture usa `getSupabaseAdmin()` (service_role gated a staging) para setup/cleanup. Cleanup en `beforeEach` + `afterAll` para no dejar residuos.
 
 ## 4. Fuera de alcance (para SENTRY-TOAST kickoff 2026-09-28)
 
