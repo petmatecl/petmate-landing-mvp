@@ -21,6 +21,7 @@
     "test:g1-notifs-push-evals": "npx tsx lib/g1-notifs-push-evals.test.ts",
     "test:g1-resto": "npx tsx lib/g1-resto.test.ts",
     "test:g2-protection-bypass": "npx tsx lib/g2-protection-bypass.test.ts",
+    "test:error-boundary": "npx tsx components/ErrorBoundary.test.tsx",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:report": "playwright show-report e2e/.report"

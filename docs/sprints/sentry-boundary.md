@@ -55,29 +55,33 @@ componentDidCatch(error: Error, errorInfo: ErrorInfo) {
 
 Nota `user.id`: no se pasa explícito porque `Sentry.setUser({ id })` ya se despacha desde `contexts/UserContext.tsx` en el sprint `cue-1-sentry-user` (PR #82, mergeado 2026-09-24). Todo evento posterior al hidrato lleva `user.id` en el scope automáticamente. Los eventos previos al hidrato (o post-logout) van sin `user.id`, lo cual es correcto.
 
-### 2.2 [pages/staging/error-boundary-smoke.tsx](pages/staging/error-boundary-smoke.tsx) (nuevo)
+### 2.2 [components/ErrorBoundary.test.tsx](components/ErrorBoundary.test.tsx) (nuevo) · verificación del contrato
 
-Ruta smoke gated por `getServerSideProps`:
-- `NEXT_PUBLIC_VERCEL_ENV === 'production'` **o** `VERCEL_ENV === 'production'` → `notFound: true` (respuesta 404).
-- Otro entorno (preview / staging / development) → renderiza página con botón "Disparar error del boundary". Al click, un componente hijo (`<ThrowOnDemand fire={true}/>`) hace `throw new Error('smoke:error-boundary:sentry-integration-verification')` en render.
+Test unitario mismo patrón que `lib/g1-*.test.ts` (runner `npx tsx` puro con `node:assert`, mocks vía `require.cache`, sin jest / vitest / JSDOM). Mock de `@sentry/nextjs` antes del `require('./ErrorBoundary')` captura las invocaciones a `captureException`. Mock de `next/link` a `function LinkStub(){return null}` para satisfacer el contrato function-component de React sin ejecutar el router.
 
-**Regla vigente respetada**: cero rutas de prueba activas en producción. El gate en gSSP funciona a nivel server (no expone el bundle client de la ruta protegida a usuarios reales de pawnecta.com).
+5 assertions:
 
-### 2.3 [e2e/specs/sentry-boundary/smoke.spec.ts](e2e/specs/sentry-boundary/smoke.spec.ts) (nuevo)
-
-Tres assertions en preview (mismo patrón que `e2e/specs/prelaunch/cue-1-watchdog.spec.ts`):
-
-| # | assertion | motivo |
+| # | assertion | qué prueba |
 |---|---|---|
-| (a) | Tras click, `<h1>Algo salió mal</h1>` visible en 5s | prueba que el boundary interceptó el throw y renderizó fallback UI |
-| (b) | `console.error` con prefix `"ErrorBoundary caught:"` fue emitido, y su texto contiene `"smoke:error-boundary"` | prueba que `componentDidCatch` corrió sobre el error esperado. Mismo callsite hace `Sentry.captureException` + `console.error` — si el segundo aparece, el primero se ejecutó milisegundos antes |
-| (c) | Cero requests a `*.ingest.sentry.io` durante el flow (preview → SDK `enabled=false` por gate `IS_PROD`) | verifica que el gate del SDK opera correcto (no ensuciamos dashboard desde previews) |
+| 1 | `getDerivedStateFromError(err)` → `{ hasError: true, error: err }` | contrato React que el boundary respeta |
+| 2 | `componentDidCatch(err, errorInfo)` invoca `Sentry.captureException` **1 vez** con: primer arg = `err`, `opts.contexts.react.componentStack` = `errorInfo.componentStack`, `opts.tags.subsystem = 'error-boundary'` | el fix del sprint aplicado correctamente |
+| 3 | `componentDidCatch(err, { componentStack: null })` cae al fallback `'(no componentStack)'` | robustez cuando React no expone stack |
+| 4 | `render()` con `hasError=true` produce JSX cuya serialización contiene `"Algo salió mal"` + `"Recargar página"` | el fallback UI está intacto |
+| 5 | `render()` con `hasError=false` devuelve `this.props.children` textual | happy path pasa children sin envoltura |
 
-**Verificación end-to-end (llegada a dashboard Sentry)**: P8 manual post-deploy con la misma ruta smoke — el PO hit `/staging/error-boundary-smoke` en el preview del PR (funciona porque preview no es prod), verifica pantalla, y separadamente tras merge repite el flow real de su incidente en prod para ver el evento `subsystem:error-boundary` aparecer.
+**Corrida**: `npm run test:error-boundary` (nuevo script en `package.json`) → `5 passed, 0 failed`. Corre en CI bajo `ci.yml > job typecheck-and-build > step "Unit tests (ErrorBoundary — Sentry integration)"` — mismo bucket que los tests G-1 del bloque G.
 
-### 2.4 [.github/workflows/e2e-error-audit.yml](.github/workflows/e2e-error-audit.yml)
+**Por qué no test e2e con una ruta smoke gated**: la iteración previa proponía `pages/staging/error-boundary-smoke.tsx` con `getServerSideProps → notFound:true` en prod. **Corregido por PO 2026-09-25**: la regla del proyecto es cero código productivo de prueba en producción — **aplica también a páginas gated por entorno**. Una página que devuelve 404 en prod sigue siendo código desplegable con superficie de mantenimiento, riesgo de regressión del gate (env vars mal seteadas → ruta activa donde no debería), y contradice el principio de que la verificación en staging se hace con specs / fixtures / tests unitarios, nunca con código productivo condicional. Ver CLAUDE.md > COROLARIO P8 12ª (aclaración ampliada 2026-09-25).
 
-Agregado `e2e/specs/sentry-boundary/` al comando `e2e-rapido` (L252). Sin ese cambio, el spec no correría en CI del PR.
+### 2.3 P8 real en producción (post-merge)
+
+El positivo end-to-end del boundary con Sentry productivo **NO** se ejecuta con un error sintético desplegado. Se ejecuta contra el error real que motivó este sprint:
+
+Tras merge + deploy a prod, el PO repite el flujo `chat → back → /usuario` en su cuenta Chrome Windows incógnito. Ese flujo ya revienta al boundary (documentado en el incidente 2026-09-25 con pantalla "Algo salió mal"). Con el fix aterrizado:
+- (a) la pantalla sigue apareciendo como antes;
+- (b) el evento aparece en el dashboard Sentry con `subsystem=error-boundary`, `contexts.react.componentStack` poblado, y `user.id` = la cuenta del PO (via `Sentry.setUser({id})` de #82).
+
+Ese evento **es** la verificación en producción del boundary integrado con Sentry — con un bug real en el codebase, no un throw fabricado. La contrapartida (bug real no reproducido) es documentación insuficiente hoy del incidente `/usuario` en sí, que se cierra automáticamente cuando el evento aparezca con stack + componentStack: ahí sí hay hipótesis sobre archivo:línea del componente que rompe.
 
 ## 3. Scripts de investigación al PR bajo `scripts/`
 
