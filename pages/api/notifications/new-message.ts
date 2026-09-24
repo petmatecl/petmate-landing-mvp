@@ -96,8 +96,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.pawnecta.com';
         const chatUrl = `${baseUrl}/mensajes?id=${conv.id}`;
 
+        // Sprint AUTH-MAIL-PHISH (2026-09-22) — NOTIF-FROM-HARDCODE fix.
+        // Antes: hardcode `Pawnecta <notificaciones@pawnecta.com>` — esa
+        // casilla rebotaba respuestas ("dirección no encontrada") hasta el
+        // 2026-09-22 en que el PO creó el alias en Zoho. Reemplazo por
+        // EMAIL_NOTIFICATIONS_FROM con fallback a EMAIL_FROM (la casilla
+        // canónica hola@pawnecta.com que ya recibe).
+        const notificationsFrom =
+            process.env.EMAIL_NOTIFICATIONS_FROM
+            || process.env.EMAIL_FROM
+            || 'Pawnecta <hola@pawnecta.com>';
         await resend.emails.send({
-            from: "Pawnecta <notificaciones@pawnecta.com>",
+            from: notificationsFrom,
             to: email,
             subject: `${escapeHtml(senderName)} te envió un mensaje`,
             html: `

@@ -45,7 +45,10 @@ jobs:
           cache: 'npm'
 
       - name: Install deps
-        run: npm ci --no-audit --no-fund
+        # Consistente con el resto de workflows del repo (e2e-error-audit.yml,
+        # ci.yml, etc): `npm install` en vez de `npm ci` porque el lock arrastra
+        # incompatibilidades transitive Linux-only conocidas.
+        run: npm install --no-audit --no-fund
 
       - name: Trigger template
         env:
