@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from "react";
 import Link from "next/link";
+import * as Sentry from "@sentry/nextjs";
 
 interface Props {
   children: ReactNode;
@@ -21,6 +22,27 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    // Sprint sentry-boundary (2026-09-25) — reporta el render error al SDK
+    // Sentry cliente. Antes solo console.error → los errores del boundary no
+    // llegaban a Sentry, pasaban mudos aunque la pantalla "Algo salió mal"
+    // aparecía al usuario. GlobalHandlers del SDK v10 (globalHandlersIntegration
+    // por default cuando no se pasa `integrations`, ver
+    // instrumentation-client.ts:74-95) SÍ captura window.onerror y
+    // unhandledrejection, pero NO react render errors — el componentDidCatch
+    // del boundary intercepta el error antes de que llegue al onerror global,
+    // así que hay que despacharlo explícito. `Sentry.setUser({ id })` ya se
+    // setea en UserContext (sprint cue-1-sentry-user #82) — el event lleva
+    // user.id sin tocar acá cuando hay sesión activa.
+    Sentry.captureException(error, {
+      contexts: {
+        react: {
+          componentStack: errorInfo.componentStack ?? "(no componentStack)",
+        },
+      },
+      tags: {
+        subsystem: "error-boundary",
+      },
+    });
     console.error("ErrorBoundary caught:", error, errorInfo);
   }
 
