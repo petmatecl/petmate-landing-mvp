@@ -72,11 +72,15 @@ test.describe.serial('PR1 S1 — badge "Reserva online" en /explorar', () => {
     });
 
     test('badge visible en servicio F2 activa, ausente en servicio sin agenda', async ({ page }) => {
-        // Navegar al explorador filtrando por texto del título único para
-        // aislar ambas cards en el listado. `q` es el nombre del query param
-        // que usa /explorar (probable "buscar" o "q" — probamos con "q").
-        // Fallback: cargar sin filtro y localizar por texto exacto del título.
-        await page.goto('/explorar');
+        // Sprint cue-1-fix B2 (2026-09-24) — resolver deuda KNOWN-FLAKY
+        // documentada en el header del spec: sin filtro, la card recién
+        // creada puede caer fuera de la 1ª página del RPC (spec falla con
+        // "locator not found"). El fixture crea servicios con
+        // comunas_cobertura=['Providencia'] + categoría cuidado → aplicar
+        // ese filtro garantiza que las cards estén en el set corto de la
+        // primera página. Descubierto tras include del dir producto-1 al
+        // workflow por B3 CI-SPEC-COUNT (spec llevaba semanas sin correr).
+        await page.goto('/explorar?categoria=cuidado&comuna=Providencia');
 
         // Localizar por título exacto en el listado. Cada fixture usa un
         // titulo con timestamp único; sea con o sin query de texto, el título
