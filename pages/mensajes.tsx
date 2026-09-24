@@ -14,18 +14,34 @@ export default function MensajesPage() {
     const [loading, setLoading] = useState(true);
     const returnTo = router.query.returnTo as string;
 
-    // "Volver al Panel" destino consciente del rol REAL del usuario
-    //   (no del toggle removido). Reglas:
+    // "Volver al Panel" / "Volver a mis reservas" destino consciente del rol
+    // REAL del usuario (no del toggle removido). Reglas:
     //   - returnTo query param SIEMPRE gana (uso legitimo desde otras paginas
     //     que ya saben a donde volver).
-    //   - Proveedor puro (aprobado y SIN perfil tutor) -> /proveedor.
-    //   - Cualquier otro caso (tutor puro o dual) -> /usuario. El dual
-    //     tipicamente llega a /mensajes desde el flujo de tutor (contactar
-    //     un servicio); el proveedor cuando revisa una conversacion normal-
-    //     mente entra desde su panel y ya trae returnTo=/proveedor.
+    //   - Proveedor puro (aprobado y SIN perfil tutor) -> /proveedor +
+    //     copy "Volver al Panel".
+    //   - Cualquier otro caso (tutor puro o dual) -> /mis-reservas + copy
+    //     "Volver a mis reservas". El dual tipicamente llega a /mensajes
+    //     desde el flujo de tutor (contactar un servicio); el proveedor
+    //     cuando revisa una conversacion normalmente entra desde su panel
+    //     y ya trae returnTo=/proveedor.
+    //
+    // Sprint incidente-usuario-fix (2026-09-24): el destino tutor antes era
+    // `/usuario`, ruta con redirect 307 server-side en next.config.js pero
+    // que en SPA navigation cliente-side (via <Link>) NO respeta el redirect
+    // — matchea el dynamic route `pages/[categoria]/index.tsx` con
+    // `categoria='usuario'`, getStaticProps devuelve notFound y el hydrate
+    // client renderiza CategoryPage con `categoria=undefined` → TypeError
+    // sobre `.nombre` (Sentry JAVASCRIPT-NEXTJS-9, release 6774fbd). El
+    // tutor NO tiene una "página propia panel" (grep "Mi Panel" solo
+    // aparece en pages/proveedor/index.tsx:1382); la ruta más semántica
+    // desde chat es /mis-reservas (típicamente el chat arranca de una
+    // reserva). Item BACKLOG TUTOR-HOME para el rediseño post-launch del
+    // home del tutor.
     const isProveedorPuro = providerStatus === 'aprobado' && !hasSeekerProfile;
-    const defaultReturn = isProveedorPuro ? '/proveedor' : '/usuario';
+    const defaultReturn = isProveedorPuro ? '/proveedor' : '/mis-reservas';
     const returnHref = returnTo || defaultReturn;
+    const returnLabel = isProveedorPuro ? 'Volver al Panel' : 'Volver a mis reservas';
 
     useEffect(() => {
         const checkUser = async () => {
@@ -88,7 +104,7 @@ export default function MensajesPage() {
                             className="inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-slate-300 rounded-lg text-slate-600 font-medium hover:text-accent-600 hover:border-accent-600 transition-colors shadow-sm"
                         >
                             <ArrowLeft size={18} />
-                            Volver al Panel
+                            {returnLabel}
                         </Link>
                     </div>
                 </div>
