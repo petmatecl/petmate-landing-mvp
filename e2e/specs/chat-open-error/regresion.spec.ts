@@ -55,7 +55,39 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
     });
 
     test('(a) primer clic SIN conversación previa → crea + navega + cero toast', async ({ page }) => {
-        // Contadores por método sobre /rest/v1/conversations*.
+        // Diagnóstico ampliado 2026-09-24: primer run del CI (`36040364041`)
+        // falló con `expect(page).toHaveURL(/mensajes/)` timeout 12s y snapshot
+        // final mostraba el botón `Enviar mensaje a Admin` STILL `[disabled]`
+        // (isChatLoading=true persistente → algún await del handler pegado).
+        // Ampliamos captura: TODA request a supabase.co (no solo conversations),
+        // TODO console.log/warn/error, y screenshot al 5s para snapshot de
+        // estado intermedio antes del timeout final.
+        interface NetLog { when: number; method: string; url: string; status?: number; postData?: string | null; body?: string }
+        const netLog: NetLog[] = [];
+        const t0 = Date.now();
+
+        page.on('request', req => {
+            if (req.url().includes('supabase.co')) {
+                netLog.push({ when: Date.now() - t0, method: req.method(), url: req.url(), postData: req.postData()?.slice(0, 400) });
+            }
+        });
+        page.on('response', async res => {
+            if (res.url().includes('supabase.co')) {
+                let body = '';
+                try { body = (await res.text()).slice(0, 500); } catch { body = '<no-body>'; }
+                netLog.push({ when: Date.now() - t0, method: res.request().method(), url: res.url(), status: res.status(), body });
+            }
+        });
+
+        const consoleLog: string[] = [];
+        page.on('console', msg => {
+            const t = msg.type();
+            if (t === 'error' || t === 'warning') {
+                consoleLog.push(`[+${Date.now() - t0}ms] ${t}: ${msg.text().slice(0, 400)}`);
+            }
+        });
+
+        // Contadores por método sobre /rest/v1/conversations* para las asserts.
         let convInserts = 0;
         page.on('request', req => {
             if (req.url().includes('/rest/v1/conversations') && req.method() === 'POST') {
@@ -63,29 +95,52 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
             }
         });
 
-        // Cero toast de error durante todo el flow.
-        const toastErrors: string[] = [];
-        page.on('console', msg => {
-            if (msg.type() === 'error' && msg.text().includes('Error starting conversation')) {
-                toastErrors.push(msg.text());
-            }
-        });
-
         await page.goto(`/servicio/${SERVICIO_A_ID}`, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => { /* seguir */ });
 
-        const btn = page.getByRole('button', { name: /Enviar [Mm]ensaje/i }).first();
+        // Selector por aria-label específico + verificar enabled antes del click
+        // (el botón tiene `disabled={isChatLoading}` en L1702 de ServiceDetailView;
+        // si arranca en true por algún estado stale, click sin efecto).
+        const btn = page.getByLabel(/Enviar mensaje a/).first();
         await expect(btn).toBeVisible({ timeout: 15_000 });
+        await expect(btn, 'botón "Enviar mensaje" debe estar enabled antes del click').toBeEnabled({ timeout: 5_000 });
+
         await btn.click();
 
         // Debe navegar a /mensajes?id=... en <12s.
-        await expect(page).toHaveURL(/\/mensajes\?id=/, { timeout: 12_000 });
+        try {
+            await expect(page).toHaveURL(/\/mensajes\?id=/, { timeout: 12_000 });
+        } catch (err) {
+            // Diagnóstico ampliado: al fail, capturar network + console + BD.
+            console.log('\n═══════ FAIL DIAGNÓSTICO caso (a) ═══════');
+            console.log(`URL al fail: ${page.url()}`);
+            console.log(`\n▶ NETWORK supabase.co (${netLog.length}):`);
+            for (const n of netLog) {
+                const st = n.status !== undefined ? ` [${n.status}]` : '';
+                console.log(`  +${n.when}ms ${n.method}${st} ${n.url}`);
+                if (n.postData) console.log(`    reqBody: ${n.postData}`);
+                if (n.body) console.log(`    resBody: ${n.body}`);
+            }
+            console.log(`\n▶ CONSOLE (${consoleLog.length}):`);
+            for (const c of consoleLog) console.log(`  ${c}`);
+            const admin = await getSupabaseAdmin();
+            const { data: postCheck } = await admin
+                .from('conversations')
+                .select('id, servicio_id, created_at')
+                .eq('client_id', CAMILA_AUTH_ID)
+                .eq('sitter_id', ALDO_PROVEEDOR_AUTH_ID);
+            console.log(`\n▶ BD post-click: ${postCheck?.length ?? 0} conv(s)`);
+            for (const r of postCheck ?? []) console.log(`    id=${r.id} servicio_id=${r.servicio_id} created_at=${r.created_at}`);
+            console.log('═══════════════════════════════════════════\n');
+            throw err;
+        }
 
         // Cero toast de error visible.
         await expect(
             page.getByText(/Hubo un error al intentar abrir el chat/i),
         ).toHaveCount(0);
-        expect(toastErrors.length, `cero console.error "Error starting conversation" esperado. Vistos: ${toastErrors.length}`).toBe(0);
+        const startingErrors = consoleLog.filter(c => c.includes('Error starting conversation'));
+        expect(startingErrors.length, `cero "Error starting conversation" esperado. Vistos: ${startingErrors.length}`).toBe(0);
 
         // Se hizo exactamente 1 INSERT (el que crea la nueva conv).
         expect(convInserts, `esperado 1 INSERT en conversations. Vistos: ${convInserts}`).toBe(1);
@@ -137,8 +192,9 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
         await page.goto(`/servicio/${SERVICIO_B_ID}`, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => { /* seguir */ });
 
-        const btn = page.getByRole('button', { name: /Enviar [Mm]ensaje/i }).first();
+        const btn = page.getByLabel(/Enviar mensaje a/).first();
         await expect(btn).toBeVisible({ timeout: 15_000 });
+        await expect(btn, 'botón enabled antes del click').toBeEnabled({ timeout: 5_000 });
         await btn.click();
 
         // Debe navegar a /mensajes?id=<mismo id que preConvId>.
