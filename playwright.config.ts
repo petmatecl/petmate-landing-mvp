@@ -202,7 +202,7 @@ export default defineConfig({
             // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
             // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
             // acá porque tiene "proveedor" en el filename.
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble|chat-open-error)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -220,7 +220,7 @@ export default defineConfig({
             // bajo /specs/conviene/ corren como tutor puro (Camila). Ver
             // e2e/specs/conviene/estado-actual.spec.ts para detalle del
             // criterio de rol.
-            testMatch: /specs[\\/](f2-3|producto-2|conviene)[\\/].*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testMatch: /specs[\\/](f2-3|producto-2|conviene|chat-open-error)[\\/].*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             // Sprint e2e-error-audit-2 (2026-09-08) — project nuevo para specs

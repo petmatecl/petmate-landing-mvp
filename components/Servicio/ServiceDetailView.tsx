@@ -16,6 +16,7 @@ const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
     ),
 });
 import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
@@ -431,6 +432,24 @@ export default function ServiceDetailView({
             }
 
         } catch (error) {
+            // Sprint chat-open-error (2026-09-24) — reportar a Sentry para
+            // desbloquear diagnóstico del bug "1er clic falla + 2do clic
+            // funciona con conversación creada" que el PO reprodujo 2026-09-24
+            // y no dejó evento (el catch previo solo hacía console.error +
+            // toast). Regla operativa nueva del proyecto: todo catch que
+            // muestre toast.error al usuario reporta a Sentry con
+            // captureException + tag subsystem — aterrizar sistémicamente en
+            // sprint SENTRY-TOAST (kickoff domingo 2026-09-28); acá se
+            // adelanta el caso puntual para tener datos del próximo evento.
+            Sentry.captureException(error, {
+                tags: { subsystem: 'ficha_servicio_chat_insert' },
+                contexts: {
+                    chat_insert: {
+                        servicio_id: service.id,
+                        proveedor_id: proveedor.id,
+                    },
+                },
+            });
             console.error('Error starting conversation:', error);
             toast.error('Hubo un error al intentar abrir el chat. Intenta de nuevo.');
         } finally {
