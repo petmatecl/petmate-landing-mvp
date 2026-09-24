@@ -124,6 +124,48 @@ Test spec dedicado que:
 ## Referencias
 
 - Diagnóstico completo: [docs/sprints/bloque-j-4.md](bloque-j-4.md).
-- BACKLOG: [BACKLOG.md](../../BACKLOG.md) > CUE-1 BLOQUEA al tope.
+- BACKLOG: [BACKLOG.md](../../BACKLOG.md) > CUE-1 al tope.
 - Regla P10 (deadlock lock auth): [CLAUDE.md](../../CLAUDE.md) > Workflow.
 - Script query Sentry: [scripts/sentry-query-cue1.ts](../../scripts/sentry-query-cue1.ts).
+
+---
+
+## Estado 2026-09-25 · revisión post identificación de `user.id`
+
+**Evolución del sprint tras B2 (fix stale closure del watchdog) + investigación del incidente prod chat-back-boundary 2026-09-25**:
+
+**a)** Issue Sentry `JAVASCRIPT-NEXTJS-7` (`user_context_stuck`, 39 events al 2026-09-25) = **stale closure del watchdog**, todos del PO en desktop. Fix aterrizado en PR #85 rama `cue-1-fix` — useRef en el efecto del watchdog + F4 doble dirección (negativa A1.c/d/e warns=0 + positiva cue-1-watchdog dispara). Merge sábado 2026-09-27 tras QA PO (2 tabs 5 min + logout + confirmar cero `user_context_stuck` nuevos con release nueva).
+
+**b)** Issues Sentry `JAVASCRIPT-NEXTJS-5` (`[UserContext] hydrate exhausted`, 4 events) + `JAVASCRIPT-NEXTJS-8` (`login_role_lookup_failed`, 1 event) = **dispositivo Android del PO con Failed to fetch intermitente hacia supabase.co**.
+
+Datos empíricos capturados vía [scripts/sentry-query-cue1-events.ts](../../scripts/sentry-query-cue1-events.ts) + [scripts/sentry-event-detail.ts](../../scripts/sentry-event-detail.ts):
+
+| # | when (UTC) | route | issue | user_id_masked | browser | OS | release |
+|---|---|---|---|---|---|---|---|
+| 1 | 2026-09-08 17:00:31 | /admin | -5 hydrate exhausted | `0c2ab509…` | Chrome Mobile 151 | Android 15 | `ed34a69` |
+| 2 | 2026-09-08 17:06:11 | /login | -5 hydrate exhausted | `0c2ab509…` | Chrome Mobile 151 | Android 15 | `ed34a69` |
+| 3 | 2026-09-21 21:13:06 | /login | -8 login_role_lookup_failed | anon | Chrome Mobile 152 | Android 15 | `e19154c` |
+| 4 | 2026-09-21 21:13:18 | /explorar | -5 hydrate exhausted | `0c2ab509…` | Chrome Mobile 152 | Android 15 | `e19154c` |
+| 5 | 2026-09-21 21:13:35 | /proveedor | -5 hydrate exhausted | `0c2ab509…` | Chrome Mobile 152 | Android 15 | `e19154c` |
+
+Un solo `user.id`, 2 sesiones aisladas (08-sep 5m40s + 21-sep 29s). PO confirma 2026-09-25 que `0c2ab509…` es su propia cuenta Android — los 5 events son pruebas del PO desde su móvil.
+
+Contexto capturado del captureMessage `-5`: `role_degradation: {"attempts_total":4, "last_error":"TypeError: Failed to fetch (ouezpeeiwjwawauidrqq.supabase.co)", "route":"/proveedor", "user_id_masked":"0c2ab509…"}`. Patrón de breadcrumbs repetido: `fetch/http error → fetch/http info 200 → hydrate/default warning attempt N failed` (attempts 0-3 alternando fail/OK contra el mismo host) — descarta outage sostenido de Supabase, apunta a intermitencia en el path cliente del dispositivo.
+
+**[causa probable: filtro DNS/bloqueador del dispositivo / causa no determinada]** — pendiente del PO completar `[Mi teléfono tiene / no tiene DNS privado o bloqueador: ___]`.
+
+**c)** Usuarios reales afectados en 28 días de monitoreo (15-sep → 25-sep, `Sentry.setUser({id})` activo desde #82): **cero**. Los únicos 2 `user.id` distintos que aparecen en el proyecto son ambos del PO — Desktop `aff2a90d…` en -7 watchdog + Android `0c2ab509…` en -5/-8 hydrate exhausted.
+
+**d)** El cuelgue reportado por el PO en agosto 2026 no tiene evidencia registrada en Sentry — anterior al kickoff del sprint prelaunch CUE-1 (2026-09-15) que aterrizó el watchdog.
+
+**Clasificación**: **[CONVIENE si hay bloqueador confirmado / se mantiene en observación 29-09 a 27-10 si no]** (pendiente completar placeholder de la entrada b).
+
+**Disparador para reabrir**: cualquier evento de `hydrate_exhausted` o de `user_context_stuck` con `user.id` distinto del PO (`aff2a90d…`, `0c2ab509…`) o distinto de cuentas de prueba conocidas.
+
+**F1 + F2 (AbortController + fallback determinístico)**: **archivados como "no aplican"** — la causa real es `Failed to fetch`, que ya se resuelve con error del fetch y ya dispara los 4 reintentos del hydrate; AbortController + fallback no habrían cambiado el path ni el user experience. La necesidad estructural que motivó F1+F2 no existió — era interpretación errónea del ruido del watchdog stale closure.
+
+**`cue-1-mobile-toast`**: **CONVIENE post-lanzamiento**. Cuando UserContext cae a `hydrationState=degraded` post-hydrate exhausted, surface toast al user con copy "Tuvimos problemas conectando con nuestro servicio. Algunas funciones pueden fallar." + action "Recargar". UX de degrade explícito — hoy el user queda con dashboard vacío sin explicación. Sprint chico ~30 min.
+
+**Hilo "5 de /security-logout" cerrado** — la query amplia (`transaction:*security-logout*`, `url:*security-logout*`, `"security-logout"`, `message:*security_logout*`, todos ejecutados vía [scripts/sentry-security-logout.ts](../../scripts/sentry-security-logout.ts) 2026-09-25) confirmó que eran distribución de transaction del issue `-7` (watchdog `user_context_stuck`) del 22-09 (cue-1.4). Con el stale closure explicado y el fix en #85, esos 5 dejan de significar algo separado.
+
+**Regla operativa nueva ganada en este sprint** (aplicable a TODO análisis futuro de Sentry): **antes de clasificar un issue, cruzar `user.id` — y cuando no hay id, navegador/dispositivo — contra las cuentas del PO y de prueba** (`aff2a90d…` desktop, `0c2ab509…` Android, y las cuentas E2E de Aldo/Camila). Dos semanas de "evidencia CUE-1 BLOQUEA" fueron el PO probándose a sí mismo desde dos dispositivos distintos; la clasificación real solo se pudo hacer cuando el sprint `cue-1-sentry-user` (#82) llenó el `user.id` en scope y este sprint hizo el cruce. Agregada al CLAUDE.md > sección Sentry / patrones de análisis.

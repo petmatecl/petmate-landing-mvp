@@ -787,3 +787,88 @@ Si en el diagnóstico aparece que un test verifica algo que YA NO EXISTE en el c
 - Acta breve `docs/sprints/bloque-j-4.md` (este archivo, actualizado con estado FINAL por test).
 - BACKLOG.md conciliado: cerrar item PR #72 hold, cerrar deuda "15 fixmes prod-OK sin unmark en staging".
 - Reporte al PO con conteo por clase (A/B/C), lista de tests borrados (si hay), enlaces a los 3 PRs.
+
+## B3 discovered fixmes · Tramo 2
+
+Tests marcados `test.fixme` con etiqueta `[b3-discovered-<fecha>]` durante otros sprints — spec pre-existente que el PR en curso no toca, P11 rigor (cero rerun, cero override), diagnóstico solo-lectura acotado, ítem J-4 con plan.
+
+| # | etiqueta | spec:línea | test | descubierto en | plan Tramo 2 |
+|---|---|---|---|---|---|
+| 1 | `b3-discovered-2026-09-25` | [e2e/specs/producto-1/s1-badge-reserva-online.spec.ts](../../e2e/specs/producto-1/s1-badge-reserva-online.spec.ts) | badge visible en servicio F2 activa, ausente en servicio sin agenda | sprint cue-1-fix B2 (PR #85, 2026-09-25) | Sprint dedicado: (a) inspeccionar `/explorar` query params (¿acepta `categoria` + `comuna` + búsqueda por título?), (b) medir delay INSERT `servicios_publicados` → visible en RPC `buscar_servicios`, (c) verificar predicados RPC (¿`estado`, `activo`, `agendamiento_habilitado`?), (d) unfixme + fix (paginación o filtro específico). |
+| 2 | `b3-discovered-2026-09-25` | [e2e/specs/f2-recordatorios-cron/all.spec.ts:321](../../e2e/specs/f2-recordatorios-cron/all.spec.ts#L321) | S3 — marcas independientes (parcial): corrida envía solo al proveedor pendiente + tutor mark intacta | sprint sentry-boundary (PR #88, 2026-09-25) | Diagnóstico solo-lectura descartó bug de fixture (`fechaMananaIso`) y de ventana del cron (medianoche Chile 03:00 UTC a 13h de la corrida, cero borde DST activo). Hipótesis viva no verificable por lectura: race cross-PR Supabase staging entre SELECT y `reclamarEnvio` del cron. Sprint dedicado post-lanzamiento: (a) instrumentar el cron con log del `body.failures + body.processed + body.claimsPerdidos*` para el agendamiento test, (b) reproducir con 2+ PRs corriendo en paralelo la suite F2 contra el mismo Supabase staging, (c) si es race → mover fixture a proyecto Supabase dedicado o filtrar el SELECT del cron por `tutor_nombre LIKE '[TEST-cron-%'`, (d) unfixme. Reporte espejo a/b/c del diagnóstico en el turno del 2026-09-24. |
+
+**Regla operativa (aplicada acá y en futuros b3-discovered)**: cuando aparezca un fail de CI en spec pre-existente que el PR en curso no toca:
+1. Diagnóstico solo-lectura 10-30 min con artifacts + reporte espejo al PO (P11 rigor).
+2. Si el diagnóstico confirma bug de fixture/data → fix en PR aparte del sprint en curso.
+3. Si el diagnóstico no confirma en el timebox → `test.fixme` con etiqueta `[b3-discovered-<YYYY-MM-DD>]` + comentario multi-línea con hipótesis + ítem en esta tabla + PR en curso sigue a verde. Cero rerun autónomo. Cero merge con override P11 (memory `feedback_p11_rigor.md`).
+
+## CI-CONCURRENCY · para el entregable del domingo 2026-09-28
+
+**Motivación estructural**: el segundo ítem de la tabla B3 discovered fixmes (S3 marcas independientes) tiene como hipótesis viva no verificable por lectura una **carrera cruzada entre previews sobre la BD Supabase staging**. Durante el Tramo 2 (viaje del PO 2026-09-29 → 2026-10-27) habrá 5-6 previews abiertos simultáneos (uno por PR en revisión / rebase pendiente), y cada uno tiene su propio cron `/api/cron/recordatorio-reserva` en el bundle deployado. Cualquier spec que verifique "el cron marcó mi fila" puede perder la carrera contra el cron de otro preview que llegó primero al SELECT + `reclamarEnvio`. Sin fix estructural, el Tramo 2 se llenaría de `test.fixme` con etiqueta `[b3-discovered-*]` acumulando deuda sin causa productiva real — cada fixme es una carrera cruzada, no un bug.
+
+**No ejecutar hoy**. Kickoff en el entregable del domingo 2026-09-28. Propuesta a evaluar en 3 opciones (no mutuamente excluyentes — pueden combinarse):
+
+### Opción A · Concurrency group a nivel de repo para todas las suites e2e
+
+Extender el `concurrency:` de `.github/workflows/e2e-error-audit.yml` de per-workflow (`group: 'e2e-staging'` actual) a un grupo único a nivel repo que abarque **todos los workflows que corran contra Supabase staging** (e2e-error-audit, cleanup-staging-e2e, smoke-auth-templates, cualquier futuro). Un solo run activo en toda la cuenta contra staging, resto en cola.
+
+```yaml
+# .github/workflows/e2e-error-audit.yml (y todos los que tocan staging)
+concurrency:
+    group: staging-shared-db-repo-wide   # mismo group en todos los workflows
+    cancel-in-progress: false            # cola, no cancel
+```
+
+- **Costo**: alto en wall-clock del CI durante el Tramo 2. 5-6 PRs abiertos × ~15 min de suite F2 cada uno = **75-90 min de cola serializada** por commit-round del último de cada PR. Un PR nuevo que se abra a mitad de la cola espera al final. Costo directo: ~0 minutos de compute Actions extras (el mismo tiempo total distribuido), pero **feedback loop del PO se degrada de ~15 min a ~1-1.5h por PR** durante el viaje.
+- **Riesgo**: si el `cleanup-staging-e2e` diario cae en la cola detrás de una suite F2 larga, puede retrasarse hasta salir de la ventana operativa (afecta al housekeeping automático). Mitigable con exclusión explícita del cleanup del grupo.
+- **Recomendación**: viable como **primera línea** durante el Tramo 2 porque cierra el problema hoy sin cambio de código productivo, pero el costo de feedback deteriorado durante 4 semanas de viaje es alto. Mejor si se combina con B o C para reducir la superficie del grupo.
+
+### Opción B (versión original, RECHAZADA por el PO 2026-09-24 · lógica de prueba en código productivo)
+
+Contenido original: cron en preview (`VERCEL_ENV === 'preview'`) agrega `.like('tutor_nombre', '[TEST-cron-<PREVIEW-SLUG>-%')` al SELECT. Alternativa: query param `?ownerScope=<slug>` respetado solo en preview + secret.
+
+**Motivo del rechazo**: aunque el gate es estricto a preview y el cron en prod queda intacto, agregar lógica que solo existe para servir specs al cron productivo es **código de prueba en código productivo** — mismo antipatrón que la ruta `pages/staging/error-boundary-smoke.tsx` gated con `notFound:true` en prod que se corrigió en este mismo sprint (ver CLAUDE.md > COROLARIO P8 12ª aclaración 2026-09-25: *"la regla 'cero código productivo de prueba en producción' aplica también a páginas y rutas gateadas por entorno; la verificación en staging se hace con specs, fixtures o tests unitarios, nunca con código desplegable condicional"*). El cron es código productivo; agregarle una rama condicional al SELECT para satisfacer tests reintroduce la misma contradicción. **Se preserva acá como registro histórico — no ejecutar**.
+
+### Opción B (versión reescrita 2026-09-24 · filtrado vive en fixtures y specs, cero cambio al cron)
+
+Fixtures y specs cambian, el cron NO cambia.
+
+**Cambios**:
+- [e2e/fixtures/cron-recordatorio.ts:37](e2e/fixtures/cron-recordatorio.ts#L37) — el `TAG_TUTOR_NOMBRE_PREFIX = '[TEST-cron-'` existente se extiende con el slug del preview leído del entorno de CI (`process.env.VERCEL_GIT_COMMIT_REF` o `process.env.GITHUB_HEAD_REF`, fallback local `local`), de modo que cada INSERT queda con `tutor_nombre = '[TEST-cron-<PREVIEW-SLUG>-<familia>-<epoch>]'`. El cron sigue procesando **todos** los agendamientos elegibles del staging, sin filtro.
+- Specs verifican **solo sus propias filas** por el tag del preview. Assertions actuales del tipo "el cron dejó marca poblada" se ajustan al hecho de que otro cron puede haber ganado la carrera: la marca puede quedar poblada por cualquier cron (éxito del envío), o volver a NULL si el envío del otro cron falló y hizo rollback.
+- Cleanups filtran por el tag específico del preview para no borrar filas de otros PRs.
+
+**Alcance de lo que la B reescrita SÍ cierra**: cleanup cross-PR (cada preview borra solo sus filas) + prevención de que un spec del PR#88 asserte accidentalmente sobre datos del PR#77.
+
+**Alcance de lo que la B reescrita NO cierra**: la carrera del assert "marca proveedor no null" del S3 actual. Escenario que sigue vivo:
+- t0 · PR#88 fixture INSERT agendamiento marca_proveedor=NULL, tag `[TEST-cron-preview-88-...]`.
+- t1 · Cron de PR#77 (por scheduler local del spec del PR#77) hace SELECT — incluye el agendamiento del PR#88 (el cron no filtra por tag), reclama la marca (UPDATE proveedor=X).
+- t2 · Cron del PR#88 hace SELECT — filtro `.or('...proveedor.is.null')` YA no matchea (proveedor tiene X), el agendamiento no entra a `elegibles` → no task → cron del PR#88 no procesa nada para esa fila y no reporta failure.
+- t3 · Cron del PR#77 falla el envío (rate limit Resend, etc) → rollback → marca_proveedor=NULL.
+- t4 · Spec del PR#88 verifica `marcas.proveedor` → NULL. `nuestrosFailures` del body del cron#88 está vacío (el cron#88 no procesó). Assert falla.
+
+**Costo**: bajo. Toca 1 fixture + N cleanups + assertions del spec S3 (que aceptaría "poblada por cualquier cron O NULL solo si failure del cron#88 aparece"). ~1-2h.
+**Riesgo**: **la assertion del S3 pierde la señal fuerte**. Antes decía "el cron del PR marcó al proveedor"; ahora acepta "cualquier cron marcó o ninguno lo tocó". El escenario race donde otro cron rollbackea sigue produciendo el mismo síntoma (marca NULL, cero failure propio) que hoy — solo que en vez de fallar el assert, tendría que aceptarse silente. Eso convierte el test en tautológico.
+**Recomendación**: buena higiene de cleanup + prevención cross-PR de datos, pero **NO cierra la carrera del S3**. Sirve como paso preventivo del cleanup, no como fix del race real.
+
+### Opción C · Crons de preview deshabilitados salvo invocación explícita del spec
+
+Extender el `skipIfNonProd()` de `lib/cronGuard.ts` para que en `VERCEL_ENV=preview` responda `{ skipped: true, env: 'preview' }` a las corridas automáticas de Vercel Cron Scheduler. Solo permitir corridas manuales que incluyan un token de test específico (ej. header `x-cron-test-scope: <slug>` firmado, o un `?bypassEnv=1&testMode=1` con el mismo `CRON_SECRET` + `testMode` implica solo procesar filas con el prefix `[TEST-cron-*`).
+
+- **Costo**: bajo. Un handler en el cron + una env var / secret para el modo test + fixtures actualizadas para pasar el header/param.
+- **Riesgo**: los cron de Vercel Cron Scheduler ya están gated por `skipIfNonProd()` en preview (verificado en el código actual — [pages/api/cron/recordatorio-reserva.ts:111-112](pages/api/cron/recordatorio-reserva.ts#L111-L112) — el spec bypasea con `?bypassEnv=1`), así que el problema real es que los **specs** de cada preview invocan sus propios crons contra la misma BD, no el scheduler automático de Vercel. La opción C sola no cierra la carrera cross-PR — solo cierra un vector que ya está cerrado. Sería complementaria a B (el `?bypassEnv=1&testMode=1` implica el filtro de B).
+- **Recomendación**: **no cierra el problema por sí sola** — el gate `skipIfNonProd()` ya bloquea al scheduler automático. La carrera viene de los specs manuales entre sí. Sirve solo combinada con B como refuerzo, no como opción independiente.
+
+### Recomendación consolidada (actualizada 2026-09-24 tras rechazo de B original)
+
+**A como fix principal · B reescrita como higiene preventiva · C descartada**:
+1. **A · serializar a nivel repo (concurrency group `staging-shared-db-repo-wide`)** es la única opción que cierra la carrera estructural sin tocar código productivo. **Costo aceptado durante el viaje**: nadie espera resultado en vivo entre 2026-09-29 y 2026-10-27, entonces feedback loop de ~1-1.5h por PR en cola no bloquea la operación. Vale más eso que llenar el Tramo 2 de fixmes por races.
+2. **B reescrita (fixtures + specs)** en paralelo como higiene preventiva del cleanup cross-PR y prevención de asserts sobre datos ajenos. NO cierra el race del S3 por sí sola (el escenario "otro cron reclama + rollback" sigue vivo), pero es buen aporte estructural del lado de las fixtures que además simplifica auditar qué fila corresponde a qué PR.
+3. **C descartada**: redundante con `skipIfNonProd()` ya vigente. La carrera viene de specs manuales entre sí, no del scheduler automático de Vercel.
+4. **B original rechazada**: preservada arriba como registro histórico del antipatrón que este mismo sprint reforzó como regla (cero código productivo de prueba en producción, incluyendo lógica gated por env).
+
+**Timeline del kickoff domingo 2026-09-28**:
+- Revisar esta sección + confirmar plan A + B reescrita.
+- Antes del viaje (Tramo 1 residual, 2026-09-28): abrir rama `ci-concurrency` con la config A aplicada al workflow `e2e-error-audit.yml` + extender a los demás workflows que tocan staging. Merge tras verde.
+- Tramo 2 (viaje): CI serializado, feedback lento pero cero fixme por races. Anotar cualquier fixme `[b3-discovered-*]` nuevo — si aparece, la hipótesis "todo era carrera cross-PR" queda descartada y hay otra causa.
+- Tramo 3 (al volver): aterrizar B reescrita (fixtures + tag por preview + cleanup filtrado) como higiene permanente. Evaluar si A puede levantarse (post-B, si el flujo diario del PO no soporta la latencia). Si se levanta A y algún fixme por race reaparece, mantener A permanente y aceptar el costo de feedback.

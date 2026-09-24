@@ -90,5 +90,17 @@ jobs:
         # y usa el helper en 2+ headers de fetch.
         run: npm run test:g2-protection-bypass
 
+      - name: Unit tests (ErrorBoundary — Sentry integration)
+        # Sprint sentry-boundary (2026-09-25) — verifica el contrato del
+        # boundary post fix: componentDidCatch invoca Sentry.captureException
+        # exactamente 1 vez con contexts.react.componentStack y
+        # tags.subsystem='error-boundary'. Además cubre
+        # getDerivedStateFromError + fallback UI (copy "Algo salió mal"
+        # presente en el JSX). Mock @sentry/nextjs vía require.cache;
+        # sin JSDOM. Reemplaza la ruta smoke gated que se propuso primero
+        # (violaba la regla del proyecto "cero código productivo de
+        # prueba en prod, tampoco páginas 404-en-prod").
+        run: npm run test:error-boundary
+
       - name: Build
         run: npm run build

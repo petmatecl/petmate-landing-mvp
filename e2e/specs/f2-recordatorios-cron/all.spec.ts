@@ -318,7 +318,17 @@ test.describe.serial('S3 — marcas independientes (parcial)', () => {
         await borrarServicioResiliente(admin, servicio.id);
     });
 
-    test('corrida envía solo al proveedor pendiente + tutor mark intacta', async ({ baseURL }) => {
+    // [b3-discovered-2026-09-25] spec pre-existente que el PR #88 (sentry-boundary)
+    // no toca — falló en el commit 92a73cd con `marcas.proveedor` null tras corrida
+    // real, sin failure asociado en `body.failures` para nuestro agendamiento.
+    // Diagnóstico solo-lectura P11 (30 min) descartó bug de fixture (`fechaMananaIso`)
+    // y de ventana del cron (medianoche Chile a 13h de la corrida, cero borde DST
+    // activo). Hipótesis viva no verificable en 30 min: race cross-PR sobre Supabase
+    // staging entre SELECT y `reclamarEnvio` del cron. Regla operativa PO:
+    // opción B (test.fixme + ítem J-4), cero rerun autónomo, cero override P11.
+    // Investigar en sprint aparte (ítem J-4 · b3-discovered-2026-09-25). Ver
+    // reporte espejo a/b/c en el turno del 2026-09-24 y docs/sprints/bloque-j-4.md.
+    test.fixme('corrida envía solo al proveedor pendiente + tutor mark intacta', async ({ baseURL }) => {
         const api = await request.newContext({ extraHTTPHeaders: {} });
         const res = await api.get(endpointUrl(baseURL!, { bypassEnv: true }), {
             headers: bypassHeaders(),
