@@ -464,6 +464,16 @@ Reconozco la tercera omisión. La regla "reporte de cierre responde punto por pu
 
 **Verificación previa post-ajuste**: `git push origin main` desde una copia limpia debe rechazar con `protected branch hook declined`. Si permite el push, la protección no está aplicada correctamente y hay que revisitar.
 
+## Cierre QA #82 cue-1-sentry-user (2026-09-24)
+
+**QA PO en Sentry post-deploy prod OK**. PO confirmó 2026-09-24:
+
+- Release `330a89031367` (SHA merge #82, deploy prod automático 2026-09-23).
+- Evento nuevo del issue `JAVASCRIPT-NEXTJS-7` (o similar) trae `user = { id: aff2a90d-... }` y **cero otros campos** (`username/email/name` = null).
+- Dashboard Sentry Issues → tab **"Users (30d)"** pasó de **0 → 1**.
+
+Confirmación empírica del criterio del PR #82: `Sentry.setUser({ id })` en `contexts/UserContext.tsx` L342/L326/L914 aterriza solo el UUID, cero PII. Cross-check individual events → users habilitado desde este release para todo evento futuro. Los 32 (ahora 36 — ver sección abajo) events previos al deploy siguen con `user.id = null` (irrecuperable — Sentry no re-enriquece events históricos).
+
 ## Sprint F2-RESERVAS-CLEANUP · reporte espejo 1-4 (2026-09-23, rama `f2-reservas-clean`)
 
 Reporte espejo mirror del pedido PO 2026-09-23 (4 fases). Sin merge hasta GO.

@@ -122,6 +122,33 @@ Distribución empírica (32 events, últimos 7 días, del script `sentry-query-c
 
 ---
 
+## Evidencia empírica adicional del PO (2026-09-24, dos reproducciones en prod)
+
+**Actualización crítica**: PO reprodujo el cuelgue **dos veces en prod en 5 min** el 2026-09-24 con Chrome 153 Windows en **una sola pestaña en incógnito** — invalida parcialmente las conclusiones "guests no cuelgan" y "no reproduce sin 2 tabs / Android":
+
+| # | Ruta | has_storage_session | sw_controlling | Sesión | Pestañas | stuckReason |
+|---|---|---|---|---|---|---|
+| 1 | `/servicio/[id]` | **false** | **true** | Sin sesión | 1 (incógnito) | `loading_never_resolved` |
+| 2 | `/explorar` | **true** | **false** | Con sesión | 1 (incógnito) | `loading_never_resolved` |
+
+**Cross-check con A1/A3**:
+- **A3.b (`/explorar` guest)** NO reprodujo en local; PO reprodujo en `/explorar` **con sesión** en prod — el A3.b midió el path guest, no el path autenticado. Falta A3.d: `/explorar` autenticado 1 tab.
+- **`/servicio/[id]` sin sesión** NO estaba cubierto por ningún sub-experimento (ni A1 ni A3). Reproduce SIN sesión + con SW → contradicción con la hipótesis "el cuelgue requiere hasStorageSession=true" que dedujo el análisis local. Falta A3.e: guest en `/servicio/[uuid]` con SW controller.
+- Ambas en **1 pestaña sola** — el mecanismo NO requiere multi-tab. Los 3 escenarios que reprodujeron en CI local (A1.c/d/e) eran multi-tab o post-signOut; el volumen prod real es 1 tab.
+
+**Revisión del veredicto**: la causa raíz sigue siendo consistente con `Promise.all([proveedorRes, seekerRes])` colgando o el `getSession()` colgando (indistinguible sin instrumentación server-side de qué promise específica), pero **el disparador es más amplio** de lo que sugerían A1/A2/A3 locales:
+- Puede reproducir con guest + SW en `/servicio/[id]`.
+- Puede reproducir con auth + sin SW en `/explorar`.
+- Puede reproducir con 1 tab sola.
+
+Consistente con **la hipótesis original del PO 2026-09-22** ("apunta al lock del SDK, no al camino de perfil") — el guest en `/servicio/[id]` cuelga sin tener perfil que cargar. **El `Promise.all` de perfil NO es la causa única** — el `getSession()` también puede colgar antes del hydrate en algunos paths.
+
+**Match con changelog supabase-js**: 2.117.1 [#2698](https://github.com/supabase/supabase-js/pull/2698) "auth: return stored session when a refresh loses to another tab" — el mecanismo de "refresh loses to another tab" puede afectar single-tab también si el SDK detecta interferencia del SW o pauses en background. Sprint B1 va a probar empíricamente si el upgrade cierra estos casos.
+
+**Cross-cruce user.id**: PO pidió cruzar su user.id con el spec F4 cuando exista. Post-fix F1+F2+F4 aterrizado, spec de regresión debe INSERTAR row de prueba con user.id conocido para comparar. Anotable en F4.
+
+**Cifra actualizada** (2026-09-24): el issue prod ya va en **36 events, no 32** (delta +4 events entre 2026-09-22 sentry-query y 2026-09-24 revisita PO). Consistente con el ritmo ~4-5/día estimado en el reporte original.
+
 ## Sin fix hasta GO PO
 
 **Este reporte es el entregable de la fase A**. Cero código productivo aterrizado. Los 3 archivos que quedan como referencia permanente post-GO:
