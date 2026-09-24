@@ -787,3 +787,17 @@ Si en el diagnóstico aparece que un test verifica algo que YA NO EXISTE en el c
 - Acta breve `docs/sprints/bloque-j-4.md` (este archivo, actualizado con estado FINAL por test).
 - BACKLOG.md conciliado: cerrar item PR #72 hold, cerrar deuda "15 fixmes prod-OK sin unmark en staging".
 - Reporte al PO con conteo por clase (A/B/C), lista de tests borrados (si hay), enlaces a los 3 PRs.
+
+## B3 discovered fixmes · Tramo 2
+
+Tests marcados `test.fixme` con etiqueta `[b3-discovered-<fecha>]` durante otros sprints — spec pre-existente que el PR en curso no toca, P11 rigor (cero rerun, cero override), diagnóstico solo-lectura acotado, ítem J-4 con plan.
+
+| # | etiqueta | spec:línea | test | descubierto en | plan Tramo 2 |
+|---|---|---|---|---|---|
+| 1 | `b3-discovered-2026-09-25` | [e2e/specs/producto-1/s1-badge-reserva-online.spec.ts](../../e2e/specs/producto-1/s1-badge-reserva-online.spec.ts) | badge visible en servicio F2 activa, ausente en servicio sin agenda | sprint cue-1-fix B2 (PR #85, 2026-09-25) | Sprint dedicado: (a) inspeccionar `/explorar` query params (¿acepta `categoria` + `comuna` + búsqueda por título?), (b) medir delay INSERT `servicios_publicados` → visible en RPC `buscar_servicios`, (c) verificar predicados RPC (¿`estado`, `activo`, `agendamiento_habilitado`?), (d) unfixme + fix (paginación o filtro específico). |
+| 2 | `b3-discovered-2026-09-25` | [e2e/specs/f2-recordatorios-cron/all.spec.ts:321](../../e2e/specs/f2-recordatorios-cron/all.spec.ts#L321) | S3 — marcas independientes (parcial): corrida envía solo al proveedor pendiente + tutor mark intacta | sprint sentry-boundary (PR #88, 2026-09-25) | Diagnóstico solo-lectura descartó bug de fixture (`fechaMananaIso`) y de ventana del cron (medianoche Chile 03:00 UTC a 13h de la corrida, cero borde DST activo). Hipótesis viva no verificable por lectura: race cross-PR Supabase staging entre SELECT y `reclamarEnvio` del cron. Sprint dedicado post-lanzamiento: (a) instrumentar el cron con log del `body.failures + body.processed + body.claimsPerdidos*` para el agendamiento test, (b) reproducir con 2+ PRs corriendo en paralelo la suite F2 contra el mismo Supabase staging, (c) si es race → mover fixture a proyecto Supabase dedicado o filtrar el SELECT del cron por `tutor_nombre LIKE '[TEST-cron-%'`, (d) unfixme. Reporte espejo a/b/c del diagnóstico en el turno del 2026-09-24. |
+
+**Regla operativa (aplicada acá y en futuros b3-discovered)**: cuando aparezca un fail de CI en spec pre-existente que el PR en curso no toca:
+1. Diagnóstico solo-lectura 10-30 min con artifacts + reporte espejo al PO (P11 rigor).
+2. Si el diagnóstico confirma bug de fixture/data → fix en PR aparte del sprint en curso.
+3. Si el diagnóstico no confirma en el timebox → `test.fixme` con etiqueta `[b3-discovered-<YYYY-MM-DD>]` + comentario multi-línea con hipótesis + ítem en esta tabla + PR en curso sigue a verde. Cero rerun autónomo. Cero merge con override P11 (memory `feedback_p11_rigor.md`).
