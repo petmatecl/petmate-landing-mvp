@@ -47,20 +47,45 @@ Los tests pasan a ser assertions de regresión permanente: pre-fix fallaban, pos
 - Post-fix: `stateForWatchdogRef` refleja state real → el positivo sigue funcionando idénticamente a pre-fix (assert `warns.length > 0` sigue verde).
 - Sin el positivo, un watchdog que nunca dispara también daría `warns=0` en A1.c/d/e — no distinguible del fix. El par negativo (A1.c/d/e) + positivo (cue-1-watchdog) verifica **P8 en ambas direcciones**: dispara cuando debe, NO dispara cuando no debe. Comentario agregado al header del spec cue-1-watchdog documentando este pairing.
 
-### 3) Verificación de la teoría antes del merge — cross-check GA4
+### 3) Cross-check GA4 (2026-09-15 → 2026-09-24, 9 días)
 
-**Método propuesto**: cruzar los 36 events del issue prod (ventana 2026-09-15 → 2026-09-24, 9 días) con sesiones GA4 de duración >15s en el mismo período. Si la teoría del stale closure es correcta, el watchdog dispara en toda visita >15s con storageState válido (o en toda visita >15s a rutas sin auth también, dependiendo del rendering path).
+**Datos GA4** (a completar por PO, formato del pedido):
+- Sesiones totales: **[N]**
+- Sesiones con interacción (engagement time > 10s, definición GA4 default): **[N]**
+- Usuarios: **[N]**
 
-**Estado**: **NO PUEDO ejecutar el cross-check** — cero MCP GA4 configurado, cero export descargable, cero credencial en el runner. `.mcp.json` local solo tiene supabase-staging-rw + supabase-prod-ro + vercel + context7. **Pido al PO que traiga el número**:
+**Confirmación previa del filtro Sentry** (grep en `instrumentation-client.ts` + `sentry.server.config.ts` + `sentry.edge.config.ts`, 2026-09-24):
+- `tracesSampleRate: 0` en las 3 runtimes (afecta perf traces, **NO afecta `captureMessage`**).
+- `replaysSessionSampleRate: 0` + `replaysOnErrorSampleRate: 0` (cero replays).
+- **NO hay `sampleRate` global explícito** → default Sentry SDK = `1.0` para errores/messages. **100% de los `captureMessage('user_context_stuck', ...)` se envían**. Cero muestreo aplicado.
+- `enabled: IS_PROD` en las 3 runtimes → cero events desde staging/preview (los 36 events son exclusivamente prod real).
 
-- **Métrica requerida** (Google Analytics 4, propiedad Pawnecta prod):
-  - Reports → Engagement → Pages and screens → filtro fecha 2026-09-15 al 2026-09-24 (9 días).
-  - Métrica: **Sessions with `Average engagement time per session > 15s`** — o equivalente ("session duration bucket >15s").
-  - Alternativa si GA4 no separa: `Total sessions` × `% sessions > 15s duration`. Con solo el total y una estimación del % en > 15s alcanza.
-  - Rango de cifra que confirmaría la teoría: **orden de magnitud comparable a 36 events** (ej. entre 200 y 5000 sesiones >15s). Si GA4 reporta 500-2000 sesiones >15s en la ventana, el watchdog disparando en un subset (36) es plausible con la teoría (no cada sesión dispara — depende de qué combinación de state stale + condition guard trigger; se estima que solo un fracción disparaba porque la condición `stuckLoading || stuckNoUser` requiere valores específicos del closure inicial).
-  - Cifra que refutaría la teoría: si GA4 muestra >100.000 sesiones >15s pero solo 36 events, o al revés <100 sesiones >15s con 36 events, el orden de magnitud no cuadra y hay otra condición además del stale closure.
+**Fórmula esperada** si la teoría del stale closure es correcta:
+```
+events_esperados ≈ sesiones_con_interaccion (>10s GA4)
+                 × fracción_con_engagement>15s (~60-70%, típico distribución)
+                 × fracción_sin_bloqueador_sentry (~70-80%, ublock+corp policies)
+                 × fracción_disparadora_del_watchdog (~15-30%, depende de si el
+                    user permanece en la misma tab del mismo mount de UserContext
+                    los 15s; navegación cross-route cancela el timer via cleanup
+                    del useEffect)
+```
 
-**Anotado como abierto**: pending cifra GA4 del PO. Sin ella, la teoría del stale closure es la **explicación más probable con la evidencia empírica actual** (Promise.all resuelve <1s + watchdog dispara igual + fix del closure inmediato + reversibilidad del `eslint-disable`), pero **no está confirmada por cross-check con GA4**. Post-cross-check GA4, se decide si CUE-1 se cierra o se mantiene con nota "cross-check no cuadra, condición adicional pendiente".
+**Interpretación del cross-check**:
+- **Cuadra** (teoría stale closure confirmada como explicación mayoritaria):
+  - Sesiones con interacción entre ~150 y ~2000 en los 9 días → orden de magnitud consistente con 36 events (36/450 ≈ 8%; 36/2000 ≈ 2%; ambos dentro de la fracción disparadora esperada 2-30% tras los descuentos).
+  - Ejemplo: 500 sesiones × 65% >15s × 75% sin bloqueador × 20% permanencia = **~49 events** — consistente con 36.
+- **No cuadra bajo** (habría MENOS events que sesiones esperadas):
+  - Sesiones >>10.000 en 9 días → si teoría fuera 100% cierta, tendríamos cientos o miles de events, no 36. Indica que hay filtro adicional que reduce (condición específica más allá del stale closure).
+- **No cuadra alto** (habría MÁS events que sesiones):
+  - Sesiones <<100 en 9 días → los 36 events superan las sesiones esperables. Indica que el watchdog dispara múltiples veces por sesión (re-mount del UserContext por navegación cliente Next.js dentro de la misma sesión GA4), o hay otro path del disparo (ej. re-hidratación via SIGNED_IN silente).
+
+**Conclusión condicional** (pendiente PO completar `[N]`):
+- Si el número cae en el rango cuadra → teoría stale closure **confirmada** como explicación del ~100% de los 36 events. CUE-1 puede bajar a CONVIENE post ventana observación con cero events reales.
+- Si cae en no-cuadra bajo → hay condición adicional filtrando. La teoría cubre parcialmente pero no todo. Anotar como abierto para investigación adicional post-fix (probable: fracción disparadora <20% real, watchdog dispara solo en subset específico de mounts).
+- Si cae en no-cuadra alto → el mecanismo del disparo es más agresivo (múltiples watchdog por sesión GA4). Requiere revisar cleanup del useEffect y ver si el timer se re-arma sin cancelar el previo.
+
+**Anotado como pending PO**: la teoría es la **explicación más probable con la evidencia empírica ACTUAL** (Promise.all resuelve <1s + watchdog dispara igual + fix del closure inmediato + reversibilidad del `eslint-disable`). El cross-check GA4 la confirmará, matizará o refutará. **NO bloquea el merge del sábado** — el fix del watchdog es correcto independientemente (elimina el falso positivo estructural), el cross-check informa si hay condición adicional pendiente para el ventana observación Tramo 2.
 
 ### 4) F1+F2 NO van — CUE-1-FALLBACK CONVIENE en BACKLOG
 
@@ -143,3 +168,42 @@ Idem sección "acta" en `docs/sprints/bloque-j-4.md` (actualización en el mismo
 **Costo evitado**: ~2-3 días de F1+F2+F3+F4 aterrizados sobre problema inexistente + ventana observación prod con métrica que no bajaría. Costo P8: 2h B1.5 + 30 min B2.
 
 **Corolario P8 13ª** (workflow ignora specs) queda cerrado por B3 CI-SPEC-COUNT en este PR — 4ª instancia canónica "señales verdes que no hacen nada" con defensa activa.
+
+---
+
+## Plan operativo P11 para specs recién incluidos por B3 (2026-09-24)
+
+**Descubierta post-run CI 36007042721**: el B3 detectó **6 dirs con 10 spec files JAMÁS corrieron en la suite productiva**. Escala del corolario P8 13ª más grande de lo sospechado:
+
+| Dir | Specs | Status en PR #85 (commit `a69aecd`) |
+|---|---:|---|
+| `prelaunch-1` | 1 | Agregado al comando rápido |
+| `producto-1` | 2 | Agregado |
+| `producto-2` | 3 | Agregado |
+| `sentry` | 1 | Agregado |
+| `zonab-1` | 2 | Agregado |
+| `ci-canario` | 1 | EXCLUDE_LIST inline (siempre falla por diseño P12) |
+
+**Total specs recién ejercitados en CI**: **9 specs distribuidos en 5 dirs** que llevaban semanas/meses sin correr.
+
+**Regla P11 aplicable a fails de estos 9 specs**:
+- **Diagnóstico 10 min con artifacts** (P11 ampliación 2026-09-11): descargar `error-context.md` + screenshot + trace.zip.
+- **Categorías de fail y tratamiento**:
+  1. **Bug o regresión pre-existente del código productivo** (spec estaba correcto, código cambió y rompió): **NO auto-rerun, NO override**. Marcar el test con `test.fixme('[b3-discovered-2026-09-25] <motivo 1 línea>', ...)` en el mismo commit del PR #85 + abrir ítem en `docs/sprints/bloque-j-4.md` (sección nueva "B3 discovered fixmes") con la lista completa y plan. **PR #85 sigue hacia verde**.
+  2. **Data de staging (residuo tipo F2-3-CLEANUP, BELL-150, F2-RESERVAS-CLEANUP)**: mismo tratamiento — sprint aparte con cleanup + fix fixture, **PR APARTE de #85**. Marcar `test.fixme` con etiqueta `[b3-discovered-2026-09-25-data]` + motivo + linkear al sprint dedicado cuando exista.
+  3. **Bug del spec** (assertion incorrecta, selector obsoleto, timing frágil): fix mínimo en el mismo commit si es acotado (<30 min); si es más grande, mismo tratamiento que caso 1.
+  4. **Fail de infra terceros** (Supabase 5xx wall-to-wall, Cloudflare, etc): **NO rerun autónomo** (P11 estricta post 2026-09-23 corrección PO: NO admite override por datos ni infra ambigua). Escalar al PO.
+
+**Skip explícito con etiqueta + ticket sí. Skip silencioso NUNCA MÁS** — regla que aterrizó ex-post del B3 (el silencio en falso positivo verde durante meses de estos 6 dirs es la 4ª instancia del antipatrón; la regla del skip explícito + ticket es la enmienda operativa).
+
+**Entregable 2026-09-28 amplía**:
+- Estado J-4 (F2-3-CLEANUP, BELL-150, F2-RESERVAS-CLEANUP, CUE-1, cue-1-fix — todos con estado terminal o EN CURSO).
+- Estado CUE-1 (post-fix watchdog, ventana observación arrancando).
+- Lista PRs abiertos con dependencias:
+  - #85 cue-1-fix (merge sábado o post-viaje según QA PO).
+  - #86 supajs-upgrade (post-viaje, mantenimiento).
+  - #77 auth-mail-phish (post-viaje Tramo 3).
+  - #84 del-cuenta-docs (post-viaje Tramo 2 con asesor).
+  - #87 button-unif-doc (post-viaje Tramo 2 con QA PO por PR).
+- **Lista fixme con etiqueta `[b3-discovered-2026-09-25]`** (a completar tras run CI del `a69aecd`, se puebla en la sección "B3 discovered fixmes" del acta bloque-j-4 según el criterio de arriba).
+- **Plan para cada fixme en Tramo 2**: unfixme + fix real o skip permanente con motivo aterrizado en `.md` de sprint dedicado.
