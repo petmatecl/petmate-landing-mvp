@@ -145,6 +145,44 @@ test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)
         const w1 = trackearWarnings(page1);
         const w2 = trackearWarnings(page2);
 
+        // [CUE-1-INSTR B1.5 experimental] — page.on('request'/'response')
+        // filtrando queries a /rest/v1/proveedores y /rest/v1/usuarios_buscadores.
+        // Colectar en arrays por pestaña + reportar al final.
+        type NetEvent = { kind: 'req' | 'res'; url: string; status?: number; t: number };
+        const netA: NetEvent[] = [];
+        const netB: NetEvent[] = [];
+        const filterInteresante = (url: string) =>
+            /\/rest\/v1\/(proveedores|usuarios_buscadores)/.test(url) ||
+            /\/auth\/v1\//.test(url);
+        page1.on('request', (req) => {
+            const u = req.url();
+            if (filterInteresante(u)) netA.push({ kind: 'req', url: u, t: Date.now() });
+        });
+        page1.on('response', (res) => {
+            const u = res.url();
+            if (filterInteresante(u)) netA.push({ kind: 'res', url: u, status: res.status(), t: Date.now() });
+        });
+        page2.on('request', (req) => {
+            const u = req.url();
+            if (filterInteresante(u)) netB.push({ kind: 'req', url: u, t: Date.now() });
+        });
+        page2.on('response', (res) => {
+            const u = res.url();
+            if (filterInteresante(u)) netB.push({ kind: 'res', url: u, status: res.status(), t: Date.now() });
+        });
+
+        // Colectar TODOS los logs con prefijo CUE-1-INSTR (no solo warnings).
+        const instrA: string[] = [];
+        const instrB: string[] = [];
+        page1.on('console', (msg) => {
+            const t = msg.text();
+            if (t.includes('[CUE-1-INSTR]')) instrA.push(t);
+        });
+        page2.on('console', (msg) => {
+            const t = msg.text();
+            if (t.includes('[CUE-1-INSTR]')) instrB.push(t);
+        });
+
         const t0 = Date.now();
         await Promise.all([
             page1.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
@@ -161,6 +199,23 @@ test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)
         console.log(`[A1.c] LOCKS tab2: ${JSON.stringify(locks2).slice(0, 400)}`);
         if (w1.warnings.length > 0) console.log(`[A1.c] SAMPLE tab1 WARN: ${w1.warnings[0].slice(0, 300)}`);
         if (w2.warnings.length > 0) console.log(`[A1.c] SAMPLE tab2 WARN: ${w2.warnings[0].slice(0, 300)}`);
+
+        // [CUE-1-INSTR B1.5] — Reporte network + logs INSTR por pestaña.
+        console.log('[A1.c-B1.5] === NETWORK tab1 (page1) ===');
+        for (const e of netA) {
+            console.log(`  ${e.kind === 'req' ? 'REQ' : `RES ${e.status}`} @ ${e.t - t0}ms  ${e.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 120)}`);
+        }
+        console.log(`[A1.c-B1.5] tab1 network summary: ${netA.filter(e => e.kind === 'req').length} req, ${netA.filter(e => e.kind === 'res').length} res`);
+        console.log('[A1.c-B1.5] === NETWORK tab2 (page2) ===');
+        for (const e of netB) {
+            console.log(`  ${e.kind === 'req' ? 'REQ' : `RES ${e.status}`} @ ${e.t - t0}ms  ${e.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 120)}`);
+        }
+        console.log(`[A1.c-B1.5] tab2 network summary: ${netB.filter(e => e.kind === 'req').length} req, ${netB.filter(e => e.kind === 'res').length} res`);
+
+        console.log('[A1.c-B1.5] === INSTR logs tab1 ===');
+        for (const l of instrA) console.log(`  ${l.slice(0, 200)}`);
+        console.log('[A1.c-B1.5] === INSTR logs tab2 ===');
+        for (const l of instrB) console.log(`  ${l.slice(0, 200)}`);
 
         expect(locks1).toBeDefined();
         expect(locks2).toBeDefined();

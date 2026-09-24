@@ -295,6 +295,8 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     };
 
     const hydrateFromSession = async (session: any, attempt: number = 0) => {
+        // [CUE-1-INSTR B1.5 experimental — revertir antes del merge del fix]
+        console.debug('[CUE-1-INSTR] hydrate:enter', { t: Date.now(), hasSession: !!session, userId: session?.user?.id ?? null, attempt });
         // Sprint role-degradation C3 — precisión A del PO. Un hydrate NUEVO
         // (attempt=0, viene de canal 1/2 o refreshProfile — NO de retry
         // interno) resetea el hydrationState. Sin esto, si un hydrate previo
@@ -371,18 +373,31 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
             // antes corria /proveedor/index.tsx checkProviderStatus. La carga
             // extra (cols completas vs 6) es despreciable; el round-trip que
             // ahorramos en Fase C del path critico NO lo es.
-            const [proveedorRes, seekerRes] = await Promise.all([
-                supabase
-                    .from('proveedores')
-                    .select('*')
-                    .eq('auth_user_id', session.user.id)
-                    .maybeSingle(),
-                supabase
-                    .from('usuarios_buscadores')
-                    .select('id, nombre')
-                    .eq('auth_user_id', session.user.id)
-                    .maybeSingle(),
-            ]);
+            // [CUE-1-INSTR B1.5 experimental — revertir antes del merge del fix]
+            const t0 = Date.now();
+            console.debug('[CUE-1-INSTR] promise-all:build-start', { t: t0 });
+            const proveedorP = supabase
+                .from('proveedores')
+                .select('*')
+                .eq('auth_user_id', session.user.id)
+                .maybeSingle();
+            const seekerP = supabase
+                .from('usuarios_buscadores')
+                .select('id, nombre')
+                .eq('auth_user_id', session.user.id)
+                .maybeSingle();
+            console.debug('[CUE-1-INSTR] promise-all:awaiting-both', { dt: Date.now() - t0 });
+            // Wrap cada promise para saber CUÁL resuelve/cuelga individual.
+            const provTracked = Promise.resolve(proveedorP).then(r => {
+                console.debug('[CUE-1-INSTR] proveedor:resolved', { dt: Date.now() - t0, hasError: !!(r as { error?: unknown })?.error, hasData: !!(r as { data?: unknown })?.data });
+                return r;
+            });
+            const seekerTracked = Promise.resolve(seekerP).then(r => {
+                console.debug('[CUE-1-INSTR] seeker:resolved', { dt: Date.now() - t0, hasError: !!(r as { error?: unknown })?.error, hasData: !!(r as { data?: unknown })?.data });
+                return r;
+            });
+            const [proveedorRes, seekerRes] = await Promise.all([provTracked, seekerTracked]);
+            console.debug('[CUE-1-INSTR] promise-all:both-resolved', { dt: Date.now() - t0 });
 
             // ═══════════════════════════════════════════════════════════════
             // SPRINT role-degradation C2b (2026-09-03) — CHEQUEO EXPLÍCITO
@@ -640,7 +655,10 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         // Canal 1: lectura inicial sincrónica. Sin Promise.race ni timeout —
         // el noOpLock (lib/supabaseClient.ts) garantiza que getSession()
         // resuelve sin colgarse en Web Locks orphaned.
+        // [CUE-1-INSTR B1.5 experimental — revertir antes del merge del fix]
+        console.debug('[CUE-1-INSTR] getSession:start', { t: Date.now() });
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.debug('[CUE-1-INSTR] getSession:resolved', { t: Date.now(), hasSession: !!session, userId: session?.user?.id ?? null });
             lastAuthEventRef.current = 'INITIAL_SESSION_GETSESSION';
             if (mounted) hydrateFromSession(session);
         });
