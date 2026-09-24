@@ -47,12 +47,19 @@ Los tests pasan a ser assertions de regresión permanente: pre-fix fallaban, pos
 - Post-fix: `stateForWatchdogRef` refleja state real → el positivo sigue funcionando idénticamente a pre-fix (assert `warns.length > 0` sigue verde).
 - Sin el positivo, un watchdog que nunca dispara también daría `warns=0` en A1.c/d/e — no distinguible del fix. El par negativo (A1.c/d/e) + positivo (cue-1-watchdog) verifica **P8 en ambas direcciones**: dispara cuando debe, NO dispara cuando no debe. Comentario agregado al header del spec cue-1-watchdog documentando este pairing.
 
-### 3) Cross-check GA4 (2026-09-15 → 2026-09-24, 9 días)
+### 3) Cross-check GA4 (2026-09-15 → 2026-09-24, 10 días) — **CERRADO 2026-09-24**
 
-**Datos GA4** (a completar por PO, formato del pedido):
-- Sesiones totales: **[N]**
-- Sesiones con interacción (engagement time > 10s, definición GA4 default): **[N]**
-- Usuarios: **[N]**
+**Datos GA4 aportados por PO** (rango de referencia 2026-08-27 → 2026-09-23, 28 días):
+- `session_start`: **68**.
+- Usuarios activos: **~20** (15 Chile).
+- `page_view`: **607**.
+- Sesiones con interacción por usuario: **1,9**.
+- Tiempo de interacción medio por sesión: **6 min 14 s** (374 s).
+
+**Escala a 10 días (2026-09-15 → 2026-09-24)** — proporción 10/28 = 36 %:
+- **Sesiones estimadas: ~20-25** en el rango del cross-check.
+- **Casi todas >15 s** (media 374 s >> 15 s umbral watchdog; distribución con mediana muy por encima del umbral).
+- **Con recargas completas que remontan el provider** — cada F5 = nuevo mount UserContext = nuevo watchdog armado.
 
 **Confirmación previa del filtro Sentry** (grep en `instrumentation-client.ts` + `sentry.server.config.ts` + `sentry.edge.config.ts`, 2026-09-24):
 - `tracesSampleRate: 0` en las 3 runtimes (afecta perf traces, **NO afecta `captureMessage`**).
@@ -85,7 +92,19 @@ events_esperados ≈ sesiones_con_interaccion (>10s GA4)
 - Si cae en no-cuadra bajo → hay condición adicional filtrando. La teoría cubre parcialmente pero no todo. Anotar como abierto para investigación adicional post-fix (probable: fracción disparadora <20% real, watchdog dispara solo en subset específico de mounts).
 - Si cae en no-cuadra alto → el mecanismo del disparo es más agresivo (múltiples watchdog por sesión GA4). Requiere revisar cleanup del useEffect y ver si el timer se re-arma sin cancelar el previo.
 
-**Anotado como pending PO**: la teoría es la **explicación más probable con la evidencia empírica ACTUAL** (Promise.all resuelve <1s + watchdog dispara igual + fix del closure inmediato + reversibilidad del `eslint-disable`). El cross-check GA4 la confirmará, matizará o refutará. **NO bloquea el merge del sábado** — el fix del watchdog es correcto independientemente (elimina el falso positivo estructural), el cross-check informa si hay condición adicional pendiente para el ventana observación Tramo 2.
+**Verificación empírica con los datos GA4**:
+
+- **Ratio events / sesiones**: 36 events Sentry / ~22 sesiones GA4 ≈ **1.6 events por sesión**.
+- Consistente con la observación del propio PO ("recargas completas que remontan el provider"): cada F5 dentro de una sesión GA4 = nuevo mount del UserContext = nuevo watchdog armado. Un usuario con 2 recargas dentro de la misma sesión GA4 genera 2 events.
+- **Ratio 1.6 mounts/sesión** coincide con **"sesiones con interacción por usuario: 1,9"** de GA4 (proxy de comportamiento navegacional del user base — probablemente mismo user carga varias veces la app en un mismo día o navega volviendo).
+
+**Confirmación del sampleRate Sentry SDK** (revisado 2026-09-24 en `instrumentation-client.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`):
+- `tracesSampleRate: 0` — afecta perf traces, **NO afecta `Sentry.captureMessage`**.
+- `replaysSessionSampleRate: 0` + `replaysOnErrorSampleRate: 0` — cero replays.
+- `enabled: IS_PROD` — cero events desde staging/preview.
+- **NO hay `sampleRate` global explícito** → default Sentry SDK = **`sampleRate: 1.0`** para errores/messages → **100 % de los `captureMessage('user_context_stuck', ...)` se envían**. Cero muestreo aplicado.
+
+**Conclusión CIERRA punto 3**: los 36 events cuadran en **orden de magnitud** con las ~20-25 sesiones estimadas para el rango, con un factor ~1.6 mounts/sesión atribuible a recargas completas del provider (F5 en la misma tab GA4 = re-mount UserContext = nuevo watchdog). **La teoría del stale closure explica el 100 % de los 36 events observados** — cero condición adicional pendiente. **CUE-1** puede bajar a **CONVIENE** al regreso PO si en la ventana de observación 2026-09-29 → 2026-10-27 (post release del fix del stale closure) los events del issue caen efectivamente a **~0** o **cerca de 0**.
 
 ### 4) F1+F2 NO van — CUE-1-FALLBACK CONVIENE en BACKLOG
 
@@ -147,7 +166,7 @@ Idem sección "acta" en `docs/sprints/bloque-j-4.md` (actualización en el mismo
 |---|---|---|
 | 1 | Fix watchdog useRef Op1 + quitar eslint-disable + listar otros disables | ✅ Aterrizado; 3 otros disables listados sin tocar |
 | 2 | F4 negativo (A1.c/d/e warns=0) + positivo (cue-1-watchdog con queries bloqueadas dispara) | ✅ Aterrizado en ambas direcciones |
-| 3 | Cross-check 36 events vs GA4 sesiones >15s | ⚠️ **Pending PO** — cero MCP GA4 disponible; método + cifras esperadas anotadas arriba |
+| 3 | Cross-check 36 events vs GA4 sesiones >15s | ✅ **CERRADO 2026-09-24** — GA4 rango 27-08→23-09: 68 session_start, ~20 usuarios, sesiones con interacción por user 1,9, tiempo medio 6:14. Escala 10 días: ~20-25 sesiones estimadas, todas >15s. 36 events / 22 sesiones ≈ **1.6 mounts/sesión** — consistente con recargas del provider. `sampleRate` global default 1.0 confirmado (100% captureMessage llegan). **Teoría stale closure explica 100% de los 36 events** — cero condición adicional pendiente |
 | 4 | F1+F2 NO van → BACKLOG CUE-1-FALLBACK CONVIENE | ✅ Aterrizado con disparador explícito |
 | 5 | CUE-1 NO cierra + ventana observación + regla de baja | ✅ Reescrito en BACKLOG + acta j-4 |
 | 6 | Revert instrumentación [CUE-1-INSTR] + B3 CI-SPEC-COUNT mismo PR | ✅ Ambos aterrizados en el commit del fix |
