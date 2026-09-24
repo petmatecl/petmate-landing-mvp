@@ -194,16 +194,52 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
 
     await page.context().storageState({ path: opts.storageStatePath });
 
-    // Paso 2 · guard final: verificar el archivo escrito contiene el token.
-    // Si el waitForFunction pasó pero el capture perdió el token (edge case
-    // Playwright storageState vs localStorage), fallar loud con diagnóstico
-    // exhaustivo (page.url + origin + dump completo del localStorage +
-    // primeros 3000 chars del JSON guardado incluyendo bloque origins).
+    // Paso 2 · guard final: verificar el archivo escrito contiene un token
+    // Supabase válido con MISMA lógica que el helper downstream
+    // `extractSessionTokens` de e2e/fixtures/supabase.ts:40-72 (JSON.parse +
+    // iterate origins > localStorage > name sb-*-auth-token, luego
+    // JSON.parse del value, luego check access_token + refresh_token).
+    //
+    // Sprint hf-usuario-fix iteración 3 (2026-09-24) — el check ingenuo
+    // `savedRaw.includes('"access_token"')` de la iter 2 era false positive:
+    // Playwright serializa el `value` del localStorage como string dentro
+    // del JSON, con escape `\"access_token\"` en el archivo — el `includes`
+    // buscando `"access_token"` (con comillas literales, sin backslash) NO
+    // matcheaba pese a que el token estaba presente. Run 36055308817 lo
+    // confirmó: DIAG mostró que el archivo contenía `\"access_token\":\"...\"`
+    // dentro del `value` del sb-*-auth-token; guard tiraba false positive.
+    //
+    // Fix definitivo: parse el JSON del archivo tal como el helper downstream
+    // lo hace, y verificar que exista al menos un origin con un item
+    // sb-*-auth-token cuyo value JSON tenga access_token + refresh_token.
+    // Cero string matching frágil; cero false positive.
     const savedRaw = fs.readFileSync(opts.storageStatePath, 'utf-8');
-    if (!savedRaw.includes('"access_token"')) {
+    let hasValidToken = false;
+    try {
+        const state = JSON.parse(savedRaw);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const origins = (state.origins ?? []) as Array<{ origin: string; localStorage: Array<{ name: string; value: string }> }>;
+        for (const o of origins) {
+            for (const item of o.localStorage ?? []) {
+                if (item.name.startsWith('sb-') && item.name.endsWith('-auth-token')) {
+                    try {
+                        const parsed = JSON.parse(item.value);
+                        if (parsed?.access_token && parsed?.refresh_token) {
+                            hasValidToken = true;
+                            break;
+                        }
+                    } catch { /* item malformado, seguir */ }
+                }
+            }
+            if (hasValidToken) break;
+        }
+    } catch { /* archivo malformado — hasValidToken queda false */ }
+
+    if (!hasValidToken) {
         throw new Error(
             `[authenticate:${opts.roleName}] storageState guardado en ${opts.storageStatePath} SIN ` +
-            `"access_token" pese a que localStorage lo tenía pre-capture.\n\n` +
+            `sb-*-auth-token con {access_token, refresh_token} válidos, pese a que localStorage lo ` +
+            `tenía pre-capture.\n\n` +
             `DIAG · page.url: ${preCaptureDiag.url}\n` +
             `DIAG · origin: ${preCaptureDiag.origin}\n` +
             `DIAG · localStorage items (${preCaptureDiag.ls.length}):\n` +
