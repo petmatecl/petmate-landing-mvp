@@ -169,3 +169,15 @@ Contexto capturado del captureMessage `-5`: `role_degradation: {"attempts_total"
 **Hilo "5 de /security-logout" cerrado** — la query amplia (`transaction:*security-logout*`, `url:*security-logout*`, `"security-logout"`, `message:*security_logout*`, todos ejecutados vía [scripts/sentry-security-logout.ts](../../scripts/sentry-security-logout.ts) 2026-09-25) confirmó que eran distribución de transaction del issue `-7` (watchdog `user_context_stuck`) del 22-09 (cue-1.4). Con el stale closure explicado y el fix en #85, esos 5 dejan de significar algo separado.
 
 **Regla operativa nueva ganada en este sprint** (aplicable a TODO análisis futuro de Sentry): **antes de clasificar un issue, cruzar `user.id` — y cuando no hay id, navegador/dispositivo — contra las cuentas del PO y de prueba** (`aff2a90d…` desktop, `0c2ab509…` Android, y las cuentas E2E de Aldo/Camila). Dos semanas de "evidencia CUE-1 BLOQUEA" fueron el PO probándose a sí mismo desde dos dispositivos distintos; la clasificación real solo se pudo hacer cuando el sprint `cue-1-sentry-user` (#82) llenó el `user.id` en scope y este sprint hizo el cruce. Agregada al CLAUDE.md > sección Sentry / patrones de análisis.
+
+## Evidencia lateral del Service Worker (adición 2026-09-24 · sprint chat-open-error)
+
+Durante la reproducción del bug CHAT-OPEN-ERROR en prod 2026-09-24, el PO vio en la consola del navegador la línea:
+
+> `The FetchEvent for https://pawnecta.com/servicio/... resulted in a network error response`
+
+**El SW interceptó la propia página del servicio y devolvió error de red.** Esto ocurrió en la misma sesión donde el 409 Conflict de `/rest/v1/conversations` fue el bug primario (ese sí resuelto en el sprint chat-open-error).
+
+**Anotado como evidencia lateral, no como causa** del bug CHAT-OPEN-ERROR: el 409 se dispara independiente de que el SW haya devuelto network error para la página anterior. Pero sí es un dato adicional del **comportamiento del SW en prod que puede alimentar el análisis del sub-ítem A2 (SW controlling)** del sprint CUE-1: si el SW puede devolver network error para navegaciones legítimas de `/servicio/*`, en algún camino del hydrate pipeline un fetch a supabase.co que pase por el SW puede sufrir la misma intercepción → `TypeError: Failed to fetch` que ya vimos en los events `-5` del user Android. Refuerza (sin confirmar aún) la hipótesis "filtro DNS/bloqueador dispositivo" del PO, o abre una tercera hipótesis "SW residual/mal configurado en prod específico del dispositivo del PO".
+
+**Para el kickoff CUE-1-FALLBACK / cue-1-mobile-toast del Tramo 3**: revisar los logs del SW en el bundle prod (`sw.js` generado por next-pwa) y verificar por qué el SW puede resolver una navegación a página con network error. Referencia [next.config.js:171-215 PWA gate](../../next.config.js#L171-L215) + `scripts/write-sw-demolisher.js`. La correlación con los `Failed to fetch` de -5/-8 en Android es plausible pero sin verificar; sigue pendiente análisis dedicado.

@@ -16,6 +16,7 @@ const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
     ),
 });
 import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
@@ -326,6 +327,24 @@ export default function ServiceDetailView({
             // caía a crear una conv nueva → duplicados. Ahora fail-close con
             // toast: no creamos conv nueva si no pudimos verificar que ya
             // existe. Log Sentry vía runReadQuery.
+            //
+            // Sprint chat-open-error (2026-09-24) — el filtro por servicio_id
+            // se REMOVIÓ. Decisión de producto PO 2026-09-24: UNA conversación
+            // por par tutor-proveedor, no por servicio. La BD ya lo enforce
+            // con `conversations_client_id_sitter_id_key UNIQUE (client_id,
+            // sitter_id)` (verificado prod + staging via MCP), sin servicio_id.
+            // El bug pre-fix: el filtro incluía servicio_id → si el tutor
+            // ya tenía conversación con este proveedor para OTRO servicio,
+            // esta query devolvía null → el flujo caía al INSERT → 409
+            // Conflict del constraint UNIQUE → catch → toast, sin conversación
+            // reusada. Bug reportado por PO 2026-09-24 desde ficha del
+            // servicio b1bdf757 "Acompañandolo en su hogar" con Maria Constanza
+            // (par ya tenía conversación de otro servicio). El servicio_id de
+            // la conversación existente se preserva como el primero — menos
+            // churn, semánticamente estable (retiene el contexto histórico
+            // del servicio con el que el par se conoció). El chat puede
+            // renderizar contexto adicional del servicio actual desde la UI
+            // sin tocar el servicio_id persistido.
             const proveedorAuthId = proveedor.auth_user_id;
             const existingResult = await runReadQuery<any>(
                 () => supabase
@@ -333,7 +352,6 @@ export default function ServiceDetailView({
                     .select('id')
                     .eq('client_id', userId)
                     .eq('sitter_id', proveedorAuthId)
-                    .eq('servicio_id', service.id)
                     .maybeSingle(),
                 { subsystem: 'ficha_servicio_chat', table: 'conversations', route: '/servicio/[id]' },
             );
@@ -431,6 +449,24 @@ export default function ServiceDetailView({
             }
 
         } catch (error) {
+            // Sprint chat-open-error (2026-09-24) — reportar a Sentry para
+            // desbloquear diagnóstico del bug "1er clic falla + 2do clic
+            // funciona con conversación creada" que el PO reprodujo 2026-09-24
+            // y no dejó evento (el catch previo solo hacía console.error +
+            // toast). Regla operativa nueva del proyecto: todo catch que
+            // muestre toast.error al usuario reporta a Sentry con
+            // captureException + tag subsystem — aterrizar sistémicamente en
+            // sprint SENTRY-TOAST (kickoff domingo 2026-09-28); acá se
+            // adelanta el caso puntual para tener datos del próximo evento.
+            Sentry.captureException(error, {
+                tags: { subsystem: 'ficha_servicio_chat_insert' },
+                contexts: {
+                    chat_insert: {
+                        servicio_id: service.id,
+                        proveedor_id: proveedor.id,
+                    },
+                },
+            });
             console.error('Error starting conversation:', error);
             toast.error('Hubo un error al intentar abrir el chat. Intenta de nuevo.');
         } finally {
