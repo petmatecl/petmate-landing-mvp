@@ -88,12 +88,15 @@ test.describe.serial('incidente-usuario-fix · regresión', () => {
         });
 
         // El NotFoundContent muestra el heading "Página no encontrada" y
-        // el botón "Explorar servicios".
+        // el CTA "Explorar servicios" DENTRO del main (para discriminar del
+        // link del Header nav que también dice "Explorar servicios" y
+        // dispara strict mode violation al usar el selector amplio —
+        // observado en run 36058976874, corregido con scoping a main).
         await expect(
             page.getByRole('heading', { name: 'Página no encontrada' }),
         ).toBeVisible({ timeout: 10_000 });
         await expect(
-            page.getByRole('link', { name: /Explorar servicios/i }),
+            page.getByRole('main').getByRole('link', { name: /Explorar servicios/i }),
         ).toBeVisible();
 
         // Cero fallback "Algo salió mal" — si aparece, el guard no funcionó.
