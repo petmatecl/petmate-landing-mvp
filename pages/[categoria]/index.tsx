@@ -8,6 +8,7 @@ import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderC
 import { MapPinIcon } from '@heroicons/react/24/outline';
 import { Search } from 'lucide-react';
 import Breadcrumb from '../../components/Shared/Breadcrumb';
+import NotFoundContent from '../../components/Shared/NotFoundContent';
 import { COMUNAS_SEO } from './[comuna]';
 
 interface CategoryPageProps {
@@ -20,6 +21,20 @@ interface CategoryPageProps {
 }
 
 export default function CategoryPage({ categoria, services }: CategoryPageProps) {
+    // Sprint incidente-usuario-fix (2026-09-24) — guard defensivo cuando
+    // `categoria` es undefined en el hydrate del cliente. Escenario que
+    // origina el fix: SPA navigation cliente-side a `/usuario` (u otro slug
+    // no listado en getStaticPaths) resuelve el path contra este [categoria]
+    // sin pasar por el redirect server-side de next.config.js (que solo
+    // aplica a request pathname `/usuario`, no al fetch `/_next/data/.../
+    // usuario.json?categoria=usuario`). En prod bug real capturado como
+    // Sentry issue JAVASCRIPT-NEXTJS-9 (2026-09-24 · release 6774fbd) tras
+    // que un tutor volviera del chat con "Volver al Panel" apuntando a
+    // /usuario. Sin este guard, `categoria.nombre` a la línea siguiente
+    // revienta con TypeError. Con el guard, el componente muestra el 404
+    // canónico compartido con /404.tsx.
+    if (!categoria) return <NotFoundContent />;
+
     const pageTitle = `${categoria.nombre} | Encuentra Profesionales en Pawnecta`;
     const pageDescription = `Encuentra los mejores proveedores de ${categoria.nombre.toLowerCase()} en Santiago y Chile. Perfiles verificados, reseñas reales y trato personalizado.`;
 

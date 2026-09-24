@@ -5,6 +5,7 @@
 // con sus credenciales y su storageState path. Sumar un rol nuevo NO requiere
 // refactor — solo agregar un archivo setup.
 // ---------------------------------------------------------------------------
+import fs from 'fs';
 import { Page, expect } from '@playwright/test';
 
 export type AuthOptions = {
@@ -123,5 +124,127 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         await expect(page.getByRole('region', { name: /Aviso de cookies/i })).not.toBeVisible({ timeout: 5_000 });
     }
 
+    // Sprint hf-usuario-fix (2026-09-24) — guard contra race del token
+    // Supabase vs storageState capture. Sin esto, si Supabase no persiste los
+    // tokens en localStorage antes del capture, todos los specs downstream
+    // (potencialmente 17+ como en el run 36045131206 del PR #91) fallan con
+    // "No se encontró {access_token, refresh_token}" — 17 fails en cascada
+    // por 1 sola causa raíz oculta. El guard hace explícito el fallo: si el
+    // token no está en localStorage al momento del capture, el setup falla
+    // aquí (1 error claro) en vez de cascadear a la suite.
+    //
+    // Paso 1 · esperar activamente a que Supabase persista el token en
+    // localStorage. Elimina la race timing entre waitForURL (que resuelve
+    // apenas la URL cambia) y persistSession() del SDK (que corre después
+    // del onAuthStateChange SIGNED_IN handler). Timeout 10s: si en ese
+    // margen no aparece el token, es fallo real del login (no timing).
+    try {
+        await page.waitForFunction(
+            () => {
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+                            const v = localStorage.getItem(k);
+                            if (v && v.includes('"access_token"')) return true;
+                        }
+                    }
+                    return false;
+                } catch { return false; }
+            },
+            { timeout: 10_000 },
+        );
+    } catch {
+        throw new Error(
+            `[authenticate:${opts.roleName}] Login pareció exitoso (waitForURL fuera de /login OK) ` +
+            `pero Supabase NO persistió el token en localStorage tras 10s (buscando key sb-*-auth-token ` +
+            `con access_token). Race del token vs storageState capture, o el signIn cliente-side no ` +
+            `completó realmente. URL actual: ${page.url()}. Detiene el setup acá para evitar cascada ` +
+            `de fails "No se encontró {access_token, refresh_token}" en todos los specs downstream.`
+        );
+    }
+
+    // Sprint hf-usuario-fix iteración 2 (2026-09-24) — captura ampliada para
+    // diagnosticar por qué el paso 2 falla pese a que el paso 1 confirma el
+    // token en localStorage. Run 36051500666 mostró que:
+    //   - waitForFunction PASA (token en localStorage al momento del check).
+    //   - storageState() escribe archivo con solo cookies (_vercel_jwt del
+    //     Vercel bypass), SIN origins/localStorage con sb-*-auth-token.
+    //   - snapshot post-timeout muestra al user logueado normalmente en la
+    //     UI, sesión viva en el browser.
+    //
+    // Hipótesis: Playwright storageState() captura origins que la página
+    // "conoce" (navegó). El bypass query + redirect subsecuente puede dejar
+    // el localStorage bajo un origin ligeramente distinto del que Playwright
+    // serializa. Para confirmar: capturar diagnóstico completo — page.url(),
+    // page.evaluate del origin + localStorage completo, y el JSON guardado
+    // (primeros 3000 chars, no 300, para ver el bloque `origins`).
+    const preCaptureDiag = await page.evaluate(() => {
+        const items: Array<{ key: string; valueLen: number; valuePreview: string }> = [];
+        try {
+            for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (!k) continue;
+                const v = localStorage.getItem(k) ?? '';
+                items.push({ key: k, valueLen: v.length, valuePreview: v.slice(0, 80) });
+            }
+        } catch { /* ignore */ }
+        return { url: location.href, origin: location.origin, ls: items };
+    });
+
     await page.context().storageState({ path: opts.storageStatePath });
+
+    // Paso 2 · guard final: verificar el archivo escrito contiene un token
+    // Supabase válido con MISMA lógica que el helper downstream
+    // `extractSessionTokens` de e2e/fixtures/supabase.ts:40-72 (JSON.parse +
+    // iterate origins > localStorage > name sb-*-auth-token, luego
+    // JSON.parse del value, luego check access_token + refresh_token).
+    //
+    // Sprint hf-usuario-fix iteración 3 (2026-09-24) — el check ingenuo
+    // `savedRaw.includes('"access_token"')` de la iter 2 era false positive:
+    // Playwright serializa el `value` del localStorage como string dentro
+    // del JSON, con escape `\"access_token\"` en el archivo — el `includes`
+    // buscando `"access_token"` (con comillas literales, sin backslash) NO
+    // matcheaba pese a que el token estaba presente. Run 36055308817 lo
+    // confirmó: DIAG mostró que el archivo contenía `\"access_token\":\"...\"`
+    // dentro del `value` del sb-*-auth-token; guard tiraba false positive.
+    //
+    // Fix definitivo: parse el JSON del archivo tal como el helper downstream
+    // lo hace, y verificar que exista al menos un origin con un item
+    // sb-*-auth-token cuyo value JSON tenga access_token + refresh_token.
+    // Cero string matching frágil; cero false positive.
+    const savedRaw = fs.readFileSync(opts.storageStatePath, 'utf-8');
+    let hasValidToken = false;
+    try {
+        const state = JSON.parse(savedRaw);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const origins = (state.origins ?? []) as Array<{ origin: string; localStorage: Array<{ name: string; value: string }> }>;
+        for (const o of origins) {
+            for (const item of o.localStorage ?? []) {
+                if (item.name.startsWith('sb-') && item.name.endsWith('-auth-token')) {
+                    try {
+                        const parsed = JSON.parse(item.value);
+                        if (parsed?.access_token && parsed?.refresh_token) {
+                            hasValidToken = true;
+                            break;
+                        }
+                    } catch { /* item malformado, seguir */ }
+                }
+            }
+            if (hasValidToken) break;
+        }
+    } catch { /* archivo malformado — hasValidToken queda false */ }
+
+    if (!hasValidToken) {
+        throw new Error(
+            `[authenticate:${opts.roleName}] storageState guardado en ${opts.storageStatePath} SIN ` +
+            `sb-*-auth-token con {access_token, refresh_token} válidos, pese a que localStorage lo ` +
+            `tenía pre-capture.\n\n` +
+            `DIAG · page.url: ${preCaptureDiag.url}\n` +
+            `DIAG · origin: ${preCaptureDiag.origin}\n` +
+            `DIAG · localStorage items (${preCaptureDiag.ls.length}):\n` +
+            preCaptureDiag.ls.map(i => `  - ${i.key} (len=${i.valueLen}): ${i.valuePreview}`).join('\n') +
+            `\n\nCONTENIDO GUARDADO (primeros 3000 chars):\n${savedRaw.slice(0, 3000)}`
+        );
+    }
 }
