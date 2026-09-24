@@ -118,4 +118,25 @@
 
 ---
 
-**Fin del listado**. Estas 10 preguntas cubren los puntos abiertos técnicos del sprint DEL-CUENTA-LEY + del sprint CARNET-RETENCION. Cualquier respuesta del asesor legal que cambie los defaults técnicos requiere actualizar `docs/producto/del-cuenta-ley-descubrimiento.md` §9 (decisiones del PO) + [`docs/sprints/del-cuenta-ley.md`](../sprints/del-cuenta-ley.md) antes del merge del sprint post-regreso PO (2026-10-28+).
+---
+
+## 11. Retención de eventos Sentry con IP + user.id (nueva 2026-09-24)
+
+**Contexto**: PR #82 cue-1-sentry-user (mergeado 2026-09-23, release prod `330a89031367`) aterrizó `Sentry.setUser({ id })` en `contexts/UserContext.tsx`. Ahora cada event Sentry lleva UUID del user autenticado. Sentry SDK Next.js registra **`ip_address` automáticamente** (default `sendDefaultPii: true` en `@sentry/nextjs`) y **deriva geografía** en `Contexts → User → Geography` (país, región, ciudad).
+
+**Estado actual**:
+- `lib/sentryScrub.ts:beforeSend` hace scrub de JWT/emails/RUT/cookies del **payload del error**, pero **NO toca `event.user.ip_address` ni `contexts.geo`**.
+- Retención default Sentry: 30 días issue browse + 90 días datos raw (verificar en dashboard Settings de la org).
+- Cada event futuro trae: `user.id` (UUID interno, cross-reference a BD Pawnecta) + `ip_address` + geo → combinación reidentificable con acceso interno.
+
+**Pregunta al asesor**:
+1. ¿La combinación (`user.id` UUID + `ip_address` + geo) bajo retención Sentry configurable (30-90 días) requiere tratamiento equivalente a PII bajo Ley 21.719? Fundamento nuestro: el UUID sin acceso a la BD interna no identifica a la persona; la IP se resetea con la sesión ISP. Combinación es reidentificable **solo con acceso interno**.
+2. ¿Es obligatorio scrub de IP en el `beforeSend` de Sentry, o retención acortada a X días es alternativa aceptable? Trade-off: geo por país/región sigue útil para debug (identificar regresiones específicas por zona); IP específica es PII más pura.
+3. ¿Cuánto tiempo puede Sentry retener eventos con esta combinación bajo Ley 21.719 chilena? El default 90 días es europeo GDPR-style; ¿aplica el mismo criterio en Chile?
+4. Al eliminar cuenta (DEL-CUENTA-LEY sprint), ¿debemos también **borrar todos los events Sentry del user.id borrado** proactivamente (via Sentry Data Deletion API)? Alternativa: dejar los events (con UUID que ya no resuelve a persona) hasta que Sentry los expira. Ver ítem BACKLOG SENTRY-PII (post-lanzamiento salvo indicación asesor).
+
+**Nota operativa**: ítem BACKLOG `SENTRY-PII` (post-lanzamiento por default) queda subordinado a esta respuesta legal. Si el asesor indica scrub obligatorio de IP o retención acotada, sube a Tramo 2 pre-lanzamiento.
+
+---
+
+**Fin del listado**. Estas 11 preguntas cubren los puntos abiertos técnicos del sprint DEL-CUENTA-LEY + CARNET-RETENCION + SENTRY-PII (nueva). Cualquier respuesta del asesor legal que cambie los defaults técnicos requiere actualizar `docs/producto/del-cuenta-ley-descubrimiento.md` §9 (decisiones del PO) + [`docs/sprints/del-cuenta-ley.md`](../sprints/del-cuenta-ley.md) + `BACKLOG.md` SENTRY-PII antes del merge del sprint post-regreso PO (2026-10-28+).
