@@ -234,6 +234,50 @@ jobs:
           done
           echo "=== Warmup done (rapido) ==="
 
+      # Sprint cue-1-fix B3 (2026-09-24) — CI-SPEC-COUNT: defensa activa
+      # contra "workflow ignora silenciosamente specs nuevos" (corolario P8
+      # 13ª descubierto en cue-1-fix cuando specs cue-1-fix/ estaban en
+      # disco pero el path no aparecía en el comando de Playwright → checks
+      # verdes falsos porque cero test corría). Falla si:
+      #   (a) hay directorio bajo e2e/specs/ no incluido en NINGUNA de las
+      #       2 líneas de `npx playwright test` del workflow.
+      #   (b) el conteo de spec files es menor al MIN esperado (regresión
+      #       de setup — probable borrado accidental de specs).
+      # Corre PRE-Playwright para fallar antes del retry cascade largo.
+      - name: B3 CI-SPEC-COUNT — verificar cobertura de specs en workflow
+        run: |
+          set -o pipefail
+          # (a) Dirs bajo e2e/specs/ vs dirs listados en el workflow.
+          DIRS_FOUND=$(find e2e/specs -mindepth 1 -maxdepth 1 -type d | sed 's|^e2e/specs/||' | sort -u)
+          DIRS_IN_WF=$(grep -oE 'e2e/specs/[a-zA-Z0-9_-]+/' .github/workflows/e2e-error-audit.yml | sed 's|e2e/specs/||;s|/$||' | sort -u)
+          echo "=== Dirs bajo e2e/specs/ ==="
+          echo "$DIRS_FOUND"
+          echo ""
+          echo "=== Dirs listados en workflow (ambas líneas playwright test) ==="
+          echo "$DIRS_IN_WF"
+          echo ""
+          MISSING=$(comm -23 <(echo "$DIRS_FOUND") <(echo "$DIRS_IN_WF") || true)
+          if [ -n "$MISSING" ]; then
+            echo "❌ CI-SPEC-COUNT FAIL — dirs bajo e2e/specs/ NO incluidos en workflow:"
+            echo "$MISSING"
+            echo ""
+            echo "Estos specs NO corren en CI → falso positivo verde. Agregar el path"
+            echo "al comando 'npx playwright test' correspondiente (rápido o F2)."
+            exit 1
+          fi
+          echo "✅ CI-SPEC-COUNT (a): todos los dirs bajo e2e/specs/ están incluidos."
+
+          # (b) Conteo de spec files vs piso mínimo (defensa borrado accidental).
+          COUNT=$(find e2e/specs -name '*.spec.ts' | wc -l)
+          MIN=40
+          echo "Total spec files: $COUNT (min esperado: $MIN)"
+          if [ "$COUNT" -lt "$MIN" ]; then
+            echo "❌ CI-SPEC-COUNT FAIL (b) — conteo ${COUNT} < mínimo ${MIN} — probable regresión"
+            echo "de setup o borrado accidental. Si es intencional, bajar MIN acá."
+            exit 1
+          fi
+          echo "✅ CI-SPEC-COUNT (b): conteo ${COUNT} ≥ mínimo ${MIN}."
+
       - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1 + conviene + prelaunch)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}

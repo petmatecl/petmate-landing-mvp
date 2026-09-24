@@ -464,6 +464,10 @@ Reconozco la tercera omisión. La regla "reporte de cierre responde punto por pu
 
 **Verificación previa post-ajuste**: `git push origin main` desde una copia limpia debe rechazar con `protected branch hook declined`. Si permite el push, la protección no está aplicada correctamente y hay que revisitar.
 
+## Sprint cue-1-fix B2 · Fix real del stale closure del watchdog (2026-09-24)
+
+Fix aterrizado en `contexts/UserContext.tsx`: `stateForWatchdogRef` con isLoading/user/hydrationState/routerAsPath actualizado en cada render + setTimeout lee state fresco vía ref + `eslint-disable-next-line react-hooks/exhaustive-deps` removido. F1+F2 (AbortController+fallback) NO aterrizan por decisión PO — arreglaban problema empíricamente inexistente. F4 doble dirección (negativa A1.c/d/e warns=0 + positiva cue-1-watchdog dispara con queries bloqueadas). B3 CI-SPEC-COUNT como defensa canónica P8 13ª. **CUE-1 NO se cierra** — 36 events previos ruido del instrumento, cuelgue original PO 2026-08-27 sin evidencia a favor ni en contra. Ventana observación 2026-09-29 → 2026-10-27 con user.id activo (post-#82). Baja a CONVIENE al regreso si cero events reales. Merge sábado con QA PO prod. Reporte espejo 1-7 completo en [cue-1-fix-b2-reporte-espejo.md](cue-1-fix-b2-reporte-espejo.md). Cross-check GA4 sesiones >15s pendiente PO (cero MCP GA4 disponible).
+
 ## Cierre QA #82 cue-1-sentry-user (2026-09-24)
 
 **QA PO en Sentry post-deploy prod OK**. PO confirmó 2026-09-24:

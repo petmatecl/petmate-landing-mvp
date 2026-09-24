@@ -137,51 +137,17 @@ test.describe.serial('A1.b — Guest sin sesión, 2 pestañas simultáneas', () 
 // sesión — patrón #2426 supabase-js (tab switch + Chrome Memory Saver →
 // freeze indefinido). Nuestra versión 2.84.0 es anterior al fix.
 test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)', () => {
-    test('reproduce cuelgue en /proveedor con 2 tabs', async ({ browser }) => {
-        // Contexto con storageState proveedor (Aldo).
+    // Sprint cue-1-fix B2 (2026-09-24) — assertion NEGATIVA post fix del
+    // stale closure watchdog: hydrate OK debe dar warns=0. Antes del fix
+    // el watchdog disparaba falso positivo (isLoading stale del closure
+    // inicial). Post-fix stateForWatchdogRef, si el hydrate resuelve
+    // exitoso el watchdog NO debe disparar.
+    test('hydrate OK → cero warnings del watchdog (fix stale closure)', async ({ browser }) => {
         const ctx = await browser.newContext({ storageState: 'e2e/.auth/proveedor.json' });
         const page1 = await ctx.newPage();
         const page2 = await ctx.newPage();
         const w1 = trackearWarnings(page1);
         const w2 = trackearWarnings(page2);
-
-        // [CUE-1-INSTR B1.5 experimental] — page.on('request'/'response')
-        // filtrando queries a /rest/v1/proveedores y /rest/v1/usuarios_buscadores.
-        // Colectar en arrays por pestaña + reportar al final.
-        type NetEvent = { kind: 'req' | 'res'; url: string; status?: number; t: number };
-        const netA: NetEvent[] = [];
-        const netB: NetEvent[] = [];
-        const filterInteresante = (url: string) =>
-            /\/rest\/v1\/(proveedores|usuarios_buscadores)/.test(url) ||
-            /\/auth\/v1\//.test(url);
-        page1.on('request', (req) => {
-            const u = req.url();
-            if (filterInteresante(u)) netA.push({ kind: 'req', url: u, t: Date.now() });
-        });
-        page1.on('response', (res) => {
-            const u = res.url();
-            if (filterInteresante(u)) netA.push({ kind: 'res', url: u, status: res.status(), t: Date.now() });
-        });
-        page2.on('request', (req) => {
-            const u = req.url();
-            if (filterInteresante(u)) netB.push({ kind: 'req', url: u, t: Date.now() });
-        });
-        page2.on('response', (res) => {
-            const u = res.url();
-            if (filterInteresante(u)) netB.push({ kind: 'res', url: u, status: res.status(), t: Date.now() });
-        });
-
-        // Colectar TODOS los logs con prefijo CUE-1-INSTR (no solo warnings).
-        const instrA: string[] = [];
-        const instrB: string[] = [];
-        page1.on('console', (msg) => {
-            const t = msg.text();
-            if (t.includes('[CUE-1-INSTR]')) instrA.push(t);
-        });
-        page2.on('console', (msg) => {
-            const t = msg.text();
-            if (t.includes('[CUE-1-INSTR]')) instrB.push(t);
-        });
 
         const t0 = Date.now();
         await Promise.all([
@@ -195,28 +161,17 @@ test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)
         const wallMs = Date.now() - t0;
 
         console.log(`[A1.c] wall=${wallMs}ms | tab1_warns=${w1.warnings.length} | tab2_warns=${w2.warnings.length}`);
-        console.log(`[A1.c] LOCKS tab1: ${JSON.stringify(locks1).slice(0, 400)}`);
-        console.log(`[A1.c] LOCKS tab2: ${JSON.stringify(locks2).slice(0, 400)}`);
+        console.log(`[A1.c] LOCKS tab1: ${JSON.stringify(locks1).slice(0, 200)}`);
+        console.log(`[A1.c] LOCKS tab2: ${JSON.stringify(locks2).slice(0, 200)}`);
         if (w1.warnings.length > 0) console.log(`[A1.c] SAMPLE tab1 WARN: ${w1.warnings[0].slice(0, 300)}`);
         if (w2.warnings.length > 0) console.log(`[A1.c] SAMPLE tab2 WARN: ${w2.warnings[0].slice(0, 300)}`);
 
-        // [CUE-1-INSTR B1.5] — Reporte network + logs INSTR por pestaña.
-        console.log('[A1.c-B1.5] === NETWORK tab1 (page1) ===');
-        for (const e of netA) {
-            console.log(`  ${e.kind === 'req' ? 'REQ' : `RES ${e.status}`} @ ${e.t - t0}ms  ${e.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 120)}`);
-        }
-        console.log(`[A1.c-B1.5] tab1 network summary: ${netA.filter(e => e.kind === 'req').length} req, ${netA.filter(e => e.kind === 'res').length} res`);
-        console.log('[A1.c-B1.5] === NETWORK tab2 (page2) ===');
-        for (const e of netB) {
-            console.log(`  ${e.kind === 'req' ? 'REQ' : `RES ${e.status}`} @ ${e.t - t0}ms  ${e.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 120)}`);
-        }
-        console.log(`[A1.c-B1.5] tab2 network summary: ${netB.filter(e => e.kind === 'req').length} req, ${netB.filter(e => e.kind === 'res').length} res`);
-
-        console.log('[A1.c-B1.5] === INSTR logs tab1 ===');
-        for (const l of instrA) console.log(`  ${l.slice(0, 200)}`);
-        console.log('[A1.c-B1.5] === INSTR logs tab2 ===');
-        for (const l of instrB) console.log(`  ${l.slice(0, 200)}`);
-
+        // Sprint cue-1-fix B2 — assertion regresión permanente:
+        // post-fix stale closure, hydrate exitoso (Promise.all resuelve
+        // en <1s con hasData=true) NO debe disparar el watchdog.
+        // Pre-fix esta assertion fallaba con warns=1+1.
+        expect(w1.warnings.length, '[A1.c REGRESIÓN] tab1: hydrate OK debe dar cero warns (fix stale closure watchdog)').toBe(0);
+        expect(w2.warnings.length, '[A1.c REGRESIÓN] tab2: hydrate OK debe dar cero warns (fix stale closure watchdog)').toBe(0);
         expect(locks1).toBeDefined();
         expect(locks2).toBeDefined();
         await ctx.close();
@@ -318,6 +273,12 @@ test.describe.serial('A1.e — Tab oculta 90s+ (simulación #2426)', () => {
         if (wA.warnings.length > 0) console.log(`[A1.e] SAMPLE tabA WARN: ${wA.warnings[0].slice(0, 300)}`);
         if (wB.warnings.length > 0) console.log(`[A1.e] SAMPLE tabB WARN: ${wB.warnings[0].slice(0, 300)}`);
 
+        // Sprint cue-1-fix B2 (2026-09-24) — assertion NEGATIVA: post-fix
+        // stale closure watchdog, hydrate exitoso en tab visible + tab
+        // oculta 90s no deben disparar warn. Pre-fix esta assertion
+        // fallaba con warns=1+1.
+        expect(wA.warnings.length, '[A1.e REGRESIÓN] tabA: cero warns post-fix stale closure').toBe(0);
+        expect(wB.warnings.length, '[A1.e REGRESIÓN] tabB: cero warns post-fix stale closure').toBe(0);
         expect(locksPost).toBeDefined();
         await ctx.close();
     });
@@ -360,6 +321,11 @@ test.describe.serial('A1.d — /security-logout post-signOut', () => {
         console.log(`[A1.d] wall=${wallMs}ms | warns=${warnings.length} | locks=${JSON.stringify(locks).slice(0, 400)}`);
         if (warnings.length > 0) console.log(`[A1.d] SAMPLE WARN: ${warnings[0].slice(0, 300)}`);
 
+        // Sprint cue-1-fix B2 (2026-09-24) — assertion NEGATIVA: post-fix
+        // stale closure watchdog, post-signOut + navegación a
+        // /security-logout NO debe disparar warn falso positivo. Pre-fix
+        // esta assertion fallaba con warns=1.
+        expect(warnings.length, '[A1.d REGRESIÓN] post-signOut → /security-logout NO debe dar warn (fix stale closure)').toBe(0);
         expect(locks).toBeDefined();
         await ctx.close();
     });
