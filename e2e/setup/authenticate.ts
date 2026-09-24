@@ -5,6 +5,7 @@
 // con sus credenciales y su storageState path. Sumar un rol nuevo NO requiere
 // refactor — solo agregar un archivo setup.
 // ---------------------------------------------------------------------------
+import fs from 'fs';
 import { Page, expect } from '@playwright/test';
 
 export type AuthOptions = {
@@ -123,5 +124,58 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         await expect(page.getByRole('region', { name: /Aviso de cookies/i })).not.toBeVisible({ timeout: 5_000 });
     }
 
+    // Sprint hf-usuario-fix (2026-09-24) — guard contra race del token
+    // Supabase vs storageState capture. Sin esto, si Supabase no persiste los
+    // tokens en localStorage antes del capture, todos los specs downstream
+    // (potencialmente 17+ como en el run 36045131206 del PR #91) fallan con
+    // "No se encontró {access_token, refresh_token}" — 17 fails en cascada
+    // por 1 sola causa raíz oculta. El guard hace explícito el fallo: si el
+    // token no está en localStorage al momento del capture, el setup falla
+    // aquí (1 error claro) en vez de cascadear a la suite.
+    //
+    // Paso 1 · esperar activamente a que Supabase persista el token en
+    // localStorage. Elimina la race timing entre waitForURL (que resuelve
+    // apenas la URL cambia) y persistSession() del SDK (que corre después
+    // del onAuthStateChange SIGNED_IN handler). Timeout 10s: si en ese
+    // margen no aparece el token, es fallo real del login (no timing).
+    try {
+        await page.waitForFunction(
+            () => {
+                try {
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const k = localStorage.key(i);
+                        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+                            const v = localStorage.getItem(k);
+                            if (v && v.includes('"access_token"')) return true;
+                        }
+                    }
+                    return false;
+                } catch { return false; }
+            },
+            { timeout: 10_000 },
+        );
+    } catch {
+        throw new Error(
+            `[authenticate:${opts.roleName}] Login pareció exitoso (waitForURL fuera de /login OK) ` +
+            `pero Supabase NO persistió el token en localStorage tras 10s (buscando key sb-*-auth-token ` +
+            `con access_token). Race del token vs storageState capture, o el signIn cliente-side no ` +
+            `completó realmente. URL actual: ${page.url()}. Detiene el setup acá para evitar cascada ` +
+            `de fails "No se encontró {access_token, refresh_token}" en todos los specs downstream.`
+        );
+    }
+
     await page.context().storageState({ path: opts.storageStatePath });
+
+    // Paso 2 · guard final: verificar el archivo escrito contiene el token.
+    // Si el waitForFunction pasó pero el capture perdió el token (edge case
+    // Playwright storageState vs localStorage), fallar loud con mensaje claro.
+    const savedRaw = fs.readFileSync(opts.storageStatePath, 'utf-8');
+    if (!savedRaw.includes('"access_token"')) {
+        throw new Error(
+            `[authenticate:${opts.roleName}] storageState guardado en ${opts.storageStatePath} SIN ` +
+            `"access_token" pese a que localStorage lo tenía pre-capture. Race extraño de Playwright ` +
+            `storageState vs localStorage — considerar delay o refetch de session antes del capture. ` +
+            `Contenido guardado (primeros 300 chars): ${savedRaw.slice(0, 300)}`
+        );
+    }
 }
