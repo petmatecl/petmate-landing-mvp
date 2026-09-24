@@ -1,7 +1,7 @@
 # Sprint sentry-boundary · 2026-09-25
 
-**Rama**: `sentry-boundary` (desde `main @ 330a890`).
-**Estado**: PR listo para review PO. Fix + smoke + spec + workflow yml aterrizado. Espera GO.
+**Rama**: `sentry-boundary` (desde `main @ 330a890`) · **mergeada a main en `6774fbd` 2026-09-24** (PR #88).
+**Estado**: **CERRADO** — P8 positivo end-to-end confirmado en prod con bug real. Ver sección "8. Cierre".
 **Motivación**: incidente prod 2026-09-25 — el PO vio pantalla "Algo salió mal" del ErrorBoundary en cuenta tutor (`user.id aff2a90d`) tras flujo `chat → back → /usuario`, pero el Sentry dashboard no registró evento. Diagnóstico previo mostró que `components/ErrorBoundary.tsx:23-25` solo hacía `console.error`, sin llamar a `Sentry.captureException`. Los errores de render pasaban mudos aunque la pantalla aparecía al usuario.
 
 Clasificación PO: **P0 · BLOQUEA** — cualquier bug de render que aterriza al boundary se pierde sin señal, invalidando la observabilidad cliente durante la ventana de lanzamiento.
@@ -115,3 +115,34 @@ Tras merge + deploy a prod:
 - **H2 · CUE-1 evidencia real (issue -5 hydrate exhausted + -8 login_role_lookup_failed)**: cerrado como dispositivo propio del PO — cruce de `user.id 0c2ab509…` (2026-09-25) confirmó cuenta Android del PO, los 5 events son sus pruebas del 08-sep y 21-sep, no usuarios reales. F1+F2 (AbortController + fallback determinístico) archivados como "no aplican" — la causa real es `Failed to fetch` que ya se resuelve con error del fetch y ya dispara los 4 reintentos del hydrate. `cue-1-mobile-toast` queda como CONVIENE post-lanzamiento (aviso al usuario en modo degradado con acción Recargar). Ver [docs/sprints/cue-1-fix.md > Estado 2026-09-25](docs/sprints/cue-1-fix.md) y [BACKLOG.md > CUE-1](BACKLOG.md).
 - **"Los 5 de /security-logout"**: cerrado. Query amplia confirmó que eran distribución de transaction del issue `-7` (watchdog `user_context_stuck`) del 22-09 (cue-1.4). Con el stale closure explicado y el fix en #85, esos 5 dejan de significar algo.
 - **Regla nueva aplicada de este sprint** (aterrizada a CLAUDE.md > COROLARIO P8 12ª): antes de clasificar un issue Sentry, cruzar `user.id` contra las cuentas conocidas del equipo. Dos semanas de "evidencia CUE-1 BLOQUEA" fueron el PO probándose a sí mismo desde dos dispositivos. La clasificación real solo se pudo hacer cuando el sprint `cue-1-sentry-user` (#82) puso el `user.id` en scope y este sprint hizo el cruce.
+
+## 8. Cierre · P8 positivo end-to-end CONFIRMADO 2026-09-24
+
+**Fix aterrizado en prod** (deploy `dpl_EFUhFPhrBzJezEgWQ6YnEsFNgf8t`, state=READY, SHA `6774fbd61601dbe34067529e487cd9d4f3451e1f`, verificado vía Vercel MCP 2026-09-24).
+
+**Positivo real reproducido por PO 2026-09-24** — flujo `ficha servicio → "Enviar Mensaje" → toast error 1er clic → 2do clic abre /mensajes?id=b439cc90-... → "Volver al Panel" → /usuario → pantalla "Algo salió mal"`.
+
+**Evidencia Sentry** (script `sentry-event-issue9.ts`):
+
+| campo | valor |
+|---|---|
+| shortId | `JAVASCRIPT-NEXTJS-9` |
+| title | `TypeError: Cannot read properties of undefined (reading 'nombre')` |
+| culprit | `/[categoria]` |
+| user.id | del PO (Chrome Windows) |
+| release | `6774fbd61601dbe34067529e487cd9d4f3451e1f` |
+| transaction | `/[categoria]` |
+| url | `https://pawnecta.com/usuario` |
+| **tag `subsystem`** | **`error-boundary`** ← fix aplicado |
+| **`contexts.react.componentStack`** | **poblado con stack completo del hijo** ← fix aplicado |
+| exception | `at CategoryPage (./pages/[categoria]/index.tsx:?:36)` |
+
+**Ambos elementos del fix presentes**: `tags.subsystem='error-boundary'` (agregado en `componentDidCatch` del sprint) + `contexts.react.componentStack` (agregado en el mismo callsite). El `Sentry.setUser({id})` de PR #82 llenó el `user.id` automáticamente sin intervención del boundary.
+
+**Sin este sprint (pre-#88)**: la misma pantalla del boundary aparecía en producción sin evento Sentry alguno — bug de render invisible.
+
+**Con este sprint (post-#88)**: cada crash del boundary llega al dashboard con stack + user.id + subsystem tag → diagnóstico posible sobre datos reales, no sobre reproducciones manuales.
+
+**Bug real identificado por el evento**: `pages/[categoria]/index.tsx:22-24` accede a `categoria.nombre` sin guard; `getStaticPaths` con `fallback:false` + slug `'usuario'` no listado → `getStaticProps` devuelve `notFound:true`, pero el hydrate client-side renderiza el componente sin la data → TypeError. Sprint dedicado `incidente-usuario-fix` (2026-09-24) aterriza los 2 fixes: (capa 1) enlace correcto en `pages/mensajes.tsx` para tutor `/mis-reservas` en vez de `/usuario`, (capa 2) guard `if (!categoria) return <NotFoundContent />` en el componente para no crashear en cualquier slug inexistente. Ver [docs/sprints/incidente-usuario-fix.md](incidente-usuario-fix.md).
+
+**Ventana observación post-merge** cerrada exitosamente: el positivo llegó en <1h de deploy prod. La sección 5 (24h + 72h monitor de otros events con `subsystem:error-boundary`) sigue viva pero cambia de propósito — ahora es monitoreo estándar, no verificación del fix.

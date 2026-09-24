@@ -1,0 +1,40 @@
+// components/Shared/NotFoundContent.tsx
+// ---------------------------------------------------------------------------
+// Sprint incidente-usuario-fix (2026-09-24) — extraído de pages/404.tsx para
+// reuso desde otras superficies que deban renderizar el "404 canónico" sin
+// que Next.js maneje la ruta como 404 nativo. Caso de origen: cliente-side
+// SPA navigation cae en pages/[categoria]/index.tsx con `categoria=undefined`
+// cuando el slug no matchea el getStaticPaths (`fallback:false` + `notFound:
+// true` del getStaticProps no aplica en el bundle client-hydrate). En ese
+// escenario el componente CategoryPage renderiza `<NotFoundContent />` en
+// vez de reventar sobre `categoria.nombre`.
+//
+// Cero <Head> acá — el caller aporta el suyo (pages/404.tsx sigue con su
+// <title>; en /[categoria] con categoría inexistente el <Head> ya está en
+// el layout).
+// ---------------------------------------------------------------------------
+import Link from 'next/link';
+import { Search } from 'lucide-react';
+
+export default function NotFoundContent() {
+    return (
+        <div className="min-h-[70vh] flex items-center justify-center px-4">
+            <div className="text-center max-w-md">
+                <p className="text-7xl font-black text-slate-200 mb-4">404</p>
+                <h1 className="text-xl font-bold text-slate-900 mb-2">Página no encontrada</h1>
+                <p className="text-sm text-slate-500 mb-8">
+                    Lo sentimos, la página que buscas no existe o fue movida.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                    <Link href="/explorar" className="inline-flex items-center justify-center gap-2 bg-accent-600 hover:bg-accent-700 text-white font-semibold px-5 py-2.5 rounded-xl transition-colors text-sm">
+                        <Search size={16} />
+                        Explorar servicios
+                    </Link>
+                    <Link href="/" className="inline-flex items-center justify-center gap-2 border border-slate-200 text-slate-700 font-semibold px-5 py-2.5 rounded-xl hover:bg-slate-50 transition-colors text-sm">
+                        Volver al inicio
+                    </Link>
+                </div>
+            </div>
+        </div>
+    );
+}
