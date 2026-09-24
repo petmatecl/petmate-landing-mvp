@@ -234,6 +234,74 @@ jobs:
           done
           echo "=== Warmup done (rapido) ==="
 
+      # Sprint cue-1-fix B3 (2026-09-24) — CI-SPEC-COUNT: defensa activa
+      # contra "workflow ignora silenciosamente specs nuevos" (corolario P8
+      # 13ª descubierto en cue-1-fix cuando specs cue-1-fix/ estaban en
+      # disco pero el path no aparecía en el comando de Playwright → checks
+      # verdes falsos porque cero test corría). Falla si:
+      #   (a) hay directorio bajo e2e/specs/ no incluido en NINGUNA de las
+      #       2 líneas de `npx playwright test` del workflow, excluyendo
+      #       los dirs de la EXCLUDE_LIST (que declara explícitamente los
+      #       dirs con motivo documentado para NO correr en esta suite).
+      #   (b) el conteo de spec files es menor al MIN esperado (regresión
+      #       de setup — probable borrado accidental de specs).
+      # Corre PRE-Playwright para fallar antes del retry cascade largo.
+      #
+      # EXCLUDE_LIST — dirs bajo e2e/specs/ que NO corren en esta suite por
+      # decisión de diseño explícita. Cada entrada requiere motivo inline.
+      # Agregar acá SOLO con justificación; el default es incluir el dir en
+      # el comando de playwright.
+      - name: B3 CI-SPEC-COUNT — verificar cobertura de specs en workflow
+        run: |
+          set -o pipefail
+          # EXCLUDE_LIST — un dir por línea, motivo como comentario # inline.
+          EXCLUDE_LIST=$(cat <<'EOL'
+          ci-canario
+          EOL
+          )
+          # Motivos documentados:
+          #   ci-canario — spec canario que SIEMPRE falla por diseño
+          #     (fix P12 propagación exit code). Corre en workflow dedicado
+          #     .github/workflows/ci-canario.yml semanal. Incluirlo acá
+          #     dejaría esta suite siempre roja. Ver header del spec para
+          #     detalles.
+
+          # (a) Dirs bajo e2e/specs/ vs dirs listados en el workflow.
+          DIRS_FOUND=$(find e2e/specs -mindepth 1 -maxdepth 1 -type d | sed 's|^e2e/specs/||' | sort -u)
+          DIRS_IN_WF=$(grep -oE 'e2e/specs/[a-zA-Z0-9_-]+/' .github/workflows/e2e-error-audit.yml | sed 's|e2e/specs/||;s|/$||' | sort -u)
+          DIRS_EXPECTED=$(comm -23 <(echo "$DIRS_FOUND") <(echo "$EXCLUDE_LIST" | sort -u) || true)
+          echo "=== Dirs bajo e2e/specs/ ==="
+          echo "$DIRS_FOUND"
+          echo ""
+          echo "=== EXCLUDE_LIST (dirs con motivo documentado para NO correr) ==="
+          echo "$EXCLUDE_LIST"
+          echo ""
+          echo "=== Dirs listados en workflow (ambas líneas playwright test) ==="
+          echo "$DIRS_IN_WF"
+          echo ""
+          MISSING=$(comm -23 <(echo "$DIRS_EXPECTED") <(echo "$DIRS_IN_WF") || true)
+          if [ -n "$MISSING" ]; then
+            echo "❌ CI-SPEC-COUNT FAIL — dirs bajo e2e/specs/ NO incluidos en workflow y NO en EXCLUDE_LIST:"
+            echo "$MISSING"
+            echo ""
+            echo "Opciones: (1) agregar el path al comando 'npx playwright test'"
+            echo "correspondiente (rápido o F2); (2) agregar el dir a EXCLUDE_LIST"
+            echo "arriba con motivo documentado."
+            exit 1
+          fi
+          echo "✅ CI-SPEC-COUNT (a): todos los dirs bajo e2e/specs/ están incluidos (o excluidos con motivo)."
+
+          # (b) Conteo de spec files vs piso mínimo (defensa borrado accidental).
+          COUNT=$(find e2e/specs -name '*.spec.ts' | wc -l)
+          MIN=40
+          echo "Total spec files: $COUNT (min esperado: $MIN)"
+          if [ "$COUNT" -lt "$MIN" ]; then
+            echo "❌ CI-SPEC-COUNT FAIL (b) — conteo ${COUNT} < mínimo ${MIN} — probable regresión"
+            echo "de setup o borrado accidental. Si es intencional, bajar MIN acá."
+            exit 1
+          fi
+          echo "✅ CI-SPEC-COUNT (b): conteo ${COUNT} ≥ mínimo ${MIN}."
+
       - name: Run Playwright suite rápida (error-audit + form-post + tipo-b + launch-l1 + pan-1 + conviene + prelaunch)
         env:
           PLAYWRIGHT_BASE_URL: ${{ steps.preview.outputs.url }}
@@ -249,7 +317,7 @@ jobs:
         # rompió la suite F2 y el CI dio verde falso al PR #60.
         run: |
           set -o pipefail
-          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
+          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/prelaunch-1/ e2e/specs/producto-1/ e2e/specs/producto-2/ e2e/specs/sentry/ e2e/specs/zonab-1/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ e2e/specs/cue-1-fix/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
 
       - name: Extract AUTH-RETRY marks to artifact
         # Sprint estab-e2e (2026-09-11) — el `authenticate.ts` helper hace

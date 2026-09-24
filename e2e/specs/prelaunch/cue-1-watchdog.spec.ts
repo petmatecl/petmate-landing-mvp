@@ -35,6 +35,14 @@ test('[CUE-1] watchdog dispara console.warn + Sentry.captureMessage cuando UserC
     // instancia. Iteración 2 (esta): 3 assertions con lo verificable en
     // preview + verificación prod natural via dashboard.
     //
+    // Sprint cue-1-fix B2 (2026-09-24): post fix del stale closure del
+    // watchdog, este spec sigue siendo la assertion POSITIVA (queries
+    // bloqueadas → hydrate cuelga real → isLoading sigue true en state real
+    // → stateForWatchdogRef.current.isLoading refleja true → watchdog dispara
+    // warn correctamente). Pareja con A1.c/d/e que son NEGATIVAS (hydrate OK
+    // → warns=0). Los dos juntos verifican P8 del watchdog en ambas
+    // direcciones: dispara cuando debe, NO dispara cuando no debe.
+    //
     // Enfoque 3 assertions verificables en preview:
     //   (a) console.warn presente — path debug local con `!isProd` gate
     //       (contexts/UserContext.tsx:809-813). En preview isProd=false,
