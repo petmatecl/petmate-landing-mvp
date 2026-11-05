@@ -140,7 +140,27 @@ lib/
      ```
      Barrido con lista blanca a descartar mentalmente: adverbios tildados (`aquí`, `ahí`, `allá`, `así`, `además`, `jamás`, `quizá`, `aún`), nombres propios (`José`, `María`, `René`, `Andrés`), verbos 3sg/futuro/pretérito 1sg válidos en tuteo (`está`, `será`, `verá`, `podrá`, `recibirá`, `enviará`, `notificaremos`, `agradecí`), imperativo `sé` del verbo ser (`sé el primero`), interrogativas (`qué`, `cuál`), sustantivos tildados (`café`, `día`, `país`, `Miércoles`, `Sábado`, `sí`, `té`). Si algo queda tras filtrar, es candidato — verificar contexto antes de fixear.
 
-  **Regla anti-voseo también aplica al OUTPUT del auditor al PO** (chat, actas, resúmenes, snippets de código pegables al chat, mensajes de commit). No solo strings de UI. Antes de enviar cualquier respuesta al PO, releer buscando `logueá`, `pegá`, `mirá`, `dale`, `andá`, `pasame`, `contame`, `fijate`, `vos ejecutas`, `vos verificas`. Cambiar por imperativos en tú: `inicia sesión`, `pega`, `mira`, `anda`, `pásame`, `cuéntame`, `fíjate`, `ejecutas`, `verificas`. Historia: durante el sprint sentry-flush (2026-08-11), aparecieron 3 voseos en snippets pegables al chat del PO en la misma sesión — "logueá como admin", "y vos ejecutas el fetch", etc. El PO tuvo que corregir explícitamente. Aunque el registro de output al PO es más informal que la UI, la regla del proyecto es tuteo consistente — incluye el meta-canal auditor↔PO. Checklist mental antes de enviar: (a) revisar strings pegables al chat, (b) revisar snippets `console.log`/toast/comentarios internos con probabilidad de leerse, (c) revisar mensajes de commit visibles al PO en `git log`.
+  **Regla anti-voseo también aplica al OUTPUT del auditor al PO — alcance ampliado 2026-11-05 (3ª instancia registrada)** (chat, actas, resúmenes, snippets de código pegables al chat, mensajes de commit, **reportes técnicos, respuestas a preguntas del PO, plan día a día, estimaciones, cualquier mensaje visible al PO en cualquier formato**). No solo strings de UI, no solo snippets ejecutables. Incluye todo mensaje redactado para el PO como lector.
+
+  **Antídoto mecánico pre-envío**: antes de enviar cualquier respuesta al PO, barrer con grep mental por sufijos `-ás` / `-és` finales en verbos (no en adverbios tildados). Son los sufijos canónicos del voseo rioplatense:
+  - `podés` → `puedes`
+  - `tenés` → `tienes`
+  - `querés` → `quieres`
+  - `sabés` → `sabes`
+  - `necesitás` → `necesitas`
+  - `confirmás` → `confirmas`
+  - `navegás` → `navegas`
+  - `pegás` → `pegas`
+  - `mergeás` → `mergeas` o reformular ("yo mergeo", "cuando apruebes mergeo")
+  - `vos` (pronombre) → `tú` o eliminar ("Vos verificas X" → "Verificas X").
+  Checklist mental pre-envío: releer el texto completo a enviar, no solo los snippets ejecutables, no solo las strings entre comillas. **Cada verbo conjugado en 2ª persona dirigido al PO tiene que estar en tú**: `puedes`, `tienes`, `quieres`, `confirmas`, `verificas`, `navegas`, `revisás` → `revisas`, `enviás` → `envías`, etc. Los imperativos canónicos siguen vigentes: `inicia sesión`, `pega`, `mira`, `anda`, `pásame`, `cuéntame`, `fíjate`, `ejecutas`, `verificas`.
+
+  **Historia**:
+  - **1ª instancia (sprint sentry-flush, 2026-08-11)**: 3 voseos en snippets pegables al chat del PO — "logueá como admin", "y vos ejecutas el fetch". El PO tuvo que corregir explícitamente. Motivó la primera versión de la regla.
+  - **2ª instancia (sprint email-landing session-timeout, 2026-08-25)**: voseo en snippets de debug compartidos en el turno. Mismo patrón.
+  - **3ª instancia (Tramo 3 kickoff, 2026-11-05)**: en el mismo ciclo de reportes aparecieron `podés` ("si querés ver qué ID"), `navegás` ("navegás directo a"), `querés` ("querés ver qué"), `confirmás` ("Si confirmás con esos 3 puntos") — 4 voseos en reportes narrativos al PO (no snippets, no strings de UI). La 3ª instancia muestra que el fail no es solo en código pegable: también en prosa de reportes técnicos. Esta enmienda expande explícitamente el alcance del "OUTPUT al PO" a **cualquier texto que el PO vaya a leer como consumidor**, con el antídoto mecánico pre-envío arriba.
+
+  Checklist ampliado (reemplaza al previo): (a) revisar strings pegables al chat, (b) revisar snippets `console.log`/toast/comentarios internos con probabilidad de leerse, (c) revisar mensajes de commit visibles al PO en `git log`, (d) **revisar cada verbo conjugado en 2ª persona del texto completo del mensaje — no solo lo citado o snippets, también la prosa envolvente**. El fail recurrente es confundir "snippet ejecutable" con "output al PO" — cualquier palabra dirigida al PO cuenta.
 - NO `type="url"` en inputs — usar `type="text"` (acepta www. sin https://)
 - Precios siempre con separador de miles (toLocaleString('es-CL'))
 - Precios siempre dicen "Desde" antes del monto
