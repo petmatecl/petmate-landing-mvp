@@ -780,12 +780,41 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         return () => router.events.off('routeChangeStart', handleRouteChange);
     }, [router.asPath, router.events]);
 
+    // Sprint cue-1-fix B2 (2026-09-24) — fix stale closure watchdog.
+    // El useEffect de abajo tenía `[]` deps + eslint-disable
+    // exhaustive-deps: las variables `isLoading`, `user`, `hydrationState`
+    // y `router.asPath` dentro del setTimeout eran capturas STALE del
+    // PRIMER RENDER (isLoading=true default state, user=null). El timer
+    // disparaba a 15s leyendo esos valores stale — falso positivo
+    // estructural. Detectado con instrumentación B1.5 en spec A1.c:
+    // Promise.all resolvía en <1s pero el watchdog reportaba
+    // `loading_never_resolved` igual.
+    // Fix (Op 1 del reporte espejo B1.5): `stateForWatchdogRef` con
+    // todos los valores state actualizado en CADA render. El setTimeout
+    // lee state fresco vía ref, sin capturar closure. `previousRouteRef`
+    // y `lastAuthEventRef` ya eran refs → lecturas directas siguen OK.
+    const stateForWatchdogRef = useRef({
+        isLoading: true as boolean,
+        user: null as any,
+        hydrationState: 'ok' as HydrationState,
+        routerAsPath: '',
+    });
+    stateForWatchdogRef.current = {
+        isLoading,
+        user,
+        hydrationState,
+        routerAsPath: router.asPath,
+    };
+
     useEffect(() => {
         const t = setTimeout(async () => {
             // Recheck de condiciones dentro del setTimeout — el state al
-            // dispararse el timer, no al armarlo.
-            const stuckLoading = isLoading;
-            const stuckNoUser = !user && !isLoading;
+            // dispararse el timer, no al armarlo. Leer state fresco del
+            // ref (actualizado por render) para evitar el stale closure
+            // que originaba los 36 falsos positivos en Sentry prod.
+            const nowState = stateForWatchdogRef.current;
+            const stuckLoading = nowState.isLoading;
+            const stuckNoUser = !nowState.user && !nowState.isLoading;
             if (!stuckLoading && !stuckNoUser) return;
 
             // Sesión en storage: chequeo defensivo — el SDK puede tener
@@ -806,14 +835,14 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
 
             const payload = {
                 stuckReason: stuckLoading ? 'loading_never_resolved' : 'no_user_after_load',
-                currentRoute: router.asPath,
+                currentRoute: nowState.routerAsPath,
                 previousRoute: previousRouteRef.current,
                 lastAuthEvent: lastAuthEventRef.current,
                 hasStorageSession,
                 swControlling,
-                hydrationState,
-                isLoading,
-                userTruthy: !!user,
+                hydrationState: nowState.hydrationState,
+                isLoading: nowState.isLoading,
+                userTruthy: !!nowState.user,
             };
 
             // Dual emit: console.warn en no-prod para specs y debugging local;
@@ -830,13 +859,12 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
                     stuck_reason: payload.stuckReason,
                     sw_controlling: String(swControlling),
                     has_storage_session: String(hasStorageSession),
-                    hydration_state: hydrationState,
+                    hydration_state: nowState.hydrationState,
                 },
                 extra: payload,
             });
         }, 15_000);
         return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const switchRole = (role: Role) => {
