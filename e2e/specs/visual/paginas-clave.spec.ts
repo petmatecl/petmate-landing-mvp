@@ -118,6 +118,51 @@ async function waitForStablePaint(page: Page) {
     await page.waitForTimeout(300);
 }
 
+// Sprint vis-bypass (2026-11-06) — bypass Vercel Deployment Protection para
+// las páginas públicas (storageState vacío = sin cookie `_vercel_jwt` previa).
+// Mismo patrón que `e2e/setup/authenticate.ts:33-37` y los otros specs sin
+// sesión que ya aplican bypass por query en el primer goto. El bug raíz que
+// este sprint cierra: el spec estuvo capturando la pantalla "Log in to Vercel"
+// del SSO durante ~52 días (desde G-3 seed 2026-09-15) sin que nadie lo
+// detectara — los baselines commiteados eran de la propia SSO y el test
+// pasaba por estabilidad del widget Vercel, no por estabilidad de la app.
+const BYPASS_TOKEN = process.env.PLAYWRIGHT_BYPASS ?? '';
+const BYPASS_QUERY = BYPASS_TOKEN
+    ? `?x-vercel-protection-bypass=${encodeURIComponent(BYPASS_TOKEN)}&x-vercel-set-bypass-cookie=samesitenone`
+    : '';
+
+/**
+ * Guardia P8 obligatoria pre-screenshot (vis-bypass 2026-11-06). Si la
+ * página capturó el SSO de Vercel Deployment Protection en vez de la app
+ * Pawnecta, el test falla loud con mensaje explícito. Sin esta guardia, un
+ * fallo del bypass queda silencioso y los baselines se regeneran con la
+ * SSO Vercel — el mismo bug que originó este sprint. Verifica dos señales
+ * positivas: (a) el logo Pawnecta (<img alt="Pawnecta">) del header está
+ * visible, (b) el <title> no empieza por "Log in to Vercel".
+ */
+async function assertPawnectaRendered(page: Page, pageLabel: string) {
+    const vercelSsoHeading = page.getByRole('heading', { name: /log in to vercel/i }).first();
+    const sawVercelSso = await vercelSsoHeading.isVisible().catch(() => false);
+    if (sawVercelSso) {
+        const title = await page.title();
+        throw new Error(
+            `[vis-bypass guardia P8] La página "${pageLabel}" capturó la pantalla ` +
+            `"Log in to Vercel" del SSO de Deployment Protection en vez de la app Pawnecta. ` +
+            `Verificar: (1) secret PLAYWRIGHT_BYPASS seteado y vigente en GitHub Secrets, ` +
+            `(2) BYPASS_QUERY incluido en el primer goto de este test, ` +
+            `(3) cookie _vercel_jwt emitida por Vercel en la primera redirect. ` +
+            `page.title()="${title}"`
+        );
+    }
+    // Señal positiva doble: logo del header con alt="Pawnecta" visible.
+    const logo = page.locator('header img[alt="Pawnecta"]').first();
+    await expect(
+        logo,
+        `[vis-bypass guardia P8] El logo Pawnecta del header no apareció en "${pageLabel}" dentro de 5s — ` +
+        `posible redirect SSO silente o fallo del bypass.`
+    ).toBeVisible({ timeout: 5_000 });
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Público (sin auth) — 4 páginas × 2 viewports = 8 snapshots
 // ═══════════════════════════════════════════════════════════════════════════
@@ -131,22 +176,25 @@ test.describe('visual público', () => {
 
             test(`home (/)`, async ({ page }) => {
                 skipIfBaselineMissing(`home-${vp.name}.png`);
-                await page.goto('/');
+                await page.goto(`/${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `home (/) ${vp.name}`);
                 await expect(page).toHaveScreenshot(`home-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
             test(`explorar (/explorar)`, async ({ page }) => {
                 skipIfBaselineMissing(`explorar-${vp.name}.png`);
-                await page.goto('/explorar');
+                await page.goto(`/explorar${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `explorar (/explorar) ${vp.name}`);
                 await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
             test(`login (/login)`, async ({ page }) => {
                 skipIfBaselineMissing(`login-${vp.name}.png`);
-                await page.goto('/login');
+                await page.goto(`/login${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `login (/login) ${vp.name}`);
                 await expect(page).toHaveScreenshot(`login-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
@@ -166,8 +214,9 @@ test.describe('visual público', () => {
                 // que evita dependencia de listing anon.
                 skipIfBaselineMissing(`ficha-servicio-${vp.name}.png`);
                 const SEED_SERVICIO = 'c1000001-0000-4000-8000-000000000006';
-                await page.goto(`/servicio/${SEED_SERVICIO}`);
+                await page.goto(`/servicio/${SEED_SERVICIO}${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `ficha-servicio (${SEED_SERVICIO}) ${vp.name}`);
                 await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, SNAPSHOT_OPTS);
             });
         });

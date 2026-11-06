@@ -48,6 +48,19 @@ on:
         description: 'Mensaje de commit para los snapshots actualizados'
         required: false
         default: 'chore(visual): update baseline snapshots from CI runner'
+      # Sprint vis-bypass (2026-11-06) — modo artifact-only para que las PNGs
+      # nuevas se suban como artifact descargable sin aterrizar automáticamente
+      # al branch. Habilita el flow "mándame las imágenes antes de
+      # commitearlas". Default false preserva el comportamiento histórico
+      # (commit directo al branch desde donde se dispatcheó).
+      artifact_only:
+        description: 'Si es "true", sube las PNGs como artifact sin commitearlas al branch'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 # Concurrency compartido con e2e-error-audit para no correr contra staging
 # desde 2 lugares en paralelo (los tests visual navegan páginas cacheadas +
@@ -150,7 +163,16 @@ jobs:
           # exit code y no rompe el workflow. Los snapshots quedan escritos
           # a disk, listos para el commit.
 
+      - name: Upload snapshots as artifact (siempre, para audit trail)
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-baselines-${{ github.run_id }}
+          path: e2e/specs/visual/paginas-clave.spec.ts-snapshots/
+          retention-days: 14
+          if-no-files-found: warn
+
       - name: Commit and push snapshots
+        if: github.event.inputs.artifact_only != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -170,3 +192,10 @@ jobs:
           echo "==============================="
           git commit -m "${{ github.event.inputs.commit_message }}"
           git push origin HEAD:${{ github.ref_name }}
+
+      - name: Skip commit (artifact_only mode)
+        if: github.event.inputs.artifact_only == 'true'
+        run: |
+          echo "=== artifact_only=true → PNGs uploaded as artifact, NOT committed ==="
+          echo "Download: gh run download ${{ github.run_id }} --repo ${{ github.repository }}"
+          echo "Review manual + commit por separado si corresponde."
