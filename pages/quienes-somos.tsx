@@ -74,12 +74,12 @@ export default function QuienesSomos() {
 
                                 <div className="space-y-6">
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-900">Proveedores verificados</h3>
-                                        <p>Cada persona que ofrece servicios en Pawnecta pasa por verificación de identidad con RUT y documento oficial. Sabes exactamente con quién tratas.</p>
+                                        <h3 className="text-lg font-semibold text-slate-900">Identidad verificable (opcional)</h3>
+                                        <p>Los proveedores pueden verificar su identidad con RUT y foto de carnet. Los verificados muestran una insignia en su ficha, así sabes cuándo la identidad fue validada por nuestro equipo.</p>
                                     </div>
                                     <div>
-                                        <h3 className="text-lg font-semibold text-slate-900">Evaluaciones reales</h3>
-                                        <p>Solo los usuarios que contactaron al proveedor pueden dejar una evaluación. Sin bots, sin reseñas compradas. Solo experiencias reales.</p>
+                                        <h3 className="text-lg font-semibold text-slate-900">Evaluaciones con moderación</h3>
+                                        <p>Solo pueden evaluar a un proveedor los usuarios que lo contactaron. Cada evaluación pasa por moderación antes de publicarse.</p>
                                     </div>
                                     <div>
                                         <h3 className="text-lg font-semibold text-slate-900">Todos los servicios en un lugar</h3>

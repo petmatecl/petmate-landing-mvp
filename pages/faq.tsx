@@ -9,7 +9,7 @@ const faqs = [
     },
     {
         question: "¿Cómo sé que los proveedores son de confianza?",
-        answer: "Los proveedores en Pawnecta pueden verificar su identidad subiendo su RUT y foto de carnet — los verificados muestran el badge de identidad verificada en su ficha. Además, las evaluaciones solo pueden escribirlas usuarios que efectivamente contactaron al proveedor — sin reseñas falsas."
+        answer: "Los proveedores pueden verificar su identidad subiendo su RUT y foto de carnet — los verificados muestran el badge de identidad verificada en su ficha. Además, solo pueden escribir evaluaciones los usuarios que contactaron al proveedor, y cada evaluación pasa por moderación antes de publicarse."
     },
     {
         question: "¿Cómo contacto a un proveedor?",
