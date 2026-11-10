@@ -6,6 +6,8 @@
 **Insumo para**: sesión de 30 minutos con el PO
 **Trigger legal**: Ley 21.719 de Protección de Datos Personales — vigencia diciembre 2026, incorpora derecho de supresión (art. 8).
 
+> **Nota de terminología (PO 2026-11-10)**: lo que este documento llama "anonimización" es técnica y legalmente **seudonimización** — el registro sigue siendo reidentificable por la contraparte (el proveedor ve "(Usuario eliminado)" pero mantiene la fecha y detalle de la reserva). Las secciones §1 a §9 se preservan como registro histórico de la sesión 2026-09-23 con la terminología de ese momento. **La §10 nueva declara el cambio de terminología para implementación + consolida las decisiones PO 2026-11-10 sobre las 11 preguntas al asesor legal**. Para copy visible a usuario y correos, la terminología correcta es "seudonimización" (ver [docs/sprints/del-cuenta-ley.md](../sprints/del-cuenta-ley.md) + [del-cuenta-copy.md](del-cuenta-copy.md)).
+
 ---
 
 ## 1. Contexto y decisión de diseño
@@ -299,3 +301,45 @@ Motivo: minimización de datos. El carnet es el dato **más sensible** que guard
 **FKs faltantes del anexo B** entran en la misma migración del sprint DEL-CUENTA-LEY: `contactos.auth_user_id` y `preguntas.auth_user_id` con `ON DELETE SET NULL`.
 
 Ver kickoff detallado en [`docs/sprints/del-cuenta-ley.md`](../sprints/del-cuenta-ley.md).
+
+---
+
+## 10. Decisiones PO 2026-11-10 sobre las 11 preguntas al asesor + terminología
+
+**Contexto**: no se contrata asesor legal externo por ahora. Las 11 preguntas del archivo [del-cuenta-preguntas-asesor.md](del-cuenta-preguntas-asesor.md) se responden internamente con fundamento Ley 21.719, marcando con **[LEGAL]** los puntos que se revisarán si se contrata uno en el futuro. La implementación va en el sprint DEL-CUENTA-LEY semana 19-30 noviembre (meta pre-vigencia 01-12-2026, post-lanzamiento 18-11-2026).
+
+### 10.1 Cambio de terminología (aplica a docs, copy visible y correos)
+
+"Anonimizar" → **"seudonimizar"**. El registro sigue siendo reidentificable por la contraparte (el proveedor ve "(Usuario eliminado)" + fecha + detalle de reserva). La seudonimización es la operación real; "anonimización" sería borrado total de PII cross-referenciable, que no es nuestro caso.
+
+**Alcance del cambio**: docs del sprint + copy UI + correos. **NO** se renombran identificadores de código (variables, funciones), archivos ni columnas de BD. Esta nota del tope del archivo + §10 fijan el término para implementación; las §1-§9 quedan como registro histórico 2026-09-23.
+
+### 10.2 Decisiones aterrizadas (11 puntos, con fundamento + [LEGAL] donde aplica)
+
+| # | Pregunta (resumen) | Decisión PO 2026-11-10 | Fundamento | [LEGAL]? |
+|---|---|---|---|---|
+| 1 | Alcance borrado reservas | Reservas con **al menos una parte eliminada se borran 5 años después de la fecha del servicio**, sin importar la contraparte — prescripción ordinaria art. 2515 CC, a esa altura el reclamo de la contraparte ya prescribió, cero evidencia útil perdida. **Un solo cron mensual**. | Prescripción civil 5 años + minimización post-prescripción. | [LEGAL] plazo exacto |
+| 2 | Reviews con autor seudonimizado | Autor `"(Usuario eliminado)"` + `usuario_id=NULL`, **más casilla UI opcional "borrar también mis reseñas"** (branch nuevo en fase 4). | Patrón TripAdvisor/Google/Airbnb bajo GDPR art. 17.3. | No |
+| 3 | Retención consent_logs | `ip_address=NULL` + `user_agent=NULL`; preservar `user_id` UUID + `document_version` + `timestamp`. **Plazo: 5 años post última modificación**. | Evidencia interna sin PII directa; cron TTL. | [LEGAL] plazo |
+| 4 | Retención deletion_log | **5 años, no indefinido**. Cron TTL. | Minimización + evidencia suficiente para auditoría interna. | No |
+| 5 | Retención chat | **90 días máx (no 6 meses)**. Al eliminar, evaluar en transacción: `COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida)` de reservas entre ambos < 90 días — si cero → DELETE conversación + messages inmediato; si ≥1 → SET NULL + `deleted_participant_at=NOW()` + columna nueva `deleted_participant_id UUID` + `deleted_role TEXT` para que el cron evalúe los 90 días. Pivote: últimos 90 días desde NOW() al momento de la eliminación. | Minimización + necesidad legítima de la contraparte acotada. | No |
+| 6 | Retención fotos carnet | Borrar al aprobar (ya decidido) + **15 días (no 30) para no aprobados**. Conservar solo `verificacion_estado` + `verificacion_actualizado_at`. Ajusta CARNET-RETENCION. | Minimización del dato más sensible (RUT + foto). | No |
+| 7 | Plazo respuesta | **30 días corridos** (Ley 21.719) **prorrogables una vez por 30d** más. Ejecución día 14-15 dentro de los 30. Si no confirma en 24h → caduca con correo "tu solicitud caducó, vuelve a solicitar" (confirmación por correo = verificación de identidad). Correo final `AccountDeletionCompletedEmail` **enumera 3-4 líneas** qué se borró, qué se conservó y por cuánto tiempo (serializar `data_summary` JSON → copy humano). | Plazo legal + verificación identidad simple. | No |
+| 8 | Copy política privacidad | **Sin "anonimizamos"**. Lenguaje simple: qué se elimina, qué se conserva sin datos de contacto, para qué (obligaciones con la otra parte y defensa ante reclamos), por cuánto tiempo. | Transparencia sin jerga legal. | [LEGAL] texto final |
+| 9 | Bloqueo reservas activas | **Eliminar el bloqueo** (invierte Regla A del descubrimiento §9). La solicitud se acepta siempre. Antes de confirmar, UI muestra lista "estas reservas futuras se cancelarán" + checkbox. En fase 4 (día 14-15): `UPDATE agendamientos SET estado='cancelada', motivo_cancelacion='cuenta_eliminada'` + email a contraparte reusando `notify-proveedor-cancel` / `notify-tutor-reserva-cancelada`. Reuso estado `cancelada` + motivo, cero migración de enum. | Eliminación efectiva + aviso a contraparte. | No |
+| 10 | Auditoría cumplimiento | **Sin reporte periódico** a la Agencia. `deletion_log` como registro interno. Si se rechaza una solicitud (caducidad 24h, admin no-self), el correo informa el derecho a reclamar ante la Agencia. **Sin template de rechazo por ahora** — solo mención en política de privacidad. Documentar procedimiento de aviso de brechas (ítem BACKLOG `BRECHAS-PROCEDIMIENTO`). | Rendición interna + transparencia sobre derecho a reclamar. | [LEGAL] confirmar obligación de reporte |
+| 11 | Retención Sentry con user.id + IP | **"Prevent Storing of IP Addresses" activado** en org + proyecto `javascript-nextjs` (confirmado PO 2026-11-10). Plan **Developer (gratis)** retención **30 días** = ya es la mínima del plan, declarar en política. Volumen observado: 53 errores / 5K cuota. **Scrub explícito `event.user.ip_address = undefined` en `lib/sentryScrub.ts`** (código, sprint SENTRY-PII). **Sin borrado proactivo de eventos al eliminar cuenta** — la retención 30 días cubre naturalmente. **SENTRY-PII sube a prioridad pre-01-12-2026**. | Minimización + retención mínima del plan actual. | No |
+
+### 10.3 Notas técnicas menores aterrizadas al sprint
+
+- **Cron mensual de borrado de reservas (decisión 1)**: pivota sobre `COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida)` para unificar F1 + F2. Query borra donde al menos una parte tiene estado terminal de eliminación (proveedor `estado='eliminado'` o tutor con flag equivalente en `usuarios_buscadores.estado` que la migration agrega) y el servicio es +5 años pasado. El cron es mensual (no diario) por volumen bajo esperado.
+- **Pivote 90 días del chat (decisión 5)**: mismo `COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida)` para consistencia, asumido literal en la decisión.
+- **Cancelación batch en fase 4 (decisión 9)**: la cancelación ocurre día 14-15 post-confirmación, no al momento de la solicitud. Durante la ventana de gracia las reservas futuras siguen vigentes; si el user cancela la eliminación en los 14d, no se canceló nada aún.
+
+### 10.4 Impacto en el sprint DEL-CUENTA-LEY
+
+Actualizaciones del alcance aterrizadas en [docs/sprints/del-cuenta-ley.md §8](../sprints/del-cuenta-ley.md) (nueva, "Ajustes PO 2026-11-10"). Resumen: 2 columnas nuevas en `conversations` (`deleted_participant_id`, `deleted_role`), 1 columna nueva en `usuarios_buscadores` (`estado`), 2 crons nuevos (mensual purga reservas +5y, diario TTL consent/deletion logs 5y), 1 cambio de UI (invertir Regla A → lista + checkbox de cancelación batch), 1 cambio de template email (serializar data_summary + mencionar derecho a reclamar ante rechazo).
+
+### 10.5 Transformación del archivo de preguntas asesor
+
+[del-cuenta-preguntas-asesor.md](del-cuenta-preguntas-asesor.md) pasa a **registro histórico** con tabla al inicio que mapea pregunta → decisión + fundamento + [LEGAL]. Si se contrata asesor en el futuro, los puntos [LEGAL] son los que se le llevan primero.
