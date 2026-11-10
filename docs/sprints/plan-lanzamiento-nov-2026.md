@@ -266,3 +266,58 @@ lanzamientos reales.
 Este plan se refleja también al tope de `BACKLOG.md > PEDIDOS DIRECTOS
 DEL PO` para que sea lo primero visible al abrir cualquier menú de "¿con
 qué seguimos?".
+
+---
+
+## Estado al cierre 2026-11-10 EOD (sesión martes)
+
+**Mergeados a main hoy** (orden cronológico):
+
+| SHA | PR | Alcance |
+|---|---|---|
+| `200bde49` | #95 `hf-name-resolve` | Fix email chat "Un usuario" → formato `Nombre I.` con `resolveSenderName()` server-side + `supabaseAdmin` (`pages/api/notifications/new-message.ts`). Test unit `lib/g1-new-message-name-resolve.test.ts` con 8 casos. Regla CLAUDE.md "cero smoke manual durante CI". |
+| `1df5eb8` | #97 `estab-e2e-tokens` | Pieza B: fixture `e2e/fixtures/supabase.ts` buildEntry con fallback re-login password si refresh falla. Pieza D: máscara spec `/explorar` ampliada al contenedor padre + baselines regeneradas. Fix workflow verde-falso en `visual-update-snapshots.yml` (guard P8). Regla CLAUDE.md "cero signOut manual QA mientras corre CI". BACKLOG `STAGING-DATA-LEAK`. |
+| `1d66ab1` | #96 `del-cuenta-decis` | Decisiones PO 2026-11-10 sobre 11 preguntas asesor DEL-CUENTA-LEY + terminología "seudonimizar" en docs/copy/correos (cero rename código). Nueva §10 en descubrimiento + §8 en sprint doc. Registro histórico en preguntas-asesor. 3 entradas BACKLOG: `DEL-CUENTA-LEY` principal, `BRECHAS-PROCEDIMIENTO`, `SIGNOUT-SCOPE`. CARNET-RETENCION ajustado 30→15. SENTRY-PII subió a pre-01-12-2026. |
+| `65c4385` | #98 `home-verdad-1-3` | HOME-VERDAD items 1-3 obligatorios pre-lanzamiento. Eliminados 4 testimonios ficticios + sección "Proveedores que puedes conocer" entera. Corrección textos engañosos en home (meta description/og/twitter + cards "Por qué confiar" + StepCard paso 2 "Compara perfiles y precios" + CTA final) + Quiénes somos (Identidad verificable opcional + Evaluaciones con moderación) + FAQ L12. Fix bug placeholder duplicado "¿Eres veterinario a domicilio?" en `FranjaPares` + `FranjaCategoria`. Refinamiento ENMIENDA P11 rerun autónomo (máx 1 por PR, solo infra inequívoca, anotado en acta). BACKLOG `VIS-HOME-FULLPAGE`. |
+
+**No mergeados hoy** (fuera del scope o aplazados):
+- HOME-VERDAD items 4-6 (simplificación): evaluación jueves 12-11 según holgura real con SHARE-PROV + Lighthouse.
+- SHARE-PROV: no arrancado todavía — próximo PR.
+- Lighthouse fixes: pendiente mediana de 3 corridas antes de empezar a arreglar.
+- Parche "Error: Rejected": pendiente análisis desde Sentry.
+- Baseline Sentry `incrementar_vistas` 42501 (observación 24h post RPC-C Lote 3): revisión mañana AM (parte de la revisión matutina).
+- Monitoreo mensajes nuevos en `public.messages` + cross-ref Resend para verificar envío correcto desde notificaciones@: revisión mañana AM.
+
+**Pendientes para retomar mañana** (miércoles 2026-11-11):
+
+### Revisión matutina (primer bloque)
+
+1. **Sentry 24h post RPC-C Lote 3**: filtrar issues en el dashboard por `42501` o `permission denied` sobre `incrementar_vistas`. Cero → cerrar observación; no-cero → diagnóstico + decidir rollback REVOKE o parche de callers.
+2. **Mensajes nuevos en public.messages desde merge #95**: `SELECT count(*) FROM public.messages WHERE created_at > '2026-11-10T17:25:14Z'` (SHA 200bde49). Si count > 0, cross-ref con Resend (buscar subject "te envió un mensaje" post hora merge) + reportar remitente + senderName + formato efectivo al PO.
+
+### Plan día (miércoles + jueves hasta freeze martes 17-11 16:00 CLT)
+
+1. **SHARE-PROV** (prioridad alta, antes que Lighthouse fixes). Alcance a confirmar con el PO al arrancar — kickoff en `docs/sprints/` si no existe todavía.
+2. **Lighthouse baseline + fixes**:
+   - Mediana de 3 corridas (home + ficha-servicio + explorar en desktop + mobile). Artefacts ya generados hoy en `docs/auditorias/lighthouse-20261110/reporte-baseline.md` → re-ejecutar 3× para mediana.
+   - Identificar bloqueantes (LCP > 2.5s móvil, CLS > 0.1, etc.).
+   - Fixes en PRs separados, uno a la vez.
+3. **Parche "Error: Rejected"** (observabilidad Sentry): el filtro en `lib/sentryScrub.ts` ya cubre con `isSwRegisterRejection` + `workbox-window` stack match + el `unhandledrejection` listener registrado antes de `Sentry.init` en `instrumentation-client.ts`. Confirmar en dashboard Sentry si el issue sigue ingiriendo events o si quedó silenciado. Si sigue → ampliar filtro.
+
+### Reglas vigentes a respetar mañana
+
+- **Un PR en CI a la vez** (sin excepción).
+- **Nunca mergear con rojo** (regla P11 global).
+- **Enmienda P11 rerun autónomo refinada (2026-11-10 PR #98)**: máximo 1 rerun autónomo por PR, solo para infra inequívoca (ECONNRESET, timeouts, 5xx Vercel/Supabase, SSL/DNS). Todo lo demás es diagnóstico + aviso al PO sin rerun. Cada rerun autónomo se anota.
+- **Smoke manual pre-merge**: pedir OK explícito del PO para todo merge de código productivo tras smoke en preview. Docs-only + CI 4/4 verde puede mergearse autónomo si ya hay GO del PO en el turno vigente para el ciclo.
+- **Baselines visuales**: aprobación del PO con copias NUEVA-SIN-CACHE-rX.png para evitar bug image preview VS Code.
+- **Cero smoke manual durante CI** ni **cero signOut manual QA mientras corre CI** (reglas CLAUDE.md).
+
+### Reglas de reinicio de sesión (para la sesión nueva mañana)
+
+- El PO abre sesión nueva. El contexto previo no se preserva automáticamente.
+- Para retomar: leer este bloque "Estado al cierre 2026-11-10 EOD" + `BACKLOG.md > PEDIDOS DIRECTOS DEL PO` + CLAUDE.md top ("Estado del roadmap").
+- Verificar qué está en main: `git log --oneline origin/main | head -10`.
+- Verificar CI de main: `gh run list --branch main --limit 5`.
+
+**Tag anotado del día**: `eod-2026-11-10` (marca el estado del repo al cierre). Crear con `git tag -a eod-2026-11-10 -m "Estado al cierre sesión martes"` tras merge del PR que aterriza esta nota.
