@@ -95,18 +95,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         // endpoint (línea 34). Lee SOLO `nombre` — no se expone otro campo —
         // y mantiene la precedencia proveedores → usuarios_buscadores.
         const resolveSenderName = async (authUserId: string): Promise<string> => {
-            // Precedencia 1: proveedor con nombre_publico o nombre+apellido_p.
+            // Precedencia 1: proveedor. SOLO nombre de pila — nunca apellido
+            // ni correo ni teléfono (decisión PO 2026-11-10). Si hay
+            // `nombre_publico`, se usa literal porque el proveedor lo definió
+            // como su alias público; no se parsea ni se trunca.
             const { data: prov } = await supabaseAdmin
                 .from('proveedores')
-                .select('nombre_publico, nombre, apellido_p')
+                .select('nombre_publico, nombre')
                 .eq('auth_user_id', authUserId)
                 .maybeSingle();
             if (prov) {
                 if (prov.nombre_publico) return prov.nombre_publico;
-                const nombreCompleto = [prov.nombre, prov.apellido_p].filter(Boolean).join(' ').trim();
-                if (nombreCompleto) return nombreCompleto;
+                if (prov.nombre) return prov.nombre;
             }
-            // Precedencia 2: usuarios_buscadores con solo nombre.
+            // Precedencia 2: usuarios_buscadores — solo tiene `nombre`.
             const { data: bus } = await supabaseAdmin
                 .from('usuarios_buscadores')
                 .select('nombre')

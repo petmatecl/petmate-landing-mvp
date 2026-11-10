@@ -82,6 +82,16 @@ jobs:
         # route pattern) porque no tienen limiter ni supabase.
         run: npm run test:g1-resto
 
+      - name: Unit tests (hf-name-resolve · resolveSenderName P8)
+        # Sprint hf-name-resolve (2026-11-10) — verifica que el fix al correo
+        # de aviso de chat NO cae al fallback 'Un usuario' cuando el sender
+        # tiene nombre en BD (proveedores o usuarios_buscadores). 4 casos:
+        # 3 positivos (nombre_publico, solo nombre, usuarios_buscadores) + 1
+        # control negativo (sin perfil en ninguna tabla → fallback literal OK).
+        # Decisión PO 2026-11-10: lee SOLO nombre de pila, nunca apellido ni
+        # correo ni teléfono.
+        run: npm run test:g1-new-message-name-resolve
+
       - name: Unit tests (G-2 protection bypass helper)
         # Sprint bloque-g PR G-2 (2026-09-15) — verifica que
         # buildProtectionBypassHeaders() retorna el header en preview

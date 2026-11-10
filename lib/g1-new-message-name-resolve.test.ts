@@ -18,7 +18,7 @@ import { strict as assert } from 'node:assert';
 
 // Estado mutable de cada test — lo resetea `resetState()`.
 type MsgRow = { id: string; content: string; sender_id: string; conversation_id: string; conversations: { id: string; client_id: string; sitter_id: string | null } };
-type ProvRow = { nombre_publico: string | null; nombre: string | null; apellido_p: string | null } | null;
+type ProvRow = { nombre_publico: string | null; nombre: string | null } | null;
 type BusRow = { nombre: string | null } | null;
 
 interface State {
@@ -151,7 +151,7 @@ async function runOne(label: string, fn: () => Promise<void>) {
 
 async function main() {
     await runOne('[P8] proveedor con nombre_publico → subject lo usa, NO "Un usuario"', async () => {
-        state.prov = { nombre_publico: 'Constanza B.', nombre: 'Constanza', apellido_p: 'Beltran' };
+        state.prov = { nombre_publico: 'Constanza B.', nombre: 'Constanza' };
         const res = makeRes();
         await handler(makeReq(), res);
         assert.equal(res.statusCode, 200, 'status debe ser 200');
@@ -164,16 +164,20 @@ async function main() {
         assert.ok(subject.includes('Constanza B.'), `subject debe contener 'Constanza B.' — recibido: ${subject}`);
     });
 
-    await runOne('[P8] proveedor sin nombre_publico (solo nombre+apellido) → subject los usa', async () => {
-        state.prov = { nombre_publico: null, nombre: 'Eduardo', apellido_p: 'Cano' };
+    await runOne('[P8] proveedor sin nombre_publico (solo nombre de pila) → subject usa "Eduardo", NO incluye apellido', async () => {
+        // Simula lo que devolvería la query real: nombre_publico null.
+        // La select ya NO pide apellido_p (decisión PO 2026-11-10 — solo
+        // nombre de pila, nunca apellido ni correo ni teléfono en el subject).
+        state.prov = { nombre_publico: null, nombre: 'Eduardo' };
         const res = makeRes();
         await handler(makeReq(), res);
         const subject: string = state.sentArgs[0].subject;
-        assert.ok(subject.includes('Eduardo Cano'), `subject debe contener 'Eduardo Cano' — recibido: ${subject}`);
+        assert.ok(subject.includes('Eduardo'), `subject debe contener 'Eduardo' — recibido: ${subject}`);
+        assert.ok(!subject.includes('Cano'), `NO debe incluir apellido. Subject: ${subject}`);
         assert.ok(!/^Un usuario/.test(subject), `NO debe ser fallback. Subject: ${subject}`);
     });
 
-    await runOne('[P8] sin proveedor pero con usuarios_buscadores.nombre → subject usa ese nombre', async () => {
+    await runOne('[P8] sin proveedor pero con usuarios_buscadores.nombre → subject usa ese nombre (caso Camila)', async () => {
         state.bus = { nombre: 'Camila' };
         const res = makeRes();
         await handler(makeReq(), res);
