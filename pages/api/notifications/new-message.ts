@@ -6,7 +6,6 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { escapeHtml } from '../../../lib/sanitize';
 import { newMessageSchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
-import { getParticipantProfile } from '../../../lib/profileUtils';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
@@ -85,12 +84,83 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (!email) return res.status(200).json({ skipped: true, reason: 'no_email' });
 
         // 5. Nombre del sender desde proveedores OR usuarios_buscadores.
-        const senderProfile = await getParticipantProfile(userId);
-        const senderName = senderProfile?.nombre || 'Un usuario';
+        // Sprint hf-name-resolve (2026-11-10, decisión PO) — reemplazamos
+        // `getParticipantProfile(userId)` del helper compartido porque usa
+        // el cliente `supabase` anon (sin JWT) y la tabla `usuarios_buscadores`
+        // solo tiene política `Owner full access [ALL] roles=public`. Resultado:
+        // anon NO puede SELECT → el helper devolvía null → fallback "Un usuario"
+        // en el correo de aviso. Verificado prod-ro + QA #77 2026-11-10 por PO
+        // (ver docs/auditorias/correos-automaticos-20261110.md).
+        // Fix: query directa con el `supabaseAdmin` ya instanciado en este
+        // endpoint (línea 34). Lee SOLO `nombre` — no se expone otro campo —
+        // y mantiene la precedencia proveedores → usuarios_buscadores.
+        // Formato "Nombre I." (primer nombre + inicial del primer apellido),
+        // decisión PO 2026-11-10 tras smoke del commit 63d2cd8 que aterrizó
+        // el nombre completo "Camila Figueroa Mendoza" porque en
+        // `usuarios_buscadores` el campo `nombre` concatena nombres+apellidos.
+        // Regla: si `nombre_publico` existe se usa literal (el proveedor lo
+        // definió como alias público); si no, se compone "Nombre I." desde
+        // nombre + apellido_p (proveedores) o desde los tokens del campo
+        // nombre (usuarios_buscadores, que no tiene columnas separadas).
+        const formatearNombreInicial = (nombreCompleto: string, apellidoSeparado?: string | null): string => {
+            const tokens = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+            if (tokens.length === 0) return 'Un usuario';
+            const nombrePila = tokens[0];
+            // Preferencia 1: apellido en columna separada (proveedores).
+            const apellidoClean = apellidoSeparado?.trim() || '';
+            if (apellidoClean) return `${nombrePila} ${apellidoClean[0]}.`;
+            // Preferencia 2: apellido como segundo token del `nombre` (usuarios_buscadores).
+            if (tokens.length >= 2 && tokens[1]) return `${nombrePila} ${tokens[1][0]}.`;
+            // Solo un token — devolver tal cual, sin inicial.
+            return nombrePila;
+        };
+
+        const resolveSenderName = async (authUserId: string): Promise<string> => {
+            // Precedencia 1: proveedor. Si hay `nombre_publico`, se respeta literal
+            // (el proveedor lo definió como alias público). Si no, se compone
+            // "Nombre I." con nombre + apellido_p.
+            // Decisión PO 2026-11-10: nunca correo ni teléfono en el subject; el
+            // apellido se reduce a inicial.
+            const { data: prov, error: provErr } = await supabaseAdmin
+                .from('proveedores')
+                .select('nombre_publico, nombre, apellido_p')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+            if (provErr) {
+                // No silenciamos: console.error llega a Sentry via wrap. Seguimos
+                // al siguiente nivel de precedencia para no quedar en fallback
+                // "Un usuario" por un fallo transitorio de permisos/red.
+                console.error('[new-message:resolveSenderName] proveedores query error:', provErr);
+            }
+            if (prov) {
+                if (prov.nombre_publico) return prov.nombre_publico;
+                if (prov.nombre) return formatearNombreInicial(prov.nombre, prov.apellido_p);
+            }
+            // Precedencia 2: usuarios_buscadores — solo tiene `nombre` (concatena
+            // nombres+apellidos como texto libre; por eso el formato aplica
+            // sobre los tokens).
+            const { data: bus, error: busErr } = await supabaseAdmin
+                .from('usuarios_buscadores')
+                .select('nombre')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+            if (busErr) {
+                console.error('[new-message:resolveSenderName] usuarios_buscadores query error:', busErr);
+            }
+            if (bus?.nombre) return formatearNombreInicial(bus.nombre, null);
+            return 'Un usuario';
+        };
+        const senderName = await resolveSenderName(userId);
 
         // 6. Preview del contenido (truncado server-side, no del payload).
         const content = msg.content || '';
         const messagePreview = content.substring(0, 80) + (content.length > 80 ? '...' : '');
+
+        // Sufijo para el párrafo del body: si el nombre ya termina en punto
+        // (caso "Camila F." o nombre_publico "Constanza B."), no agregamos
+        // otro — evita el doble punto ".." reportado en el smoke del commit
+        // 0d1a4c8 por el PO (decisión PO 2026-11-10).
+        const senderNameDot = senderName.endsWith('.') ? '' : '.';
 
         // 7. URL del chat — construida server-side desde el conv_id.
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.pawnecta.com';
@@ -113,7 +183,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             html: `
                 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
                     <h2 style="color:#0f172a;margin-bottom:8px">Nuevo mensaje en Pawnecta</h2>
-                    <p style="color:#475569">Tienes un nuevo mensaje de <strong>${escapeHtml(senderName)}</strong>.</p>
+                    <p style="color:#475569">Tienes un nuevo mensaje de <strong>${escapeHtml(senderName)}</strong>${senderNameDot}</p>
                     ${messagePreview ? `<blockquote style="border-left:3px solid #10b981;padding:8px 16px;color:#64748b;font-style:italic;margin:16px 0">${escapeHtml(messagePreview)}</blockquote>` : ''}
                     <a href="${escapeHtml(chatUrl)}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#059669;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">
                         Ver mensaje

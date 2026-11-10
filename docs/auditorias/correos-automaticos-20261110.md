@@ -22,7 +22,8 @@
 
 | # | Cron | Horario UTC | Horario CLT | Recipient | Condición |
 |---|---|---|---|---|---|
-| 11 | `recordatorio-onboarding` | 0 14 * * * | 11:00 | Proveedor aprobado sin servicios | **Ventana 48h-7d desde `created_at`**. Marca `email_onboarding_at`. **Un solo envío por vida del usuario**. |
+| 11a | `recordatorio-onboarding` **nudge "primer servicio"** | 0 14 * * * | 11:00 | Proveedor aprobado sin servicios | **Ventana 48h-7d desde `created_at`**. Marca `email_onboarding_at`. **Un solo envío por vida del usuario**. Subject: `${nombre}, tu perfil está aprobado. ¡Publica tu primer servicio!` (`recordatorio-onboarding.ts:76`). |
+| 11b | `recordatorio-onboarding` **nudge "foto de perfil"** (segunda parte del mismo cron) | 0 14 * * * | 11:00 | Proveedor aprobado con `foto_perfil IS NULL` | Flag independiente `email_foto_at`. Un solo envío por vida. Subject: `${nombre}, agrega una foto a tu perfil` (`recordatorio-onboarding.ts:126`). Puede llegar junto al 11a si el proveedor cumple ambas condiciones el mismo día — exactamente lo que le pasó a Jorge Palominos 2026-11-06. |
 | 12 | `recordatorio-mensajes` | 0 10 * * * | 7:00 | Proveedor con conv sin respuesta | Último mensaje del cliente >24h sin respuesta + sin recordatorio en 24h |
 | 13 | `invitacion-resenas` | 0 11 * * * | 8:00 | Tutor post-reserva | Reserva `confirmada`, fecha + 24h pasó, `invitacion_resena_enviada_at IS NULL`, sin review previa |
 | 14 | `recordatorio-reserva` | 0 22 * * * | 19:00 | Tutor + proveedor | 24h antes de la reserva confirmada. Doble marca independiente. |
@@ -32,6 +33,17 @@
 ## Triggers DB
 
 14 triggers en `public.*`, todos **guard / audit / counter / timestamp**. **Cero trigger DB manda email**. Todo email pasa por Resend API vía endpoints Node.
+
+## Templates sin uso productivo (candidatos a limpieza post-launch)
+
+Grep de imports desde `pages/api/**` reveló 4 templates en `components/Emails/` sin caller productivo:
+
+- **`WelcomeEmail.tsx`**: solo referenciado como mock en `lib/g1-cron-auth.test.ts:142`. El endpoint `pages/api/auth/welcome.ts` usa HTML inline + subject propio, no el template.
+- **`NewMessageEmail.tsx`**: solo referenciado como mock en `lib/g1-cron-auth.test.ts:146` + `lib/g1-notifs-push-evals.test.ts:119`. El endpoint `pages/api/notifications/new-message.ts` usa HTML inline.
+- **`AprobacionProveedorEmail.tsx`**: legacy pre-badge-f1 (auto-aprobación 2026-08-18), cero callers productivos.
+- **`RechazoProveedorEmail.tsx`**: cero callers productivos, probablemente nunca se activó en prod.
+
+Acción post-launch (BACKLOG `EMAIL-TEMPLATES-LIMPIEZA`): decidir si (a) borrar los 4 templates, (b) migrar los endpoints `auth/welcome` + `notifications/new-message` para usar los templates existentes (consistencia visual), (c) mantener como referencia futura.
 
 ## Verificación P8 — cron `recordatorio-onboarding` funciona en prod
 
