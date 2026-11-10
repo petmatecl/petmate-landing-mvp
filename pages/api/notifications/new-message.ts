@@ -6,7 +6,6 @@ import { emailLimiter } from '../../../lib/rateLimit';
 import { escapeHtml } from '../../../lib/sanitize';
 import { newMessageSchema } from '../../../lib/validations';
 import { verifySession } from '../../../lib/apiAuth';
-import { getParticipantProfile } from '../../../lib/profileUtils';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
@@ -85,8 +84,38 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         if (!email) return res.status(200).json({ skipped: true, reason: 'no_email' });
 
         // 5. Nombre del sender desde proveedores OR usuarios_buscadores.
-        const senderProfile = await getParticipantProfile(userId);
-        const senderName = senderProfile?.nombre || 'Un usuario';
+        // Sprint hf-name-resolve (2026-11-10, decisión PO) — reemplazamos
+        // `getParticipantProfile(userId)` del helper compartido porque usa
+        // el cliente `supabase` anon (sin JWT) y la tabla `usuarios_buscadores`
+        // solo tiene política `Owner full access [ALL] roles=public`. Resultado:
+        // anon NO puede SELECT → el helper devolvía null → fallback "Un usuario"
+        // en el correo de aviso. Verificado prod-ro + QA #77 2026-11-10 por PO
+        // (ver docs/auditorias/correos-automaticos-20261110.md).
+        // Fix: query directa con el `supabaseAdmin` ya instanciado en este
+        // endpoint (línea 34). Lee SOLO `nombre` — no se expone otro campo —
+        // y mantiene la precedencia proveedores → usuarios_buscadores.
+        const resolveSenderName = async (authUserId: string): Promise<string> => {
+            // Precedencia 1: proveedor con nombre_publico o nombre+apellido_p.
+            const { data: prov } = await supabaseAdmin
+                .from('proveedores')
+                .select('nombre_publico, nombre, apellido_p')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+            if (prov) {
+                if (prov.nombre_publico) return prov.nombre_publico;
+                const nombreCompleto = [prov.nombre, prov.apellido_p].filter(Boolean).join(' ').trim();
+                if (nombreCompleto) return nombreCompleto;
+            }
+            // Precedencia 2: usuarios_buscadores con solo nombre.
+            const { data: bus } = await supabaseAdmin
+                .from('usuarios_buscadores')
+                .select('nombre')
+                .eq('auth_user_id', authUserId)
+                .maybeSingle();
+            if (bus?.nombre) return bus.nombre;
+            return 'Un usuario';
+        };
+        const senderName = await resolveSenderName(userId);
 
         // 6. Preview del contenido (truncado server-side, no del payload).
         const content = msg.content || '';
