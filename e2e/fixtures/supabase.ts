@@ -109,6 +109,65 @@ async function refreshTokens(refreshToken: string): Promise<SessionTokens> {
     return { accessToken: data.access_token, refreshToken: data.refresh_token };
 }
 
+/**
+ * Sprint estab-e2e-tokens (2026-11-10) — fallback de último recurso:
+ * POST /auth/v1/token?grant_type=password con las credenciales del rol
+ * (env vars ya presentes en CI). Se usa cuando el refresh_token guardado
+ * en el storageState fue revocado externamente (por ejemplo, un signOut
+ * global de la misma cuenta desde otro cliente humano).
+ *
+ * El signOut default de @supabase/supabase-js v2 es `scope: 'global'`, que
+ * revoca TODOS los refresh_tokens del user + la sesión server-side en
+ * `auth.sessions`. Si eso ocurre durante un CI run, el fallback a
+ * `stored.accessToken` tampoco sirve: el JWT local no expiró, pero
+ * `/auth/v1/user` devuelve 401 porque la sesión no existe. Re-login con
+ * password es la única vía que recupera un par válido sin tocar la UI.
+ *
+ * Ver ítem BACKLOG `SIGNOUT-SCOPE` (post-lanzamiento): si la app migra a
+ * `scope: 'local'` en sus 3 call sites de signOut, este fallback deja de
+ * dispararse en práctica — pero el código queda como red para otras
+ * fuentes de revocación (expiry server-side, rate-limit del refresh,
+ * rotación de secrets Supabase).
+ */
+async function signInWithPassword(role: 'proveedor' | 'tutor'): Promise<SessionTokens> {
+    const supabaseUrl = process.env.E2E_SUPABASE_URL;
+    const anonKey = process.env.E2E_SUPABASE_ANON_KEY;
+    const email = role === 'proveedor'
+        ? process.env.E2E_STAGING_EMAIL
+        : process.env.E2E_STAGING_TUTOR_EMAIL;
+    const password = role === 'proveedor'
+        ? process.env.E2E_STAGING_PASSWORD
+        : process.env.E2E_STAGING_TUTOR_PASSWORD;
+    if (!supabaseUrl || !anonKey || !email || !password) {
+        throw new Error(
+            `[e2e/supabase] signInWithPassword(${role}): faltan env vars ` +
+            `(E2E_SUPABASE_URL / E2E_SUPABASE_ANON_KEY / E2E_STAGING_${role === 'proveedor' ? '' : 'TUTOR_'}EMAIL / _PASSWORD).`,
+        );
+    }
+    const url = new URL('/auth/v1/token', supabaseUrl);
+    url.searchParams.set('grant_type', 'password');
+    const resp = await fetch(url.toString(), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'apikey': anonKey,
+            'Authorization': `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({ email, password }),
+    });
+    if (!resp.ok) {
+        const body = await resp.text().catch(() => '');
+        throw new Error(
+            `[e2e/supabase] signInWithPassword(${role}) falló ${resp.status}: ${body.slice(0, 200)}`,
+        );
+    }
+    const data = await resp.json() as { access_token?: string; refresh_token?: string };
+    if (!data.access_token || !data.refresh_token) {
+        throw new Error(`[e2e/supabase] signInWithPassword(${role}) response sin tokens: ${JSON.stringify(data).slice(0, 200)}`);
+    }
+    return { accessToken: data.access_token, refreshToken: data.refresh_token };
+}
+
 // TTL del cliente cacheado. Menor al TTL default del JWT (1h) para tener
 // margen ante latencia del refresh + no llegar al borde de expiración.
 const CACHE_TTL_MS = 20 * 60 * 1000;
@@ -147,11 +206,29 @@ async function buildEntry(role: 'proveedor' | 'tutor', authFile: string): Promis
     let fresh: SessionTokens;
     try {
         fresh = await refreshTokens(stored.refreshToken);
-    } catch (err) {
-        // Fallback: si el refresh falla (network, token revocado, etc), usar
-        // el access_token stored — todavía puede tener minutos de vida.
-        console.warn(`[e2e/supabase] refresh ${role} falló (usando stored):`, err instanceof Error ? err.message : err);
-        fresh = stored;
+    } catch (refreshErr) {
+        // Sprint estab-e2e-tokens (2026-11-10) — fallback de 2 niveles:
+        // (a) `stored.accessToken` solo sirve si la sesión server-side
+        //     sigue viva (JWT local no expiró Y nadie revocó la sesión en
+        //     `auth.sessions`). Un `signOut({ scope: 'global' })` humano
+        //     sobre la misma cuenta mata la sesión aunque el JWT local
+        //     esté dentro de su 1h. Antes del sprint, caíamos a stored y
+        //     el beforeAll del primer spec post-fail colapsaba 0ms con
+        //     401 silente.
+        // (b) Nuevo paso: si el refresh falla, intentamos `signInWithPassword`
+        //     con las credenciales del rol (env vars ya presentes en CI).
+        //     Recupera un par válido sin tocar la UI ni depender de
+        //     tokens previos.
+        // Solo si TAMBIÉN falla el password login, recién caemos a stored
+        // (último recurso, mejor que throw).
+        console.warn(`[e2e/supabase] refresh ${role} falló, intentando re-login con password:`, refreshErr instanceof Error ? refreshErr.message : refreshErr);
+        try {
+            fresh = await signInWithPassword(role);
+            console.warn(`[e2e/supabase] re-login ${role} con password: OK`);
+        } catch (loginErr) {
+            console.warn(`[e2e/supabase] re-login ${role} con password también falló (usando stored):`, loginErr instanceof Error ? loginErr.message : loginErr);
+            fresh = stored;
+        }
     }
     const client = createClient(supabaseUrl, anonKey, {
         auth: { persistSession: false, autoRefreshToken: false },

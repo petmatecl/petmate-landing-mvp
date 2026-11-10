@@ -208,20 +208,34 @@ test.describe('visual público', () => {
                 await page.goto(`/explorar${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
                 await assertPawnectaRendered(page, `explorar (/explorar) ${vp.name}`);
-                // Ajuste PO (2026-11-06): máscara sobre contador de resultados
-                // (`N resultado(s)`, cambia con el listing de staging) y grilla
-                // de cards (puede reordenarse entre runs). Layout, filtros y
-                // header se mantienen visibles para que el visual test siga
-                // detectando regresión real del shell de la página.
-                const countLocator = page.locator('p.text-slate-500.font-medium').filter({ hasText: /resultado/i }).first();
+                // Sprint estab-e2e-tokens (2026-11-10) — máscara ampliada:
+                // antes se enmascaraba solo `p.text-slate-500.font-medium` del
+                // count. Ese `<p>` tiene `shrink-0`, su bounding box varía con
+                // el contenido numérico ("397 resultados" vs "400 resultados")
+                // → la máscara se adapta y aparecen pixels diff en los bordes.
+                // Caso real: fail PR #96 con 216px diff (0.01%), causa raíz
+                // 3 servicios creados en staging entre baseline (vis-bypass
+                // 2026-11-10 15:56 UTC) y run #96 (17:37 UTC). Ver diagnóstico
+                // completo en comentarios del PR del sprint.
+                //
+                // Fix: enmascarar el contenedor padre `<div>` de la barra
+                // completa (count + toggle Lista/Mapa + selector de orden).
+                // Ancho estable al 100% del container disponible —
+                // independiente del número de dígitos del count. Trade-off:
+                // perdemos signal visual sobre el toggle y el selector de
+                // orden, ambos cubiertos por otros tests funcionales.
+                //
+                // Deuda: VIS-MASK-DATATESTID (BACKLOG) propone data-testid en
+                // vez de selectors Tailwind, aplicaría acá también.
+                const barraLocator = page.locator('div.flex.flex-col.sm\\:flex-row.items-start.sm\\:items-center.justify-between').first();
                 const gridLocator = page.locator('div.grid.gap-5.grid-cols-1.sm\\:grid-cols-2.xl\\:grid-cols-3').first();
                 // Verificación loud: si el selector se rompió por refactor UI,
                 // fail explícito en vez de mask silente de nada.
-                await expect(countLocator, 'Contador de resultados no visible — selector roto').toBeVisible({ timeout: 5_000 });
+                await expect(barraLocator, 'Barra conteo+controles no visible — selector roto').toBeVisible({ timeout: 5_000 });
                 await expect(gridLocator, 'Grilla de cards no visible — selector roto').toBeVisible({ timeout: 5_000 });
                 await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, {
                     ...SNAPSHOT_OPTS,
-                    mask: [countLocator, gridLocator],
+                    mask: [barraLocator, gridLocator],
                 });
             });
 
