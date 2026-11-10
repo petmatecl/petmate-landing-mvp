@@ -1,0 +1,6960 @@
+# Instructions
+
+- Following Playwright test failed.
+- Explain why, be concise, respect Playwright best practices.
+- Provide a snippet of code with the fix, if possible.
+
+# Test info
+
+- Name: specs/cue-1-fix/a1-lock-sub-experiments.spec.ts >> A1.c — Autenticado 2 pestañas misma sesión (proveedor) >> hydrate OK → cero warnings del watchdog (fix stale closure)
+- Location: e2e/specs/cue-1-fix/a1-lock-sub-experiments.spec.ts:145:9
+
+# Error details
+
+```
+Error: [A1.c REGRESIÓN] tab1: hydrate OK debe dar cero warns (fix stale closure watchdog)
+
+expect(received).toBe(expected) // Object.is equality
+
+Expected: 0
+Received: 1
+```
+
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - region "Notifications alt+T"
+    - link "Saltar al contenido principal" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img "Pawnecta" [ref=e8]
+        - generic [ref=e11]:
+          - generic [ref=e12]: Buscar servicios o proveedores
+          - textbox "Buscar servicios" [ref=e13]:
+            - /placeholder: Busca por servicio o nombre del proveedor...
+        - navigation "Navegación principal" [ref=e14]:
+          - link "Blog" [ref=e15] [cursor=pointer]:
+            - /url: /blog
+          - link "Explorar servicios" [ref=e16] [cursor=pointer]:
+            - /url: /explorar
+          - button "Notificaciones" [ref=e18] [cursor=pointer]
+          - button "Menu de usuario (Proveedor)" [ref=e24] [cursor=pointer]:
+            - generic [ref=e25]: AS
+            - generic [ref=e26]: Admin
+            - generic [ref=e27]: Proveedor
+    - main [ref=e30]:
+      - generic [ref=e31]:
+        - complementary [ref=e32]:
+          - generic [ref=e33]:
+            - generic [ref=e34]:
+              - generic [ref=e35]: AS
+              - generic [ref=e36]:
+                - generic [ref=e37]: Admin Staging
+                - generic [ref=e38]: Proveedor
+            - tablist "Panel de proveedor" [ref=e40]:
+              - tab "Mis Servicios" [selected] [ref=e41] [cursor=pointer]
+              - tab "Mi Perfil" [ref=e46] [cursor=pointer]
+              - tab "Evaluaciones" [ref=e51] [cursor=pointer]
+              - tab "Mensajes" [ref=e55] [cursor=pointer]
+              - tab "Estadísticas" [ref=e59] [cursor=pointer]
+              - tab "Solicitudes 4" [ref=e62] [cursor=pointer]:
+                - generic [ref=e65]: Solicitudes
+                - generic [ref=e66]: "4"
+        - generic [ref=e68]:
+          - generic [ref=e70]:
+            - button "Completitud del perfil 30%" [ref=e71] [cursor=pointer]:
+              - generic [ref=e74]:
+                - text: Completitud del perfil
+                - generic [ref=e75]: 30%
+            - button "Ocultar completitud del perfil" [ref=e78] [cursor=pointer]
+          - generic [ref=e82]:
+            - heading "Mis Servicios" [level=1] [ref=e83]
+            - button "+ Publicar nuevo servicio" [ref=e84] [cursor=pointer]:
+              - generic [ref=e85]: +
+              - generic [ref=e86]: Publicar nuevo servicio
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]:
+                - img "Cuidado de mascota (test F2-3) — 1794317525763" [ref=e90]
+                - generic [ref=e91]: Cuidado y Hospedaje
+              - generic [ref=e96]:
+                - heading "Cuidado de mascota (test F2-3) — 1794317525763" [level=3] [ref=e97]
+                - generic [ref=e98]:
+                  - generic [ref=e99]: $15.000 / por noche
+                  - generic [ref=e100]: 0 vistas
+                - generic [ref=e104]:
+                  - generic [ref=e105] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e106]
+                    - generic [ref=e108]: Activo
+                  - link "Ver" [ref=e109] [cursor=pointer]:
+                    - /url: /servicio/67cfa4a9-dbfa-403b-aa33-cbb3e1c5759f
+                  - button "Editar" [ref=e115] [cursor=pointer]
+                  - button "Eliminar" [ref=e120] [cursor=pointer]
+            - generic [ref=e125]:
+              - generic [ref=e126]:
+                - img "Cuidado de mascota (test F2-3) — 1794317515078" [ref=e127]
+                - generic [ref=e128]: Cuidado y Hospedaje
+              - generic [ref=e133]:
+                - heading "Cuidado de mascota (test F2-3) — 1794317515078" [level=3] [ref=e134]
+                - generic [ref=e135]:
+                  - generic [ref=e136]: $15.000 / por noche
+                  - generic [ref=e137]: 0 vistas
+                - generic [ref=e141]:
+                  - generic [ref=e142] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e143]
+                    - generic [ref=e145]: Activo
+                  - link "Ver" [ref=e146] [cursor=pointer]:
+                    - /url: /servicio/d8ada9d6-dbcd-4678-8c32-484e5bd813cb
+                  - button "Editar" [ref=e152] [cursor=pointer]
+                  - button "Eliminar" [ref=e157] [cursor=pointer]
+            - generic [ref=e162]:
+              - generic [ref=e163]:
+                - img "Cuidado de mascota (test F2-3) — 1794317513439" [ref=e164]
+                - generic [ref=e165]: Cuidado y Hospedaje
+              - generic [ref=e170]:
+                - heading "Cuidado de mascota (test F2-3) — 1794317513439" [level=3] [ref=e171]
+                - generic [ref=e172]:
+                  - generic [ref=e173]: $15.000 / por noche
+                  - generic [ref=e174]: 0 vistas
+                - generic [ref=e178]:
+                  - generic [ref=e179] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e180]
+                    - generic [ref=e182]: Activo
+                  - link "Ver" [ref=e183] [cursor=pointer]:
+                    - /url: /servicio/4bde962f-9f83-4be2-817b-134536c8a832
+                  - button "Editar" [ref=e189] [cursor=pointer]
+                  - button "Eliminar" [ref=e194] [cursor=pointer]
+            - generic [ref=e199]:
+              - generic [ref=e200]:
+                - img "Cuidado de mascota (test F2-3) — 1794316737620" [ref=e201]
+                - generic [ref=e202]: Cuidado y Hospedaje
+              - generic [ref=e207]:
+                - heading "Cuidado de mascota (test F2-3) — 1794316737620" [level=3] [ref=e208]
+                - generic [ref=e209]:
+                  - generic [ref=e210]: $15.000 / por noche
+                  - generic [ref=e211]: 0 vistas
+                - generic [ref=e215]:
+                  - generic [ref=e216] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e217]
+                    - generic [ref=e219]: Activo
+                  - link "Ver" [ref=e220] [cursor=pointer]:
+                    - /url: /servicio/5434b41f-62bd-4859-91cc-00cb7d3f5db0
+                  - button "Editar" [ref=e226] [cursor=pointer]
+                  - button "Eliminar" [ref=e231] [cursor=pointer]
+            - generic [ref=e236]:
+              - generic [ref=e237]:
+                - img "Cuidado de mascota (test F2-3) — 1794316726922" [ref=e238]
+                - generic [ref=e239]: Cuidado y Hospedaje
+              - generic [ref=e244]:
+                - heading "Cuidado de mascota (test F2-3) — 1794316726922" [level=3] [ref=e245]
+                - generic [ref=e246]:
+                  - generic [ref=e247]: $15.000 / por noche
+                  - generic [ref=e248]: 0 vistas
+                - generic [ref=e252]:
+                  - generic [ref=e253] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e254]
+                    - generic [ref=e256]: Activo
+                  - link "Ver" [ref=e257] [cursor=pointer]:
+                    - /url: /servicio/872f8cac-ff21-43a5-b695-13334071c090
+                  - button "Editar" [ref=e263] [cursor=pointer]
+                  - button "Eliminar" [ref=e268] [cursor=pointer]
+            - generic [ref=e273]:
+              - generic [ref=e274]:
+                - img "Cuidado de mascota (test F2-3) — 1794316725060" [ref=e275]
+                - generic [ref=e276]: Cuidado y Hospedaje
+              - generic [ref=e281]:
+                - heading "Cuidado de mascota (test F2-3) — 1794316725060" [level=3] [ref=e282]
+                - generic [ref=e283]:
+                  - generic [ref=e284]: $15.000 / por noche
+                  - generic [ref=e285]: 0 vistas
+                - generic [ref=e289]:
+                  - generic [ref=e290] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e291]
+                    - generic [ref=e293]: Activo
+                  - link "Ver" [ref=e294] [cursor=pointer]:
+                    - /url: /servicio/a6cd7f1e-59aa-4b9f-8779-6bd6e6b4266a
+                  - button "Editar" [ref=e300] [cursor=pointer]
+                  - button "Eliminar" [ref=e305] [cursor=pointer]
+            - generic [ref=e310]:
+              - generic [ref=e311]:
+                - img "e2e-f2-3-1789155624362" [ref=e312]
+                - generic [ref=e313]: Cuidado y Hospedaje
+              - generic [ref=e318]:
+                - heading "e2e-f2-3-1789155624362" [level=3] [ref=e319]
+                - generic [ref=e320]:
+                  - generic [ref=e321]: $15.000 / por noche
+                  - generic [ref=e322]: 0 vistas
+                - generic [ref=e326]:
+                  - generic [ref=e327] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e328]
+                    - generic [ref=e330]: Activo
+                  - link "Ver" [ref=e331] [cursor=pointer]:
+                    - /url: /servicio/1f3e8ec0-9470-45df-903e-312c7ca33168
+                  - button "Editar" [ref=e337] [cursor=pointer]
+                  - button "Eliminar" [ref=e342] [cursor=pointer]
+            - generic [ref=e347]:
+              - generic [ref=e348]:
+                - img "e2e-f2-3-1789155621805" [ref=e349]
+                - generic [ref=e350]: Cuidado y Hospedaje
+              - generic [ref=e355]:
+                - heading "e2e-f2-3-1789155621805" [level=3] [ref=e356]
+                - generic [ref=e357]:
+                  - generic [ref=e358]: $15.000 / por noche
+                  - generic [ref=e359]: 0 vistas
+                - generic [ref=e363]:
+                  - generic [ref=e364] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e365]
+                    - generic [ref=e367]: Activo
+                  - link "Ver" [ref=e368] [cursor=pointer]:
+                    - /url: /servicio/73e1bcd6-98f7-4a35-9b3d-91ced9be6a35
+                  - button "Editar" [ref=e374] [cursor=pointer]
+                  - button "Eliminar" [ref=e379] [cursor=pointer]
+            - generic [ref=e384]:
+              - generic [ref=e385]:
+                - img "e2e-f2-3-1789155614282" [ref=e386]
+                - generic [ref=e387]: Cuidado y Hospedaje
+              - generic [ref=e392]:
+                - heading "e2e-f2-3-1789155614282" [level=3] [ref=e393]
+                - generic [ref=e394]:
+                  - generic [ref=e395]: $15.000 / por noche
+                  - generic [ref=e396]: 0 vistas
+                - generic [ref=e400]:
+                  - generic [ref=e401] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e402]
+                    - generic [ref=e404]: Activo
+                  - link "Ver" [ref=e405] [cursor=pointer]:
+                    - /url: /servicio/161f6a8e-6e2c-4a2c-b802-a4e0ca57535e
+                  - button "Editar" [ref=e411] [cursor=pointer]
+                  - button "Eliminar" [ref=e416] [cursor=pointer]
+            - generic [ref=e421]:
+              - generic [ref=e422]:
+                - img "e2e-f2-3-1789155609839" [ref=e423]
+                - generic [ref=e424]: Cuidado y Hospedaje
+              - generic [ref=e429]:
+                - heading "e2e-f2-3-1789155609839" [level=3] [ref=e430]
+                - generic [ref=e431]:
+                  - generic [ref=e432]: $15.000 / por noche
+                  - generic [ref=e433]: 0 vistas
+                - generic [ref=e437]:
+                  - generic [ref=e438] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e439]
+                    - generic [ref=e441]: Activo
+                  - link "Ver" [ref=e442] [cursor=pointer]:
+                    - /url: /servicio/b12ff426-407d-400b-80da-551d5dff1b85
+                  - button "Editar" [ref=e448] [cursor=pointer]
+                  - button "Eliminar" [ref=e453] [cursor=pointer]
+            - generic [ref=e458]:
+              - generic [ref=e459]:
+                - img "e2e-f2-3-1789155605034-F1" [ref=e460]
+                - generic [ref=e461]: Paseo de Perros
+              - generic [ref=e468]:
+                - heading "e2e-f2-3-1789155605034-F1" [level=3] [ref=e469]
+                - generic [ref=e470]:
+                  - generic [ref=e471]: $10.000 / por paseo
+                  - generic [ref=e472]: 0 vistas
+                - generic [ref=e476]:
+                  - generic [ref=e477] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e478]
+                    - generic [ref=e480]: Activo
+                  - link "Ver" [ref=e481] [cursor=pointer]:
+                    - /url: /servicio/7825d171-9e8e-4c5c-baae-70053e5b2627
+                  - button "Editar" [ref=e487] [cursor=pointer]
+                  - button "Eliminar" [ref=e492] [cursor=pointer]
+            - generic [ref=e497]:
+              - generic [ref=e498]:
+                - img "e2e-f2-3-1789155595017" [ref=e499]
+                - generic [ref=e500]: Cuidado y Hospedaje
+              - generic [ref=e505]:
+                - heading "e2e-f2-3-1789155595017" [level=3] [ref=e506]
+                - generic [ref=e507]:
+                  - generic [ref=e508]: $15.000 / por noche
+                  - generic [ref=e509]: 0 vistas
+                - generic [ref=e513]:
+                  - generic [ref=e514] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e515]
+                    - generic [ref=e517]: Activo
+                  - link "Ver" [ref=e518] [cursor=pointer]:
+                    - /url: /servicio/0fe2bbd0-7337-4fc8-827d-a5efa4ae2c0d
+                  - button "Editar" [ref=e524] [cursor=pointer]
+                  - button "Eliminar" [ref=e529] [cursor=pointer]
+            - generic [ref=e534]:
+              - generic [ref=e535]:
+                - img "e2e-f2-3-1789155582440" [ref=e536]
+                - generic [ref=e537]: Cuidado y Hospedaje
+              - generic [ref=e542]:
+                - heading "e2e-f2-3-1789155582440" [level=3] [ref=e543]
+                - generic [ref=e544]:
+                  - generic [ref=e545]: $15.000 / por noche
+                  - generic [ref=e546]: 0 vistas
+                - generic [ref=e550]:
+                  - generic [ref=e551] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e552]
+                    - generic [ref=e554]: Activo
+                  - link "Ver" [ref=e555] [cursor=pointer]:
+                    - /url: /servicio/9e0c103a-ae01-41d0-8810-b63231cc6371
+                  - button "Editar" [ref=e561] [cursor=pointer]
+                  - button "Eliminar" [ref=e566] [cursor=pointer]
+            - generic [ref=e571]:
+              - generic [ref=e572]:
+                - img "e2e-f2-3-1789155568332" [ref=e573]
+                - generic [ref=e574]: Cuidado y Hospedaje
+              - generic [ref=e579]:
+                - heading "e2e-f2-3-1789155568332" [level=3] [ref=e580]
+                - generic [ref=e581]:
+                  - generic [ref=e582]: $15.000 / por noche
+                  - generic [ref=e583]: 0 vistas
+                - generic [ref=e587]:
+                  - generic [ref=e588] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e589]
+                    - generic [ref=e591]: Activo
+                  - link "Ver" [ref=e592] [cursor=pointer]:
+                    - /url: /servicio/f8459767-b186-4a61-bfce-937b894859fb
+                  - button "Editar" [ref=e598] [cursor=pointer]
+                  - button "Eliminar" [ref=e603] [cursor=pointer]
+            - generic [ref=e608]:
+              - generic [ref=e609]:
+                - img "e2e-f2-3-1789155539252" [ref=e610]
+                - generic [ref=e611]: Cuidado y Hospedaje
+              - generic [ref=e616]:
+                - heading "e2e-f2-3-1789155539252" [level=3] [ref=e617]
+                - generic [ref=e618]:
+                  - generic [ref=e619]: $15.000 / por noche
+                  - generic [ref=e620]: 0 vistas
+                - generic [ref=e624]:
+                  - generic [ref=e625] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e626]
+                    - generic [ref=e628]: Activo
+                  - link "Ver" [ref=e629] [cursor=pointer]:
+                    - /url: /servicio/a6e2adc5-3067-4194-acc1-c22d2db62c39
+                  - button "Editar" [ref=e635] [cursor=pointer]
+                  - button "Eliminar" [ref=e640] [cursor=pointer]
+            - generic [ref=e645]:
+              - generic [ref=e646]:
+                - img "e2e-f2-3-1789155523874" [ref=e647]
+                - generic [ref=e648]: Cuidado y Hospedaje
+              - generic [ref=e653]:
+                - heading "e2e-f2-3-1789155523874" [level=3] [ref=e654]
+                - generic [ref=e655]:
+                  - generic [ref=e656]: $15.000 / por noche
+                  - generic [ref=e657]: 0 vistas
+                - generic [ref=e661]:
+                  - generic [ref=e662] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e663]
+                    - generic [ref=e665]: Activo
+                  - link "Ver" [ref=e666] [cursor=pointer]:
+                    - /url: /servicio/27271e36-0024-41e2-bc7a-165be3011b5c
+                  - button "Editar" [ref=e672] [cursor=pointer]
+                  - button "Eliminar" [ref=e677] [cursor=pointer]
+            - generic [ref=e682]:
+              - generic [ref=e683]:
+                - img "e2e-f2-3-1789155500184" [ref=e684]
+                - generic [ref=e685]: Cuidado y Hospedaje
+              - generic [ref=e690]:
+                - heading "e2e-f2-3-1789155500184" [level=3] [ref=e691]
+                - generic [ref=e692]:
+                  - generic [ref=e693]: $15.000 / por noche
+                  - generic [ref=e694]: 0 vistas
+                - generic [ref=e698]:
+                  - generic [ref=e699] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e700]
+                    - generic [ref=e702]: Activo
+                  - link "Ver" [ref=e703] [cursor=pointer]:
+                    - /url: /servicio/6832e5f1-e9a2-4f69-b373-c3ba7493f565
+                  - button "Editar" [ref=e709] [cursor=pointer]
+                  - button "Eliminar" [ref=e714] [cursor=pointer]
+            - generic [ref=e719]:
+              - generic [ref=e720]:
+                - img "e2e-f2-3-1789154746305" [ref=e721]
+                - generic [ref=e722]: Cuidado y Hospedaje
+              - generic [ref=e727]:
+                - heading "e2e-f2-3-1789154746305" [level=3] [ref=e728]
+                - generic [ref=e729]:
+                  - generic [ref=e730]: $15.000 / por noche
+                  - generic [ref=e731]: 0 vistas
+                - generic [ref=e735]:
+                  - generic [ref=e736] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e737]
+                    - generic [ref=e739]: Activo
+                  - link "Ver" [ref=e740] [cursor=pointer]:
+                    - /url: /servicio/a0aa1e0f-4b58-435e-a405-124199539694
+                  - button "Editar" [ref=e746] [cursor=pointer]
+                  - button "Eliminar" [ref=e751] [cursor=pointer]
+            - generic [ref=e756]:
+              - generic [ref=e757]:
+                - img "e2e-f2-3-1789154744484" [ref=e758]
+                - generic [ref=e759]: Cuidado y Hospedaje
+              - generic [ref=e764]:
+                - heading "e2e-f2-3-1789154744484" [level=3] [ref=e765]
+                - generic [ref=e766]:
+                  - generic [ref=e767]: $15.000 / por noche
+                  - generic [ref=e768]: 0 vistas
+                - generic [ref=e772]:
+                  - generic [ref=e773] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e774]
+                    - generic [ref=e776]: Activo
+                  - link "Ver" [ref=e777] [cursor=pointer]:
+                    - /url: /servicio/31d6cb09-d5b1-4136-9f41-026e4f00bd64
+                  - button "Editar" [ref=e783] [cursor=pointer]
+                  - button "Eliminar" [ref=e788] [cursor=pointer]
+            - generic [ref=e793]:
+              - generic [ref=e794]:
+                - img "e2e-f2-3-1789154739257" [ref=e795]
+                - generic [ref=e796]: Cuidado y Hospedaje
+              - generic [ref=e801]:
+                - heading "e2e-f2-3-1789154739257" [level=3] [ref=e802]
+                - generic [ref=e803]:
+                  - generic [ref=e804]: $15.000 / por noche
+                  - generic [ref=e805]: 0 vistas
+                - generic [ref=e809]:
+                  - generic [ref=e810] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e811]
+                    - generic [ref=e813]: Activo
+                  - link "Ver" [ref=e814] [cursor=pointer]:
+                    - /url: /servicio/56138158-cec1-421d-bc0b-792441d09c73
+                  - button "Editar" [ref=e820] [cursor=pointer]
+                  - button "Eliminar" [ref=e825] [cursor=pointer]
+            - generic [ref=e830]:
+              - generic [ref=e831]:
+                - img "e2e-f2-3-1789154736302" [ref=e832]
+                - generic [ref=e833]: Cuidado y Hospedaje
+              - generic [ref=e838]:
+                - heading "e2e-f2-3-1789154736302" [level=3] [ref=e839]
+                - generic [ref=e840]:
+                  - generic [ref=e841]: $15.000 / por noche
+                  - generic [ref=e842]: 0 vistas
+                - generic [ref=e846]:
+                  - generic [ref=e847] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e848]
+                    - generic [ref=e850]: Activo
+                  - link "Ver" [ref=e851] [cursor=pointer]:
+                    - /url: /servicio/42af1f8c-4759-4a83-a3d4-af0255c63679
+                  - button "Editar" [ref=e857] [cursor=pointer]
+                  - button "Eliminar" [ref=e862] [cursor=pointer]
+            - generic [ref=e867]:
+              - generic [ref=e868]:
+                - img "e2e-f2-3-1789154733660-F1" [ref=e869]
+                - generic [ref=e870]: Paseo de Perros
+              - generic [ref=e877]:
+                - heading "e2e-f2-3-1789154733660-F1" [level=3] [ref=e878]
+                - generic [ref=e879]:
+                  - generic [ref=e880]: $10.000 / por paseo
+                  - generic [ref=e881]: 0 vistas
+                - generic [ref=e885]:
+                  - generic [ref=e886] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e887]
+                    - generic [ref=e889]: Activo
+                  - link "Ver" [ref=e890] [cursor=pointer]:
+                    - /url: /servicio/7a961503-0354-45bb-8943-e041b3669ae1
+                  - button "Editar" [ref=e896] [cursor=pointer]
+                  - button "Eliminar" [ref=e901] [cursor=pointer]
+            - generic [ref=e906]:
+              - generic [ref=e907]:
+                - img "e2e-f2-3-1789154728064" [ref=e908]
+                - generic [ref=e909]: Cuidado y Hospedaje
+              - generic [ref=e914]:
+                - heading "e2e-f2-3-1789154728064" [level=3] [ref=e915]
+                - generic [ref=e916]:
+                  - generic [ref=e917]: $15.000 / por noche
+                  - generic [ref=e918]: 0 vistas
+                - generic [ref=e922]:
+                  - generic [ref=e923] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e924]
+                    - generic [ref=e926]: Activo
+                  - link "Ver" [ref=e927] [cursor=pointer]:
+                    - /url: /servicio/496a1b81-ffca-4bed-bdca-26536e8bb571
+                  - button "Editar" [ref=e933] [cursor=pointer]
+                  - button "Eliminar" [ref=e938] [cursor=pointer]
+            - generic [ref=e943]:
+              - generic [ref=e944]:
+                - img "e2e-f2-3-1789154715168" [ref=e945]
+                - generic [ref=e946]: Cuidado y Hospedaje
+              - generic [ref=e951]:
+                - heading "e2e-f2-3-1789154715168" [level=3] [ref=e952]
+                - generic [ref=e953]:
+                  - generic [ref=e954]: $15.000 / por noche
+                  - generic [ref=e955]: 0 vistas
+                - generic [ref=e959]:
+                  - generic [ref=e960] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e961]
+                    - generic [ref=e963]: Activo
+                  - link "Ver" [ref=e964] [cursor=pointer]:
+                    - /url: /servicio/14431b8f-69fd-4814-8e2e-8527964b5d29
+                  - button "Editar" [ref=e970] [cursor=pointer]
+                  - button "Eliminar" [ref=e975] [cursor=pointer]
+            - generic [ref=e980]:
+              - generic [ref=e981]:
+                - img "e2e-f2-3-1789154702288" [ref=e982]
+                - generic [ref=e983]: Cuidado y Hospedaje
+              - generic [ref=e988]:
+                - heading "e2e-f2-3-1789154702288" [level=3] [ref=e989]
+                - generic [ref=e990]:
+                  - generic [ref=e991]: $15.000 / por noche
+                  - generic [ref=e992]: 0 vistas
+                - generic [ref=e996]:
+                  - generic [ref=e997] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e998]
+                    - generic [ref=e1000]: Activo
+                  - link "Ver" [ref=e1001] [cursor=pointer]:
+                    - /url: /servicio/ed1fc3c0-90aa-4640-b13c-c2473dd187ca
+                  - button "Editar" [ref=e1007] [cursor=pointer]
+                  - button "Eliminar" [ref=e1012] [cursor=pointer]
+            - generic [ref=e1017]:
+              - generic [ref=e1018]:
+                - img "e2e-f2-3-1789154682742" [ref=e1019]
+                - generic [ref=e1020]: Cuidado y Hospedaje
+              - generic [ref=e1025]:
+                - heading "e2e-f2-3-1789154682742" [level=3] [ref=e1026]
+                - generic [ref=e1027]:
+                  - generic [ref=e1028]: $15.000 / por noche
+                  - generic [ref=e1029]: 0 vistas
+                - generic [ref=e1033]:
+                  - generic [ref=e1034] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1035]
+                    - generic [ref=e1037]: Activo
+                  - link "Ver" [ref=e1038] [cursor=pointer]:
+                    - /url: /servicio/4d758fd2-d4cd-494a-a9d2-0ff2b023379f
+                  - button "Editar" [ref=e1044] [cursor=pointer]
+                  - button "Eliminar" [ref=e1049] [cursor=pointer]
+            - generic [ref=e1054]:
+              - generic [ref=e1055]:
+                - img "e2e-f2-3-1789154670865" [ref=e1056]
+                - generic [ref=e1057]: Cuidado y Hospedaje
+              - generic [ref=e1062]:
+                - heading "e2e-f2-3-1789154670865" [level=3] [ref=e1063]
+                - generic [ref=e1064]:
+                  - generic [ref=e1065]: $15.000 / por noche
+                  - generic [ref=e1066]: 0 vistas
+                - generic [ref=e1070]:
+                  - generic [ref=e1071] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1072]
+                    - generic [ref=e1074]: Activo
+                  - link "Ver" [ref=e1075] [cursor=pointer]:
+                    - /url: /servicio/805c85de-2e6c-433e-85d2-13489d9cc1b3
+                  - button "Editar" [ref=e1081] [cursor=pointer]
+                  - button "Eliminar" [ref=e1086] [cursor=pointer]
+            - generic [ref=e1091]:
+              - generic [ref=e1092]:
+                - img "e2e-f2-3-1789154652548" [ref=e1093]
+                - generic [ref=e1094]: Cuidado y Hospedaje
+              - generic [ref=e1099]:
+                - heading "e2e-f2-3-1789154652548" [level=3] [ref=e1100]
+                - generic [ref=e1101]:
+                  - generic [ref=e1102]: $15.000 / por noche
+                  - generic [ref=e1103]: 0 vistas
+                - generic [ref=e1107]:
+                  - generic [ref=e1108] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1109]
+                    - generic [ref=e1111]: Activo
+                  - link "Ver" [ref=e1112] [cursor=pointer]:
+                    - /url: /servicio/297dbc31-257b-47c0-93a4-520294e39cdd
+                  - button "Editar" [ref=e1118] [cursor=pointer]
+                  - button "Eliminar" [ref=e1123] [cursor=pointer]
+            - generic [ref=e1128]:
+              - generic [ref=e1129]:
+                - img "e2e-f2-3-1789154433599" [ref=e1130]
+                - generic [ref=e1131]: Cuidado y Hospedaje
+              - generic [ref=e1136]:
+                - heading "e2e-f2-3-1789154433599" [level=3] [ref=e1137]
+                - generic [ref=e1138]:
+                  - generic [ref=e1139]: $15.000 / por noche
+                  - generic [ref=e1140]: 0 vistas
+                - generic [ref=e1144]:
+                  - generic [ref=e1145] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1146]
+                    - generic [ref=e1148]: Activo
+                  - link "Ver" [ref=e1149] [cursor=pointer]:
+                    - /url: /servicio/0b4d4924-bd07-4a4e-931a-c621279c86be
+                  - button "Editar" [ref=e1155] [cursor=pointer]
+                  - button "Eliminar" [ref=e1160] [cursor=pointer]
+            - generic [ref=e1165]:
+              - generic [ref=e1166]:
+                - img "e2e-f2-3-1789153973120" [ref=e1167]
+                - generic [ref=e1168]: Cuidado y Hospedaje
+              - generic [ref=e1173]:
+                - heading "e2e-f2-3-1789153973120" [level=3] [ref=e1174]
+                - generic [ref=e1175]:
+                  - generic [ref=e1176]: $15.000 / por noche
+                  - generic [ref=e1177]: 0 vistas
+                - generic [ref=e1181]:
+                  - generic [ref=e1182] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1183]
+                    - generic [ref=e1185]: Activo
+                  - link "Ver" [ref=e1186] [cursor=pointer]:
+                    - /url: /servicio/9e875589-4f07-4369-8aa7-96244e88fac6
+                  - button "Editar" [ref=e1192] [cursor=pointer]
+                  - button "Eliminar" [ref=e1197] [cursor=pointer]
+            - generic [ref=e1202]:
+              - generic [ref=e1203]:
+                - img "e2e-f2-3-1789153970423" [ref=e1204]
+                - generic [ref=e1205]: Cuidado y Hospedaje
+              - generic [ref=e1210]:
+                - heading "e2e-f2-3-1789153970423" [level=3] [ref=e1211]
+                - generic [ref=e1212]:
+                  - generic [ref=e1213]: $15.000 / por noche
+                  - generic [ref=e1214]: 0 vistas
+                - generic [ref=e1218]:
+                  - generic [ref=e1219] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1220]
+                    - generic [ref=e1222]: Activo
+                  - link "Ver" [ref=e1223] [cursor=pointer]:
+                    - /url: /servicio/b356f3e8-5fbb-4132-8728-368317cf7dca
+                  - button "Editar" [ref=e1229] [cursor=pointer]
+                  - button "Eliminar" [ref=e1234] [cursor=pointer]
+            - generic [ref=e1239]:
+              - generic [ref=e1240]:
+                - img "e2e-f2-3-1789153962826" [ref=e1241]
+                - generic [ref=e1242]: Cuidado y Hospedaje
+              - generic [ref=e1247]:
+                - heading "e2e-f2-3-1789153962826" [level=3] [ref=e1248]
+                - generic [ref=e1249]:
+                  - generic [ref=e1250]: $15.000 / por noche
+                  - generic [ref=e1251]: 0 vistas
+                - generic [ref=e1255]:
+                  - generic [ref=e1256] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1257]
+                    - generic [ref=e1259]: Activo
+                  - link "Ver" [ref=e1260] [cursor=pointer]:
+                    - /url: /servicio/7e0a5ffa-4022-49e2-a1bd-35f3999bc4d6
+                  - button "Editar" [ref=e1266] [cursor=pointer]
+                  - button "Eliminar" [ref=e1271] [cursor=pointer]
+            - generic [ref=e1276]:
+              - generic [ref=e1277]:
+                - img "e2e-f2-3-1789153959059" [ref=e1278]
+                - generic [ref=e1279]: Cuidado y Hospedaje
+              - generic [ref=e1284]:
+                - heading "e2e-f2-3-1789153959059" [level=3] [ref=e1285]
+                - generic [ref=e1286]:
+                  - generic [ref=e1287]: $15.000 / por noche
+                  - generic [ref=e1288]: 0 vistas
+                - generic [ref=e1292]:
+                  - generic [ref=e1293] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1294]
+                    - generic [ref=e1296]: Activo
+                  - link "Ver" [ref=e1297] [cursor=pointer]:
+                    - /url: /servicio/52118f58-d738-459c-a6fa-0938bae5b688
+                  - button "Editar" [ref=e1303] [cursor=pointer]
+                  - button "Eliminar" [ref=e1308] [cursor=pointer]
+            - generic [ref=e1313]:
+              - generic [ref=e1314]:
+                - img "e2e-f2-3-1789153955422-F1" [ref=e1315]
+                - generic [ref=e1316]: Paseo de Perros
+              - generic [ref=e1323]:
+                - heading "e2e-f2-3-1789153955422-F1" [level=3] [ref=e1324]
+                - generic [ref=e1325]:
+                  - generic [ref=e1326]: $10.000 / por paseo
+                  - generic [ref=e1327]: 0 vistas
+                - generic [ref=e1331]:
+                  - generic [ref=e1332] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1333]
+                    - generic [ref=e1335]: Activo
+                  - link "Ver" [ref=e1336] [cursor=pointer]:
+                    - /url: /servicio/aff9fe87-b1fa-457a-9c2c-2ff2cd169db7
+                  - button "Editar" [ref=e1342] [cursor=pointer]
+                  - button "Eliminar" [ref=e1347] [cursor=pointer]
+            - generic [ref=e1352]:
+              - generic [ref=e1353]:
+                - img "e2e-f2-3-1789153943739" [ref=e1354]
+                - generic [ref=e1355]: Cuidado y Hospedaje
+              - generic [ref=e1360]:
+                - heading "e2e-f2-3-1789153943739" [level=3] [ref=e1361]
+                - generic [ref=e1362]:
+                  - generic [ref=e1363]: $15.000 / por noche
+                  - generic [ref=e1364]: 0 vistas
+                - generic [ref=e1368]:
+                  - generic [ref=e1369] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1370]
+                    - generic [ref=e1372]: Activo
+                  - link "Ver" [ref=e1373] [cursor=pointer]:
+                    - /url: /servicio/02f94670-8c8a-4d5a-9e3f-6c2367e3307f
+                  - button "Editar" [ref=e1379] [cursor=pointer]
+                  - button "Eliminar" [ref=e1384] [cursor=pointer]
+            - generic [ref=e1389]:
+              - generic [ref=e1390]:
+                - img "e2e-f2-3-1789153933721" [ref=e1391]
+                - generic [ref=e1392]: Cuidado y Hospedaje
+              - generic [ref=e1397]:
+                - heading "e2e-f2-3-1789153933721" [level=3] [ref=e1398]
+                - generic [ref=e1399]:
+                  - generic [ref=e1400]: $15.000 / por noche
+                  - generic [ref=e1401]: 0 vistas
+                - generic [ref=e1405]:
+                  - generic [ref=e1406] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1407]
+                    - generic [ref=e1409]: Activo
+                  - link "Ver" [ref=e1410] [cursor=pointer]:
+                    - /url: /servicio/8355cb95-c755-4919-9e7a-4f7de442d74d
+                  - button "Editar" [ref=e1416] [cursor=pointer]
+                  - button "Eliminar" [ref=e1421] [cursor=pointer]
+            - generic [ref=e1426]:
+              - generic [ref=e1427]:
+                - img "e2e-f2-3-1789153919850" [ref=e1428]
+                - generic [ref=e1429]: Cuidado y Hospedaje
+              - generic [ref=e1434]:
+                - heading "e2e-f2-3-1789153919850" [level=3] [ref=e1435]
+                - generic [ref=e1436]:
+                  - generic [ref=e1437]: $15.000 / por noche
+                  - generic [ref=e1438]: 0 vistas
+                - generic [ref=e1442]:
+                  - generic [ref=e1443] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1444]
+                    - generic [ref=e1446]: Activo
+                  - link "Ver" [ref=e1447] [cursor=pointer]:
+                    - /url: /servicio/c8456e6c-a7aa-4f23-be0b-fdd8d5404fcf
+                  - button "Editar" [ref=e1453] [cursor=pointer]
+                  - button "Eliminar" [ref=e1458] [cursor=pointer]
+            - generic [ref=e1463]:
+              - generic [ref=e1464]:
+                - img "e2e-f2-3-1789153897895" [ref=e1465]
+                - generic [ref=e1466]: Cuidado y Hospedaje
+              - generic [ref=e1471]:
+                - heading "e2e-f2-3-1789153897895" [level=3] [ref=e1472]
+                - generic [ref=e1473]:
+                  - generic [ref=e1474]: $15.000 / por noche
+                  - generic [ref=e1475]: 0 vistas
+                - generic [ref=e1479]:
+                  - generic [ref=e1480] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1481]
+                    - generic [ref=e1483]: Activo
+                  - link "Ver" [ref=e1484] [cursor=pointer]:
+                    - /url: /servicio/d3103f63-0a6f-404d-9e24-c5a33843ad25
+                  - button "Editar" [ref=e1490] [cursor=pointer]
+                  - button "Eliminar" [ref=e1495] [cursor=pointer]
+            - generic [ref=e1500]:
+              - generic [ref=e1501]:
+                - img "e2e-f2-3-1789153879735" [ref=e1502]
+                - generic [ref=e1503]: Cuidado y Hospedaje
+              - generic [ref=e1508]:
+                - heading "e2e-f2-3-1789153879735" [level=3] [ref=e1509]
+                - generic [ref=e1510]:
+                  - generic [ref=e1511]: $15.000 / por noche
+                  - generic [ref=e1512]: 0 vistas
+                - generic [ref=e1516]:
+                  - generic [ref=e1517] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1518]
+                    - generic [ref=e1520]: Activo
+                  - link "Ver" [ref=e1521] [cursor=pointer]:
+                    - /url: /servicio/876f1c11-30e7-4312-bf79-1c93ba2f3270
+                  - button "Editar" [ref=e1527] [cursor=pointer]
+                  - button "Eliminar" [ref=e1532] [cursor=pointer]
+            - generic [ref=e1537]:
+              - generic [ref=e1538]:
+                - img "e2e-f2-3-1789153854522" [ref=e1539]
+                - generic [ref=e1540]: Cuidado y Hospedaje
+              - generic [ref=e1545]:
+                - heading "e2e-f2-3-1789153854522" [level=3] [ref=e1546]
+                - generic [ref=e1547]:
+                  - generic [ref=e1548]: $15.000 / por noche
+                  - generic [ref=e1549]: 0 vistas
+                - generic [ref=e1553]:
+                  - generic [ref=e1554] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1555]
+                    - generic [ref=e1557]: Activo
+                  - link "Ver" [ref=e1558] [cursor=pointer]:
+                    - /url: /servicio/b4ffac0d-4181-4f66-ab26-de9d8de65a4f
+                  - button "Editar" [ref=e1564] [cursor=pointer]
+                  - button "Eliminar" [ref=e1569] [cursor=pointer]
+            - generic [ref=e1574]:
+              - generic [ref=e1575]:
+                - img "e2e-f2-3-1789153491107" [ref=e1576]
+                - generic [ref=e1577]: Cuidado y Hospedaje
+              - generic [ref=e1582]:
+                - heading "e2e-f2-3-1789153491107" [level=3] [ref=e1583]
+                - generic [ref=e1584]:
+                  - generic [ref=e1585]: $15.000 / por noche
+                  - generic [ref=e1586]: 0 vistas
+                - generic [ref=e1590]:
+                  - generic [ref=e1591] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1592]
+                    - generic [ref=e1594]: Activo
+                  - link "Ver" [ref=e1595] [cursor=pointer]:
+                    - /url: /servicio/092c2e64-c269-4853-a27d-925d70b2777c
+                  - button "Editar" [ref=e1601] [cursor=pointer]
+                  - button "Eliminar" [ref=e1606] [cursor=pointer]
+            - generic [ref=e1611]:
+              - generic [ref=e1612]:
+                - img "e2e-f2-3-1789153488886" [ref=e1613]
+                - generic [ref=e1614]: Cuidado y Hospedaje
+              - generic [ref=e1619]:
+                - heading "e2e-f2-3-1789153488886" [level=3] [ref=e1620]
+                - generic [ref=e1621]:
+                  - generic [ref=e1622]: $15.000 / por noche
+                  - generic [ref=e1623]: 0 vistas
+                - generic [ref=e1627]:
+                  - generic [ref=e1628] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1629]
+                    - generic [ref=e1631]: Activo
+                  - link "Ver" [ref=e1632] [cursor=pointer]:
+                    - /url: /servicio/b750574b-48ec-445f-b96e-7b600b20929e
+                  - button "Editar" [ref=e1638] [cursor=pointer]
+                  - button "Eliminar" [ref=e1643] [cursor=pointer]
+            - generic [ref=e1648]:
+              - generic [ref=e1649]:
+                - img "e2e-f2-3-1789153481863" [ref=e1650]
+                - generic [ref=e1651]: Cuidado y Hospedaje
+              - generic [ref=e1656]:
+                - heading "e2e-f2-3-1789153481863" [level=3] [ref=e1657]
+                - generic [ref=e1658]:
+                  - generic [ref=e1659]: $15.000 / por noche
+                  - generic [ref=e1660]: 0 vistas
+                - generic [ref=e1664]:
+                  - generic [ref=e1665] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1666]
+                    - generic [ref=e1668]: Activo
+                  - link "Ver" [ref=e1669] [cursor=pointer]:
+                    - /url: /servicio/52f51628-18c7-4178-a044-2256efb407ab
+                  - button "Editar" [ref=e1675] [cursor=pointer]
+                  - button "Eliminar" [ref=e1680] [cursor=pointer]
+            - generic [ref=e1685]:
+              - generic [ref=e1686]:
+                - img "e2e-f2-3-1789153477722" [ref=e1687]
+                - generic [ref=e1688]: Cuidado y Hospedaje
+              - generic [ref=e1693]:
+                - heading "e2e-f2-3-1789153477722" [level=3] [ref=e1694]
+                - generic [ref=e1695]:
+                  - generic [ref=e1696]: $15.000 / por noche
+                  - generic [ref=e1697]: 0 vistas
+                - generic [ref=e1701]:
+                  - generic [ref=e1702] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1703]
+                    - generic [ref=e1705]: Activo
+                  - link "Ver" [ref=e1706] [cursor=pointer]:
+                    - /url: /servicio/8a8fbde4-32ef-48c8-b5c4-506f9b604a0a
+                  - button "Editar" [ref=e1712] [cursor=pointer]
+                  - button "Eliminar" [ref=e1717] [cursor=pointer]
+            - generic [ref=e1722]:
+              - generic [ref=e1723]:
+                - img "e2e-f2-3-1789153474618-F1" [ref=e1724]
+                - generic [ref=e1725]: Paseo de Perros
+              - generic [ref=e1732]:
+                - heading "e2e-f2-3-1789153474618-F1" [level=3] [ref=e1733]
+                - generic [ref=e1734]:
+                  - generic [ref=e1735]: $10.000 / por paseo
+                  - generic [ref=e1736]: 0 vistas
+                - generic [ref=e1740]:
+                  - generic [ref=e1741] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1742]
+                    - generic [ref=e1744]: Activo
+                  - link "Ver" [ref=e1745] [cursor=pointer]:
+                    - /url: /servicio/655aa35b-b34c-411e-9787-b623a38f8217
+                  - button "Editar" [ref=e1751] [cursor=pointer]
+                  - button "Eliminar" [ref=e1756] [cursor=pointer]
+            - generic [ref=e1761]:
+              - generic [ref=e1762]:
+                - img "e2e-f2-3-1789153465975" [ref=e1763]
+                - generic [ref=e1764]: Cuidado y Hospedaje
+              - generic [ref=e1769]:
+                - heading "e2e-f2-3-1789153465975" [level=3] [ref=e1770]
+                - generic [ref=e1771]:
+                  - generic [ref=e1772]: $15.000 / por noche
+                  - generic [ref=e1773]: 0 vistas
+                - generic [ref=e1777]:
+                  - generic [ref=e1778] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1779]
+                    - generic [ref=e1781]: Activo
+                  - link "Ver" [ref=e1782] [cursor=pointer]:
+                    - /url: /servicio/3efeb191-3abb-4a77-b9de-b9ea6e6fdc44
+                  - button "Editar" [ref=e1788] [cursor=pointer]
+                  - button "Eliminar" [ref=e1793] [cursor=pointer]
+            - generic [ref=e1798]:
+              - generic [ref=e1799]:
+                - img "e2e-f2-3-1789153456514" [ref=e1800]
+                - generic [ref=e1801]: Cuidado y Hospedaje
+              - generic [ref=e1806]:
+                - heading "e2e-f2-3-1789153456514" [level=3] [ref=e1807]
+                - generic [ref=e1808]:
+                  - generic [ref=e1809]: $15.000 / por noche
+                  - generic [ref=e1810]: 0 vistas
+                - generic [ref=e1814]:
+                  - generic [ref=e1815] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1816]
+                    - generic [ref=e1818]: Activo
+                  - link "Ver" [ref=e1819] [cursor=pointer]:
+                    - /url: /servicio/c081d3e6-6c65-461f-a9e4-40a0dcac2c78
+                  - button "Editar" [ref=e1825] [cursor=pointer]
+                  - button "Eliminar" [ref=e1830] [cursor=pointer]
+            - generic [ref=e1835]:
+              - generic [ref=e1836]:
+                - img "e2e-f2-3-1789153439221" [ref=e1837]
+                - generic [ref=e1838]: Cuidado y Hospedaje
+              - generic [ref=e1843]:
+                - heading "e2e-f2-3-1789153439221" [level=3] [ref=e1844]
+                - generic [ref=e1845]:
+                  - generic [ref=e1846]: $15.000 / por noche
+                  - generic [ref=e1847]: 0 vistas
+                - generic [ref=e1851]:
+                  - generic [ref=e1852] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1853]
+                    - generic [ref=e1855]: Activo
+                  - link "Ver" [ref=e1856] [cursor=pointer]:
+                    - /url: /servicio/42f1e7ea-38db-46e1-9c25-f639e37674da
+                  - button "Editar" [ref=e1862] [cursor=pointer]
+                  - button "Eliminar" [ref=e1867] [cursor=pointer]
+            - generic [ref=e1872]:
+              - generic [ref=e1873]:
+                - img "e2e-f2-3-1789153419680" [ref=e1874]
+                - generic [ref=e1875]: Cuidado y Hospedaje
+              - generic [ref=e1880]:
+                - heading "e2e-f2-3-1789153419680" [level=3] [ref=e1881]
+                - generic [ref=e1882]:
+                  - generic [ref=e1883]: $15.000 / por noche
+                  - generic [ref=e1884]: 0 vistas
+                - generic [ref=e1888]:
+                  - generic [ref=e1889] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1890]
+                    - generic [ref=e1892]: Activo
+                  - link "Ver" [ref=e1893] [cursor=pointer]:
+                    - /url: /servicio/ad91294f-f954-4b39-a371-566173c33f23
+                  - button "Editar" [ref=e1899] [cursor=pointer]
+                  - button "Eliminar" [ref=e1904] [cursor=pointer]
+            - generic [ref=e1909]:
+              - generic [ref=e1910]:
+                - img "e2e-f2-3-1789153402836" [ref=e1911]
+                - generic [ref=e1912]: Cuidado y Hospedaje
+              - generic [ref=e1917]:
+                - heading "e2e-f2-3-1789153402836" [level=3] [ref=e1918]
+                - generic [ref=e1919]:
+                  - generic [ref=e1920]: $15.000 / por noche
+                  - generic [ref=e1921]: 0 vistas
+                - generic [ref=e1925]:
+                  - generic [ref=e1926] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1927]
+                    - generic [ref=e1929]: Activo
+                  - link "Ver" [ref=e1930] [cursor=pointer]:
+                    - /url: /servicio/a55f1b38-ff2d-4f17-a411-6084d1a61031
+                  - button "Editar" [ref=e1936] [cursor=pointer]
+                  - button "Eliminar" [ref=e1941] [cursor=pointer]
+            - generic [ref=e1946]:
+              - generic [ref=e1947]:
+                - img "e2e-f2-3-1789153373593" [ref=e1948]
+                - generic [ref=e1949]: Cuidado y Hospedaje
+              - generic [ref=e1954]:
+                - heading "e2e-f2-3-1789153373593" [level=3] [ref=e1955]
+                - generic [ref=e1956]:
+                  - generic [ref=e1957]: $15.000 / por noche
+                  - generic [ref=e1958]: 0 vistas
+                - generic [ref=e1962]:
+                  - generic [ref=e1963] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e1964]
+                    - generic [ref=e1966]: Activo
+                  - link "Ver" [ref=e1967] [cursor=pointer]:
+                    - /url: /servicio/9173bc18-1cc1-4b92-ad0b-243a2bc0cd3e
+                  - button "Editar" [ref=e1973] [cursor=pointer]
+                  - button "Eliminar" [ref=e1978] [cursor=pointer]
+            - generic [ref=e1983]:
+              - generic [ref=e1984]:
+                - img "e2e-f2-3-1789152941784" [ref=e1985]
+                - generic [ref=e1986]: Cuidado y Hospedaje
+              - generic [ref=e1991]:
+                - heading "e2e-f2-3-1789152941784" [level=3] [ref=e1992]
+                - generic [ref=e1993]:
+                  - generic [ref=e1994]: $15.000 / por noche
+                  - generic [ref=e1995]: 0 vistas
+                - generic [ref=e1999]:
+                  - generic [ref=e2000] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2001]
+                    - generic [ref=e2003]: Activo
+                  - link "Ver" [ref=e2004] [cursor=pointer]:
+                    - /url: /servicio/2e56103d-5e44-4c6b-91b9-ea196d1c2f89
+                  - button "Editar" [ref=e2010] [cursor=pointer]
+                  - button "Eliminar" [ref=e2015] [cursor=pointer]
+            - generic [ref=e2020]:
+              - generic [ref=e2021]:
+                - img "e2e-f2-3-1789152939357" [ref=e2022]
+                - generic [ref=e2023]: Cuidado y Hospedaje
+              - generic [ref=e2028]:
+                - heading "e2e-f2-3-1789152939357" [level=3] [ref=e2029]
+                - generic [ref=e2030]:
+                  - generic [ref=e2031]: $15.000 / por noche
+                  - generic [ref=e2032]: 0 vistas
+                - generic [ref=e2036]:
+                  - generic [ref=e2037] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2038]
+                    - generic [ref=e2040]: Activo
+                  - link "Ver" [ref=e2041] [cursor=pointer]:
+                    - /url: /servicio/9a991b88-3585-4737-8835-befa8398610b
+                  - button "Editar" [ref=e2047] [cursor=pointer]
+                  - button "Eliminar" [ref=e2052] [cursor=pointer]
+            - generic [ref=e2057]:
+              - generic [ref=e2058]:
+                - img "e2e-f2-3-1789152931740" [ref=e2059]
+                - generic [ref=e2060]: Cuidado y Hospedaje
+              - generic [ref=e2065]:
+                - heading "e2e-f2-3-1789152931740" [level=3] [ref=e2066]
+                - generic [ref=e2067]:
+                  - generic [ref=e2068]: $15.000 / por noche
+                  - generic [ref=e2069]: 0 vistas
+                - generic [ref=e2073]:
+                  - generic [ref=e2074] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2075]
+                    - generic [ref=e2077]: Activo
+                  - link "Ver" [ref=e2078] [cursor=pointer]:
+                    - /url: /servicio/92da0589-0879-405d-abfd-fda9fc29957c
+                  - button "Editar" [ref=e2084] [cursor=pointer]
+                  - button "Eliminar" [ref=e2089] [cursor=pointer]
+            - generic [ref=e2094]:
+              - generic [ref=e2095]:
+                - img "e2e-f2-3-1789152927697" [ref=e2096]
+                - generic [ref=e2097]: Cuidado y Hospedaje
+              - generic [ref=e2102]:
+                - heading "e2e-f2-3-1789152927697" [level=3] [ref=e2103]
+                - generic [ref=e2104]:
+                  - generic [ref=e2105]: $15.000 / por noche
+                  - generic [ref=e2106]: 0 vistas
+                - generic [ref=e2110]:
+                  - generic [ref=e2111] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2112]
+                    - generic [ref=e2114]: Activo
+                  - link "Ver" [ref=e2115] [cursor=pointer]:
+                    - /url: /servicio/074acfe8-ca7f-4f32-ac37-98db6ce1846e
+                  - button "Editar" [ref=e2121] [cursor=pointer]
+                  - button "Eliminar" [ref=e2126] [cursor=pointer]
+            - generic [ref=e2131]:
+              - generic [ref=e2132]:
+                - img "e2e-f2-3-1789152924108-F1" [ref=e2133]
+                - generic [ref=e2134]: Paseo de Perros
+              - generic [ref=e2141]:
+                - heading "e2e-f2-3-1789152924108-F1" [level=3] [ref=e2142]
+                - generic [ref=e2143]:
+                  - generic [ref=e2144]: $10.000 / por paseo
+                  - generic [ref=e2145]: 0 vistas
+                - generic [ref=e2149]:
+                  - generic [ref=e2150] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2151]
+                    - generic [ref=e2153]: Activo
+                  - link "Ver" [ref=e2154] [cursor=pointer]:
+                    - /url: /servicio/e8c4ed6c-ba85-4acc-b1c3-f1caa6d03976
+                  - button "Editar" [ref=e2160] [cursor=pointer]
+                  - button "Eliminar" [ref=e2165] [cursor=pointer]
+            - generic [ref=e2170]:
+              - generic [ref=e2171]:
+                - img "e2e-f2-3-1789152917083" [ref=e2172]
+                - generic [ref=e2173]: Cuidado y Hospedaje
+              - generic [ref=e2178]:
+                - heading "e2e-f2-3-1789152917083" [level=3] [ref=e2179]
+                - generic [ref=e2180]:
+                  - generic [ref=e2181]: $15.000 / por noche
+                  - generic [ref=e2182]: 0 vistas
+                - generic [ref=e2186]:
+                  - generic [ref=e2187] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2188]
+                    - generic [ref=e2190]: Activo
+                  - link "Ver" [ref=e2191] [cursor=pointer]:
+                    - /url: /servicio/054f1eb1-1173-4d9c-b71b-65ebcbc99a91
+                  - button "Editar" [ref=e2197] [cursor=pointer]
+                  - button "Eliminar" [ref=e2202] [cursor=pointer]
+            - generic [ref=e2207]:
+              - generic [ref=e2208]:
+                - img "e2e-f2-3-1789152895912" [ref=e2209]
+                - generic [ref=e2210]: Cuidado y Hospedaje
+              - generic [ref=e2215]:
+                - heading "e2e-f2-3-1789152895912" [level=3] [ref=e2216]
+                - generic [ref=e2217]:
+                  - generic [ref=e2218]: $15.000 / por noche
+                  - generic [ref=e2219]: 0 vistas
+                - generic [ref=e2223]:
+                  - generic [ref=e2224] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2225]
+                    - generic [ref=e2227]: Activo
+                  - link "Ver" [ref=e2228] [cursor=pointer]:
+                    - /url: /servicio/82be880f-c70f-45bd-9c42-785dbc9972ce
+                  - button "Editar" [ref=e2234] [cursor=pointer]
+                  - button "Eliminar" [ref=e2239] [cursor=pointer]
+            - generic [ref=e2244]:
+              - generic [ref=e2245]:
+                - img "e2e-f2-3-1789152881777" [ref=e2246]
+                - generic [ref=e2247]: Cuidado y Hospedaje
+              - generic [ref=e2252]:
+                - heading "e2e-f2-3-1789152881777" [level=3] [ref=e2253]
+                - generic [ref=e2254]:
+                  - generic [ref=e2255]: $15.000 / por noche
+                  - generic [ref=e2256]: 0 vistas
+                - generic [ref=e2260]:
+                  - generic [ref=e2261] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2262]
+                    - generic [ref=e2264]: Activo
+                  - link "Ver" [ref=e2265] [cursor=pointer]:
+                    - /url: /servicio/08262898-5561-4bf6-a07e-93c7bbd6652a
+                  - button "Editar" [ref=e2271] [cursor=pointer]
+                  - button "Eliminar" [ref=e2276] [cursor=pointer]
+            - generic [ref=e2281]:
+              - generic [ref=e2282]:
+                - img "e2e-f2-3-1789152858399" [ref=e2283]
+                - generic [ref=e2284]: Cuidado y Hospedaje
+              - generic [ref=e2289]:
+                - heading "e2e-f2-3-1789152858399" [level=3] [ref=e2290]
+                - generic [ref=e2291]:
+                  - generic [ref=e2292]: $15.000 / por noche
+                  - generic [ref=e2293]: 0 vistas
+                - generic [ref=e2297]:
+                  - generic [ref=e2298] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2299]
+                    - generic [ref=e2301]: Activo
+                  - link "Ver" [ref=e2302] [cursor=pointer]:
+                    - /url: /servicio/0e8c7937-a6c5-4de7-9fa9-1d9b1e5a0387
+                  - button "Editar" [ref=e2308] [cursor=pointer]
+                  - button "Eliminar" [ref=e2313] [cursor=pointer]
+            - generic [ref=e2318]:
+              - generic [ref=e2319]:
+                - img "e2e-f2-3-1789152839456" [ref=e2320]
+                - generic [ref=e2321]: Cuidado y Hospedaje
+              - generic [ref=e2326]:
+                - heading "e2e-f2-3-1789152839456" [level=3] [ref=e2327]
+                - generic [ref=e2328]:
+                  - generic [ref=e2329]: $15.000 / por noche
+                  - generic [ref=e2330]: 0 vistas
+                - generic [ref=e2334]:
+                  - generic [ref=e2335] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2336]
+                    - generic [ref=e2338]: Activo
+                  - link "Ver" [ref=e2339] [cursor=pointer]:
+                    - /url: /servicio/ae921a1d-8e45-45b8-b549-e2ab64aebecf
+                  - button "Editar" [ref=e2345] [cursor=pointer]
+                  - button "Eliminar" [ref=e2350] [cursor=pointer]
+            - generic [ref=e2355]:
+              - generic [ref=e2356]:
+                - img "e2e-f2-3-1789152815701" [ref=e2357]
+                - generic [ref=e2358]: Cuidado y Hospedaje
+              - generic [ref=e2363]:
+                - heading "e2e-f2-3-1789152815701" [level=3] [ref=e2364]
+                - generic [ref=e2365]:
+                  - generic [ref=e2366]: $15.000 / por noche
+                  - generic [ref=e2367]: 0 vistas
+                - generic [ref=e2371]:
+                  - generic [ref=e2372] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2373]
+                    - generic [ref=e2375]: Activo
+                  - link "Ver" [ref=e2376] [cursor=pointer]:
+                    - /url: /servicio/c25cb241-d1f4-4346-88a2-1b517731a243
+                  - button "Editar" [ref=e2382] [cursor=pointer]
+                  - button "Eliminar" [ref=e2387] [cursor=pointer]
+            - generic [ref=e2392]:
+              - generic [ref=e2393]:
+                - img "e2e-f2-3-1789150118957" [ref=e2394]
+                - generic [ref=e2395]: Cuidado y Hospedaje
+              - generic [ref=e2400]:
+                - heading "e2e-f2-3-1789150118957" [level=3] [ref=e2401]
+                - generic [ref=e2402]:
+                  - generic [ref=e2403]: $15.000 / por noche
+                  - generic [ref=e2404]: 0 vistas
+                - generic [ref=e2408]:
+                  - generic [ref=e2409] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2410]
+                    - generic [ref=e2412]: Activo
+                  - link "Ver" [ref=e2413] [cursor=pointer]:
+                    - /url: /servicio/77db7156-e685-4674-b1cc-6c40286ee8c3
+                  - button "Editar" [ref=e2419] [cursor=pointer]
+                  - button "Eliminar" [ref=e2424] [cursor=pointer]
+            - generic [ref=e2429]:
+              - generic [ref=e2430]:
+                - img "e2e-f2-3-1789150116667" [ref=e2431]
+                - generic [ref=e2432]: Cuidado y Hospedaje
+              - generic [ref=e2437]:
+                - heading "e2e-f2-3-1789150116667" [level=3] [ref=e2438]
+                - generic [ref=e2439]:
+                  - generic [ref=e2440]: $15.000 / por noche
+                  - generic [ref=e2441]: 0 vistas
+                - generic [ref=e2445]:
+                  - generic [ref=e2446] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2447]
+                    - generic [ref=e2449]: Activo
+                  - link "Ver" [ref=e2450] [cursor=pointer]:
+                    - /url: /servicio/43886c11-a797-4eba-9ae3-56a7365e8237
+                  - button "Editar" [ref=e2456] [cursor=pointer]
+                  - button "Eliminar" [ref=e2461] [cursor=pointer]
+            - generic [ref=e2466]:
+              - generic [ref=e2467]:
+                - img "e2e-f2-3-1789150110306" [ref=e2468]
+                - generic [ref=e2469]: Cuidado y Hospedaje
+              - generic [ref=e2474]:
+                - heading "e2e-f2-3-1789150110306" [level=3] [ref=e2475]
+                - generic [ref=e2476]:
+                  - generic [ref=e2477]: $15.000 / por noche
+                  - generic [ref=e2478]: 0 vistas
+                - generic [ref=e2482]:
+                  - generic [ref=e2483] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2484]
+                    - generic [ref=e2486]: Activo
+                  - link "Ver" [ref=e2487] [cursor=pointer]:
+                    - /url: /servicio/7b3c536d-81e6-4a9d-8a72-5ac75b28adba
+                  - button "Editar" [ref=e2493] [cursor=pointer]
+                  - button "Eliminar" [ref=e2498] [cursor=pointer]
+            - generic [ref=e2503]:
+              - generic [ref=e2504]:
+                - img "e2e-f2-3-1789150106587" [ref=e2505]
+                - generic [ref=e2506]: Cuidado y Hospedaje
+              - generic [ref=e2511]:
+                - heading "e2e-f2-3-1789150106587" [level=3] [ref=e2512]
+                - generic [ref=e2513]:
+                  - generic [ref=e2514]: $15.000 / por noche
+                  - generic [ref=e2515]: 0 vistas
+                - generic [ref=e2519]:
+                  - generic [ref=e2520] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2521]
+                    - generic [ref=e2523]: Activo
+                  - link "Ver" [ref=e2524] [cursor=pointer]:
+                    - /url: /servicio/5467fa21-b37e-4795-9f77-9d8e29513b7a
+                  - button "Editar" [ref=e2530] [cursor=pointer]
+                  - button "Eliminar" [ref=e2535] [cursor=pointer]
+            - generic [ref=e2540]:
+              - generic [ref=e2541]:
+                - img "e2e-f2-3-1789150087512-F1" [ref=e2542]
+                - generic [ref=e2543]: Paseo de Perros
+              - generic [ref=e2550]:
+                - heading "e2e-f2-3-1789150087512-F1" [level=3] [ref=e2551]
+                - generic [ref=e2552]:
+                  - generic [ref=e2553]: $10.000 / por paseo
+                  - generic [ref=e2554]: 0 vistas
+                - generic [ref=e2558]:
+                  - generic [ref=e2559] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2560]
+                    - generic [ref=e2562]: Activo
+                  - link "Ver" [ref=e2563] [cursor=pointer]:
+                    - /url: /servicio/d8b184a8-2fbe-407a-b7a1-df81eb1078f5
+                  - button "Editar" [ref=e2569] [cursor=pointer]
+                  - button "Eliminar" [ref=e2574] [cursor=pointer]
+            - generic [ref=e2579]:
+              - generic [ref=e2580]:
+                - img "e2e-f2-3-1789150079027" [ref=e2581]
+                - generic [ref=e2582]: Cuidado y Hospedaje
+              - generic [ref=e2587]:
+                - heading "e2e-f2-3-1789150079027" [level=3] [ref=e2588]
+                - generic [ref=e2589]:
+                  - generic [ref=e2590]: $15.000 / por noche
+                  - generic [ref=e2591]: 0 vistas
+                - generic [ref=e2595]:
+                  - generic [ref=e2596] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2597]
+                    - generic [ref=e2599]: Activo
+                  - link "Ver" [ref=e2600] [cursor=pointer]:
+                    - /url: /servicio/b7f6348b-3728-4260-ad49-675d6e1d6031
+                  - button "Editar" [ref=e2606] [cursor=pointer]
+                  - button "Eliminar" [ref=e2611] [cursor=pointer]
+            - generic [ref=e2616]:
+              - generic [ref=e2617]:
+                - img "e2e-f2-3-1789150078442" [ref=e2618]
+                - generic [ref=e2619]: Cuidado y Hospedaje
+              - generic [ref=e2624]:
+                - heading "e2e-f2-3-1789150078442" [level=3] [ref=e2625]
+                - generic [ref=e2626]:
+                  - generic [ref=e2627]: $15.000 / por noche
+                  - generic [ref=e2628]: 0 vistas
+                - generic [ref=e2632]:
+                  - generic [ref=e2633] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2634]
+                    - generic [ref=e2636]: Activo
+                  - link "Ver" [ref=e2637] [cursor=pointer]:
+                    - /url: /servicio/05a8a60e-4edc-4666-8482-18dd32eb259b
+                  - button "Editar" [ref=e2643] [cursor=pointer]
+                  - button "Eliminar" [ref=e2648] [cursor=pointer]
+            - generic [ref=e2653]:
+              - generic [ref=e2654]:
+                - img "e2e-f2-3-1789150055580" [ref=e2655]
+                - generic [ref=e2656]: Cuidado y Hospedaje
+              - generic [ref=e2661]:
+                - heading "e2e-f2-3-1789150055580" [level=3] [ref=e2662]
+                - generic [ref=e2663]:
+                  - generic [ref=e2664]: $15.000 / por noche
+                  - generic [ref=e2665]: 0 vistas
+                - generic [ref=e2669]:
+                  - generic [ref=e2670] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2671]
+                    - generic [ref=e2673]: Activo
+                  - link "Ver" [ref=e2674] [cursor=pointer]:
+                    - /url: /servicio/d8233972-7506-4ff6-833a-6d62265778e3
+                  - button "Editar" [ref=e2680] [cursor=pointer]
+                  - button "Eliminar" [ref=e2685] [cursor=pointer]
+            - generic [ref=e2690]:
+              - generic [ref=e2691]:
+                - img "e2e-f2-3-1789150035689" [ref=e2692]
+                - generic [ref=e2693]: Cuidado y Hospedaje
+              - generic [ref=e2698]:
+                - heading "e2e-f2-3-1789150035689" [level=3] [ref=e2699]
+                - generic [ref=e2700]:
+                  - generic [ref=e2701]: $15.000 / por noche
+                  - generic [ref=e2702]: 0 vistas
+                - generic [ref=e2706]:
+                  - generic [ref=e2707] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2708]
+                    - generic [ref=e2710]: Activo
+                  - link "Ver" [ref=e2711] [cursor=pointer]:
+                    - /url: /servicio/0fe79665-ac3f-4bd2-b305-d8e31b12bb12
+                  - button "Editar" [ref=e2717] [cursor=pointer]
+                  - button "Eliminar" [ref=e2722] [cursor=pointer]
+            - generic [ref=e2727]:
+              - generic [ref=e2728]:
+                - img "e2e-f2-3-1789149986759" [ref=e2729]
+                - generic [ref=e2730]: Cuidado y Hospedaje
+              - generic [ref=e2735]:
+                - heading "e2e-f2-3-1789149986759" [level=3] [ref=e2736]
+                - generic [ref=e2737]:
+                  - generic [ref=e2738]: $15.000 / por noche
+                  - generic [ref=e2739]: 0 vistas
+                - generic [ref=e2743]:
+                  - generic [ref=e2744] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2745]
+                    - generic [ref=e2747]: Activo
+                  - link "Ver" [ref=e2748] [cursor=pointer]:
+                    - /url: /servicio/b3aa6e24-0feb-4639-b803-a653328c08a4
+                  - button "Editar" [ref=e2754] [cursor=pointer]
+                  - button "Eliminar" [ref=e2759] [cursor=pointer]
+            - generic [ref=e2764]:
+              - generic [ref=e2765]:
+                - img "e2e-f2-3-1789148748853" [ref=e2766]
+                - generic [ref=e2767]: Cuidado y Hospedaje
+              - generic [ref=e2772]:
+                - heading "e2e-f2-3-1789148748853" [level=3] [ref=e2773]
+                - generic [ref=e2774]:
+                  - generic [ref=e2775]: $15.000 / por noche
+                  - generic [ref=e2776]: 0 vistas
+                - generic [ref=e2780]:
+                  - generic [ref=e2781] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2782]
+                    - generic [ref=e2784]: Activo
+                  - link "Ver" [ref=e2785] [cursor=pointer]:
+                    - /url: /servicio/d8d42558-4d35-4aaf-b61c-ffdd0bae73a7
+                  - button "Editar" [ref=e2791] [cursor=pointer]
+                  - button "Eliminar" [ref=e2796] [cursor=pointer]
+            - generic [ref=e2801]:
+              - generic [ref=e2802]:
+                - img "e2e-f2-3-1789148745470" [ref=e2803]
+                - generic [ref=e2804]: Cuidado y Hospedaje
+              - generic [ref=e2809]:
+                - heading "e2e-f2-3-1789148745470" [level=3] [ref=e2810]
+                - generic [ref=e2811]:
+                  - generic [ref=e2812]: $15.000 / por noche
+                  - generic [ref=e2813]: 0 vistas
+                - generic [ref=e2817]:
+                  - generic [ref=e2818] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2819]
+                    - generic [ref=e2821]: Activo
+                  - link "Ver" [ref=e2822] [cursor=pointer]:
+                    - /url: /servicio/34d221d6-f83f-4e4f-af3b-48be32b02483
+                  - button "Editar" [ref=e2828] [cursor=pointer]
+                  - button "Eliminar" [ref=e2833] [cursor=pointer]
+            - generic [ref=e2838]:
+              - generic [ref=e2839]:
+                - img "e2e-f2-3-1789148738135" [ref=e2840]
+                - generic [ref=e2841]: Cuidado y Hospedaje
+              - generic [ref=e2846]:
+                - heading "e2e-f2-3-1789148738135" [level=3] [ref=e2847]
+                - generic [ref=e2848]:
+                  - generic [ref=e2849]: $15.000 / por noche
+                  - generic [ref=e2850]: 0 vistas
+                - generic [ref=e2854]:
+                  - generic [ref=e2855] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2856]
+                    - generic [ref=e2858]: Activo
+                  - link "Ver" [ref=e2859] [cursor=pointer]:
+                    - /url: /servicio/e399ee92-96dc-46d7-b111-67a05b81a0fc
+                  - button "Editar" [ref=e2865] [cursor=pointer]
+                  - button "Eliminar" [ref=e2870] [cursor=pointer]
+            - generic [ref=e2875]:
+              - generic [ref=e2876]:
+                - img "e2e-f2-3-1789148734377" [ref=e2877]
+                - generic [ref=e2878]: Cuidado y Hospedaje
+              - generic [ref=e2883]:
+                - heading "e2e-f2-3-1789148734377" [level=3] [ref=e2884]
+                - generic [ref=e2885]:
+                  - generic [ref=e2886]: $15.000 / por noche
+                  - generic [ref=e2887]: 0 vistas
+                - generic [ref=e2891]:
+                  - generic [ref=e2892] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2893]
+                    - generic [ref=e2895]: Activo
+                  - link "Ver" [ref=e2896] [cursor=pointer]:
+                    - /url: /servicio/13175369-05ae-4e81-959c-fb0f0013593c
+                  - button "Editar" [ref=e2902] [cursor=pointer]
+                  - button "Eliminar" [ref=e2907] [cursor=pointer]
+            - generic [ref=e2912]:
+              - generic [ref=e2913]:
+                - img "e2e-f2-3-1789148715831-F1" [ref=e2914]
+                - generic [ref=e2915]: Paseo de Perros
+              - generic [ref=e2922]:
+                - heading "e2e-f2-3-1789148715831-F1" [level=3] [ref=e2923]
+                - generic [ref=e2924]:
+                  - generic [ref=e2925]: $10.000 / por paseo
+                  - generic [ref=e2926]: 0 vistas
+                - generic [ref=e2930]:
+                  - generic [ref=e2931] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2932]
+                    - generic [ref=e2934]: Activo
+                  - link "Ver" [ref=e2935] [cursor=pointer]:
+                    - /url: /servicio/0bcab6f7-0bfd-4366-a198-15911aaf0af5
+                  - button "Editar" [ref=e2941] [cursor=pointer]
+                  - button "Eliminar" [ref=e2946] [cursor=pointer]
+            - generic [ref=e2951]:
+              - generic [ref=e2952]:
+                - img "e2e-f2-3-1789148703069" [ref=e2953]
+                - generic [ref=e2954]: Cuidado y Hospedaje
+              - generic [ref=e2959]:
+                - heading "e2e-f2-3-1789148703069" [level=3] [ref=e2960]
+                - generic [ref=e2961]:
+                  - generic [ref=e2962]: $15.000 / por noche
+                  - generic [ref=e2963]: 0 vistas
+                - generic [ref=e2967]:
+                  - generic [ref=e2968] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e2969]
+                    - generic [ref=e2971]: Activo
+                  - link "Ver" [ref=e2972] [cursor=pointer]:
+                    - /url: /servicio/2c9d9cbb-e875-45ff-b8df-8abf2a379bfe
+                  - button "Editar" [ref=e2978] [cursor=pointer]
+                  - button "Eliminar" [ref=e2983] [cursor=pointer]
+            - generic [ref=e2988]:
+              - generic [ref=e2989]:
+                - img "e2e-f2-3-1789148685738" [ref=e2990]
+                - generic [ref=e2991]: Cuidado y Hospedaje
+              - generic [ref=e2996]:
+                - heading "e2e-f2-3-1789148685738" [level=3] [ref=e2997]
+                - generic [ref=e2998]:
+                  - generic [ref=e2999]: $15.000 / por noche
+                  - generic [ref=e3000]: 0 vistas
+                - generic [ref=e3004]:
+                  - generic [ref=e3005] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3006]
+                    - generic [ref=e3008]: Activo
+                  - link "Ver" [ref=e3009] [cursor=pointer]:
+                    - /url: /servicio/eb8e15e3-395e-40bc-bafd-6fcd674cf9f9
+                  - button "Editar" [ref=e3015] [cursor=pointer]
+                  - button "Eliminar" [ref=e3020] [cursor=pointer]
+            - generic [ref=e3025]:
+              - generic [ref=e3026]:
+                - img "e2e-f2-3-1789148670992" [ref=e3027]
+                - generic [ref=e3028]: Cuidado y Hospedaje
+              - generic [ref=e3033]:
+                - heading "e2e-f2-3-1789148670992" [level=3] [ref=e3034]
+                - generic [ref=e3035]:
+                  - generic [ref=e3036]: $15.000 / por noche
+                  - generic [ref=e3037]: 0 vistas
+                - generic [ref=e3041]:
+                  - generic [ref=e3042] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3043]
+                    - generic [ref=e3045]: Activo
+                  - link "Ver" [ref=e3046] [cursor=pointer]:
+                    - /url: /servicio/b2d589af-cee1-410b-a593-1d999332f398
+                  - button "Editar" [ref=e3052] [cursor=pointer]
+                  - button "Eliminar" [ref=e3057] [cursor=pointer]
+            - generic [ref=e3062]:
+              - generic [ref=e3063]:
+                - img "e2e-f2-3-1789148652812" [ref=e3064]
+                - generic [ref=e3065]: Cuidado y Hospedaje
+              - generic [ref=e3070]:
+                - heading "e2e-f2-3-1789148652812" [level=3] [ref=e3071]
+                - generic [ref=e3072]:
+                  - generic [ref=e3073]: $15.000 / por noche
+                  - generic [ref=e3074]: 0 vistas
+                - generic [ref=e3078]:
+                  - generic [ref=e3079] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3080]
+                    - generic [ref=e3082]: Activo
+                  - link "Ver" [ref=e3083] [cursor=pointer]:
+                    - /url: /servicio/44ca998d-b5e1-4637-96d9-b1fae2f0458b
+                  - button "Editar" [ref=e3089] [cursor=pointer]
+                  - button "Eliminar" [ref=e3094] [cursor=pointer]
+            - generic [ref=e3099]:
+              - generic [ref=e3100]:
+                - img "e2e-f2-3-1789148643254" [ref=e3101]
+                - generic [ref=e3102]: Cuidado y Hospedaje
+              - generic [ref=e3107]:
+                - heading "e2e-f2-3-1789148643254" [level=3] [ref=e3108]
+                - generic [ref=e3109]:
+                  - generic [ref=e3110]: $15.000 / por noche
+                  - generic [ref=e3111]: 0 vistas
+                - generic [ref=e3115]:
+                  - generic [ref=e3116] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3117]
+                    - generic [ref=e3119]: Activo
+                  - link "Ver" [ref=e3120] [cursor=pointer]:
+                    - /url: /servicio/afaa4c6f-97fb-4ff4-8dab-2d7d91847f6a
+                  - button "Editar" [ref=e3126] [cursor=pointer]
+                  - button "Eliminar" [ref=e3131] [cursor=pointer]
+            - generic [ref=e3136]:
+              - generic [ref=e3137]:
+                - img "e2e-f2-3-1789148612892" [ref=e3138]
+                - generic [ref=e3139]: Cuidado y Hospedaje
+              - generic [ref=e3144]:
+                - heading "e2e-f2-3-1789148612892" [level=3] [ref=e3145]
+                - generic [ref=e3146]:
+                  - generic [ref=e3147]: $15.000 / por noche
+                  - generic [ref=e3148]: 0 vistas
+                - generic [ref=e3152]:
+                  - generic [ref=e3153] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3154]
+                    - generic [ref=e3156]: Activo
+                  - link "Ver" [ref=e3157] [cursor=pointer]:
+                    - /url: /servicio/26e7ae7b-83eb-4c07-8981-f3d89a5b02e3
+                  - button "Editar" [ref=e3163] [cursor=pointer]
+                  - button "Eliminar" [ref=e3168] [cursor=pointer]
+            - generic [ref=e3173]:
+              - generic [ref=e3174]:
+                - img "e2e-f2-3-1789147946451" [ref=e3175]
+                - generic [ref=e3176]: Cuidado y Hospedaje
+              - generic [ref=e3181]:
+                - heading "e2e-f2-3-1789147946451" [level=3] [ref=e3182]
+                - generic [ref=e3183]:
+                  - generic [ref=e3184]: $15.000 / por noche
+                  - generic [ref=e3185]: 0 vistas
+                - generic [ref=e3189]:
+                  - generic [ref=e3190] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3191]
+                    - generic [ref=e3193]: Activo
+                  - link "Ver" [ref=e3194] [cursor=pointer]:
+                    - /url: /servicio/c3711fd0-fdb0-4db7-87c3-a9cecbae029c
+                  - button "Editar" [ref=e3200] [cursor=pointer]
+                  - button "Eliminar" [ref=e3205] [cursor=pointer]
+            - generic [ref=e3210]:
+              - generic [ref=e3211]:
+                - img "e2e-f2-3-1789147943193" [ref=e3212]
+                - generic [ref=e3213]: Cuidado y Hospedaje
+              - generic [ref=e3218]:
+                - heading "e2e-f2-3-1789147943193" [level=3] [ref=e3219]
+                - generic [ref=e3220]:
+                  - generic [ref=e3221]: $15.000 / por noche
+                  - generic [ref=e3222]: 0 vistas
+                - generic [ref=e3226]:
+                  - generic [ref=e3227] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3228]
+                    - generic [ref=e3230]: Activo
+                  - link "Ver" [ref=e3231] [cursor=pointer]:
+                    - /url: /servicio/e184093c-eaa5-465f-a680-49febdc568c4
+                  - button "Editar" [ref=e3237] [cursor=pointer]
+                  - button "Eliminar" [ref=e3242] [cursor=pointer]
+            - generic [ref=e3247]:
+              - generic [ref=e3248]:
+                - img "e2e-f2-3-1789147934987" [ref=e3249]
+                - generic [ref=e3250]: Cuidado y Hospedaje
+              - generic [ref=e3255]:
+                - heading "e2e-f2-3-1789147934987" [level=3] [ref=e3256]
+                - generic [ref=e3257]:
+                  - generic [ref=e3258]: $15.000 / por noche
+                  - generic [ref=e3259]: 0 vistas
+                - generic [ref=e3263]:
+                  - generic [ref=e3264] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3265]
+                    - generic [ref=e3267]: Activo
+                  - link "Ver" [ref=e3268] [cursor=pointer]:
+                    - /url: /servicio/c319010d-192b-4c9a-b91d-0446a3b96cee
+                  - button "Editar" [ref=e3274] [cursor=pointer]
+                  - button "Eliminar" [ref=e3279] [cursor=pointer]
+            - generic [ref=e3284]:
+              - generic [ref=e3285]:
+                - img "e2e-f2-3-1789147931842" [ref=e3286]
+                - generic [ref=e3287]: Cuidado y Hospedaje
+              - generic [ref=e3292]:
+                - heading "e2e-f2-3-1789147931842" [level=3] [ref=e3293]
+                - generic [ref=e3294]:
+                  - generic [ref=e3295]: $15.000 / por noche
+                  - generic [ref=e3296]: 0 vistas
+                - generic [ref=e3300]:
+                  - generic [ref=e3301] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3302]
+                    - generic [ref=e3304]: Activo
+                  - link "Ver" [ref=e3305] [cursor=pointer]:
+                    - /url: /servicio/1a636968-be29-4bc8-a40f-f333cfc470eb
+                  - button "Editar" [ref=e3311] [cursor=pointer]
+                  - button "Eliminar" [ref=e3316] [cursor=pointer]
+            - generic [ref=e3321]:
+              - generic [ref=e3322]:
+                - img "e2e-f2-3-1789147911252-F1" [ref=e3323]
+                - generic [ref=e3324]: Paseo de Perros
+              - generic [ref=e3331]:
+                - heading "e2e-f2-3-1789147911252-F1" [level=3] [ref=e3332]
+                - generic [ref=e3333]:
+                  - generic [ref=e3334]: $10.000 / por paseo
+                  - generic [ref=e3335]: 0 vistas
+                - generic [ref=e3339]:
+                  - generic [ref=e3340] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3341]
+                    - generic [ref=e3343]: Activo
+                  - link "Ver" [ref=e3344] [cursor=pointer]:
+                    - /url: /servicio/bea87538-9694-43eb-a3d7-1f60aa94f50a
+                  - button "Editar" [ref=e3350] [cursor=pointer]
+                  - button "Eliminar" [ref=e3355] [cursor=pointer]
+            - generic [ref=e3360]:
+              - generic [ref=e3361]:
+                - img "e2e-f2-3-1789147898324" [ref=e3362]
+                - generic [ref=e3363]: Cuidado y Hospedaje
+              - generic [ref=e3368]:
+                - heading "e2e-f2-3-1789147898324" [level=3] [ref=e3369]
+                - generic [ref=e3370]:
+                  - generic [ref=e3371]: $15.000 / por noche
+                  - generic [ref=e3372]: 0 vistas
+                - generic [ref=e3376]:
+                  - generic [ref=e3377] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3378]
+                    - generic [ref=e3380]: Activo
+                  - link "Ver" [ref=e3381] [cursor=pointer]:
+                    - /url: /servicio/8a0ea68b-501f-447d-9a23-8c2d4f6dc2a6
+                  - button "Editar" [ref=e3387] [cursor=pointer]
+                  - button "Eliminar" [ref=e3392] [cursor=pointer]
+            - generic [ref=e3397]:
+              - generic [ref=e3398]:
+                - img "e2e-f2-3-1789147898264" [ref=e3399]
+                - generic [ref=e3400]: Cuidado y Hospedaje
+              - generic [ref=e3405]:
+                - heading "e2e-f2-3-1789147898264" [level=3] [ref=e3406]
+                - generic [ref=e3407]:
+                  - generic [ref=e3408]: $15.000 / por noche
+                  - generic [ref=e3409]: 0 vistas
+                - generic [ref=e3413]:
+                  - generic [ref=e3414] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3415]
+                    - generic [ref=e3417]: Activo
+                  - link "Ver" [ref=e3418] [cursor=pointer]:
+                    - /url: /servicio/a95ab239-35f4-436c-8231-d8fe5239618f
+                  - button "Editar" [ref=e3424] [cursor=pointer]
+                  - button "Eliminar" [ref=e3429] [cursor=pointer]
+            - generic [ref=e3434]:
+              - generic [ref=e3435]:
+                - img "e2e-f2-3-1789147863635" [ref=e3436]
+                - generic [ref=e3437]: Cuidado y Hospedaje
+              - generic [ref=e3442]:
+                - heading "e2e-f2-3-1789147863635" [level=3] [ref=e3443]
+                - generic [ref=e3444]:
+                  - generic [ref=e3445]: $15.000 / por noche
+                  - generic [ref=e3446]: 0 vistas
+                - generic [ref=e3450]:
+                  - generic [ref=e3451] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3452]
+                    - generic [ref=e3454]: Activo
+                  - link "Ver" [ref=e3455] [cursor=pointer]:
+                    - /url: /servicio/1ea4eff6-e490-4120-8d1a-c3c528262e3c
+                  - button "Editar" [ref=e3461] [cursor=pointer]
+                  - button "Eliminar" [ref=e3466] [cursor=pointer]
+            - generic [ref=e3471]:
+              - generic [ref=e3472]:
+                - img "e2e-f2-3-1789147846126" [ref=e3473]
+                - generic [ref=e3474]: Cuidado y Hospedaje
+              - generic [ref=e3479]:
+                - heading "e2e-f2-3-1789147846126" [level=3] [ref=e3480]
+                - generic [ref=e3481]:
+                  - generic [ref=e3482]: $15.000 / por noche
+                  - generic [ref=e3483]: 0 vistas
+                - generic [ref=e3487]:
+                  - generic [ref=e3488] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3489]
+                    - generic [ref=e3491]: Activo
+                  - link "Ver" [ref=e3492] [cursor=pointer]:
+                    - /url: /servicio/efd278cd-5086-4fb8-88ef-6b4294f154f3
+                  - button "Editar" [ref=e3498] [cursor=pointer]
+                  - button "Eliminar" [ref=e3503] [cursor=pointer]
+            - generic [ref=e3508]:
+              - generic [ref=e3509]:
+                - img "e2e-f2-3-1789147841704" [ref=e3510]
+                - generic [ref=e3511]: Cuidado y Hospedaje
+              - generic [ref=e3516]:
+                - heading "e2e-f2-3-1789147841704" [level=3] [ref=e3517]
+                - generic [ref=e3518]:
+                  - generic [ref=e3519]: $15.000 / por noche
+                  - generic [ref=e3520]: 0 vistas
+                - generic [ref=e3524]:
+                  - generic [ref=e3525] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3526]
+                    - generic [ref=e3528]: Activo
+                  - link "Ver" [ref=e3529] [cursor=pointer]:
+                    - /url: /servicio/ff962985-c6df-4b25-b7a0-00e1364dc537
+                  - button "Editar" [ref=e3535] [cursor=pointer]
+                  - button "Eliminar" [ref=e3540] [cursor=pointer]
+            - generic [ref=e3545]:
+              - generic [ref=e3546]:
+                - img "e2e-f2-3-1789147825485" [ref=e3547]
+                - generic [ref=e3548]: Cuidado y Hospedaje
+              - generic [ref=e3553]:
+                - heading "e2e-f2-3-1789147825485" [level=3] [ref=e3554]
+                - generic [ref=e3555]:
+                  - generic [ref=e3556]: $15.000 / por noche
+                  - generic [ref=e3557]: 0 vistas
+                - generic [ref=e3561]:
+                  - generic [ref=e3562] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3563]
+                    - generic [ref=e3565]: Activo
+                  - link "Ver" [ref=e3566] [cursor=pointer]:
+                    - /url: /servicio/1cb143e1-853d-4061-990b-6f669aa81e41
+                  - button "Editar" [ref=e3572] [cursor=pointer]
+                  - button "Eliminar" [ref=e3577] [cursor=pointer]
+            - generic [ref=e3582]:
+              - generic [ref=e3583]:
+                - img "e2e-f2-3-1789145924523" [ref=e3584]
+                - generic [ref=e3585]: Cuidado y Hospedaje
+              - generic [ref=e3590]:
+                - heading "e2e-f2-3-1789145924523" [level=3] [ref=e3591]
+                - generic [ref=e3592]:
+                  - generic [ref=e3593]: $15.000 / por noche
+                  - generic [ref=e3594]: 0 vistas
+                - generic [ref=e3598]:
+                  - generic [ref=e3599] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3600]
+                    - generic [ref=e3602]: Activo
+                  - link "Ver" [ref=e3603] [cursor=pointer]:
+                    - /url: /servicio/0096131c-7c84-40e2-8a02-c705ce45ac33
+                  - button "Editar" [ref=e3609] [cursor=pointer]
+                  - button "Eliminar" [ref=e3614] [cursor=pointer]
+            - generic [ref=e3619]:
+              - generic [ref=e3620]:
+                - img "e2e-f2-3-1789145921816" [ref=e3621]
+                - generic [ref=e3622]: Cuidado y Hospedaje
+              - generic [ref=e3627]:
+                - heading "e2e-f2-3-1789145921816" [level=3] [ref=e3628]
+                - generic [ref=e3629]:
+                  - generic [ref=e3630]: $15.000 / por noche
+                  - generic [ref=e3631]: 0 vistas
+                - generic [ref=e3635]:
+                  - generic [ref=e3636] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3637]
+                    - generic [ref=e3639]: Activo
+                  - link "Ver" [ref=e3640] [cursor=pointer]:
+                    - /url: /servicio/dc78db51-23ef-47a1-b648-d17297f0995c
+                  - button "Editar" [ref=e3646] [cursor=pointer]
+                  - button "Eliminar" [ref=e3651] [cursor=pointer]
+            - generic [ref=e3656]:
+              - generic [ref=e3657]:
+                - img "e2e-f2-3-1789145914186" [ref=e3658]
+                - generic [ref=e3659]: Cuidado y Hospedaje
+              - generic [ref=e3664]:
+                - heading "e2e-f2-3-1789145914186" [level=3] [ref=e3665]
+                - generic [ref=e3666]:
+                  - generic [ref=e3667]: $15.000 / por noche
+                  - generic [ref=e3668]: 0 vistas
+                - generic [ref=e3672]:
+                  - generic [ref=e3673] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3674]
+                    - generic [ref=e3676]: Activo
+                  - link "Ver" [ref=e3677] [cursor=pointer]:
+                    - /url: /servicio/39cfae47-08f3-4a04-9639-5ff351e3750a
+                  - button "Editar" [ref=e3683] [cursor=pointer]
+                  - button "Eliminar" [ref=e3688] [cursor=pointer]
+            - generic [ref=e3693]:
+              - generic [ref=e3694]:
+                - img "e2e-f2-3-1789145911274" [ref=e3695]
+                - generic [ref=e3696]: Cuidado y Hospedaje
+              - generic [ref=e3701]:
+                - heading "e2e-f2-3-1789145911274" [level=3] [ref=e3702]
+                - generic [ref=e3703]:
+                  - generic [ref=e3704]: $15.000 / por noche
+                  - generic [ref=e3705]: 0 vistas
+                - generic [ref=e3709]:
+                  - generic [ref=e3710] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3711]
+                    - generic [ref=e3713]: Activo
+                  - link "Ver" [ref=e3714] [cursor=pointer]:
+                    - /url: /servicio/755ad338-fc20-4f1d-b1ff-24ebc4a93ac4
+                  - button "Editar" [ref=e3720] [cursor=pointer]
+                  - button "Eliminar" [ref=e3725] [cursor=pointer]
+            - generic [ref=e3730]:
+              - generic [ref=e3731]:
+                - img "e2e-f2-3-1789145891592-F1" [ref=e3732]
+                - generic [ref=e3733]: Paseo de Perros
+              - generic [ref=e3740]:
+                - heading "e2e-f2-3-1789145891592-F1" [level=3] [ref=e3741]
+                - generic [ref=e3742]:
+                  - generic [ref=e3743]: $10.000 / por paseo
+                  - generic [ref=e3744]: 0 vistas
+                - generic [ref=e3748]:
+                  - generic [ref=e3749] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3750]
+                    - generic [ref=e3752]: Activo
+                  - link "Ver" [ref=e3753] [cursor=pointer]:
+                    - /url: /servicio/0702b2a9-1bd2-473b-8a88-63a73581b5d1
+                  - button "Editar" [ref=e3759] [cursor=pointer]
+                  - button "Eliminar" [ref=e3764] [cursor=pointer]
+            - generic [ref=e3769]:
+              - generic [ref=e3770]:
+                - img "e2e-f2-3-1789145882326" [ref=e3771]
+                - generic [ref=e3772]: Cuidado y Hospedaje
+              - generic [ref=e3777]:
+                - heading "e2e-f2-3-1789145882326" [level=3] [ref=e3778]
+                - generic [ref=e3779]:
+                  - generic [ref=e3780]: $15.000 / por noche
+                  - generic [ref=e3781]: 0 vistas
+                - generic [ref=e3785]:
+                  - generic [ref=e3786] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3787]
+                    - generic [ref=e3789]: Activo
+                  - link "Ver" [ref=e3790] [cursor=pointer]:
+                    - /url: /servicio/36c249b6-fc6b-4435-98a0-73428dde78a0
+                  - button "Editar" [ref=e3796] [cursor=pointer]
+                  - button "Eliminar" [ref=e3801] [cursor=pointer]
+            - generic [ref=e3806]:
+              - generic [ref=e3807]:
+                - img "e2e-f2-3-1789145882194" [ref=e3808]
+                - generic [ref=e3809]: Cuidado y Hospedaje
+              - generic [ref=e3814]:
+                - heading "e2e-f2-3-1789145882194" [level=3] [ref=e3815]
+                - generic [ref=e3816]:
+                  - generic [ref=e3817]: $15.000 / por noche
+                  - generic [ref=e3818]: 0 vistas
+                - generic [ref=e3822]:
+                  - generic [ref=e3823] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3824]
+                    - generic [ref=e3826]: Activo
+                  - link "Ver" [ref=e3827] [cursor=pointer]:
+                    - /url: /servicio/04e7e604-e504-468d-a754-d7a5d5a19274
+                  - button "Editar" [ref=e3833] [cursor=pointer]
+                  - button "Eliminar" [ref=e3838] [cursor=pointer]
+            - generic [ref=e3843]:
+              - generic [ref=e3844]:
+                - img "e2e-f2-3-1789145852225" [ref=e3845]
+                - generic [ref=e3846]: Cuidado y Hospedaje
+              - generic [ref=e3851]:
+                - heading "e2e-f2-3-1789145852225" [level=3] [ref=e3852]
+                - generic [ref=e3853]:
+                  - generic [ref=e3854]: $15.000 / por noche
+                  - generic [ref=e3855]: 0 vistas
+                - generic [ref=e3859]:
+                  - generic [ref=e3860] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3861]
+                    - generic [ref=e3863]: Activo
+                  - link "Ver" [ref=e3864] [cursor=pointer]:
+                    - /url: /servicio/d32f32eb-c5ca-44f5-bd2d-cf38fcb618ec
+                  - button "Editar" [ref=e3870] [cursor=pointer]
+                  - button "Eliminar" [ref=e3875] [cursor=pointer]
+            - generic [ref=e3880]:
+              - generic [ref=e3881]:
+                - img "e2e-f2-3-1789145825518" [ref=e3882]
+                - generic [ref=e3883]: Cuidado y Hospedaje
+              - generic [ref=e3888]:
+                - heading "e2e-f2-3-1789145825518" [level=3] [ref=e3889]
+                - generic [ref=e3890]:
+                  - generic [ref=e3891]: $15.000 / por noche
+                  - generic [ref=e3892]: 0 vistas
+                - generic [ref=e3896]:
+                  - generic [ref=e3897] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3898]
+                    - generic [ref=e3900]: Activo
+                  - link "Ver" [ref=e3901] [cursor=pointer]:
+                    - /url: /servicio/6b8e0d3f-890b-455f-b93d-f189e05b38de
+                  - button "Editar" [ref=e3907] [cursor=pointer]
+                  - button "Eliminar" [ref=e3912] [cursor=pointer]
+            - generic [ref=e3917]:
+              - generic [ref=e3918]:
+                - img "e2e-f2-3-1789145818706" [ref=e3919]
+                - generic [ref=e3920]: Cuidado y Hospedaje
+              - generic [ref=e3925]:
+                - heading "e2e-f2-3-1789145818706" [level=3] [ref=e3926]
+                - generic [ref=e3927]:
+                  - generic [ref=e3928]: $15.000 / por noche
+                  - generic [ref=e3929]: 0 vistas
+                - generic [ref=e3933]:
+                  - generic [ref=e3934] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3935]
+                    - generic [ref=e3937]: Activo
+                  - link "Ver" [ref=e3938] [cursor=pointer]:
+                    - /url: /servicio/4d4dc0e7-5f0d-4dc1-bf1b-e9b6bbe6586a
+                  - button "Editar" [ref=e3944] [cursor=pointer]
+                  - button "Eliminar" [ref=e3949] [cursor=pointer]
+            - generic [ref=e3954]:
+              - generic [ref=e3955]:
+                - img "e2e-f2-3-1789145798256" [ref=e3956]
+                - generic [ref=e3957]: Cuidado y Hospedaje
+              - generic [ref=e3962]:
+                - heading "e2e-f2-3-1789145798256" [level=3] [ref=e3963]
+                - generic [ref=e3964]:
+                  - generic [ref=e3965]: $15.000 / por noche
+                  - generic [ref=e3966]: 0 vistas
+                - generic [ref=e3970]:
+                  - generic [ref=e3971] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e3972]
+                    - generic [ref=e3974]: Activo
+                  - link "Ver" [ref=e3975] [cursor=pointer]:
+                    - /url: /servicio/5fa2d863-03dc-44db-8c75-5852526ff15f
+                  - button "Editar" [ref=e3981] [cursor=pointer]
+                  - button "Eliminar" [ref=e3986] [cursor=pointer]
+            - generic [ref=e3991]:
+              - generic [ref=e3992]:
+                - img "e2e-f2-3-1789144742497" [ref=e3993]
+                - generic [ref=e3994]: Cuidado y Hospedaje
+              - generic [ref=e3999]:
+                - heading "e2e-f2-3-1789144742497" [level=3] [ref=e4000]
+                - generic [ref=e4001]:
+                  - generic [ref=e4002]: $15.000 / por noche
+                  - generic [ref=e4003]: 0 vistas
+                - generic [ref=e4007]:
+                  - generic [ref=e4008] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4009]
+                    - generic [ref=e4011]: Activo
+                  - link "Ver" [ref=e4012] [cursor=pointer]:
+                    - /url: /servicio/280a0a09-8766-48ed-9bf6-e35f928737a4
+                  - button "Editar" [ref=e4018] [cursor=pointer]
+                  - button "Eliminar" [ref=e4023] [cursor=pointer]
+            - generic [ref=e4028]:
+              - generic [ref=e4029]:
+                - img "e2e-f2-3-1789144738871" [ref=e4030]
+                - generic [ref=e4031]: Cuidado y Hospedaje
+              - generic [ref=e4036]:
+                - heading "e2e-f2-3-1789144738871" [level=3] [ref=e4037]
+                - generic [ref=e4038]:
+                  - generic [ref=e4039]: $15.000 / por noche
+                  - generic [ref=e4040]: 0 vistas
+                - generic [ref=e4044]:
+                  - generic [ref=e4045] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4046]
+                    - generic [ref=e4048]: Activo
+                  - link "Ver" [ref=e4049] [cursor=pointer]:
+                    - /url: /servicio/cc8a112c-7fda-44f8-9aa5-cc591de2f20c
+                  - button "Editar" [ref=e4055] [cursor=pointer]
+                  - button "Eliminar" [ref=e4060] [cursor=pointer]
+            - generic [ref=e4065]:
+              - generic [ref=e4066]:
+                - img "e2e-f2-3-1789144732027" [ref=e4067]
+                - generic [ref=e4068]: Cuidado y Hospedaje
+              - generic [ref=e4073]:
+                - heading "e2e-f2-3-1789144732027" [level=3] [ref=e4074]
+                - generic [ref=e4075]:
+                  - generic [ref=e4076]: $15.000 / por noche
+                  - generic [ref=e4077]: 0 vistas
+                - generic [ref=e4081]:
+                  - generic [ref=e4082] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4083]
+                    - generic [ref=e4085]: Activo
+                  - link "Ver" [ref=e4086] [cursor=pointer]:
+                    - /url: /servicio/c9d5d9fa-fcf3-4aef-87c0-66c88ebc058f
+                  - button "Editar" [ref=e4092] [cursor=pointer]
+                  - button "Eliminar" [ref=e4097] [cursor=pointer]
+            - generic [ref=e4102]:
+              - generic [ref=e4103]:
+                - img "e2e-f2-3-1789144728089" [ref=e4104]
+                - generic [ref=e4105]: Cuidado y Hospedaje
+              - generic [ref=e4110]:
+                - heading "e2e-f2-3-1789144728089" [level=3] [ref=e4111]
+                - generic [ref=e4112]:
+                  - generic [ref=e4113]: $15.000 / por noche
+                  - generic [ref=e4114]: 0 vistas
+                - generic [ref=e4118]:
+                  - generic [ref=e4119] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4120]
+                    - generic [ref=e4122]: Activo
+                  - link "Ver" [ref=e4123] [cursor=pointer]:
+                    - /url: /servicio/fccb0a82-c52f-4367-b5bb-c16e4b0f440e
+                  - button "Editar" [ref=e4129] [cursor=pointer]
+                  - button "Eliminar" [ref=e4134] [cursor=pointer]
+            - generic [ref=e4139]:
+              - generic [ref=e4140]:
+                - img "e2e-f2-3-1789144711205-F1" [ref=e4141]
+                - generic [ref=e4142]: Paseo de Perros
+              - generic [ref=e4149]:
+                - heading "e2e-f2-3-1789144711205-F1" [level=3] [ref=e4150]
+                - generic [ref=e4151]:
+                  - generic [ref=e4152]: $10.000 / por paseo
+                  - generic [ref=e4153]: 0 vistas
+                - generic [ref=e4157]:
+                  - generic [ref=e4158] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4159]
+                    - generic [ref=e4161]: Activo
+                  - link "Ver" [ref=e4162] [cursor=pointer]:
+                    - /url: /servicio/483b04b9-e52a-4e4e-a084-989954a040cd
+                  - button "Editar" [ref=e4168] [cursor=pointer]
+                  - button "Eliminar" [ref=e4173] [cursor=pointer]
+            - generic [ref=e4178]:
+              - generic [ref=e4179]:
+                - img "e2e-f2-3-1789144703680" [ref=e4180]
+                - generic [ref=e4181]: Cuidado y Hospedaje
+              - generic [ref=e4186]:
+                - heading "e2e-f2-3-1789144703680" [level=3] [ref=e4187]
+                - generic [ref=e4188]:
+                  - generic [ref=e4189]: $15.000 / por noche
+                  - generic [ref=e4190]: 0 vistas
+                - generic [ref=e4194]:
+                  - generic [ref=e4195] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4196]
+                    - generic [ref=e4198]: Activo
+                  - link "Ver" [ref=e4199] [cursor=pointer]:
+                    - /url: /servicio/1e74ea9f-1364-4e2a-b138-e6a2137cebed
+                  - button "Editar" [ref=e4205] [cursor=pointer]
+                  - button "Eliminar" [ref=e4210] [cursor=pointer]
+            - generic [ref=e4215]:
+              - generic [ref=e4216]:
+                - img "e2e-f2-3-1789144699397" [ref=e4217]
+                - generic [ref=e4218]: Cuidado y Hospedaje
+              - generic [ref=e4223]:
+                - heading "e2e-f2-3-1789144699397" [level=3] [ref=e4224]
+                - generic [ref=e4225]:
+                  - generic [ref=e4226]: $15.000 / por noche
+                  - generic [ref=e4227]: 0 vistas
+                - generic [ref=e4231]:
+                  - generic [ref=e4232] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4233]
+                    - generic [ref=e4235]: Activo
+                  - link "Ver" [ref=e4236] [cursor=pointer]:
+                    - /url: /servicio/0b3c8f21-367d-4911-9359-2277ecd0cd7e
+                  - button "Editar" [ref=e4242] [cursor=pointer]
+                  - button "Eliminar" [ref=e4247] [cursor=pointer]
+            - generic [ref=e4252]:
+              - generic [ref=e4253]:
+                - img "e2e-f2-3-1789144681674" [ref=e4254]
+                - generic [ref=e4255]: Cuidado y Hospedaje
+              - generic [ref=e4260]:
+                - heading "e2e-f2-3-1789144681674" [level=3] [ref=e4261]
+                - generic [ref=e4262]:
+                  - generic [ref=e4263]: $15.000 / por noche
+                  - generic [ref=e4264]: 0 vistas
+                - generic [ref=e4268]:
+                  - generic [ref=e4269] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4270]
+                    - generic [ref=e4272]: Activo
+                  - link "Ver" [ref=e4273] [cursor=pointer]:
+                    - /url: /servicio/cae6d738-f034-4d82-bc5a-cafe65f9e299
+                  - button "Editar" [ref=e4279] [cursor=pointer]
+                  - button "Eliminar" [ref=e4284] [cursor=pointer]
+            - generic [ref=e4289]:
+              - generic [ref=e4290]:
+                - img "e2e-f2-3-1789144668694" [ref=e4291]
+                - generic [ref=e4292]: Cuidado y Hospedaje
+              - generic [ref=e4297]:
+                - heading "e2e-f2-3-1789144668694" [level=3] [ref=e4298]
+                - generic [ref=e4299]:
+                  - generic [ref=e4300]: $15.000 / por noche
+                  - generic [ref=e4301]: 0 vistas
+                - generic [ref=e4305]:
+                  - generic [ref=e4306] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4307]
+                    - generic [ref=e4309]: Activo
+                  - link "Ver" [ref=e4310] [cursor=pointer]:
+                    - /url: /servicio/2cb69196-ae87-4790-bcc0-f7f3b08eea16
+                  - button "Editar" [ref=e4316] [cursor=pointer]
+                  - button "Eliminar" [ref=e4321] [cursor=pointer]
+            - generic [ref=e4326]:
+              - generic [ref=e4327]:
+                - img "e2e-f2-3-1789144660813" [ref=e4328]
+                - generic [ref=e4329]: Cuidado y Hospedaje
+              - generic [ref=e4334]:
+                - heading "e2e-f2-3-1789144660813" [level=3] [ref=e4335]
+                - generic [ref=e4336]:
+                  - generic [ref=e4337]: $15.000 / por noche
+                  - generic [ref=e4338]: 0 vistas
+                - generic [ref=e4342]:
+                  - generic [ref=e4343] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4344]
+                    - generic [ref=e4346]: Activo
+                  - link "Ver" [ref=e4347] [cursor=pointer]:
+                    - /url: /servicio/1f3e04b0-e15e-4e80-81ba-45958a6ba8fd
+                  - button "Editar" [ref=e4353] [cursor=pointer]
+                  - button "Eliminar" [ref=e4358] [cursor=pointer]
+            - generic [ref=e4363]:
+              - generic [ref=e4364]:
+                - img "e2e-f2-3-1789144641050" [ref=e4365]
+                - generic [ref=e4366]: Cuidado y Hospedaje
+              - generic [ref=e4371]:
+                - heading "e2e-f2-3-1789144641050" [level=3] [ref=e4372]
+                - generic [ref=e4373]:
+                  - generic [ref=e4374]: $15.000 / por noche
+                  - generic [ref=e4375]: 0 vistas
+                - generic [ref=e4379]:
+                  - generic [ref=e4380] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4381]
+                    - generic [ref=e4383]: Activo
+                  - link "Ver" [ref=e4384] [cursor=pointer]:
+                    - /url: /servicio/5a70f907-0756-43ce-b847-62a4ff308db5
+                  - button "Editar" [ref=e4390] [cursor=pointer]
+                  - button "Eliminar" [ref=e4395] [cursor=pointer]
+            - generic [ref=e4400]:
+              - generic [ref=e4401]:
+                - img "e2e-f2-3-1789141885573" [ref=e4402]
+                - generic [ref=e4403]: Cuidado y Hospedaje
+              - generic [ref=e4408]:
+                - heading "e2e-f2-3-1789141885573" [level=3] [ref=e4409]
+                - generic [ref=e4410]:
+                  - generic [ref=e4411]: $15.000 / por noche
+                  - generic [ref=e4412]: 0 vistas
+                - generic [ref=e4416]:
+                  - generic [ref=e4417] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4418]
+                    - generic [ref=e4420]: Activo
+                  - link "Ver" [ref=e4421] [cursor=pointer]:
+                    - /url: /servicio/de799f6d-83f6-487d-a49a-36c8db1ee89b
+                  - button "Editar" [ref=e4427] [cursor=pointer]
+                  - button "Eliminar" [ref=e4432] [cursor=pointer]
+            - generic [ref=e4437]:
+              - generic [ref=e4438]:
+                - img "e2e-f2-3-1789141883032" [ref=e4439]
+                - generic [ref=e4440]: Cuidado y Hospedaje
+              - generic [ref=e4445]:
+                - heading "e2e-f2-3-1789141883032" [level=3] [ref=e4446]
+                - generic [ref=e4447]:
+                  - generic [ref=e4448]: $15.000 / por noche
+                  - generic [ref=e4449]: 0 vistas
+                - generic [ref=e4453]:
+                  - generic [ref=e4454] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4455]
+                    - generic [ref=e4457]: Activo
+                  - link "Ver" [ref=e4458] [cursor=pointer]:
+                    - /url: /servicio/2950ad07-de70-4fa9-91f7-6fc7ce35d7e7
+                  - button "Editar" [ref=e4464] [cursor=pointer]
+                  - button "Eliminar" [ref=e4469] [cursor=pointer]
+            - generic [ref=e4474]:
+              - generic [ref=e4475]:
+                - img "e2e-f2-3-1789141874965" [ref=e4476]
+                - generic [ref=e4477]: Cuidado y Hospedaje
+              - generic [ref=e4482]:
+                - heading "e2e-f2-3-1789141874965" [level=3] [ref=e4483]
+                - generic [ref=e4484]:
+                  - generic [ref=e4485]: $15.000 / por noche
+                  - generic [ref=e4486]: 0 vistas
+                - generic [ref=e4490]:
+                  - generic [ref=e4491] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4492]
+                    - generic [ref=e4494]: Activo
+                  - link "Ver" [ref=e4495] [cursor=pointer]:
+                    - /url: /servicio/b435b3bb-e6b5-4940-88cf-bdb55f3e7470
+                  - button "Editar" [ref=e4501] [cursor=pointer]
+                  - button "Eliminar" [ref=e4506] [cursor=pointer]
+            - generic [ref=e4511]:
+              - generic [ref=e4512]:
+                - img "e2e-f2-3-1789141871234" [ref=e4513]
+                - generic [ref=e4514]: Cuidado y Hospedaje
+              - generic [ref=e4519]:
+                - heading "e2e-f2-3-1789141871234" [level=3] [ref=e4520]
+                - generic [ref=e4521]:
+                  - generic [ref=e4522]: $15.000 / por noche
+                  - generic [ref=e4523]: 0 vistas
+                - generic [ref=e4527]:
+                  - generic [ref=e4528] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4529]
+                    - generic [ref=e4531]: Activo
+                  - link "Ver" [ref=e4532] [cursor=pointer]:
+                    - /url: /servicio/607050f3-7d37-4d2d-8f9b-ccbb452e02cf
+                  - button "Editar" [ref=e4538] [cursor=pointer]
+                  - button "Eliminar" [ref=e4543] [cursor=pointer]
+            - generic [ref=e4548]:
+              - generic [ref=e4549]:
+                - img "e2e-f2-3-1789141852326-F1" [ref=e4550]
+                - generic [ref=e4551]: Paseo de Perros
+              - generic [ref=e4558]:
+                - heading "e2e-f2-3-1789141852326-F1" [level=3] [ref=e4559]
+                - generic [ref=e4560]:
+                  - generic [ref=e4561]: $10.000 / por paseo
+                  - generic [ref=e4562]: 0 vistas
+                - generic [ref=e4566]:
+                  - generic [ref=e4567] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4568]
+                    - generic [ref=e4570]: Activo
+                  - link "Ver" [ref=e4571] [cursor=pointer]:
+                    - /url: /servicio/419c29f8-a272-44a5-97ec-762a860ca9e6
+                  - button "Editar" [ref=e4577] [cursor=pointer]
+                  - button "Eliminar" [ref=e4582] [cursor=pointer]
+            - generic [ref=e4587]:
+              - generic [ref=e4588]:
+                - img "e2e-f2-3-1789141846332" [ref=e4589]
+                - generic [ref=e4590]: Cuidado y Hospedaje
+              - generic [ref=e4595]:
+                - heading "e2e-f2-3-1789141846332" [level=3] [ref=e4596]
+                - generic [ref=e4597]:
+                  - generic [ref=e4598]: $15.000 / por noche
+                  - generic [ref=e4599]: 0 vistas
+                - generic [ref=e4603]:
+                  - generic [ref=e4604] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4605]
+                    - generic [ref=e4607]: Activo
+                  - link "Ver" [ref=e4608] [cursor=pointer]:
+                    - /url: /servicio/198f55f4-d570-49b8-bd77-a44b285da301
+                  - button "Editar" [ref=e4614] [cursor=pointer]
+                  - button "Eliminar" [ref=e4619] [cursor=pointer]
+            - generic [ref=e4624]:
+              - generic [ref=e4625]:
+                - img "e2e-f2-3-1789141835345" [ref=e4626]
+                - generic [ref=e4627]: Cuidado y Hospedaje
+              - generic [ref=e4632]:
+                - heading "e2e-f2-3-1789141835345" [level=3] [ref=e4633]
+                - generic [ref=e4634]:
+                  - generic [ref=e4635]: $15.000 / por noche
+                  - generic [ref=e4636]: 0 vistas
+                - generic [ref=e4640]:
+                  - generic [ref=e4641] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4642]
+                    - generic [ref=e4644]: Activo
+                  - link "Ver" [ref=e4645] [cursor=pointer]:
+                    - /url: /servicio/7a7fef95-5cce-4bf7-a71b-02d4ea33a726
+                  - button "Editar" [ref=e4651] [cursor=pointer]
+                  - button "Eliminar" [ref=e4656] [cursor=pointer]
+            - generic [ref=e4661]:
+              - generic [ref=e4662]:
+                - img "e2e-f2-3-1789141824178" [ref=e4663]
+                - generic [ref=e4664]: Cuidado y Hospedaje
+              - generic [ref=e4669]:
+                - heading "e2e-f2-3-1789141824178" [level=3] [ref=e4670]
+                - generic [ref=e4671]:
+                  - generic [ref=e4672]: $15.000 / por noche
+                  - generic [ref=e4673]: 0 vistas
+                - generic [ref=e4677]:
+                  - generic [ref=e4678] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4679]
+                    - generic [ref=e4681]: Activo
+                  - link "Ver" [ref=e4682] [cursor=pointer]:
+                    - /url: /servicio/c9ab5006-d5ed-472f-babc-84e38726bb2b
+                  - button "Editar" [ref=e4688] [cursor=pointer]
+                  - button "Eliminar" [ref=e4693] [cursor=pointer]
+            - generic [ref=e4698]:
+              - generic [ref=e4699]:
+                - img "e2e-f2-3-1789141791754" [ref=e4700]
+                - generic [ref=e4701]: Cuidado y Hospedaje
+              - generic [ref=e4706]:
+                - heading "e2e-f2-3-1789141791754" [level=3] [ref=e4707]
+                - generic [ref=e4708]:
+                  - generic [ref=e4709]: $15.000 / por noche
+                  - generic [ref=e4710]: 0 vistas
+                - generic [ref=e4714]:
+                  - generic [ref=e4715] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4716]
+                    - generic [ref=e4718]: Activo
+                  - link "Ver" [ref=e4719] [cursor=pointer]:
+                    - /url: /servicio/c588a585-f62b-4e7a-b7c3-810af0dfb8ff
+                  - button "Editar" [ref=e4725] [cursor=pointer]
+                  - button "Eliminar" [ref=e4730] [cursor=pointer]
+            - generic [ref=e4735]:
+              - generic [ref=e4736]:
+                - img "e2e-f2-3-1789141787670" [ref=e4737]
+                - generic [ref=e4738]: Cuidado y Hospedaje
+              - generic [ref=e4743]:
+                - heading "e2e-f2-3-1789141787670" [level=3] [ref=e4744]
+                - generic [ref=e4745]:
+                  - generic [ref=e4746]: $15.000 / por noche
+                  - generic [ref=e4747]: 0 vistas
+                - generic [ref=e4751]:
+                  - generic [ref=e4752] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4753]
+                    - generic [ref=e4755]: Activo
+                  - link "Ver" [ref=e4756] [cursor=pointer]:
+                    - /url: /servicio/1aab02b5-443f-4d12-91e0-88e655bea9f4
+                  - button "Editar" [ref=e4762] [cursor=pointer]
+                  - button "Eliminar" [ref=e4767] [cursor=pointer]
+            - generic [ref=e4772]:
+              - generic [ref=e4773]:
+                - img "e2e-f2-3-1789141769700" [ref=e4774]
+                - generic [ref=e4775]: Cuidado y Hospedaje
+              - generic [ref=e4780]:
+                - heading "e2e-f2-3-1789141769700" [level=3] [ref=e4781]
+                - generic [ref=e4782]:
+                  - generic [ref=e4783]: $15.000 / por noche
+                  - generic [ref=e4784]: 0 vistas
+                - generic [ref=e4788]:
+                  - generic [ref=e4789] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4790]
+                    - generic [ref=e4792]: Activo
+                  - link "Ver" [ref=e4793] [cursor=pointer]:
+                    - /url: /servicio/0c8980a8-cf67-4326-8e34-79eed8f3b72a
+                  - button "Editar" [ref=e4799] [cursor=pointer]
+                  - button "Eliminar" [ref=e4804] [cursor=pointer]
+            - generic [ref=e4809]:
+              - generic [ref=e4810]:
+                - img "e2e-f2-3-1789140185810" [ref=e4811]
+                - generic [ref=e4812]: Cuidado y Hospedaje
+              - generic [ref=e4817]:
+                - heading "e2e-f2-3-1789140185810" [level=3] [ref=e4818]
+                - generic [ref=e4819]:
+                  - generic [ref=e4820]: $15.000 / por noche
+                  - generic [ref=e4821]: 0 vistas
+                - generic [ref=e4825]:
+                  - generic [ref=e4826] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4827]
+                    - generic [ref=e4829]: Activo
+                  - link "Ver" [ref=e4830] [cursor=pointer]:
+                    - /url: /servicio/f972ed42-fd07-4903-b420-5908bb54d07c
+                  - button "Editar" [ref=e4836] [cursor=pointer]
+                  - button "Eliminar" [ref=e4841] [cursor=pointer]
+            - generic [ref=e4846]:
+              - generic [ref=e4847]:
+                - img "e2e-f2-3-1789140180882" [ref=e4848]
+                - generic [ref=e4849]: Cuidado y Hospedaje
+              - generic [ref=e4854]:
+                - heading "e2e-f2-3-1789140180882" [level=3] [ref=e4855]
+                - generic [ref=e4856]:
+                  - generic [ref=e4857]: $15.000 / por noche
+                  - generic [ref=e4858]: 0 vistas
+                - generic [ref=e4862]:
+                  - generic [ref=e4863] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4864]
+                    - generic [ref=e4866]: Activo
+                  - link "Ver" [ref=e4867] [cursor=pointer]:
+                    - /url: /servicio/35702305-5e0e-46aa-a21e-923a465e8454
+                  - button "Editar" [ref=e4873] [cursor=pointer]
+                  - button "Eliminar" [ref=e4878] [cursor=pointer]
+            - generic [ref=e4883]:
+              - generic [ref=e4884]:
+                - img "e2e-f2-3-1789140168052" [ref=e4885]
+                - generic [ref=e4886]: Cuidado y Hospedaje
+              - generic [ref=e4891]:
+                - heading "e2e-f2-3-1789140168052" [level=3] [ref=e4892]
+                - generic [ref=e4893]:
+                  - generic [ref=e4894]: $15.000 / por noche
+                  - generic [ref=e4895]: 0 vistas
+                - generic [ref=e4899]:
+                  - generic [ref=e4900] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4901]
+                    - generic [ref=e4903]: Activo
+                  - link "Ver" [ref=e4904] [cursor=pointer]:
+                    - /url: /servicio/41e108ed-6c80-4768-9a61-f121f60949a3
+                  - button "Editar" [ref=e4910] [cursor=pointer]
+                  - button "Eliminar" [ref=e4915] [cursor=pointer]
+            - generic [ref=e4920]:
+              - generic [ref=e4921]:
+                - img "e2e-f2-3-1789140158658" [ref=e4922]
+                - generic [ref=e4923]: Cuidado y Hospedaje
+              - generic [ref=e4928]:
+                - heading "e2e-f2-3-1789140158658" [level=3] [ref=e4929]
+                - generic [ref=e4930]:
+                  - generic [ref=e4931]: $15.000 / por noche
+                  - generic [ref=e4932]: 0 vistas
+                - generic [ref=e4936]:
+                  - generic [ref=e4937] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4938]
+                    - generic [ref=e4940]: Activo
+                  - link "Ver" [ref=e4941] [cursor=pointer]:
+                    - /url: /servicio/29173db1-74fe-4b12-9fe6-62afda972ba9
+                  - button "Editar" [ref=e4947] [cursor=pointer]
+                  - button "Eliminar" [ref=e4952] [cursor=pointer]
+            - generic [ref=e4957]:
+              - generic [ref=e4958]:
+                - img "e2e-f2-3-1789140124062" [ref=e4959]
+                - generic [ref=e4960]: Cuidado y Hospedaje
+              - generic [ref=e4965]:
+                - heading "e2e-f2-3-1789140124062" [level=3] [ref=e4966]
+                - generic [ref=e4967]:
+                  - generic [ref=e4968]: $15.000 / por noche
+                  - generic [ref=e4969]: 0 vistas
+                - generic [ref=e4973]:
+                  - generic [ref=e4974] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e4975]
+                    - generic [ref=e4977]: Activo
+                  - link "Ver" [ref=e4978] [cursor=pointer]:
+                    - /url: /servicio/6ac7f603-d9a0-43fe-918a-2b9046c7b621
+                  - button "Editar" [ref=e4984] [cursor=pointer]
+                  - button "Eliminar" [ref=e4989] [cursor=pointer]
+            - generic [ref=e4994]:
+              - generic [ref=e4995]:
+                - img "e2e-f2-3-1789139821069" [ref=e4996]
+                - generic [ref=e4997]: Cuidado y Hospedaje
+              - generic [ref=e5002]:
+                - heading "e2e-f2-3-1789139821069" [level=3] [ref=e5003]
+                - generic [ref=e5004]:
+                  - generic [ref=e5005]: $15.000 / por noche
+                  - generic [ref=e5006]: 0 vistas
+                - generic [ref=e5010]:
+                  - generic [ref=e5011] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5012]
+                    - generic [ref=e5014]: Activo
+                  - link "Ver" [ref=e5015] [cursor=pointer]:
+                    - /url: /servicio/04d8a504-f2d7-4ccc-ac09-0244cd7ad67b
+                  - button "Editar" [ref=e5021] [cursor=pointer]
+                  - button "Eliminar" [ref=e5026] [cursor=pointer]
+            - generic [ref=e5031]:
+              - generic [ref=e5032]:
+                - img "e2e-f2-3-1789139817714" [ref=e5033]
+                - generic [ref=e5034]: Cuidado y Hospedaje
+              - generic [ref=e5039]:
+                - heading "e2e-f2-3-1789139817714" [level=3] [ref=e5040]
+                - generic [ref=e5041]:
+                  - generic [ref=e5042]: $15.000 / por noche
+                  - generic [ref=e5043]: 0 vistas
+                - generic [ref=e5047]:
+                  - generic [ref=e5048] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5049]
+                    - generic [ref=e5051]: Activo
+                  - link "Ver" [ref=e5052] [cursor=pointer]:
+                    - /url: /servicio/71aaad50-0615-4b2b-be78-c40b5ac36f2e
+                  - button "Editar" [ref=e5058] [cursor=pointer]
+                  - button "Eliminar" [ref=e5063] [cursor=pointer]
+            - generic [ref=e5068]:
+              - generic [ref=e5069]:
+                - img "e2e-f2-3-1789139802086" [ref=e5070]
+                - generic [ref=e5071]: Cuidado y Hospedaje
+              - generic [ref=e5076]:
+                - heading "e2e-f2-3-1789139802086" [level=3] [ref=e5077]
+                - generic [ref=e5078]:
+                  - generic [ref=e5079]: $15.000 / por noche
+                  - generic [ref=e5080]: 0 vistas
+                - generic [ref=e5084]:
+                  - generic [ref=e5085] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5086]
+                    - generic [ref=e5088]: Activo
+                  - link "Ver" [ref=e5089] [cursor=pointer]:
+                    - /url: /servicio/fa566ee4-3d09-4366-964a-72a6f80a2f2a
+                  - button "Editar" [ref=e5095] [cursor=pointer]
+                  - button "Eliminar" [ref=e5100] [cursor=pointer]
+            - generic [ref=e5105]:
+              - generic [ref=e5106]:
+                - img "e2e-f2-3-1789139797922" [ref=e5107]
+                - generic [ref=e5108]: Cuidado y Hospedaje
+              - generic [ref=e5113]:
+                - heading "e2e-f2-3-1789139797922" [level=3] [ref=e5114]
+                - generic [ref=e5115]:
+                  - generic [ref=e5116]: $15.000 / por noche
+                  - generic [ref=e5117]: 0 vistas
+                - generic [ref=e5121]:
+                  - generic [ref=e5122] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5123]
+                    - generic [ref=e5125]: Activo
+                  - link "Ver" [ref=e5126] [cursor=pointer]:
+                    - /url: /servicio/d457493a-dfc4-4ea7-8281-5a2af72d1e9e
+                  - button "Editar" [ref=e5132] [cursor=pointer]
+                  - button "Eliminar" [ref=e5137] [cursor=pointer]
+            - generic [ref=e5142]:
+              - generic [ref=e5143]:
+                - img "e2e-f2-3-1789139782308-F1" [ref=e5144]
+                - generic [ref=e5145]: Paseo de Perros
+              - generic [ref=e5152]:
+                - heading "e2e-f2-3-1789139782308-F1" [level=3] [ref=e5153]
+                - generic [ref=e5154]:
+                  - generic [ref=e5155]: $10.000 / por paseo
+                  - generic [ref=e5156]: 0 vistas
+                - generic [ref=e5160]:
+                  - generic [ref=e5161] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5162]
+                    - generic [ref=e5164]: Activo
+                  - link "Ver" [ref=e5165] [cursor=pointer]:
+                    - /url: /servicio/dccb74b6-035d-4be4-8b9c-ba07cfd8241d
+                  - button "Editar" [ref=e5171] [cursor=pointer]
+                  - button "Eliminar" [ref=e5176] [cursor=pointer]
+            - generic [ref=e5181]:
+              - generic [ref=e5182]:
+                - img "e2e-f2-3-1789139776219" [ref=e5183]
+                - generic [ref=e5184]: Cuidado y Hospedaje
+              - generic [ref=e5189]:
+                - heading "e2e-f2-3-1789139776219" [level=3] [ref=e5190]
+                - generic [ref=e5191]:
+                  - generic [ref=e5192]: $15.000 / por noche
+                  - generic [ref=e5193]: 0 vistas
+                - generic [ref=e5197]:
+                  - generic [ref=e5198] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5199]
+                    - generic [ref=e5201]: Activo
+                  - link "Ver" [ref=e5202] [cursor=pointer]:
+                    - /url: /servicio/d2bcc3d7-64cb-4862-87fc-55dc117cefc3
+                  - button "Editar" [ref=e5208] [cursor=pointer]
+                  - button "Eliminar" [ref=e5213] [cursor=pointer]
+            - generic [ref=e5218]:
+              - generic [ref=e5219]:
+                - img "e2e-f2-3-1789139764019" [ref=e5220]
+                - generic [ref=e5221]: Cuidado y Hospedaje
+              - generic [ref=e5226]:
+                - heading "e2e-f2-3-1789139764019" [level=3] [ref=e5227]
+                - generic [ref=e5228]:
+                  - generic [ref=e5229]: $15.000 / por noche
+                  - generic [ref=e5230]: 0 vistas
+                - generic [ref=e5234]:
+                  - generic [ref=e5235] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5236]
+                    - generic [ref=e5238]: Activo
+                  - link "Ver" [ref=e5239] [cursor=pointer]:
+                    - /url: /servicio/8ab936ba-50df-4ac6-96cc-fdeb65865e22
+                  - button "Editar" [ref=e5245] [cursor=pointer]
+                  - button "Eliminar" [ref=e5250] [cursor=pointer]
+            - generic [ref=e5255]:
+              - generic [ref=e5256]:
+                - img "e2e-f2-3-1789139755577" [ref=e5257]
+                - generic [ref=e5258]: Cuidado y Hospedaje
+              - generic [ref=e5263]:
+                - heading "e2e-f2-3-1789139755577" [level=3] [ref=e5264]
+                - generic [ref=e5265]:
+                  - generic [ref=e5266]: $15.000 / por noche
+                  - generic [ref=e5267]: 0 vistas
+                - generic [ref=e5271]:
+                  - generic [ref=e5272] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5273]
+                    - generic [ref=e5275]: Activo
+                  - link "Ver" [ref=e5276] [cursor=pointer]:
+                    - /url: /servicio/7281db85-2aac-4386-a429-6e3a55501abe
+                  - button "Editar" [ref=e5282] [cursor=pointer]
+                  - button "Eliminar" [ref=e5287] [cursor=pointer]
+            - generic [ref=e5292]:
+              - generic [ref=e5293]:
+                - img "e2e-f2-3-1789139715999" [ref=e5294]
+                - generic [ref=e5295]: Cuidado y Hospedaje
+              - generic [ref=e5300]:
+                - heading "e2e-f2-3-1789139715999" [level=3] [ref=e5301]
+                - generic [ref=e5302]:
+                  - generic [ref=e5303]: $15.000 / por noche
+                  - generic [ref=e5304]: 0 vistas
+                - generic [ref=e5308]:
+                  - generic [ref=e5309] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5310]
+                    - generic [ref=e5312]: Activo
+                  - link "Ver" [ref=e5313] [cursor=pointer]:
+                    - /url: /servicio/6f002711-fa45-41a5-a28b-39b343523f75
+                  - button "Editar" [ref=e5319] [cursor=pointer]
+                  - button "Eliminar" [ref=e5324] [cursor=pointer]
+            - generic [ref=e5329]:
+              - generic [ref=e5330]:
+                - img "e2e-f2-3-1789139664100" [ref=e5331]
+                - generic [ref=e5332]: Cuidado y Hospedaje
+              - generic [ref=e5337]:
+                - heading "e2e-f2-3-1789139664100" [level=3] [ref=e5338]
+                - generic [ref=e5339]:
+                  - generic [ref=e5340]: $15.000 / por noche
+                  - generic [ref=e5341]: 0 vistas
+                - generic [ref=e5345]:
+                  - generic [ref=e5346] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5347]
+                    - generic [ref=e5349]: Activo
+                  - link "Ver" [ref=e5350] [cursor=pointer]:
+                    - /url: /servicio/08c86445-949f-4adb-99f6-cb6911d99fce
+                  - button "Editar" [ref=e5356] [cursor=pointer]
+                  - button "Eliminar" [ref=e5361] [cursor=pointer]
+            - generic [ref=e5366]:
+              - generic [ref=e5367]:
+                - img "e2e-f2-3-1789139622635" [ref=e5368]
+                - generic [ref=e5369]: Cuidado y Hospedaje
+              - generic [ref=e5374]:
+                - heading "e2e-f2-3-1789139622635" [level=3] [ref=e5375]
+                - generic [ref=e5376]:
+                  - generic [ref=e5377]: $15.000 / por noche
+                  - generic [ref=e5378]: 0 vistas
+                - generic [ref=e5382]:
+                  - generic [ref=e5383] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5384]
+                    - generic [ref=e5386]: Activo
+                  - link "Ver" [ref=e5387] [cursor=pointer]:
+                    - /url: /servicio/18689dbf-b4fe-4ea3-8fd7-5721135762a8
+                  - button "Editar" [ref=e5393] [cursor=pointer]
+                  - button "Eliminar" [ref=e5398] [cursor=pointer]
+            - generic [ref=e5403]:
+              - generic [ref=e5404]:
+                - img "e2e-f2-3-1789134363981" [ref=e5405]
+                - generic [ref=e5406]: Cuidado y Hospedaje
+              - generic [ref=e5411]:
+                - heading "e2e-f2-3-1789134363981" [level=3] [ref=e5412]
+                - generic [ref=e5413]:
+                  - generic [ref=e5414]: $15.000 / por noche
+                  - generic [ref=e5415]: 0 vistas
+                - generic [ref=e5419]:
+                  - generic [ref=e5420] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5421]
+                    - generic [ref=e5423]: Activo
+                  - link "Ver" [ref=e5424] [cursor=pointer]:
+                    - /url: /servicio/730ca5da-0441-43f1-be13-a2bcc0cfd081
+                  - button "Editar" [ref=e5430] [cursor=pointer]
+                  - button "Eliminar" [ref=e5435] [cursor=pointer]
+            - generic [ref=e5440]:
+              - generic [ref=e5441]:
+                - img "e2e-f2-3-1789134360186" [ref=e5442]
+                - generic [ref=e5443]: Cuidado y Hospedaje
+              - generic [ref=e5448]:
+                - heading "e2e-f2-3-1789134360186" [level=3] [ref=e5449]
+                - generic [ref=e5450]:
+                  - generic [ref=e5451]: $15.000 / por noche
+                  - generic [ref=e5452]: 0 vistas
+                - generic [ref=e5456]:
+                  - generic [ref=e5457] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5458]
+                    - generic [ref=e5460]: Activo
+                  - link "Ver" [ref=e5461] [cursor=pointer]:
+                    - /url: /servicio/842ceb55-7b16-4663-8bde-63f766526733
+                  - button "Editar" [ref=e5467] [cursor=pointer]
+                  - button "Eliminar" [ref=e5472] [cursor=pointer]
+            - generic [ref=e5477]:
+              - generic [ref=e5478]:
+                - img "e2e-f2-3-1789134351506" [ref=e5479]
+                - generic [ref=e5480]: Cuidado y Hospedaje
+              - generic [ref=e5485]:
+                - heading "e2e-f2-3-1789134351506" [level=3] [ref=e5486]
+                - generic [ref=e5487]:
+                  - generic [ref=e5488]: $15.000 / por noche
+                  - generic [ref=e5489]: 0 vistas
+                - generic [ref=e5493]:
+                  - generic [ref=e5494] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5495]
+                    - generic [ref=e5497]: Activo
+                  - link "Ver" [ref=e5498] [cursor=pointer]:
+                    - /url: /servicio/d3679dfe-56cc-47cc-8265-fd0ed183398a
+                  - button "Editar" [ref=e5504] [cursor=pointer]
+                  - button "Eliminar" [ref=e5509] [cursor=pointer]
+            - generic [ref=e5514]:
+              - generic [ref=e5515]:
+                - img "e2e-f2-3-1789134348012" [ref=e5516]
+                - generic [ref=e5517]: Cuidado y Hospedaje
+              - generic [ref=e5522]:
+                - heading "e2e-f2-3-1789134348012" [level=3] [ref=e5523]
+                - generic [ref=e5524]:
+                  - generic [ref=e5525]: $15.000 / por noche
+                  - generic [ref=e5526]: 0 vistas
+                - generic [ref=e5530]:
+                  - generic [ref=e5531] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5532]
+                    - generic [ref=e5534]: Activo
+                  - link "Ver" [ref=e5535] [cursor=pointer]:
+                    - /url: /servicio/e8ee6adc-dc0f-48c2-a914-abb33a7bfc07
+                  - button "Editar" [ref=e5541] [cursor=pointer]
+                  - button "Eliminar" [ref=e5546] [cursor=pointer]
+            - generic [ref=e5551]:
+              - generic [ref=e5552]:
+                - img "e2e-f2-3-1789134330708-F1" [ref=e5553]
+                - generic [ref=e5554]: Paseo de Perros
+              - generic [ref=e5561]:
+                - heading "e2e-f2-3-1789134330708-F1" [level=3] [ref=e5562]
+                - generic [ref=e5563]:
+                  - generic [ref=e5564]: $10.000 / por paseo
+                  - generic [ref=e5565]: 0 vistas
+                - generic [ref=e5569]:
+                  - generic [ref=e5570] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5571]
+                    - generic [ref=e5573]: Activo
+                  - link "Ver" [ref=e5574] [cursor=pointer]:
+                    - /url: /servicio/aa385e28-10ab-42f1-9554-63f9335d1173
+                  - button "Editar" [ref=e5580] [cursor=pointer]
+                  - button "Eliminar" [ref=e5585] [cursor=pointer]
+            - generic [ref=e5590]:
+              - generic [ref=e5591]:
+                - img "e2e-f2-3-1789134325624" [ref=e5592]
+                - generic [ref=e5593]: Cuidado y Hospedaje
+              - generic [ref=e5598]:
+                - heading "e2e-f2-3-1789134325624" [level=3] [ref=e5599]
+                - generic [ref=e5600]:
+                  - generic [ref=e5601]: $15.000 / por noche
+                  - generic [ref=e5602]: 0 vistas
+                - generic [ref=e5606]:
+                  - generic [ref=e5607] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5608]
+                    - generic [ref=e5610]: Activo
+                  - link "Ver" [ref=e5611] [cursor=pointer]:
+                    - /url: /servicio/1b39452b-afcd-40a2-a32b-33c1248f79aa
+                  - button "Editar" [ref=e5617] [cursor=pointer]
+                  - button "Eliminar" [ref=e5622] [cursor=pointer]
+            - generic [ref=e5627]:
+              - generic [ref=e5628]:
+                - img "e2e-f2-3-1789134319356" [ref=e5629]
+                - generic [ref=e5630]: Cuidado y Hospedaje
+              - generic [ref=e5635]:
+                - heading "e2e-f2-3-1789134319356" [level=3] [ref=e5636]
+                - generic [ref=e5637]:
+                  - generic [ref=e5638]: $15.000 / por noche
+                  - generic [ref=e5639]: 0 vistas
+                - generic [ref=e5643]:
+                  - generic [ref=e5644] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5645]
+                    - generic [ref=e5647]: Activo
+                  - link "Ver" [ref=e5648] [cursor=pointer]:
+                    - /url: /servicio/5a06d8aa-52f1-4774-9174-ab9c8190d03e
+                  - button "Editar" [ref=e5654] [cursor=pointer]
+                  - button "Eliminar" [ref=e5659] [cursor=pointer]
+            - generic [ref=e5664]:
+              - generic [ref=e5665]:
+                - img "e2e-f2-3-1789134305887" [ref=e5666]
+                - generic [ref=e5667]: Cuidado y Hospedaje
+              - generic [ref=e5672]:
+                - heading "e2e-f2-3-1789134305887" [level=3] [ref=e5673]
+                - generic [ref=e5674]:
+                  - generic [ref=e5675]: $15.000 / por noche
+                  - generic [ref=e5676]: 0 vistas
+                - generic [ref=e5680]:
+                  - generic [ref=e5681] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5682]
+                    - generic [ref=e5684]: Activo
+                  - link "Ver" [ref=e5685] [cursor=pointer]:
+                    - /url: /servicio/022c70b1-84af-4aa2-8ba2-37cbada98c36
+                  - button "Editar" [ref=e5691] [cursor=pointer]
+                  - button "Eliminar" [ref=e5696] [cursor=pointer]
+            - generic [ref=e5701]:
+              - generic [ref=e5702]:
+                - img "e2e-f2-3-1789134290237" [ref=e5703]
+                - generic [ref=e5704]: Cuidado y Hospedaje
+              - generic [ref=e5709]:
+                - heading "e2e-f2-3-1789134290237" [level=3] [ref=e5710]
+                - generic [ref=e5711]:
+                  - generic [ref=e5712]: $15.000 / por noche
+                  - generic [ref=e5713]: 0 vistas
+                - generic [ref=e5717]:
+                  - generic [ref=e5718] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5719]
+                    - generic [ref=e5721]: Activo
+                  - link "Ver" [ref=e5722] [cursor=pointer]:
+                    - /url: /servicio/68cc23d2-50d4-4065-826a-ebc1c6531ba2
+                  - button "Editar" [ref=e5728] [cursor=pointer]
+                  - button "Eliminar" [ref=e5733] [cursor=pointer]
+            - generic [ref=e5738]:
+              - generic [ref=e5739]:
+                - img "e2e-f2-3-1789134275510" [ref=e5740]
+                - generic [ref=e5741]: Cuidado y Hospedaje
+              - generic [ref=e5746]:
+                - heading "e2e-f2-3-1789134275510" [level=3] [ref=e5747]
+                - generic [ref=e5748]:
+                  - generic [ref=e5749]: $15.000 / por noche
+                  - generic [ref=e5750]: 0 vistas
+                - generic [ref=e5754]:
+                  - generic [ref=e5755] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5756]
+                    - generic [ref=e5758]: Activo
+                  - link "Ver" [ref=e5759] [cursor=pointer]:
+                    - /url: /servicio/332c0d46-645e-4c94-87eb-a597cc4489ba
+                  - button "Editar" [ref=e5765] [cursor=pointer]
+                  - button "Eliminar" [ref=e5770] [cursor=pointer]
+            - generic [ref=e5775]:
+              - generic [ref=e5776]:
+                - img "e2e-f2-3-1789134255511" [ref=e5777]
+                - generic [ref=e5778]: Cuidado y Hospedaje
+              - generic [ref=e5783]:
+                - heading "e2e-f2-3-1789134255511" [level=3] [ref=e5784]
+                - generic [ref=e5785]:
+                  - generic [ref=e5786]: $15.000 / por noche
+                  - generic [ref=e5787]: 0 vistas
+                - generic [ref=e5791]:
+                  - generic [ref=e5792] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5793]
+                    - generic [ref=e5795]: Activo
+                  - link "Ver" [ref=e5796] [cursor=pointer]:
+                    - /url: /servicio/19d2976b-1c99-448c-a812-75720acd72c1
+                  - button "Editar" [ref=e5802] [cursor=pointer]
+                  - button "Eliminar" [ref=e5807] [cursor=pointer]
+            - generic [ref=e5812]:
+              - generic [ref=e5813]:
+                - img "e2e-f2-3-1789130929051" [ref=e5814]
+                - generic [ref=e5815]: Cuidado y Hospedaje
+              - generic [ref=e5820]:
+                - heading "e2e-f2-3-1789130929051" [level=3] [ref=e5821]
+                - generic [ref=e5822]:
+                  - generic [ref=e5823]: $15.000 / por noche
+                  - generic [ref=e5824]: 0 vistas
+                - generic [ref=e5828]:
+                  - generic [ref=e5829] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5830]
+                    - generic [ref=e5832]: Activo
+                  - link "Ver" [ref=e5833] [cursor=pointer]:
+                    - /url: /servicio/8134f537-bfbc-4149-8b4b-72201cffe6c6
+                  - button "Editar" [ref=e5839] [cursor=pointer]
+                  - button "Eliminar" [ref=e5844] [cursor=pointer]
+            - generic [ref=e5849]:
+              - generic [ref=e5850]:
+                - img "e2e-f2-3-1789130927200" [ref=e5851]
+                - generic [ref=e5852]: Cuidado y Hospedaje
+              - generic [ref=e5857]:
+                - heading "e2e-f2-3-1789130927200" [level=3] [ref=e5858]
+                - generic [ref=e5859]:
+                  - generic [ref=e5860]: $15.000 / por noche
+                  - generic [ref=e5861]: 0 vistas
+                - generic [ref=e5865]:
+                  - generic [ref=e5866] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5867]
+                    - generic [ref=e5869]: Activo
+                  - link "Ver" [ref=e5870] [cursor=pointer]:
+                    - /url: /servicio/45302dc4-3cbc-4cc7-9191-0692af09db42
+                  - button "Editar" [ref=e5876] [cursor=pointer]
+                  - button "Eliminar" [ref=e5881] [cursor=pointer]
+            - generic [ref=e5886]:
+              - generic [ref=e5887]:
+                - img "e2e-f2-3-1789130920889" [ref=e5888]
+                - generic [ref=e5889]: Cuidado y Hospedaje
+              - generic [ref=e5894]:
+                - heading "e2e-f2-3-1789130920889" [level=3] [ref=e5895]
+                - generic [ref=e5896]:
+                  - generic [ref=e5897]: $15.000 / por noche
+                  - generic [ref=e5898]: 0 vistas
+                - generic [ref=e5902]:
+                  - generic [ref=e5903] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5904]
+                    - generic [ref=e5906]: Activo
+                  - link "Ver" [ref=e5907] [cursor=pointer]:
+                    - /url: /servicio/44e9206f-e627-40aa-a74b-53a211d1a670
+                  - button "Editar" [ref=e5913] [cursor=pointer]
+                  - button "Eliminar" [ref=e5918] [cursor=pointer]
+            - generic [ref=e5923]:
+              - generic [ref=e5924]:
+                - img "e2e-f2-3-1789130913881" [ref=e5925]
+                - generic [ref=e5926]: Cuidado y Hospedaje
+              - generic [ref=e5931]:
+                - heading "e2e-f2-3-1789130913881" [level=3] [ref=e5932]
+                - generic [ref=e5933]:
+                  - generic [ref=e5934]: $15.000 / por noche
+                  - generic [ref=e5935]: 0 vistas
+                - generic [ref=e5939]:
+                  - generic [ref=e5940] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5941]
+                    - generic [ref=e5943]: Activo
+                  - link "Ver" [ref=e5944] [cursor=pointer]:
+                    - /url: /servicio/fa3501fa-3128-44cf-9bce-a9601a1edec2
+                  - button "Editar" [ref=e5950] [cursor=pointer]
+                  - button "Eliminar" [ref=e5955] [cursor=pointer]
+            - generic [ref=e5960]:
+              - generic [ref=e5961]:
+                - img "e2e-f2-3-1789130901882-F1" [ref=e5962]
+                - generic [ref=e5963]: Paseo de Perros
+              - generic [ref=e5970]:
+                - heading "e2e-f2-3-1789130901882-F1" [level=3] [ref=e5971]
+                - generic [ref=e5972]:
+                  - generic [ref=e5973]: $10.000 / por paseo
+                  - generic [ref=e5974]: 0 vistas
+                - generic [ref=e5978]:
+                  - generic [ref=e5979] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e5980]
+                    - generic [ref=e5982]: Activo
+                  - link "Ver" [ref=e5983] [cursor=pointer]:
+                    - /url: /servicio/a70ccbd2-3f36-417b-9027-7a424e5ac43a
+                  - button "Editar" [ref=e5989] [cursor=pointer]
+                  - button "Eliminar" [ref=e5994] [cursor=pointer]
+            - generic [ref=e5999]:
+              - generic [ref=e6000]:
+                - img "e2e-f2-3-1789130896551" [ref=e6001]
+                - generic [ref=e6002]: Cuidado y Hospedaje
+              - generic [ref=e6007]:
+                - heading "e2e-f2-3-1789130896551" [level=3] [ref=e6008]
+                - generic [ref=e6009]:
+                  - generic [ref=e6010]: $15.000 / por noche
+                  - generic [ref=e6011]: 0 vistas
+                - generic [ref=e6015]:
+                  - generic [ref=e6016] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6017]
+                    - generic [ref=e6019]: Activo
+                  - link "Ver" [ref=e6020] [cursor=pointer]:
+                    - /url: /servicio/637710f7-99d4-4d38-8044-ea3e634ecd25
+                  - button "Editar" [ref=e6026] [cursor=pointer]
+                  - button "Eliminar" [ref=e6031] [cursor=pointer]
+            - generic [ref=e6036]:
+              - generic [ref=e6037]:
+                - img "e2e-f2-3-1789130893096" [ref=e6038]
+                - generic [ref=e6039]: Cuidado y Hospedaje
+              - generic [ref=e6044]:
+                - heading "e2e-f2-3-1789130893096" [level=3] [ref=e6045]
+                - generic [ref=e6046]:
+                  - generic [ref=e6047]: $15.000 / por noche
+                  - generic [ref=e6048]: 0 vistas
+                - generic [ref=e6052]:
+                  - generic [ref=e6053] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6054]
+                    - generic [ref=e6056]: Activo
+                  - link "Ver" [ref=e6057] [cursor=pointer]:
+                    - /url: /servicio/847f986b-d239-4ffc-97ea-b54773d49ea6
+                  - button "Editar" [ref=e6063] [cursor=pointer]
+                  - button "Eliminar" [ref=e6068] [cursor=pointer]
+            - generic [ref=e6073]:
+              - generic [ref=e6074]:
+                - img "e2e-f2-3-1789130875346" [ref=e6075]
+                - generic [ref=e6076]: Cuidado y Hospedaje
+              - generic [ref=e6081]:
+                - heading "e2e-f2-3-1789130875346" [level=3] [ref=e6082]
+                - generic [ref=e6083]:
+                  - generic [ref=e6084]: $15.000 / por noche
+                  - generic [ref=e6085]: 0 vistas
+                - generic [ref=e6089]:
+                  - generic [ref=e6090] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6091]
+                    - generic [ref=e6093]: Activo
+                  - link "Ver" [ref=e6094] [cursor=pointer]:
+                    - /url: /servicio/bebca0dd-51e8-4782-be23-e9565a7523c7
+                  - button "Editar" [ref=e6100] [cursor=pointer]
+                  - button "Eliminar" [ref=e6105] [cursor=pointer]
+            - generic [ref=e6110]:
+              - generic [ref=e6111]:
+                - img "e2e-f2-3-1789130856165" [ref=e6112]
+                - generic [ref=e6113]: Cuidado y Hospedaje
+              - generic [ref=e6118]:
+                - heading "e2e-f2-3-1789130856165" [level=3] [ref=e6119]
+                - generic [ref=e6120]:
+                  - generic [ref=e6121]: $15.000 / por noche
+                  - generic [ref=e6122]: 0 vistas
+                - generic [ref=e6126]:
+                  - generic [ref=e6127] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6128]
+                    - generic [ref=e6130]: Activo
+                  - link "Ver" [ref=e6131] [cursor=pointer]:
+                    - /url: /servicio/f8094b19-fdae-4030-907c-1131f615f2c4
+                  - button "Editar" [ref=e6137] [cursor=pointer]
+                  - button "Eliminar" [ref=e6142] [cursor=pointer]
+            - generic [ref=e6147]:
+              - generic [ref=e6148]:
+                - img "e2e-f2-3-1789130852932" [ref=e6149]
+                - generic [ref=e6150]: Cuidado y Hospedaje
+              - generic [ref=e6155]:
+                - heading "e2e-f2-3-1789130852932" [level=3] [ref=e6156]
+                - generic [ref=e6157]:
+                  - generic [ref=e6158]: $15.000 / por noche
+                  - generic [ref=e6159]: 0 vistas
+                - generic [ref=e6163]:
+                  - generic [ref=e6164] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6165]
+                    - generic [ref=e6167]: Activo
+                  - link "Ver" [ref=e6168] [cursor=pointer]:
+                    - /url: /servicio/f2823d80-c13a-40f4-bf2d-4fa721c9df04
+                  - button "Editar" [ref=e6174] [cursor=pointer]
+                  - button "Eliminar" [ref=e6179] [cursor=pointer]
+            - generic [ref=e6184]:
+              - generic [ref=e6185]:
+                - img "e2e-f2-3-1789130841764" [ref=e6186]
+                - generic [ref=e6187]: Cuidado y Hospedaje
+              - generic [ref=e6192]:
+                - heading "e2e-f2-3-1789130841764" [level=3] [ref=e6193]
+                - generic [ref=e6194]:
+                  - generic [ref=e6195]: $15.000 / por noche
+                  - generic [ref=e6196]: 0 vistas
+                - generic [ref=e6200]:
+                  - generic [ref=e6201] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6202]
+                    - generic [ref=e6204]: Activo
+                  - link "Ver" [ref=e6205] [cursor=pointer]:
+                    - /url: /servicio/aa394839-b4cd-42f2-b745-90271b25eb02
+                  - button "Editar" [ref=e6211] [cursor=pointer]
+                  - button "Eliminar" [ref=e6216] [cursor=pointer]
+            - generic [ref=e6221]:
+              - generic [ref=e6222]:
+                - img "e2e-f2-3-1789130408436" [ref=e6223]
+                - generic [ref=e6224]: Cuidado y Hospedaje
+              - generic [ref=e6229]:
+                - heading "e2e-f2-3-1789130408436" [level=3] [ref=e6230]
+                - generic [ref=e6231]:
+                  - generic [ref=e6232]: $15.000 / por noche
+                  - generic [ref=e6233]: 0 vistas
+                - generic [ref=e6237]:
+                  - generic [ref=e6238] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6239]
+                    - generic [ref=e6241]: Activo
+                  - link "Ver" [ref=e6242] [cursor=pointer]:
+                    - /url: /servicio/912ca064-c73f-4c83-b5e3-469222396c79
+                  - button "Editar" [ref=e6248] [cursor=pointer]
+                  - button "Eliminar" [ref=e6253] [cursor=pointer]
+            - generic [ref=e6258]:
+              - generic [ref=e6259]:
+                - img "e2e-f2-3-1789130406105" [ref=e6260]
+                - generic [ref=e6261]: Cuidado y Hospedaje
+              - generic [ref=e6266]:
+                - heading "e2e-f2-3-1789130406105" [level=3] [ref=e6267]
+                - generic [ref=e6268]:
+                  - generic [ref=e6269]: $15.000 / por noche
+                  - generic [ref=e6270]: 0 vistas
+                - generic [ref=e6274]:
+                  - generic [ref=e6275] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6276]
+                    - generic [ref=e6278]: Activo
+                  - link "Ver" [ref=e6279] [cursor=pointer]:
+                    - /url: /servicio/f7bdea1d-27ac-41b0-be01-3966fa73ad90
+                  - button "Editar" [ref=e6285] [cursor=pointer]
+                  - button "Eliminar" [ref=e6290] [cursor=pointer]
+            - generic [ref=e6295]:
+              - generic [ref=e6296]:
+                - img "e2e-f2-3-1789130400427" [ref=e6297]
+                - generic [ref=e6298]: Cuidado y Hospedaje
+              - generic [ref=e6303]:
+                - heading "e2e-f2-3-1789130400427" [level=3] [ref=e6304]
+                - generic [ref=e6305]:
+                  - generic [ref=e6306]: $15.000 / por noche
+                  - generic [ref=e6307]: 0 vistas
+                - generic [ref=e6311]:
+                  - generic [ref=e6312] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6313]
+                    - generic [ref=e6315]: Activo
+                  - link "Ver" [ref=e6316] [cursor=pointer]:
+                    - /url: /servicio/38357c38-8d22-49c9-ab82-ed0af55f09b3
+                  - button "Editar" [ref=e6322] [cursor=pointer]
+                  - button "Eliminar" [ref=e6327] [cursor=pointer]
+            - generic [ref=e6332]:
+              - generic [ref=e6333]:
+                - img "e2e-f2-3-1789130397690" [ref=e6334]
+                - generic [ref=e6335]: Cuidado y Hospedaje
+              - generic [ref=e6340]:
+                - heading "e2e-f2-3-1789130397690" [level=3] [ref=e6341]
+                - generic [ref=e6342]:
+                  - generic [ref=e6343]: $15.000 / por noche
+                  - generic [ref=e6344]: 0 vistas
+                - generic [ref=e6348]:
+                  - generic [ref=e6349] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6350]
+                    - generic [ref=e6352]: Activo
+                  - link "Ver" [ref=e6353] [cursor=pointer]:
+                    - /url: /servicio/057775ff-9985-4f9c-bbb6-df4de2cc23e9
+                  - button "Editar" [ref=e6359] [cursor=pointer]
+                  - button "Eliminar" [ref=e6364] [cursor=pointer]
+            - generic [ref=e6369]:
+              - generic [ref=e6370]:
+                - img "e2e-f2-3-1789130393713-F1" [ref=e6371]
+                - generic [ref=e6372]: Paseo de Perros
+              - generic [ref=e6379]:
+                - heading "e2e-f2-3-1789130393713-F1" [level=3] [ref=e6380]
+                - generic [ref=e6381]:
+                  - generic [ref=e6382]: $10.000 / por paseo
+                  - generic [ref=e6383]: 0 vistas
+                - generic [ref=e6387]:
+                  - generic [ref=e6388] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6389]
+                    - generic [ref=e6391]: Activo
+                  - link "Ver" [ref=e6392] [cursor=pointer]:
+                    - /url: /servicio/391b672a-63d2-44b5-b471-837bcde9d605
+                  - button "Editar" [ref=e6398] [cursor=pointer]
+                  - button "Eliminar" [ref=e6403] [cursor=pointer]
+            - generic [ref=e6408]:
+              - generic [ref=e6409]:
+                - img "e2e-f2-3-1789130367461" [ref=e6410]
+                - generic [ref=e6411]: Cuidado y Hospedaje
+              - generic [ref=e6416]:
+                - heading "e2e-f2-3-1789130367461" [level=3] [ref=e6417]
+                - generic [ref=e6418]:
+                  - generic [ref=e6419]: $15.000 / por noche
+                  - generic [ref=e6420]: 0 vistas
+                - generic [ref=e6424]:
+                  - generic [ref=e6425] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6426]
+                    - generic [ref=e6428]: Activo
+                  - link "Ver" [ref=e6429] [cursor=pointer]:
+                    - /url: /servicio/1769109d-45c8-41cc-8fc6-1126c5769100
+                  - button "Editar" [ref=e6435] [cursor=pointer]
+                  - button "Eliminar" [ref=e6440] [cursor=pointer]
+            - generic [ref=e6445]:
+              - generic [ref=e6446]:
+                - img "e2e-f2-3-1789130367320" [ref=e6447]
+                - generic [ref=e6448]: Cuidado y Hospedaje
+              - generic [ref=e6453]:
+                - heading "e2e-f2-3-1789130367320" [level=3] [ref=e6454]
+                - generic [ref=e6455]:
+                  - generic [ref=e6456]: $15.000 / por noche
+                  - generic [ref=e6457]: 0 vistas
+                - generic [ref=e6461]:
+                  - generic [ref=e6462] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6463]
+                    - generic [ref=e6465]: Activo
+                  - link "Ver" [ref=e6466] [cursor=pointer]:
+                    - /url: /servicio/91e1c267-2c50-4c02-8c38-f3e93c6d1f72
+                  - button "Editar" [ref=e6472] [cursor=pointer]
+                  - button "Eliminar" [ref=e6477] [cursor=pointer]
+            - generic [ref=e6482]:
+              - generic [ref=e6483]:
+                - img "e2e-f2-3-1789130354885" [ref=e6484]
+                - generic [ref=e6485]: Cuidado y Hospedaje
+              - generic [ref=e6490]:
+                - heading "e2e-f2-3-1789130354885" [level=3] [ref=e6491]
+                - generic [ref=e6492]:
+                  - generic [ref=e6493]: $15.000 / por noche
+                  - generic [ref=e6494]: 0 vistas
+                - generic [ref=e6498]:
+                  - generic [ref=e6499] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6500]
+                    - generic [ref=e6502]: Activo
+                  - link "Ver" [ref=e6503] [cursor=pointer]:
+                    - /url: /servicio/ca4d72b4-d4ae-4ba2-9d9b-0a891e2f52fb
+                  - button "Editar" [ref=e6509] [cursor=pointer]
+                  - button "Eliminar" [ref=e6514] [cursor=pointer]
+            - generic [ref=e6519]:
+              - generic [ref=e6520]:
+                - img "e2e-f2-3-1789130342013" [ref=e6521]
+                - generic [ref=e6522]: Cuidado y Hospedaje
+              - generic [ref=e6527]:
+                - heading "e2e-f2-3-1789130342013" [level=3] [ref=e6528]
+                - generic [ref=e6529]:
+                  - generic [ref=e6530]: $15.000 / por noche
+                  - generic [ref=e6531]: 0 vistas
+                - generic [ref=e6535]:
+                  - generic [ref=e6536] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6537]
+                    - generic [ref=e6539]: Activo
+                  - link "Ver" [ref=e6540] [cursor=pointer]:
+                    - /url: /servicio/f2093e5f-d3e4-448e-bb4b-ec80a66c556d
+                  - button "Editar" [ref=e6546] [cursor=pointer]
+                  - button "Eliminar" [ref=e6551] [cursor=pointer]
+            - generic [ref=e6556]:
+              - generic [ref=e6557]:
+                - img "e2e-f2-3-1789130338946" [ref=e6558]
+                - generic [ref=e6559]: Cuidado y Hospedaje
+              - generic [ref=e6564]:
+                - heading "e2e-f2-3-1789130338946" [level=3] [ref=e6565]
+                - generic [ref=e6566]:
+                  - generic [ref=e6567]: $15.000 / por noche
+                  - generic [ref=e6568]: 0 vistas
+                - generic [ref=e6572]:
+                  - generic [ref=e6573] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6574]
+                    - generic [ref=e6576]: Activo
+                  - link "Ver" [ref=e6577] [cursor=pointer]:
+                    - /url: /servicio/d23c9a20-c6b1-4ce8-a7ec-be0171ade6d9
+                  - button "Editar" [ref=e6583] [cursor=pointer]
+                  - button "Eliminar" [ref=e6588] [cursor=pointer]
+            - generic [ref=e6593]:
+              - generic [ref=e6594]:
+                - img "e2e-f2-3-1789130321463" [ref=e6595]
+                - generic [ref=e6596]: Cuidado y Hospedaje
+              - generic [ref=e6601]:
+                - heading "e2e-f2-3-1789130321463" [level=3] [ref=e6602]
+                - generic [ref=e6603]:
+                  - generic [ref=e6604]: $15.000 / por noche
+                  - generic [ref=e6605]: 0 vistas
+                - generic [ref=e6609]:
+                  - generic [ref=e6610] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6611]
+                    - generic [ref=e6613]: Activo
+                  - link "Ver" [ref=e6614] [cursor=pointer]:
+                    - /url: /servicio/46152097-2e46-4429-859c-f9e7ca938a2f
+                  - button "Editar" [ref=e6620] [cursor=pointer]
+                  - button "Eliminar" [ref=e6625] [cursor=pointer]
+            - generic [ref=e6630]:
+              - generic [ref=e6631]:
+                - img "e2e-f2-3-1789129684216" [ref=e6632]
+                - generic [ref=e6633]: Cuidado y Hospedaje
+              - generic [ref=e6638]:
+                - heading "e2e-f2-3-1789129684216" [level=3] [ref=e6639]
+                - generic [ref=e6640]:
+                  - generic [ref=e6641]: $15.000 / por noche
+                  - generic [ref=e6642]: 0 vistas
+                - generic [ref=e6646]:
+                  - generic [ref=e6647] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6648]
+                    - generic [ref=e6650]: Activo
+                  - link "Ver" [ref=e6651] [cursor=pointer]:
+                    - /url: /servicio/7a07abbe-8ce4-44ed-8054-ba28ed851bb3
+                  - button "Editar" [ref=e6657] [cursor=pointer]
+                  - button "Eliminar" [ref=e6662] [cursor=pointer]
+            - generic [ref=e6667]:
+              - generic [ref=e6668]:
+                - img "e2e-f2-3-1789129681528" [ref=e6669]
+                - generic [ref=e6670]: Cuidado y Hospedaje
+              - generic [ref=e6675]:
+                - heading "e2e-f2-3-1789129681528" [level=3] [ref=e6676]
+                - generic [ref=e6677]:
+                  - generic [ref=e6678]: $15.000 / por noche
+                  - generic [ref=e6679]: 0 vistas
+                - generic [ref=e6683]:
+                  - generic [ref=e6684] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6685]
+                    - generic [ref=e6687]: Activo
+                  - link "Ver" [ref=e6688] [cursor=pointer]:
+                    - /url: /servicio/c2197909-ece0-419e-bf9e-62632488d4c2
+                  - button "Editar" [ref=e6694] [cursor=pointer]
+                  - button "Eliminar" [ref=e6699] [cursor=pointer]
+            - generic [ref=e6704]:
+              - generic [ref=e6705]:
+                - img "e2e-f2-3-1789129673078" [ref=e6706]
+                - generic [ref=e6707]: Cuidado y Hospedaje
+              - generic [ref=e6712]:
+                - heading "e2e-f2-3-1789129673078" [level=3] [ref=e6713]
+                - generic [ref=e6714]:
+                  - generic [ref=e6715]: $15.000 / por noche
+                  - generic [ref=e6716]: 0 vistas
+                - generic [ref=e6720]:
+                  - generic [ref=e6721] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6722]
+                    - generic [ref=e6724]: Activo
+                  - link "Ver" [ref=e6725] [cursor=pointer]:
+                    - /url: /servicio/3e78edeb-3ba6-43bc-a6da-f110430b0fb8
+                  - button "Editar" [ref=e6731] [cursor=pointer]
+                  - button "Eliminar" [ref=e6736] [cursor=pointer]
+            - generic [ref=e6741]:
+              - generic [ref=e6742]:
+                - img "e2e-f2-3-1789129668723" [ref=e6743]
+                - generic [ref=e6744]: Cuidado y Hospedaje
+              - generic [ref=e6749]:
+                - heading "e2e-f2-3-1789129668723" [level=3] [ref=e6750]
+                - generic [ref=e6751]:
+                  - generic [ref=e6752]: $15.000 / por noche
+                  - generic [ref=e6753]: 0 vistas
+                - generic [ref=e6757]:
+                  - generic [ref=e6758] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6759]
+                    - generic [ref=e6761]: Activo
+                  - link "Ver" [ref=e6762] [cursor=pointer]:
+                    - /url: /servicio/c4ba2865-c63d-4869-9ef2-d9c2ed699e99
+                  - button "Editar" [ref=e6768] [cursor=pointer]
+                  - button "Eliminar" [ref=e6773] [cursor=pointer]
+            - generic [ref=e6778]:
+              - generic [ref=e6779]:
+                - img "e2e-f2-3-1789129650577-F1" [ref=e6780]
+                - generic [ref=e6781]: Paseo de Perros
+              - generic [ref=e6788]:
+                - heading "e2e-f2-3-1789129650577-F1" [level=3] [ref=e6789]
+                - generic [ref=e6790]:
+                  - generic [ref=e6791]: $10.000 / por paseo
+                  - generic [ref=e6792]: 0 vistas
+                - generic [ref=e6796]:
+                  - generic [ref=e6797] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6798]
+                    - generic [ref=e6800]: Activo
+                  - link "Ver" [ref=e6801] [cursor=pointer]:
+                    - /url: /servicio/52f1cb7d-7f23-4318-a053-28f0f1077753
+                  - button "Editar" [ref=e6807] [cursor=pointer]
+                  - button "Eliminar" [ref=e6812] [cursor=pointer]
+            - generic [ref=e6817]:
+              - generic [ref=e6818]:
+                - img "e2e-f2-3-1789129646126" [ref=e6819]
+                - generic [ref=e6820]: Cuidado y Hospedaje
+              - generic [ref=e6825]:
+                - heading "e2e-f2-3-1789129646126" [level=3] [ref=e6826]
+                - generic [ref=e6827]:
+                  - generic [ref=e6828]: $15.000 / por noche
+                  - generic [ref=e6829]: 0 vistas
+                - generic [ref=e6833]:
+                  - generic [ref=e6834] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6835]
+                    - generic [ref=e6837]: Activo
+                  - link "Ver" [ref=e6838] [cursor=pointer]:
+                    - /url: /servicio/756a3785-4f09-47bf-9a52-284a40c95857
+                  - button "Editar" [ref=e6844] [cursor=pointer]
+                  - button "Eliminar" [ref=e6849] [cursor=pointer]
+            - generic [ref=e6854]:
+              - generic [ref=e6855]:
+                - img "e2e-f2-3-1789129635420" [ref=e6856]
+                - generic [ref=e6857]: Cuidado y Hospedaje
+              - generic [ref=e6862]:
+                - heading "e2e-f2-3-1789129635420" [level=3] [ref=e6863]
+                - generic [ref=e6864]:
+                  - generic [ref=e6865]: $15.000 / por noche
+                  - generic [ref=e6866]: 0 vistas
+                - generic [ref=e6870]:
+                  - generic [ref=e6871] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6872]
+                    - generic [ref=e6874]: Activo
+                  - link "Ver" [ref=e6875] [cursor=pointer]:
+                    - /url: /servicio/88a7fa8d-8372-46fd-bf9e-d7d670cb94f1
+                  - button "Editar" [ref=e6881] [cursor=pointer]
+                  - button "Eliminar" [ref=e6886] [cursor=pointer]
+            - generic [ref=e6891]:
+              - generic [ref=e6892]:
+                - img "e2e-f2-3-1789129627145" [ref=e6893]
+                - generic [ref=e6894]: Cuidado y Hospedaje
+              - generic [ref=e6899]:
+                - heading "e2e-f2-3-1789129627145" [level=3] [ref=e6900]
+                - generic [ref=e6901]:
+                  - generic [ref=e6902]: $15.000 / por noche
+                  - generic [ref=e6903]: 0 vistas
+                - generic [ref=e6907]:
+                  - generic [ref=e6908] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6909]
+                    - generic [ref=e6911]: Activo
+                  - link "Ver" [ref=e6912] [cursor=pointer]:
+                    - /url: /servicio/8d9bd8ce-35f2-4c67-8625-b651241fec5c
+                  - button "Editar" [ref=e6918] [cursor=pointer]
+                  - button "Eliminar" [ref=e6923] [cursor=pointer]
+            - generic [ref=e6928]:
+              - generic [ref=e6929]:
+                - img "e2e-f2-3-1789129614734" [ref=e6930]
+                - generic [ref=e6931]: Cuidado y Hospedaje
+              - generic [ref=e6936]:
+                - heading "e2e-f2-3-1789129614734" [level=3] [ref=e6937]
+                - generic [ref=e6938]:
+                  - generic [ref=e6939]: $15.000 / por noche
+                  - generic [ref=e6940]: 0 vistas
+                - generic [ref=e6944]:
+                  - generic [ref=e6945] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6946]
+                    - generic [ref=e6948]: Activo
+                  - link "Ver" [ref=e6949] [cursor=pointer]:
+                    - /url: /servicio/a8762eee-ebe7-435a-ad0d-049f5c64f219
+                  - button "Editar" [ref=e6955] [cursor=pointer]
+                  - button "Eliminar" [ref=e6960] [cursor=pointer]
+            - generic [ref=e6965]:
+              - generic [ref=e6966]:
+                - img "e2e-f2-3-1789129599495" [ref=e6967]
+                - generic [ref=e6968]: Cuidado y Hospedaje
+              - generic [ref=e6973]:
+                - heading "e2e-f2-3-1789129599495" [level=3] [ref=e6974]
+                - generic [ref=e6975]:
+                  - generic [ref=e6976]: $15.000 / por noche
+                  - generic [ref=e6977]: 0 vistas
+                - generic [ref=e6981]:
+                  - generic [ref=e6982] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e6983]
+                    - generic [ref=e6985]: Activo
+                  - link "Ver" [ref=e6986] [cursor=pointer]:
+                    - /url: /servicio/b03f38ae-d074-4514-936b-727aee343d58
+                  - button "Editar" [ref=e6992] [cursor=pointer]
+                  - button "Eliminar" [ref=e6997] [cursor=pointer]
+            - generic [ref=e7002]:
+              - generic [ref=e7003]:
+                - img "e2e-f2-3-1789129577973" [ref=e7004]
+                - generic [ref=e7005]: Cuidado y Hospedaje
+              - generic [ref=e7010]:
+                - heading "e2e-f2-3-1789129577973" [level=3] [ref=e7011]
+                - generic [ref=e7012]:
+                  - generic [ref=e7013]: $15.000 / por noche
+                  - generic [ref=e7014]: 0 vistas
+                - generic [ref=e7018]:
+                  - generic [ref=e7019] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7020]
+                    - generic [ref=e7022]: Activo
+                  - link "Ver" [ref=e7023] [cursor=pointer]:
+                    - /url: /servicio/407ad17a-d99f-441c-ad75-92accf401073
+                  - button "Editar" [ref=e7029] [cursor=pointer]
+                  - button "Eliminar" [ref=e7034] [cursor=pointer]
+            - generic [ref=e7039]:
+              - generic [ref=e7040]:
+                - img "e2e-f2-3-1789129236266" [ref=e7041]
+                - generic [ref=e7042]: Cuidado y Hospedaje
+              - generic [ref=e7047]:
+                - heading "e2e-f2-3-1789129236266" [level=3] [ref=e7048]
+                - generic [ref=e7049]:
+                  - generic [ref=e7050]: $15.000 / por noche
+                  - generic [ref=e7051]: 0 vistas
+                - generic [ref=e7055]:
+                  - generic [ref=e7056] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7057]
+                    - generic [ref=e7059]: Activo
+                  - link "Ver" [ref=e7060] [cursor=pointer]:
+                    - /url: /servicio/3cc2cfff-46d7-4b36-8502-6677daaa8c81
+                  - button "Editar" [ref=e7066] [cursor=pointer]
+                  - button "Eliminar" [ref=e7071] [cursor=pointer]
+            - generic [ref=e7076]:
+              - generic [ref=e7077]:
+                - img "e2e-f2-3-1789129233414" [ref=e7078]
+                - generic [ref=e7079]: Cuidado y Hospedaje
+              - generic [ref=e7084]:
+                - heading "e2e-f2-3-1789129233414" [level=3] [ref=e7085]
+                - generic [ref=e7086]:
+                  - generic [ref=e7087]: $15.000 / por noche
+                  - generic [ref=e7088]: 0 vistas
+                - generic [ref=e7092]:
+                  - generic [ref=e7093] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7094]
+                    - generic [ref=e7096]: Activo
+                  - link "Ver" [ref=e7097] [cursor=pointer]:
+                    - /url: /servicio/182f31db-ccec-4932-b3f7-21f79cb87b22
+                  - button "Editar" [ref=e7103] [cursor=pointer]
+                  - button "Eliminar" [ref=e7108] [cursor=pointer]
+            - generic [ref=e7113]:
+              - generic [ref=e7114]:
+                - img "e2e-f2-3-1789129225057" [ref=e7115]
+                - generic [ref=e7116]: Cuidado y Hospedaje
+              - generic [ref=e7121]:
+                - heading "e2e-f2-3-1789129225057" [level=3] [ref=e7122]
+                - generic [ref=e7123]:
+                  - generic [ref=e7124]: $15.000 / por noche
+                  - generic [ref=e7125]: 0 vistas
+                - generic [ref=e7129]:
+                  - generic [ref=e7130] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7131]
+                    - generic [ref=e7133]: Activo
+                  - link "Ver" [ref=e7134] [cursor=pointer]:
+                    - /url: /servicio/6331cd70-32f7-4e70-84e7-616da1a31dee
+                  - button "Editar" [ref=e7140] [cursor=pointer]
+                  - button "Eliminar" [ref=e7145] [cursor=pointer]
+            - generic [ref=e7150]:
+              - generic [ref=e7151]:
+                - img "e2e-f2-3-1789129220526" [ref=e7152]
+                - generic [ref=e7153]: Cuidado y Hospedaje
+              - generic [ref=e7158]:
+                - heading "e2e-f2-3-1789129220526" [level=3] [ref=e7159]
+                - generic [ref=e7160]:
+                  - generic [ref=e7161]: $15.000 / por noche
+                  - generic [ref=e7162]: 0 vistas
+                - generic [ref=e7166]:
+                  - generic [ref=e7167] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7168]
+                    - generic [ref=e7170]: Activo
+                  - link "Ver" [ref=e7171] [cursor=pointer]:
+                    - /url: /servicio/59928ee6-21c4-41d2-a391-f680b92cba18
+                  - button "Editar" [ref=e7177] [cursor=pointer]
+                  - button "Eliminar" [ref=e7182] [cursor=pointer]
+            - generic [ref=e7187]:
+              - generic [ref=e7188]:
+                - img "e2e-f2-3-1789129199224-F1" [ref=e7189]
+                - generic [ref=e7190]: Paseo de Perros
+              - generic [ref=e7197]:
+                - heading "e2e-f2-3-1789129199224-F1" [level=3] [ref=e7198]
+                - generic [ref=e7199]:
+                  - generic [ref=e7200]: $10.000 / por paseo
+                  - generic [ref=e7201]: 0 vistas
+                - generic [ref=e7205]:
+                  - generic [ref=e7206] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7207]
+                    - generic [ref=e7209]: Activo
+                  - link "Ver" [ref=e7210] [cursor=pointer]:
+                    - /url: /servicio/e6b38985-d96f-45d5-bcea-7d9b71a97149
+                  - button "Editar" [ref=e7216] [cursor=pointer]
+                  - button "Eliminar" [ref=e7221] [cursor=pointer]
+            - generic [ref=e7226]:
+              - generic [ref=e7227]:
+                - img "e2e-f2-3-1789129195591" [ref=e7228]
+                - generic [ref=e7229]: Cuidado y Hospedaje
+              - generic [ref=e7234]:
+                - heading "e2e-f2-3-1789129195591" [level=3] [ref=e7235]
+                - generic [ref=e7236]:
+                  - generic [ref=e7237]: $15.000 / por noche
+                  - generic [ref=e7238]: 0 vistas
+                - generic [ref=e7242]:
+                  - generic [ref=e7243] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7244]
+                    - generic [ref=e7246]: Activo
+                  - link "Ver" [ref=e7247] [cursor=pointer]:
+                    - /url: /servicio/6d4ca6b4-cb7f-4559-8405-9a5dac2ba777
+                  - button "Editar" [ref=e7253] [cursor=pointer]
+                  - button "Eliminar" [ref=e7258] [cursor=pointer]
+            - generic [ref=e7263]:
+              - generic [ref=e7264]:
+                - img "e2e-f2-3-1789129193157" [ref=e7265]
+                - generic [ref=e7266]: Cuidado y Hospedaje
+              - generic [ref=e7271]:
+                - heading "e2e-f2-3-1789129193157" [level=3] [ref=e7272]
+                - generic [ref=e7273]:
+                  - generic [ref=e7274]: $15.000 / por noche
+                  - generic [ref=e7275]: 0 vistas
+                - generic [ref=e7279]:
+                  - generic [ref=e7280] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7281]
+                    - generic [ref=e7283]: Activo
+                  - link "Ver" [ref=e7284] [cursor=pointer]:
+                    - /url: /servicio/56c368b6-786d-4b6f-83aa-d5ec18c10205
+                  - button "Editar" [ref=e7290] [cursor=pointer]
+                  - button "Eliminar" [ref=e7295] [cursor=pointer]
+            - generic [ref=e7300]:
+              - generic [ref=e7301]:
+                - img "e2e-f2-3-1789129187522" [ref=e7302]
+                - generic [ref=e7303]: Cuidado y Hospedaje
+              - generic [ref=e7308]:
+                - heading "e2e-f2-3-1789129187522" [level=3] [ref=e7309]
+                - generic [ref=e7310]:
+                  - generic [ref=e7311]: $15.000 / por noche
+                  - generic [ref=e7312]: 0 vistas
+                - generic [ref=e7316]:
+                  - generic [ref=e7317] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7318]
+                    - generic [ref=e7320]: Activo
+                  - link "Ver" [ref=e7321] [cursor=pointer]:
+                    - /url: /servicio/c6b1e473-6a4b-435c-a431-ecd1b552225d
+                  - button "Editar" [ref=e7327] [cursor=pointer]
+                  - button "Eliminar" [ref=e7332] [cursor=pointer]
+            - generic [ref=e7337]:
+              - generic [ref=e7338]:
+                - img "e2e-f2-3-1789129179215" [ref=e7339]
+                - generic [ref=e7340]: Cuidado y Hospedaje
+              - generic [ref=e7345]:
+                - heading "e2e-f2-3-1789129179215" [level=3] [ref=e7346]
+                - generic [ref=e7347]:
+                  - generic [ref=e7348]: $15.000 / por noche
+                  - generic [ref=e7349]: 0 vistas
+                - generic [ref=e7353]:
+                  - generic [ref=e7354] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7355]
+                    - generic [ref=e7357]: Activo
+                  - link "Ver" [ref=e7358] [cursor=pointer]:
+                    - /url: /servicio/b90bb1cf-8391-471d-9d70-8fdc17dbb5c0
+                  - button "Editar" [ref=e7364] [cursor=pointer]
+                  - button "Eliminar" [ref=e7369] [cursor=pointer]
+            - generic [ref=e7374]:
+              - generic [ref=e7375]:
+                - img "e2e-f2-3-1789129172673" [ref=e7376]
+                - generic [ref=e7377]: Cuidado y Hospedaje
+              - generic [ref=e7382]:
+                - heading "e2e-f2-3-1789129172673" [level=3] [ref=e7383]
+                - generic [ref=e7384]:
+                  - generic [ref=e7385]: $15.000 / por noche
+                  - generic [ref=e7386]: 0 vistas
+                - generic [ref=e7390]:
+                  - generic [ref=e7391] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7392]
+                    - generic [ref=e7394]: Activo
+                  - link "Ver" [ref=e7395] [cursor=pointer]:
+                    - /url: /servicio/53c8e093-1c5e-4048-82d2-562fbdb59705
+                  - button "Editar" [ref=e7401] [cursor=pointer]
+                  - button "Eliminar" [ref=e7406] [cursor=pointer]
+            - generic [ref=e7411]:
+              - generic [ref=e7412]:
+                - img "e2e-f2-3-1789129160762" [ref=e7413]
+                - generic [ref=e7414]: Cuidado y Hospedaje
+              - generic [ref=e7419]:
+                - heading "e2e-f2-3-1789129160762" [level=3] [ref=e7420]
+                - generic [ref=e7421]:
+                  - generic [ref=e7422]: $15.000 / por noche
+                  - generic [ref=e7423]: 0 vistas
+                - generic [ref=e7427]:
+                  - generic [ref=e7428] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7429]
+                    - generic [ref=e7431]: Activo
+                  - link "Ver" [ref=e7432] [cursor=pointer]:
+                    - /url: /servicio/c2c41211-51cc-4166-9df3-2f1b55894bd7
+                  - button "Editar" [ref=e7438] [cursor=pointer]
+                  - button "Eliminar" [ref=e7443] [cursor=pointer]
+            - generic [ref=e7448]:
+              - generic [ref=e7449]:
+                - img "e2e-f2-3-1788989210213" [ref=e7450]
+                - generic [ref=e7451]: Cuidado y Hospedaje
+              - generic [ref=e7456]:
+                - heading "e2e-f2-3-1788989210213" [level=3] [ref=e7457]
+                - generic [ref=e7458]:
+                  - generic [ref=e7459]: $15.000 / por noche
+                  - generic [ref=e7460]: 0 vistas
+                - generic [ref=e7464]:
+                  - generic [ref=e7465] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7466]
+                    - generic [ref=e7468]: Activo
+                  - link "Ver" [ref=e7469] [cursor=pointer]:
+                    - /url: /servicio/0df5c8a2-9d1d-4b33-85ce-e67cd08400fc
+                  - button "Editar" [ref=e7475] [cursor=pointer]
+                  - button "Eliminar" [ref=e7480] [cursor=pointer]
+            - generic [ref=e7485]:
+              - generic [ref=e7486]:
+                - img "e2e-f2-3-1788989207958" [ref=e7487]
+                - generic [ref=e7488]: Cuidado y Hospedaje
+              - generic [ref=e7493]:
+                - heading "e2e-f2-3-1788989207958" [level=3] [ref=e7494]
+                - generic [ref=e7495]:
+                  - generic [ref=e7496]: $15.000 / por noche
+                  - generic [ref=e7497]: 0 vistas
+                - generic [ref=e7501]:
+                  - generic [ref=e7502] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7503]
+                    - generic [ref=e7505]: Activo
+                  - link "Ver" [ref=e7506] [cursor=pointer]:
+                    - /url: /servicio/46ab56dd-cb5d-4847-92fe-d5a2333406d3
+                  - button "Editar" [ref=e7512] [cursor=pointer]
+                  - button "Eliminar" [ref=e7517] [cursor=pointer]
+            - generic [ref=e7522]:
+              - generic [ref=e7523]:
+                - img "e2e-f2-3-1788989200593" [ref=e7524]
+                - generic [ref=e7525]: Cuidado y Hospedaje
+              - generic [ref=e7530]:
+                - heading "e2e-f2-3-1788989200593" [level=3] [ref=e7531]
+                - generic [ref=e7532]:
+                  - generic [ref=e7533]: $15.000 / por noche
+                  - generic [ref=e7534]: 0 vistas
+                - generic [ref=e7538]:
+                  - generic [ref=e7539] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7540]
+                    - generic [ref=e7542]: Activo
+                  - link "Ver" [ref=e7543] [cursor=pointer]:
+                    - /url: /servicio/219f9e60-8ac7-4350-b8ed-2f1f8ee7a500
+                  - button "Editar" [ref=e7549] [cursor=pointer]
+                  - button "Eliminar" [ref=e7554] [cursor=pointer]
+            - generic [ref=e7559]:
+              - generic [ref=e7560]:
+                - img "e2e-f2-3-1788989197214" [ref=e7561]
+                - generic [ref=e7562]: Cuidado y Hospedaje
+              - generic [ref=e7567]:
+                - heading "e2e-f2-3-1788989197214" [level=3] [ref=e7568]
+                - generic [ref=e7569]:
+                  - generic [ref=e7570]: $15.000 / por noche
+                  - generic [ref=e7571]: 0 vistas
+                - generic [ref=e7575]:
+                  - generic [ref=e7576] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7577]
+                    - generic [ref=e7579]: Activo
+                  - link "Ver" [ref=e7580] [cursor=pointer]:
+                    - /url: /servicio/c487a54b-9af2-42b8-9b76-5d06fd1bb35a
+                  - button "Editar" [ref=e7586] [cursor=pointer]
+                  - button "Eliminar" [ref=e7591] [cursor=pointer]
+            - generic [ref=e7596]:
+              - generic [ref=e7597]:
+                - img "e2e-f2-3-1788989177451-F1" [ref=e7598]
+                - generic [ref=e7599]: Paseo de Perros
+              - generic [ref=e7606]:
+                - heading "e2e-f2-3-1788989177451-F1" [level=3] [ref=e7607]
+                - generic [ref=e7608]:
+                  - generic [ref=e7609]: $10.000 / por paseo
+                  - generic [ref=e7610]: 0 vistas
+                - generic [ref=e7614]:
+                  - generic [ref=e7615] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7616]
+                    - generic [ref=e7618]: Activo
+                  - link "Ver" [ref=e7619] [cursor=pointer]:
+                    - /url: /servicio/f90fb233-b873-4ac6-b078-218547979655
+                  - button "Editar" [ref=e7625] [cursor=pointer]
+                  - button "Eliminar" [ref=e7630] [cursor=pointer]
+            - generic [ref=e7635]:
+              - generic [ref=e7636]:
+                - img "e2e-f2-3-1788989155352" [ref=e7637]
+                - generic [ref=e7638]: Cuidado y Hospedaje
+              - generic [ref=e7643]:
+                - heading "e2e-f2-3-1788989155352" [level=3] [ref=e7644]
+                - generic [ref=e7645]:
+                  - generic [ref=e7646]: $15.000 / por noche
+                  - generic [ref=e7647]: 0 vistas
+                - generic [ref=e7651]:
+                  - generic [ref=e7652] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7653]
+                    - generic [ref=e7655]: Activo
+                  - link "Ver" [ref=e7656] [cursor=pointer]:
+                    - /url: /servicio/63477246-2aad-4f18-84ad-0bd894a94e25
+                  - button "Editar" [ref=e7662] [cursor=pointer]
+                  - button "Eliminar" [ref=e7667] [cursor=pointer]
+            - generic [ref=e7672]:
+              - generic [ref=e7673]:
+                - img "e2e-f2-3-1788989140873" [ref=e7674]
+                - generic [ref=e7675]: Cuidado y Hospedaje
+              - generic [ref=e7680]:
+                - heading "e2e-f2-3-1788989140873" [level=3] [ref=e7681]
+                - generic [ref=e7682]:
+                  - generic [ref=e7683]: $15.000 / por noche
+                  - generic [ref=e7684]: 0 vistas
+                - generic [ref=e7688]:
+                  - generic [ref=e7689] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7690]
+                    - generic [ref=e7692]: Activo
+                  - link "Ver" [ref=e7693] [cursor=pointer]:
+                    - /url: /servicio/e229516c-dce7-4fc7-ac5c-222f5e2747fd
+                  - button "Editar" [ref=e7699] [cursor=pointer]
+                  - button "Eliminar" [ref=e7704] [cursor=pointer]
+            - generic [ref=e7709]:
+              - generic [ref=e7710]:
+                - img "e2e-f2-3-1788989128492" [ref=e7711]
+                - generic [ref=e7712]: Cuidado y Hospedaje
+              - generic [ref=e7717]:
+                - heading "e2e-f2-3-1788989128492" [level=3] [ref=e7718]
+                - generic [ref=e7719]:
+                  - generic [ref=e7720]: $15.000 / por noche
+                  - generic [ref=e7721]: 0 vistas
+                - generic [ref=e7725]:
+                  - generic [ref=e7726] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7727]
+                    - generic [ref=e7729]: Activo
+                  - link "Ver" [ref=e7730] [cursor=pointer]:
+                    - /url: /servicio/e914b7de-8e01-4626-a282-feca60396e5b
+                  - button "Editar" [ref=e7736] [cursor=pointer]
+                  - button "Eliminar" [ref=e7741] [cursor=pointer]
+            - generic [ref=e7746]:
+              - generic [ref=e7747]:
+                - img "e2e-f2-3-1788989098793" [ref=e7748]
+                - generic [ref=e7749]: Cuidado y Hospedaje
+              - generic [ref=e7754]:
+                - heading "e2e-f2-3-1788989098793" [level=3] [ref=e7755]
+                - generic [ref=e7756]:
+                  - generic [ref=e7757]: $15.000 / por noche
+                  - generic [ref=e7758]: 0 vistas
+                - generic [ref=e7762]:
+                  - generic [ref=e7763] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7764]
+                    - generic [ref=e7766]: Activo
+                  - link "Ver" [ref=e7767] [cursor=pointer]:
+                    - /url: /servicio/585a0aba-2a28-4039-bf66-96fc97ec20f6
+                  - button "Editar" [ref=e7773] [cursor=pointer]
+                  - button "Eliminar" [ref=e7778] [cursor=pointer]
+            - generic [ref=e7783]:
+              - generic [ref=e7784]:
+                - img "e2e-f2-3-1788989024292" [ref=e7785]
+                - generic [ref=e7786]: Cuidado y Hospedaje
+              - generic [ref=e7791]:
+                - heading "e2e-f2-3-1788989024292" [level=3] [ref=e7792]
+                - generic [ref=e7793]:
+                  - generic [ref=e7794]: $15.000 / por noche
+                  - generic [ref=e7795]: 0 vistas
+                - generic [ref=e7799]:
+                  - generic [ref=e7800] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7801]
+                    - generic [ref=e7803]: Activo
+                  - link "Ver" [ref=e7804] [cursor=pointer]:
+                    - /url: /servicio/25065bea-f6e9-44a5-b887-f2cfb8754b3e
+                  - button "Editar" [ref=e7810] [cursor=pointer]
+                  - button "Eliminar" [ref=e7815] [cursor=pointer]
+            - generic [ref=e7820]:
+              - generic [ref=e7821]:
+                - img "e2e-f2-3-1788988688715" [ref=e7822]
+                - generic [ref=e7823]: Cuidado y Hospedaje
+              - generic [ref=e7828]:
+                - heading "e2e-f2-3-1788988688715" [level=3] [ref=e7829]
+                - generic [ref=e7830]:
+                  - generic [ref=e7831]: $15.000 / por noche
+                  - generic [ref=e7832]: 0 vistas
+                - generic [ref=e7836]:
+                  - generic [ref=e7837] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7838]
+                    - generic [ref=e7840]: Activo
+                  - link "Ver" [ref=e7841] [cursor=pointer]:
+                    - /url: /servicio/0b68b2cf-34b6-4592-9f28-f088e82aa660
+                  - button "Editar" [ref=e7847] [cursor=pointer]
+                  - button "Eliminar" [ref=e7852] [cursor=pointer]
+            - generic [ref=e7857]:
+              - generic [ref=e7858]:
+                - img "e2e-f2-3-1788988680019" [ref=e7859]
+                - generic [ref=e7860]: Cuidado y Hospedaje
+              - generic [ref=e7865]:
+                - heading "e2e-f2-3-1788988680019" [level=3] [ref=e7866]
+                - generic [ref=e7867]:
+                  - generic [ref=e7868]: $15.000 / por noche
+                  - generic [ref=e7869]: 0 vistas
+                - generic [ref=e7873]:
+                  - generic [ref=e7874] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7875]
+                    - generic [ref=e7877]: Activo
+                  - link "Ver" [ref=e7878] [cursor=pointer]:
+                    - /url: /servicio/46c61863-10b4-4852-a830-f0511030aebf
+                  - button "Editar" [ref=e7884] [cursor=pointer]
+                  - button "Eliminar" [ref=e7889] [cursor=pointer]
+            - generic [ref=e7894]:
+              - generic [ref=e7895]:
+                - img "e2e-f2-3-1788988582900" [ref=e7896]
+                - generic [ref=e7897]: Cuidado y Hospedaje
+              - generic [ref=e7902]:
+                - heading "e2e-f2-3-1788988582900" [level=3] [ref=e7903]
+                - generic [ref=e7904]:
+                  - generic [ref=e7905]: $15.000 / por noche
+                  - generic [ref=e7906]: 0 vistas
+                - generic [ref=e7910]:
+                  - generic [ref=e7911] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7912]
+                    - generic [ref=e7914]: Activo
+                  - link "Ver" [ref=e7915] [cursor=pointer]:
+                    - /url: /servicio/2e9a8a02-c00a-438e-bfd8-01d29c33727a
+                  - button "Editar" [ref=e7921] [cursor=pointer]
+                  - button "Eliminar" [ref=e7926] [cursor=pointer]
+            - generic [ref=e7931]:
+              - generic [ref=e7932]:
+                - img "e2e-f2-3-1788988523998" [ref=e7933]
+                - generic [ref=e7934]: Cuidado y Hospedaje
+              - generic [ref=e7939]:
+                - heading "e2e-f2-3-1788988523998" [level=3] [ref=e7940]
+                - generic [ref=e7941]:
+                  - generic [ref=e7942]: $15.000 / por noche
+                  - generic [ref=e7943]: 0 vistas
+                - generic [ref=e7947]:
+                  - generic [ref=e7948] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7949]
+                    - generic [ref=e7951]: Activo
+                  - link "Ver" [ref=e7952] [cursor=pointer]:
+                    - /url: /servicio/16f0de9d-5da7-43c6-9de9-003ca2fd8110
+                  - button "Editar" [ref=e7958] [cursor=pointer]
+                  - button "Eliminar" [ref=e7963] [cursor=pointer]
+            - generic [ref=e7968]:
+              - generic [ref=e7969]:
+                - img "e2e-f2-3-1788985946012" [ref=e7970]
+                - generic [ref=e7971]: Cuidado y Hospedaje
+              - generic [ref=e7976]:
+                - heading "e2e-f2-3-1788985946012" [level=3] [ref=e7977]
+                - generic [ref=e7978]:
+                  - generic [ref=e7979]: $15.000 / por noche
+                  - generic [ref=e7980]: 0 vistas
+                - generic [ref=e7984]:
+                  - generic [ref=e7985] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e7986]
+                    - generic [ref=e7988]: Activo
+                  - link "Ver" [ref=e7989] [cursor=pointer]:
+                    - /url: /servicio/cce5af96-6176-47da-8803-5b75b01a6841
+                  - button "Editar" [ref=e7995] [cursor=pointer]
+                  - button "Eliminar" [ref=e8000] [cursor=pointer]
+            - generic [ref=e8005]:
+              - generic [ref=e8006]:
+                - img "e2e-f2-3-1788985942791" [ref=e8007]
+                - generic [ref=e8008]: Cuidado y Hospedaje
+              - generic [ref=e8013]:
+                - heading "e2e-f2-3-1788985942791" [level=3] [ref=e8014]
+                - generic [ref=e8015]:
+                  - generic [ref=e8016]: $15.000 / por noche
+                  - generic [ref=e8017]: 0 vistas
+                - generic [ref=e8021]:
+                  - generic [ref=e8022] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8023]
+                    - generic [ref=e8025]: Activo
+                  - link "Ver" [ref=e8026] [cursor=pointer]:
+                    - /url: /servicio/092eecad-998f-4af0-a7fb-c5dceded9465
+                  - button "Editar" [ref=e8032] [cursor=pointer]
+                  - button "Eliminar" [ref=e8037] [cursor=pointer]
+            - generic [ref=e8042]:
+              - generic [ref=e8043]:
+                - img "e2e-f2-3-1788985932801" [ref=e8044]
+                - generic [ref=e8045]: Cuidado y Hospedaje
+              - generic [ref=e8050]:
+                - heading "e2e-f2-3-1788985932801" [level=3] [ref=e8051]
+                - generic [ref=e8052]:
+                  - generic [ref=e8053]: $15.000 / por noche
+                  - generic [ref=e8054]: 0 vistas
+                - generic [ref=e8058]:
+                  - generic [ref=e8059] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8060]
+                    - generic [ref=e8062]: Activo
+                  - link "Ver" [ref=e8063] [cursor=pointer]:
+                    - /url: /servicio/75b0a54b-0108-414a-bcdb-a140f91b3316
+                  - button "Editar" [ref=e8069] [cursor=pointer]
+                  - button "Eliminar" [ref=e8074] [cursor=pointer]
+            - generic [ref=e8079]:
+              - generic [ref=e8080]:
+                - img "e2e-f2-3-1788985927744" [ref=e8081]
+                - generic [ref=e8082]: Cuidado y Hospedaje
+              - generic [ref=e8087]:
+                - heading "e2e-f2-3-1788985927744" [level=3] [ref=e8088]
+                - generic [ref=e8089]:
+                  - generic [ref=e8090]: $15.000 / por noche
+                  - generic [ref=e8091]: 0 vistas
+                - generic [ref=e8095]:
+                  - generic [ref=e8096] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8097]
+                    - generic [ref=e8099]: Activo
+                  - link "Ver" [ref=e8100] [cursor=pointer]:
+                    - /url: /servicio/e6bbf926-1911-438f-ac02-efb3fd620b4d
+                  - button "Editar" [ref=e8106] [cursor=pointer]
+                  - button "Eliminar" [ref=e8111] [cursor=pointer]
+            - generic [ref=e8116]:
+              - generic [ref=e8117]:
+                - img "e2e-f2-3-1788985731745" [ref=e8118]
+                - generic [ref=e8119]: Cuidado y Hospedaje
+              - generic [ref=e8124]:
+                - heading "e2e-f2-3-1788985731745" [level=3] [ref=e8125]
+                - generic [ref=e8126]:
+                  - generic [ref=e8127]: $15.000 / por noche
+                  - generic [ref=e8128]: 0 vistas
+                - generic [ref=e8132]:
+                  - generic [ref=e8133] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8134]
+                    - generic [ref=e8136]: Activo
+                  - link "Ver" [ref=e8137] [cursor=pointer]:
+                    - /url: /servicio/a5b592b3-c4ea-4624-bd64-6f549de5e1c7
+                  - button "Editar" [ref=e8143] [cursor=pointer]
+                  - button "Eliminar" [ref=e8148] [cursor=pointer]
+            - generic [ref=e8153]:
+              - generic [ref=e8154]:
+                - img "e2e-f2-3-1788985194398" [ref=e8155]
+                - generic [ref=e8156]: Cuidado y Hospedaje
+              - generic [ref=e8161]:
+                - heading "e2e-f2-3-1788985194398" [level=3] [ref=e8162]
+                - generic [ref=e8163]:
+                  - generic [ref=e8164]: $15.000 / por noche
+                  - generic [ref=e8165]: 0 vistas
+                - generic [ref=e8169]:
+                  - generic [ref=e8170] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8171]
+                    - generic [ref=e8173]: Activo
+                  - link "Ver" [ref=e8174] [cursor=pointer]:
+                    - /url: /servicio/d19ec50c-d1b0-46de-9e19-a200ddbfca5c
+                  - button "Editar" [ref=e8180] [cursor=pointer]
+                  - button "Eliminar" [ref=e8185] [cursor=pointer]
+            - generic [ref=e8190]:
+              - generic [ref=e8191]:
+                - img "e2e-f2-3-1788985192263" [ref=e8192]
+                - generic [ref=e8193]: Cuidado y Hospedaje
+              - generic [ref=e8198]:
+                - heading "e2e-f2-3-1788985192263" [level=3] [ref=e8199]
+                - generic [ref=e8200]:
+                  - generic [ref=e8201]: $15.000 / por noche
+                  - generic [ref=e8202]: 0 vistas
+                - generic [ref=e8206]:
+                  - generic [ref=e8207] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8208]
+                    - generic [ref=e8210]: Activo
+                  - link "Ver" [ref=e8211] [cursor=pointer]:
+                    - /url: /servicio/61e9eb51-086d-434a-aaca-d82ad7fc7df0
+                  - button "Editar" [ref=e8217] [cursor=pointer]
+                  - button "Eliminar" [ref=e8222] [cursor=pointer]
+            - generic [ref=e8227]:
+              - generic [ref=e8228]:
+                - img "e2e-f2-3-1788985184811" [ref=e8229]
+                - generic [ref=e8230]: Cuidado y Hospedaje
+              - generic [ref=e8235]:
+                - heading "e2e-f2-3-1788985184811" [level=3] [ref=e8236]
+                - generic [ref=e8237]:
+                  - generic [ref=e8238]: $15.000 / por noche
+                  - generic [ref=e8239]: 0 vistas
+                - generic [ref=e8243]:
+                  - generic [ref=e8244] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8245]
+                    - generic [ref=e8247]: Activo
+                  - link "Ver" [ref=e8248] [cursor=pointer]:
+                    - /url: /servicio/ad9f65e3-5226-48bf-8262-4ddee7a5e45f
+                  - button "Editar" [ref=e8254] [cursor=pointer]
+                  - button "Eliminar" [ref=e8259] [cursor=pointer]
+            - generic [ref=e8264]:
+              - generic [ref=e8265]:
+                - img "e2e-f2-3-1788985180831" [ref=e8266]
+                - generic [ref=e8267]: Cuidado y Hospedaje
+              - generic [ref=e8272]:
+                - heading "e2e-f2-3-1788985180831" [level=3] [ref=e8273]
+                - generic [ref=e8274]:
+                  - generic [ref=e8275]: $15.000 / por noche
+                  - generic [ref=e8276]: 0 vistas
+                - generic [ref=e8280]:
+                  - generic [ref=e8281] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8282]
+                    - generic [ref=e8284]: Activo
+                  - link "Ver" [ref=e8285] [cursor=pointer]:
+                    - /url: /servicio/193cc721-318b-4473-91ee-c373ea6ff14c
+                  - button "Editar" [ref=e8291] [cursor=pointer]
+                  - button "Eliminar" [ref=e8296] [cursor=pointer]
+            - generic [ref=e8301]:
+              - generic [ref=e8302]:
+                - img "e2e-f2-3-1788985166553-F1" [ref=e8303]
+                - generic [ref=e8304]: Paseo de Perros
+              - generic [ref=e8311]:
+                - heading "e2e-f2-3-1788985166553-F1" [level=3] [ref=e8312]
+                - generic [ref=e8313]:
+                  - generic [ref=e8314]: $10.000 / por paseo
+                  - generic [ref=e8315]: 0 vistas
+                - generic [ref=e8319]:
+                  - generic [ref=e8320] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8321]
+                    - generic [ref=e8323]: Activo
+                  - link "Ver" [ref=e8324] [cursor=pointer]:
+                    - /url: /servicio/97078da8-2114-4c11-a639-6080b233b004
+                  - button "Editar" [ref=e8330] [cursor=pointer]
+                  - button "Eliminar" [ref=e8335] [cursor=pointer]
+            - generic [ref=e8340]:
+              - generic [ref=e8341]:
+                - img "e2e-f2-3-1788985156605" [ref=e8342]
+                - generic [ref=e8343]: Cuidado y Hospedaje
+              - generic [ref=e8348]:
+                - heading "e2e-f2-3-1788985156605" [level=3] [ref=e8349]
+                - generic [ref=e8350]:
+                  - generic [ref=e8351]: $15.000 / por noche
+                  - generic [ref=e8352]: 0 vistas
+                - generic [ref=e8356]:
+                  - generic [ref=e8357] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8358]
+                    - generic [ref=e8360]: Activo
+                  - link "Ver" [ref=e8361] [cursor=pointer]:
+                    - /url: /servicio/b0e72bf8-a021-4f12-bd7e-5443ecf2e16d
+                  - button "Editar" [ref=e8367] [cursor=pointer]
+                  - button "Eliminar" [ref=e8372] [cursor=pointer]
+            - generic [ref=e8377]:
+              - generic [ref=e8378]:
+                - img "e2e-f2-3-1788985079241" [ref=e8379]
+                - generic [ref=e8380]: Cuidado y Hospedaje
+              - generic [ref=e8385]:
+                - heading "e2e-f2-3-1788985079241" [level=3] [ref=e8386]
+                - generic [ref=e8387]:
+                  - generic [ref=e8388]: $15.000 / por noche
+                  - generic [ref=e8389]: 0 vistas
+                - generic [ref=e8393]:
+                  - generic [ref=e8394] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8395]
+                    - generic [ref=e8397]: Activo
+                  - link "Ver" [ref=e8398] [cursor=pointer]:
+                    - /url: /servicio/19a3efe8-f3f3-4f23-9341-02d2a065f067
+                  - button "Editar" [ref=e8404] [cursor=pointer]
+                  - button "Eliminar" [ref=e8409] [cursor=pointer]
+            - generic [ref=e8414]:
+              - generic [ref=e8415]:
+                - img "e2e-f2-3-1788985069526" [ref=e8416]
+                - generic [ref=e8417]: Cuidado y Hospedaje
+              - generic [ref=e8422]:
+                - heading "e2e-f2-3-1788985069526" [level=3] [ref=e8423]
+                - generic [ref=e8424]:
+                  - generic [ref=e8425]: $15.000 / por noche
+                  - generic [ref=e8426]: 0 vistas
+                - generic [ref=e8430]:
+                  - generic [ref=e8431] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8432]
+                    - generic [ref=e8434]: Activo
+                  - link "Ver" [ref=e8435] [cursor=pointer]:
+                    - /url: /servicio/a8759121-9237-4c27-b3a4-7c08066eca54
+                  - button "Editar" [ref=e8441] [cursor=pointer]
+                  - button "Eliminar" [ref=e8446] [cursor=pointer]
+            - generic [ref=e8451]:
+              - generic [ref=e8452]:
+                - img "e2e-f2-3-1788984982144" [ref=e8453]
+                - generic [ref=e8454]: Cuidado y Hospedaje
+              - generic [ref=e8459]:
+                - heading "e2e-f2-3-1788984982144" [level=3] [ref=e8460]
+                - generic [ref=e8461]:
+                  - generic [ref=e8462]: $15.000 / por noche
+                  - generic [ref=e8463]: 0 vistas
+                - generic [ref=e8467]:
+                  - generic [ref=e8468] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8469]
+                    - generic [ref=e8471]: Activo
+                  - link "Ver" [ref=e8472] [cursor=pointer]:
+                    - /url: /servicio/2cbb773c-268b-44ea-a196-25e6fc1a02c7
+                  - button "Editar" [ref=e8478] [cursor=pointer]
+                  - button "Eliminar" [ref=e8483] [cursor=pointer]
+            - generic [ref=e8488]:
+              - generic [ref=e8489]:
+                - img "e2e-f2-3-1788984898585" [ref=e8490]
+                - generic [ref=e8491]: Cuidado y Hospedaje
+              - generic [ref=e8496]:
+                - heading "e2e-f2-3-1788984898585" [level=3] [ref=e8497]
+                - generic [ref=e8498]:
+                  - generic [ref=e8499]: $15.000 / por noche
+                  - generic [ref=e8500]: 0 vistas
+                - generic [ref=e8504]:
+                  - generic [ref=e8505] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8506]
+                    - generic [ref=e8508]: Activo
+                  - link "Ver" [ref=e8509] [cursor=pointer]:
+                    - /url: /servicio/3145b415-278b-4a07-849d-053c08ee0814
+                  - button "Editar" [ref=e8515] [cursor=pointer]
+                  - button "Eliminar" [ref=e8520] [cursor=pointer]
+            - generic [ref=e8525]:
+              - generic [ref=e8526]:
+                - img "e2e-f2-3-1788984808711" [ref=e8527]
+                - generic [ref=e8528]: Cuidado y Hospedaje
+              - generic [ref=e8533]:
+                - heading "e2e-f2-3-1788984808711" [level=3] [ref=e8534]
+                - generic [ref=e8535]:
+                  - generic [ref=e8536]: $15.000 / por noche
+                  - generic [ref=e8537]: 0 vistas
+                - generic [ref=e8541]:
+                  - generic [ref=e8542] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8543]
+                    - generic [ref=e8545]: Activo
+                  - link "Ver" [ref=e8546] [cursor=pointer]:
+                    - /url: /servicio/7e36c2a0-3177-4478-b5ac-d39c6d7705be
+                  - button "Editar" [ref=e8552] [cursor=pointer]
+                  - button "Eliminar" [ref=e8557] [cursor=pointer]
+            - generic [ref=e8562]:
+              - generic [ref=e8563]:
+                - img "e2e-f2-3-1788983677307" [ref=e8564]
+                - generic [ref=e8565]: Cuidado y Hospedaje
+              - generic [ref=e8570]:
+                - heading "e2e-f2-3-1788983677307" [level=3] [ref=e8571]
+                - generic [ref=e8572]:
+                  - generic [ref=e8573]: $15.000 / por noche
+                  - generic [ref=e8574]: 0 vistas
+                - generic [ref=e8578]:
+                  - generic [ref=e8579] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8580]
+                    - generic [ref=e8582]: Activo
+                  - link "Ver" [ref=e8583] [cursor=pointer]:
+                    - /url: /servicio/0a033a51-4f5a-409a-847b-f4b0295e4d99
+                  - button "Editar" [ref=e8589] [cursor=pointer]
+                  - button "Eliminar" [ref=e8594] [cursor=pointer]
+            - generic [ref=e8599]:
+              - generic [ref=e8600]:
+                - img "e2e-f2-3-1788983674489" [ref=e8601]
+                - generic [ref=e8602]: Cuidado y Hospedaje
+              - generic [ref=e8607]:
+                - heading "e2e-f2-3-1788983674489" [level=3] [ref=e8608]
+                - generic [ref=e8609]:
+                  - generic [ref=e8610]: $15.000 / por noche
+                  - generic [ref=e8611]: 0 vistas
+                - generic [ref=e8615]:
+                  - generic [ref=e8616] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8617]
+                    - generic [ref=e8619]: Activo
+                  - link "Ver" [ref=e8620] [cursor=pointer]:
+                    - /url: /servicio/4a1dbddc-2403-4eda-b48c-8fde69731378
+                  - button "Editar" [ref=e8626] [cursor=pointer]
+                  - button "Eliminar" [ref=e8631] [cursor=pointer]
+            - generic [ref=e8636]:
+              - generic [ref=e8637]:
+                - img "e2e-f2-3-1788983667334" [ref=e8638]
+                - generic [ref=e8639]: Cuidado y Hospedaje
+              - generic [ref=e8644]:
+                - heading "e2e-f2-3-1788983667334" [level=3] [ref=e8645]
+                - generic [ref=e8646]:
+                  - generic [ref=e8647]: $15.000 / por noche
+                  - generic [ref=e8648]: 0 vistas
+                - generic [ref=e8652]:
+                  - generic [ref=e8653] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8654]
+                    - generic [ref=e8656]: Activo
+                  - link "Ver" [ref=e8657] [cursor=pointer]:
+                    - /url: /servicio/9b4179f2-58f2-4da8-a41a-5a2bc8ce069b
+                  - button "Editar" [ref=e8663] [cursor=pointer]
+                  - button "Eliminar" [ref=e8668] [cursor=pointer]
+            - generic [ref=e8673]:
+              - generic [ref=e8674]:
+                - img "e2e-f2-3-1788983663372" [ref=e8675]
+                - generic [ref=e8676]: Cuidado y Hospedaje
+              - generic [ref=e8681]:
+                - heading "e2e-f2-3-1788983663372" [level=3] [ref=e8682]
+                - generic [ref=e8683]:
+                  - generic [ref=e8684]: $15.000 / por noche
+                  - generic [ref=e8685]: 0 vistas
+                - generic [ref=e8689]:
+                  - generic [ref=e8690] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8691]
+                    - generic [ref=e8693]: Activo
+                  - link "Ver" [ref=e8694] [cursor=pointer]:
+                    - /url: /servicio/dd42efe6-83bb-4726-97ae-b2d9629f0b48
+                  - button "Editar" [ref=e8700] [cursor=pointer]
+                  - button "Eliminar" [ref=e8705] [cursor=pointer]
+            - generic [ref=e8710]:
+              - generic [ref=e8711]:
+                - img "e2e-f2-3-1788983650568-F1" [ref=e8712]
+                - generic [ref=e8713]: Paseo de Perros
+              - generic [ref=e8720]:
+                - heading "e2e-f2-3-1788983650568-F1" [level=3] [ref=e8721]
+                - generic [ref=e8722]:
+                  - generic [ref=e8723]: $10.000 / por paseo
+                  - generic [ref=e8724]: 0 vistas
+                - generic [ref=e8728]:
+                  - generic [ref=e8729] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8730]
+                    - generic [ref=e8732]: Activo
+                  - link "Ver" [ref=e8733] [cursor=pointer]:
+                    - /url: /servicio/9bbcd4ee-b5fd-4b38-bdc8-d62ad2c0183a
+                  - button "Editar" [ref=e8739] [cursor=pointer]
+                  - button "Eliminar" [ref=e8744] [cursor=pointer]
+            - generic [ref=e8749]:
+              - generic [ref=e8750]:
+                - img "e2e-f2-3-1788983637900" [ref=e8751]
+                - generic [ref=e8752]: Cuidado y Hospedaje
+              - generic [ref=e8757]:
+                - heading "e2e-f2-3-1788983637900" [level=3] [ref=e8758]
+                - generic [ref=e8759]:
+                  - generic [ref=e8760]: $15.000 / por noche
+                  - generic [ref=e8761]: 0 vistas
+                - generic [ref=e8765]:
+                  - generic [ref=e8766] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8767]
+                    - generic [ref=e8769]: Activo
+                  - link "Ver" [ref=e8770] [cursor=pointer]:
+                    - /url: /servicio/1995c7a1-b669-495d-8c5b-e55331b046be
+                  - button "Editar" [ref=e8776] [cursor=pointer]
+                  - button "Eliminar" [ref=e8781] [cursor=pointer]
+            - generic [ref=e8786]:
+              - generic [ref=e8787]:
+                - img "e2e-f2-3-1788983561714" [ref=e8788]
+                - generic [ref=e8789]: Cuidado y Hospedaje
+              - generic [ref=e8794]:
+                - heading "e2e-f2-3-1788983561714" [level=3] [ref=e8795]
+                - generic [ref=e8796]:
+                  - generic [ref=e8797]: $15.000 / por noche
+                  - generic [ref=e8798]: 0 vistas
+                - generic [ref=e8802]:
+                  - generic [ref=e8803] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8804]
+                    - generic [ref=e8806]: Activo
+                  - link "Ver" [ref=e8807] [cursor=pointer]:
+                    - /url: /servicio/377a61db-ecb7-44fc-a6d4-0231d081fa2e
+                  - button "Editar" [ref=e8813] [cursor=pointer]
+                  - button "Eliminar" [ref=e8818] [cursor=pointer]
+            - generic [ref=e8823]:
+              - generic [ref=e8824]:
+                - img "e2e-f2-3-1788983549331" [ref=e8825]
+                - generic [ref=e8826]: Cuidado y Hospedaje
+              - generic [ref=e8831]:
+                - heading "e2e-f2-3-1788983549331" [level=3] [ref=e8832]
+                - generic [ref=e8833]:
+                  - generic [ref=e8834]: $15.000 / por noche
+                  - generic [ref=e8835]: 0 vistas
+                - generic [ref=e8839]:
+                  - generic [ref=e8840] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8841]
+                    - generic [ref=e8843]: Activo
+                  - link "Ver" [ref=e8844] [cursor=pointer]:
+                    - /url: /servicio/6aab0983-a7c6-4e72-931f-301fddfefe9b
+                  - button "Editar" [ref=e8850] [cursor=pointer]
+                  - button "Eliminar" [ref=e8855] [cursor=pointer]
+            - generic [ref=e8860]:
+              - generic [ref=e8861]:
+                - img "e2e-f2-3-1788983462708" [ref=e8862]
+                - generic [ref=e8863]: Cuidado y Hospedaje
+              - generic [ref=e8868]:
+                - heading "e2e-f2-3-1788983462708" [level=3] [ref=e8869]
+                - generic [ref=e8870]:
+                  - generic [ref=e8871]: $15.000 / por noche
+                  - generic [ref=e8872]: 0 vistas
+                - generic [ref=e8876]:
+                  - generic [ref=e8877] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8878]
+                    - generic [ref=e8880]: Activo
+                  - link "Ver" [ref=e8881] [cursor=pointer]:
+                    - /url: /servicio/b1b2889f-266a-4030-abee-daac1a759828
+                  - button "Editar" [ref=e8887] [cursor=pointer]
+                  - button "Eliminar" [ref=e8892] [cursor=pointer]
+            - generic [ref=e8897]:
+              - generic [ref=e8898]:
+                - img "e2e-f2-3-1788983379905" [ref=e8899]
+                - generic [ref=e8900]: Cuidado y Hospedaje
+              - generic [ref=e8905]:
+                - heading "e2e-f2-3-1788983379905" [level=3] [ref=e8906]
+                - generic [ref=e8907]:
+                  - generic [ref=e8908]: $15.000 / por noche
+                  - generic [ref=e8909]: 0 vistas
+                - generic [ref=e8913]:
+                  - generic [ref=e8914] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8915]
+                    - generic [ref=e8917]: Activo
+                  - link "Ver" [ref=e8918] [cursor=pointer]:
+                    - /url: /servicio/0ac142f0-e333-430c-bcb8-fbd2813d5426
+                  - button "Editar" [ref=e8924] [cursor=pointer]
+                  - button "Eliminar" [ref=e8929] [cursor=pointer]
+            - generic [ref=e8934]:
+              - generic [ref=e8935]:
+                - img "e2e-f2-3-1788983283272" [ref=e8936]
+                - generic [ref=e8937]: Cuidado y Hospedaje
+              - generic [ref=e8942]:
+                - heading "e2e-f2-3-1788983283272" [level=3] [ref=e8943]
+                - generic [ref=e8944]:
+                  - generic [ref=e8945]: $15.000 / por noche
+                  - generic [ref=e8946]: 0 vistas
+                - generic [ref=e8950]:
+                  - generic [ref=e8951] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8952]
+                    - generic [ref=e8954]: Activo
+                  - link "Ver" [ref=e8955] [cursor=pointer]:
+                    - /url: /servicio/8c4590c1-0227-4ad5-9216-0f4543e5f89e
+                  - button "Editar" [ref=e8961] [cursor=pointer]
+                  - button "Eliminar" [ref=e8966] [cursor=pointer]
+            - generic [ref=e8971]:
+              - generic [ref=e8972]:
+                - img "e2e-f2-3-1788982943574" [ref=e8973]
+                - generic [ref=e8974]: Cuidado y Hospedaje
+              - generic [ref=e8979]:
+                - heading "e2e-f2-3-1788982943574" [level=3] [ref=e8980]
+                - generic [ref=e8981]:
+                  - generic [ref=e8982]: $15.000 / por noche
+                  - generic [ref=e8983]: 0 vistas
+                - generic [ref=e8987]:
+                  - generic [ref=e8988] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e8989]
+                    - generic [ref=e8991]: Activo
+                  - link "Ver" [ref=e8992] [cursor=pointer]:
+                    - /url: /servicio/939c73e9-9ab3-4402-b2ff-d29c37f9e555
+                  - button "Editar" [ref=e8998] [cursor=pointer]
+                  - button "Eliminar" [ref=e9003] [cursor=pointer]
+            - generic [ref=e9008]:
+              - generic [ref=e9009]:
+                - img "e2e-f2-3-1788982940693" [ref=e9010]
+                - generic [ref=e9011]: Cuidado y Hospedaje
+              - generic [ref=e9016]:
+                - heading "e2e-f2-3-1788982940693" [level=3] [ref=e9017]
+                - generic [ref=e9018]:
+                  - generic [ref=e9019]: $15.000 / por noche
+                  - generic [ref=e9020]: 0 vistas
+                - generic [ref=e9024]:
+                  - generic [ref=e9025] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9026]
+                    - generic [ref=e9028]: Activo
+                  - link "Ver" [ref=e9029] [cursor=pointer]:
+                    - /url: /servicio/db5222ec-9245-4a18-bc10-889733db4fab
+                  - button "Editar" [ref=e9035] [cursor=pointer]
+                  - button "Eliminar" [ref=e9040] [cursor=pointer]
+            - generic [ref=e9045]:
+              - generic [ref=e9046]:
+                - img "e2e-f2-3-1788982929696" [ref=e9047]
+                - generic [ref=e9048]: Cuidado y Hospedaje
+              - generic [ref=e9053]:
+                - heading "e2e-f2-3-1788982929696" [level=3] [ref=e9054]
+                - generic [ref=e9055]:
+                  - generic [ref=e9056]: $15.000 / por noche
+                  - generic [ref=e9057]: 0 vistas
+                - generic [ref=e9061]:
+                  - generic [ref=e9062] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9063]
+                    - generic [ref=e9065]: Activo
+                  - link "Ver" [ref=e9066] [cursor=pointer]:
+                    - /url: /servicio/b13f7f9d-ac6e-4775-9555-a1988f4f3566
+                  - button "Editar" [ref=e9072] [cursor=pointer]
+                  - button "Eliminar" [ref=e9077] [cursor=pointer]
+            - generic [ref=e9082]:
+              - generic [ref=e9083]:
+                - img "e2e-f2-3-1788982919646" [ref=e9084]
+                - generic [ref=e9085]: Cuidado y Hospedaje
+              - generic [ref=e9090]:
+                - heading "e2e-f2-3-1788982919646" [level=3] [ref=e9091]
+                - generic [ref=e9092]:
+                  - generic [ref=e9093]: $15.000 / por noche
+                  - generic [ref=e9094]: 0 vistas
+                - generic [ref=e9098]:
+                  - generic [ref=e9099] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9100]
+                    - generic [ref=e9102]: Activo
+                  - link "Ver" [ref=e9103] [cursor=pointer]:
+                    - /url: /servicio/e06fddbd-ce40-4a22-ad9a-9b5f14f13887
+                  - button "Editar" [ref=e9109] [cursor=pointer]
+                  - button "Eliminar" [ref=e9114] [cursor=pointer]
+            - generic [ref=e9119]:
+              - generic [ref=e9120]:
+                - img "e2e-f2-3-1788982904549-F1" [ref=e9121]
+                - generic [ref=e9122]: Paseo de Perros
+              - generic [ref=e9129]:
+                - heading "e2e-f2-3-1788982904549-F1" [level=3] [ref=e9130]
+                - generic [ref=e9131]:
+                  - generic [ref=e9132]: $10.000 / por paseo
+                  - generic [ref=e9133]: 0 vistas
+                - generic [ref=e9137]:
+                  - generic [ref=e9138] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9139]
+                    - generic [ref=e9141]: Activo
+                  - link "Ver" [ref=e9142] [cursor=pointer]:
+                    - /url: /servicio/c2c6c768-1398-411d-9184-5b9d0cc95521
+                  - button "Editar" [ref=e9148] [cursor=pointer]
+                  - button "Eliminar" [ref=e9153] [cursor=pointer]
+            - generic [ref=e9158]:
+              - generic [ref=e9159]:
+                - img "e2e-f2-3-1788982896493" [ref=e9160]
+                - generic [ref=e9161]: Cuidado y Hospedaje
+              - generic [ref=e9166]:
+                - heading "e2e-f2-3-1788982896493" [level=3] [ref=e9167]
+                - generic [ref=e9168]:
+                  - generic [ref=e9169]: $15.000 / por noche
+                  - generic [ref=e9170]: 0 vistas
+                - generic [ref=e9174]:
+                  - generic [ref=e9175] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9176]
+                    - generic [ref=e9178]: Activo
+                  - link "Ver" [ref=e9179] [cursor=pointer]:
+                    - /url: /servicio/2c2dd2db-2ea9-448d-8e05-40e61f9258d6
+                  - button "Editar" [ref=e9185] [cursor=pointer]
+                  - button "Eliminar" [ref=e9190] [cursor=pointer]
+            - generic [ref=e9195]:
+              - generic [ref=e9196]:
+                - img "e2e-f2-3-1788982817220" [ref=e9197]
+                - generic [ref=e9198]: Cuidado y Hospedaje
+              - generic [ref=e9203]:
+                - heading "e2e-f2-3-1788982817220" [level=3] [ref=e9204]
+                - generic [ref=e9205]:
+                  - generic [ref=e9206]: $15.000 / por noche
+                  - generic [ref=e9207]: 0 vistas
+                - generic [ref=e9211]:
+                  - generic [ref=e9212] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9213]
+                    - generic [ref=e9215]: Activo
+                  - link "Ver" [ref=e9216] [cursor=pointer]:
+                    - /url: /servicio/fbe0ca27-4130-41c7-8fab-175155ff90e7
+                  - button "Editar" [ref=e9222] [cursor=pointer]
+                  - button "Eliminar" [ref=e9227] [cursor=pointer]
+            - generic [ref=e9232]:
+              - generic [ref=e9233]:
+                - img "e2e-f2-3-1788982803784" [ref=e9234]
+                - generic [ref=e9235]: Cuidado y Hospedaje
+              - generic [ref=e9240]:
+                - heading "e2e-f2-3-1788982803784" [level=3] [ref=e9241]
+                - generic [ref=e9242]:
+                  - generic [ref=e9243]: $15.000 / por noche
+                  - generic [ref=e9244]: 0 vistas
+                - generic [ref=e9248]:
+                  - generic [ref=e9249] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9250]
+                    - generic [ref=e9252]: Activo
+                  - link "Ver" [ref=e9253] [cursor=pointer]:
+                    - /url: /servicio/70c116da-e57b-4b2a-8712-61cd2736cef3
+                  - button "Editar" [ref=e9259] [cursor=pointer]
+                  - button "Eliminar" [ref=e9264] [cursor=pointer]
+            - generic [ref=e9269]:
+              - generic [ref=e9270]:
+                - img "e2e-f2-3-1788982629715" [ref=e9271]
+                - generic [ref=e9272]: Cuidado y Hospedaje
+              - generic [ref=e9277]:
+                - heading "e2e-f2-3-1788982629715" [level=3] [ref=e9278]
+                - generic [ref=e9279]:
+                  - generic [ref=e9280]: $15.000 / por noche
+                  - generic [ref=e9281]: 0 vistas
+                - generic [ref=e9285]:
+                  - generic [ref=e9286] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9287]
+                    - generic [ref=e9289]: Activo
+                  - link "Ver" [ref=e9290] [cursor=pointer]:
+                    - /url: /servicio/e8d1a388-eb9e-4620-a1bd-abbfbbd186c3
+                  - button "Editar" [ref=e9296] [cursor=pointer]
+                  - button "Eliminar" [ref=e9301] [cursor=pointer]
+            - generic [ref=e9306]:
+              - generic [ref=e9307]:
+                - img "e2e-f2-3-1788982533793" [ref=e9308]
+                - generic [ref=e9309]: Cuidado y Hospedaje
+              - generic [ref=e9314]:
+                - heading "e2e-f2-3-1788982533793" [level=3] [ref=e9315]
+                - generic [ref=e9316]:
+                  - generic [ref=e9317]: $15.000 / por noche
+                  - generic [ref=e9318]: 0 vistas
+                - generic [ref=e9322]:
+                  - generic [ref=e9323] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9324]
+                    - generic [ref=e9326]: Activo
+                  - link "Ver" [ref=e9327] [cursor=pointer]:
+                    - /url: /servicio/719b68d4-53d5-4d2d-a3ea-8e21ee81e862
+                  - button "Editar" [ref=e9333] [cursor=pointer]
+                  - button "Eliminar" [ref=e9338] [cursor=pointer]
+            - generic [ref=e9343]:
+              - generic [ref=e9344]:
+                - img "e2e-f2-3-1788982197913" [ref=e9345]
+                - generic [ref=e9346]: Cuidado y Hospedaje
+              - generic [ref=e9351]:
+                - heading "e2e-f2-3-1788982197913" [level=3] [ref=e9352]
+                - generic [ref=e9353]:
+                  - generic [ref=e9354]: $15.000 / por noche
+                  - generic [ref=e9355]: 0 vistas
+                - generic [ref=e9359]:
+                  - generic [ref=e9360] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9361]
+                    - generic [ref=e9363]: Activo
+                  - link "Ver" [ref=e9364] [cursor=pointer]:
+                    - /url: /servicio/f39e3115-c2be-42c3-b1fc-bed0a7d8927b
+                  - button "Editar" [ref=e9370] [cursor=pointer]
+                  - button "Eliminar" [ref=e9375] [cursor=pointer]
+            - generic [ref=e9380]:
+              - generic [ref=e9381]:
+                - img "e2e-f2-3-1788981395900" [ref=e9382]
+                - generic [ref=e9383]: Cuidado y Hospedaje
+              - generic [ref=e9388]:
+                - heading "e2e-f2-3-1788981395900" [level=3] [ref=e9389]
+                - generic [ref=e9390]:
+                  - generic [ref=e9391]: $15.000 / por noche
+                  - generic [ref=e9392]: 0 vistas
+                - generic [ref=e9396]:
+                  - generic [ref=e9397] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9398]
+                    - generic [ref=e9400]: Activo
+                  - link "Ver" [ref=e9401] [cursor=pointer]:
+                    - /url: /servicio/e67b019d-03e1-443d-b977-5eef0c6c3895
+                  - button "Editar" [ref=e9407] [cursor=pointer]
+                  - button "Eliminar" [ref=e9412] [cursor=pointer]
+            - generic [ref=e9417]:
+              - generic [ref=e9418]:
+                - img "e2e-f2-3-1788981393644" [ref=e9419]
+                - generic [ref=e9420]: Cuidado y Hospedaje
+              - generic [ref=e9425]:
+                - heading "e2e-f2-3-1788981393644" [level=3] [ref=e9426]
+                - generic [ref=e9427]:
+                  - generic [ref=e9428]: $15.000 / por noche
+                  - generic [ref=e9429]: 0 vistas
+                - generic [ref=e9433]:
+                  - generic [ref=e9434] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9435]
+                    - generic [ref=e9437]: Activo
+                  - link "Ver" [ref=e9438] [cursor=pointer]:
+                    - /url: /servicio/5c5999ec-d9b4-4a46-90be-35e243d9df63
+                  - button "Editar" [ref=e9444] [cursor=pointer]
+                  - button "Eliminar" [ref=e9449] [cursor=pointer]
+            - generic [ref=e9454]:
+              - generic [ref=e9455]:
+                - img "e2e-f2-3-1788981385982" [ref=e9456]
+                - generic [ref=e9457]: Cuidado y Hospedaje
+              - generic [ref=e9462]:
+                - heading "e2e-f2-3-1788981385982" [level=3] [ref=e9463]
+                - generic [ref=e9464]:
+                  - generic [ref=e9465]: $15.000 / por noche
+                  - generic [ref=e9466]: 0 vistas
+                - generic [ref=e9470]:
+                  - generic [ref=e9471] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9472]
+                    - generic [ref=e9474]: Activo
+                  - link "Ver" [ref=e9475] [cursor=pointer]:
+                    - /url: /servicio/ae52b0f3-12ba-4de9-a095-fc6b50575227
+                  - button "Editar" [ref=e9481] [cursor=pointer]
+                  - button "Eliminar" [ref=e9486] [cursor=pointer]
+            - generic [ref=e9491]:
+              - generic [ref=e9492]:
+                - img "e2e-f2-3-1788981379725" [ref=e9493]
+                - generic [ref=e9494]: Cuidado y Hospedaje
+              - generic [ref=e9499]:
+                - heading "e2e-f2-3-1788981379725" [level=3] [ref=e9500]
+                - generic [ref=e9501]:
+                  - generic [ref=e9502]: $15.000 / por noche
+                  - generic [ref=e9503]: 0 vistas
+                - generic [ref=e9507]:
+                  - generic [ref=e9508] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9509]
+                    - generic [ref=e9511]: Activo
+                  - link "Ver" [ref=e9512] [cursor=pointer]:
+                    - /url: /servicio/59651852-96e7-45da-877d-f212e46d4dbb
+                  - button "Editar" [ref=e9518] [cursor=pointer]
+                  - button "Eliminar" [ref=e9523] [cursor=pointer]
+            - generic [ref=e9528]:
+              - generic [ref=e9529]:
+                - img "e2e-f2-3-1788980823318" [ref=e9530]
+                - generic [ref=e9531]: Cuidado y Hospedaje
+              - generic [ref=e9536]:
+                - heading "e2e-f2-3-1788980823318" [level=3] [ref=e9537]
+                - generic [ref=e9538]:
+                  - generic [ref=e9539]: $15.000 / por noche
+                  - generic [ref=e9540]: 0 vistas
+                - generic [ref=e9544]:
+                  - generic [ref=e9545] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9546]
+                    - generic [ref=e9548]: Activo
+                  - link "Ver" [ref=e9549] [cursor=pointer]:
+                    - /url: /servicio/657a366e-802f-4d20-88ca-758b41c93f22
+                  - button "Editar" [ref=e9555] [cursor=pointer]
+                  - button "Eliminar" [ref=e9560] [cursor=pointer]
+            - generic [ref=e9565]:
+              - generic [ref=e9566]:
+                - img "e2e-f2-3-1788980820932" [ref=e9567]
+                - generic [ref=e9568]: Cuidado y Hospedaje
+              - generic [ref=e9573]:
+                - heading "e2e-f2-3-1788980820932" [level=3] [ref=e9574]
+                - generic [ref=e9575]:
+                  - generic [ref=e9576]: $15.000 / por noche
+                  - generic [ref=e9577]: 0 vistas
+                - generic [ref=e9581]:
+                  - generic [ref=e9582] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9583]
+                    - generic [ref=e9585]: Activo
+                  - link "Ver" [ref=e9586] [cursor=pointer]:
+                    - /url: /servicio/cb87d169-9187-4cc2-ab15-2d339002ad70
+                  - button "Editar" [ref=e9592] [cursor=pointer]
+                  - button "Eliminar" [ref=e9597] [cursor=pointer]
+            - generic [ref=e9602]:
+              - generic [ref=e9603]:
+                - img "e2e-f2-3-1788980813953" [ref=e9604]
+                - generic [ref=e9605]: Cuidado y Hospedaje
+              - generic [ref=e9610]:
+                - heading "e2e-f2-3-1788980813953" [level=3] [ref=e9611]
+                - generic [ref=e9612]:
+                  - generic [ref=e9613]: $15.000 / por noche
+                  - generic [ref=e9614]: 0 vistas
+                - generic [ref=e9618]:
+                  - generic [ref=e9619] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9620]
+                    - generic [ref=e9622]: Activo
+                  - link "Ver" [ref=e9623] [cursor=pointer]:
+                    - /url: /servicio/0168ff36-0fc5-4f06-bd42-e8dc2046c22b
+                  - button "Editar" [ref=e9629] [cursor=pointer]
+                  - button "Eliminar" [ref=e9634] [cursor=pointer]
+            - generic [ref=e9639]:
+              - generic [ref=e9640]:
+                - img "e2e-f2-3-1788980807649" [ref=e9641]
+                - generic [ref=e9642]: Cuidado y Hospedaje
+              - generic [ref=e9647]:
+                - heading "e2e-f2-3-1788980807649" [level=3] [ref=e9648]
+                - generic [ref=e9649]:
+                  - generic [ref=e9650]: $15.000 / por noche
+                  - generic [ref=e9651]: 0 vistas
+                - generic [ref=e9655]:
+                  - generic [ref=e9656] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9657]
+                    - generic [ref=e9659]: Activo
+                  - link "Ver" [ref=e9660] [cursor=pointer]:
+                    - /url: /servicio/fca7077a-6382-4646-8d0f-007fdc891f98
+                  - button "Editar" [ref=e9666] [cursor=pointer]
+                  - button "Eliminar" [ref=e9671] [cursor=pointer]
+            - generic [ref=e9676]:
+              - generic [ref=e9677]:
+                - img "e2e-f2-3-1788980268009" [ref=e9678]
+                - generic [ref=e9679]: Cuidado y Hospedaje
+              - generic [ref=e9684]:
+                - heading "e2e-f2-3-1788980268009" [level=3] [ref=e9685]
+                - generic [ref=e9686]:
+                  - generic [ref=e9687]: $15.000 / por noche
+                  - generic [ref=e9688]: 0 vistas
+                - generic [ref=e9692]:
+                  - generic [ref=e9693] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9694]
+                    - generic [ref=e9696]: Activo
+                  - link "Ver" [ref=e9697] [cursor=pointer]:
+                    - /url: /servicio/f0bb496e-607c-4a57-aac5-2e647eb9411f
+                  - button "Editar" [ref=e9703] [cursor=pointer]
+                  - button "Eliminar" [ref=e9708] [cursor=pointer]
+            - generic [ref=e9713]:
+              - generic [ref=e9714]:
+                - img "e2e-f2-3-1788980265253" [ref=e9715]
+                - generic [ref=e9716]: Cuidado y Hospedaje
+              - generic [ref=e9721]:
+                - heading "e2e-f2-3-1788980265253" [level=3] [ref=e9722]
+                - generic [ref=e9723]:
+                  - generic [ref=e9724]: $15.000 / por noche
+                  - generic [ref=e9725]: 0 vistas
+                - generic [ref=e9729]:
+                  - generic [ref=e9730] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9731]
+                    - generic [ref=e9733]: Activo
+                  - link "Ver" [ref=e9734] [cursor=pointer]:
+                    - /url: /servicio/0301a3bf-a94a-463a-b19b-e3653bfa3ac8
+                  - button "Editar" [ref=e9740] [cursor=pointer]
+                  - button "Eliminar" [ref=e9745] [cursor=pointer]
+            - generic [ref=e9750]:
+              - generic [ref=e9751]:
+                - img "e2e-f2-3-1788980257234" [ref=e9752]
+                - generic [ref=e9753]: Cuidado y Hospedaje
+              - generic [ref=e9758]:
+                - heading "e2e-f2-3-1788980257234" [level=3] [ref=e9759]
+                - generic [ref=e9760]:
+                  - generic [ref=e9761]: $15.000 / por noche
+                  - generic [ref=e9762]: 0 vistas
+                - generic [ref=e9766]:
+                  - generic [ref=e9767] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9768]
+                    - generic [ref=e9770]: Activo
+                  - link "Ver" [ref=e9771] [cursor=pointer]:
+                    - /url: /servicio/23857f4d-bf8b-4814-821e-8af0a6ccf091
+                  - button "Editar" [ref=e9777] [cursor=pointer]
+                  - button "Eliminar" [ref=e9782] [cursor=pointer]
+            - generic [ref=e9787]:
+              - generic [ref=e9788]:
+                - img "e2e-f2-3-1788980253692" [ref=e9789]
+                - generic [ref=e9790]: Cuidado y Hospedaje
+              - generic [ref=e9795]:
+                - heading "e2e-f2-3-1788980253692" [level=3] [ref=e9796]
+                - generic [ref=e9797]:
+                  - generic [ref=e9798]: $15.000 / por noche
+                  - generic [ref=e9799]: 0 vistas
+                - generic [ref=e9803]:
+                  - generic [ref=e9804] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9805]
+                    - generic [ref=e9807]: Activo
+                  - link "Ver" [ref=e9808] [cursor=pointer]:
+                    - /url: /servicio/b5eb32eb-9eed-46a3-bf5b-33aef2b1b59c
+                  - button "Editar" [ref=e9814] [cursor=pointer]
+                  - button "Eliminar" [ref=e9819] [cursor=pointer]
+            - generic [ref=e9824]:
+              - generic [ref=e9825]:
+                - img "e2e-f2-3-1788980102470" [ref=e9826]
+                - generic [ref=e9827]: Cuidado y Hospedaje
+              - generic [ref=e9832]:
+                - heading "e2e-f2-3-1788980102470" [level=3] [ref=e9833]
+                - generic [ref=e9834]:
+                  - generic [ref=e9835]: $15.000 / por noche
+                  - generic [ref=e9836]: 0 vistas
+                - generic [ref=e9840]:
+                  - generic [ref=e9841] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9842]
+                    - generic [ref=e9844]: Activo
+                  - link "Ver" [ref=e9845] [cursor=pointer]:
+                    - /url: /servicio/93ed19a3-5604-4ec0-870c-719ef53b2fea
+                  - button "Editar" [ref=e9851] [cursor=pointer]
+                  - button "Eliminar" [ref=e9856] [cursor=pointer]
+            - generic [ref=e9861]:
+              - generic [ref=e9862]:
+                - img "e2e-f2-3-1788980046823" [ref=e9863]
+                - generic [ref=e9864]: Cuidado y Hospedaje
+              - generic [ref=e9869]:
+                - heading "e2e-f2-3-1788980046823" [level=3] [ref=e9870]
+                - generic [ref=e9871]:
+                  - generic [ref=e9872]: $15.000 / por noche
+                  - generic [ref=e9873]: 0 vistas
+                - generic [ref=e9877]:
+                  - generic [ref=e9878] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9879]
+                    - generic [ref=e9881]: Activo
+                  - link "Ver" [ref=e9882] [cursor=pointer]:
+                    - /url: /servicio/1bbd1871-b1d2-4b61-af11-5d612efcf188
+                  - button "Editar" [ref=e9888] [cursor=pointer]
+                  - button "Eliminar" [ref=e9893] [cursor=pointer]
+            - generic [ref=e9898]:
+              - generic [ref=e9899]:
+                - img "e2e-f2-3-1788979985454" [ref=e9900]
+                - generic [ref=e9901]: Cuidado y Hospedaje
+              - generic [ref=e9906]:
+                - heading "e2e-f2-3-1788979985454" [level=3] [ref=e9907]
+                - generic [ref=e9908]:
+                  - generic [ref=e9909]: $15.000 / por noche
+                  - generic [ref=e9910]: 0 vistas
+                - generic [ref=e9914]:
+                  - generic [ref=e9915] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9916]
+                    - generic [ref=e9918]: Activo
+                  - link "Ver" [ref=e9919] [cursor=pointer]:
+                    - /url: /servicio/fa1f6649-bc77-45a2-a2d0-d70c8a7816db
+                  - button "Editar" [ref=e9925] [cursor=pointer]
+                  - button "Eliminar" [ref=e9930] [cursor=pointer]
+            - generic [ref=e9935]:
+              - generic [ref=e9936]:
+                - img "e2e-f2-3-1788979702227" [ref=e9937]
+                - generic [ref=e9938]: Cuidado y Hospedaje
+              - generic [ref=e9943]:
+                - heading "e2e-f2-3-1788979702227" [level=3] [ref=e9944]
+                - generic [ref=e9945]:
+                  - generic [ref=e9946]: $15.000 / por noche
+                  - generic [ref=e9947]: 0 vistas
+                - generic [ref=e9951]:
+                  - generic [ref=e9952] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9953]
+                    - generic [ref=e9955]: Activo
+                  - link "Ver" [ref=e9956] [cursor=pointer]:
+                    - /url: /servicio/a46808b6-a295-4b4a-9b92-ff8ea8d3ca5e
+                  - button "Editar" [ref=e9962] [cursor=pointer]
+                  - button "Eliminar" [ref=e9967] [cursor=pointer]
+            - generic [ref=e9972]:
+              - generic [ref=e9973]:
+                - img "e2e-f2-3-1788979699677" [ref=e9974]
+                - generic [ref=e9975]: Cuidado y Hospedaje
+              - generic [ref=e9980]:
+                - heading "e2e-f2-3-1788979699677" [level=3] [ref=e9981]
+                - generic [ref=e9982]:
+                  - generic [ref=e9983]: $15.000 / por noche
+                  - generic [ref=e9984]: 0 vistas
+                - generic [ref=e9988]:
+                  - generic [ref=e9989] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e9990]
+                    - generic [ref=e9992]: Activo
+                  - link "Ver" [ref=e9993] [cursor=pointer]:
+                    - /url: /servicio/e8bacbd9-eb43-4081-80e3-c88d6bce8c70
+                  - button "Editar" [ref=e9999] [cursor=pointer]
+                  - button "Eliminar" [ref=e10004] [cursor=pointer]
+            - generic [ref=e10009]:
+              - generic [ref=e10010]:
+                - img "e2e-f2-3-1788979692596" [ref=e10011]
+                - generic [ref=e10012]: Cuidado y Hospedaje
+              - generic [ref=e10017]:
+                - heading "e2e-f2-3-1788979692596" [level=3] [ref=e10018]
+                - generic [ref=e10019]:
+                  - generic [ref=e10020]: $15.000 / por noche
+                  - generic [ref=e10021]: 0 vistas
+                - generic [ref=e10025]:
+                  - generic [ref=e10026] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10027]
+                    - generic [ref=e10029]: Activo
+                  - link "Ver" [ref=e10030] [cursor=pointer]:
+                    - /url: /servicio/df5faa97-acc2-44e0-9ca1-af47e070de6f
+                  - button "Editar" [ref=e10036] [cursor=pointer]
+                  - button "Eliminar" [ref=e10041] [cursor=pointer]
+            - generic [ref=e10046]:
+              - generic [ref=e10047]:
+                - img "e2e-f2-3-1788979686508" [ref=e10048]
+                - generic [ref=e10049]: Cuidado y Hospedaje
+              - generic [ref=e10054]:
+                - heading "e2e-f2-3-1788979686508" [level=3] [ref=e10055]
+                - generic [ref=e10056]:
+                  - generic [ref=e10057]: $15.000 / por noche
+                  - generic [ref=e10058]: 0 vistas
+                - generic [ref=e10062]:
+                  - generic [ref=e10063] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10064]
+                    - generic [ref=e10066]: Activo
+                  - link "Ver" [ref=e10067] [cursor=pointer]:
+                    - /url: /servicio/4ba78b35-6e79-48ac-b0d4-163e5a14aba5
+                  - button "Editar" [ref=e10073] [cursor=pointer]
+                  - button "Eliminar" [ref=e10078] [cursor=pointer]
+            - generic [ref=e10083]:
+              - generic [ref=e10084]:
+                - img "e2e-f2-3-1788979664781-F1" [ref=e10085]
+                - generic [ref=e10086]: Paseo de Perros
+              - generic [ref=e10093]:
+                - heading "e2e-f2-3-1788979664781-F1" [level=3] [ref=e10094]
+                - generic [ref=e10095]:
+                  - generic [ref=e10096]: $10.000 / por paseo
+                  - generic [ref=e10097]: 0 vistas
+                - generic [ref=e10101]:
+                  - generic [ref=e10102] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10103]
+                    - generic [ref=e10105]: Activo
+                  - link "Ver" [ref=e10106] [cursor=pointer]:
+                    - /url: /servicio/79042aa9-ef40-409c-bd59-bfd8256a11fd
+                  - button "Editar" [ref=e10112] [cursor=pointer]
+                  - button "Eliminar" [ref=e10117] [cursor=pointer]
+            - generic [ref=e10122]:
+              - generic [ref=e10123]:
+                - img "e2e-f2-3-1788979123475" [ref=e10124]
+                - generic [ref=e10125]: Cuidado y Hospedaje
+              - generic [ref=e10130]:
+                - heading "e2e-f2-3-1788979123475" [level=3] [ref=e10131]
+                - generic [ref=e10132]:
+                  - generic [ref=e10133]: $15.000 / por noche
+                  - generic [ref=e10134]: 0 vistas
+                - generic [ref=e10138]:
+                  - generic [ref=e10139] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10140]
+                    - generic [ref=e10142]: Activo
+                  - link "Ver" [ref=e10143] [cursor=pointer]:
+                    - /url: /servicio/cf792335-8251-4528-89a4-aef2f216020c
+                  - button "Editar" [ref=e10149] [cursor=pointer]
+                  - button "Eliminar" [ref=e10154] [cursor=pointer]
+            - generic [ref=e10159]:
+              - generic [ref=e10160]:
+                - img "e2e-f2-3-1788979121592" [ref=e10161]
+                - generic [ref=e10162]: Cuidado y Hospedaje
+              - generic [ref=e10167]:
+                - heading "e2e-f2-3-1788979121592" [level=3] [ref=e10168]
+                - generic [ref=e10169]:
+                  - generic [ref=e10170]: $15.000 / por noche
+                  - generic [ref=e10171]: 0 vistas
+                - generic [ref=e10175]:
+                  - generic [ref=e10176] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10177]
+                    - generic [ref=e10179]: Activo
+                  - link "Ver" [ref=e10180] [cursor=pointer]:
+                    - /url: /servicio/eca58414-ec6c-456b-97d7-9995395e38b0
+                  - button "Editar" [ref=e10186] [cursor=pointer]
+                  - button "Eliminar" [ref=e10191] [cursor=pointer]
+            - generic [ref=e10196]:
+              - generic [ref=e10197]:
+                - img "e2e-f2-3-1788979115931" [ref=e10198]
+                - generic [ref=e10199]: Cuidado y Hospedaje
+              - generic [ref=e10204]:
+                - heading "e2e-f2-3-1788979115931" [level=3] [ref=e10205]
+                - generic [ref=e10206]:
+                  - generic [ref=e10207]: $15.000 / por noche
+                  - generic [ref=e10208]: 0 vistas
+                - generic [ref=e10212]:
+                  - generic [ref=e10213] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10214]
+                    - generic [ref=e10216]: Activo
+                  - link "Ver" [ref=e10217] [cursor=pointer]:
+                    - /url: /servicio/c3c0d7d2-c684-4a6c-8828-7f8b81772e4f
+                  - button "Editar" [ref=e10223] [cursor=pointer]
+                  - button "Eliminar" [ref=e10228] [cursor=pointer]
+            - generic [ref=e10233]:
+              - generic [ref=e10234]:
+                - img "e2e-f2-3-1788979113445" [ref=e10235]
+                - generic [ref=e10236]: Cuidado y Hospedaje
+              - generic [ref=e10241]:
+                - heading "e2e-f2-3-1788979113445" [level=3] [ref=e10242]
+                - generic [ref=e10243]:
+                  - generic [ref=e10244]: $15.000 / por noche
+                  - generic [ref=e10245]: 0 vistas
+                - generic [ref=e10249]:
+                  - generic [ref=e10250] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10251]
+                    - generic [ref=e10253]: Activo
+                  - link "Ver" [ref=e10254] [cursor=pointer]:
+                    - /url: /servicio/070bc943-adac-4cd5-849c-c518f9d913ec
+                  - button "Editar" [ref=e10260] [cursor=pointer]
+                  - button "Eliminar" [ref=e10265] [cursor=pointer]
+            - generic [ref=e10270]:
+              - generic [ref=e10271]:
+                - img "e2e-f2-3-1788979109246-F1" [ref=e10272]
+                - generic [ref=e10273]: Paseo de Perros
+              - generic [ref=e10280]:
+                - heading "e2e-f2-3-1788979109246-F1" [level=3] [ref=e10281]
+                - generic [ref=e10282]:
+                  - generic [ref=e10283]: $10.000 / por paseo
+                  - generic [ref=e10284]: 0 vistas
+                - generic [ref=e10288]:
+                  - generic [ref=e10289] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10290]
+                    - generic [ref=e10292]: Activo
+                  - link "Ver" [ref=e10293] [cursor=pointer]:
+                    - /url: /servicio/2a12d906-735b-45de-a768-74d57e8dd2fd
+                  - button "Editar" [ref=e10299] [cursor=pointer]
+                  - button "Eliminar" [ref=e10304] [cursor=pointer]
+            - generic [ref=e10309]:
+              - generic [ref=e10310]:
+                - img "e2e-f2-3-1788979088521" [ref=e10311]
+                - generic [ref=e10312]: Cuidado y Hospedaje
+              - generic [ref=e10317]:
+                - heading "e2e-f2-3-1788979088521" [level=3] [ref=e10318]
+                - generic [ref=e10319]:
+                  - generic [ref=e10320]: $15.000 / por noche
+                  - generic [ref=e10321]: 0 vistas
+                - generic [ref=e10325]:
+                  - generic [ref=e10326] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10327]
+                    - generic [ref=e10329]: Activo
+                  - link "Ver" [ref=e10330] [cursor=pointer]:
+                    - /url: /servicio/93b4486b-15bf-4724-9f2c-3e70fb770d9b
+                  - button "Editar" [ref=e10336] [cursor=pointer]
+                  - button "Eliminar" [ref=e10341] [cursor=pointer]
+            - generic [ref=e10346]:
+              - generic [ref=e10347]:
+                - img "e2e-f2-3-1788979051739" [ref=e10348]
+                - generic [ref=e10349]: Cuidado y Hospedaje
+              - generic [ref=e10354]:
+                - heading "e2e-f2-3-1788979051739" [level=3] [ref=e10355]
+                - generic [ref=e10356]:
+                  - generic [ref=e10357]: $15.000 / por noche
+                  - generic [ref=e10358]: 0 vistas
+                - generic [ref=e10362]:
+                  - generic [ref=e10363] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10364]
+                    - generic [ref=e10366]: Activo
+                  - link "Ver" [ref=e10367] [cursor=pointer]:
+                    - /url: /servicio/4c5abc09-cac3-47bc-8f32-68bb2010410f
+                  - button "Editar" [ref=e10373] [cursor=pointer]
+                  - button "Eliminar" [ref=e10378] [cursor=pointer]
+            - generic [ref=e10383]:
+              - generic [ref=e10384]:
+                - img "e2e-f2-3-1788979040765" [ref=e10385]
+                - generic [ref=e10386]: Cuidado y Hospedaje
+              - generic [ref=e10391]:
+                - heading "e2e-f2-3-1788979040765" [level=3] [ref=e10392]
+                - generic [ref=e10393]:
+                  - generic [ref=e10394]: $15.000 / por noche
+                  - generic [ref=e10395]: 0 vistas
+                - generic [ref=e10399]:
+                  - generic [ref=e10400] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10401]
+                    - generic [ref=e10403]: Activo
+                  - link "Ver" [ref=e10404] [cursor=pointer]:
+                    - /url: /servicio/9b477568-31ba-47d2-a899-57cf7eafc871
+                  - button "Editar" [ref=e10410] [cursor=pointer]
+                  - button "Eliminar" [ref=e10415] [cursor=pointer]
+            - generic [ref=e10420]:
+              - generic [ref=e10421]:
+                - img "e2e-f2-3-1788978992034" [ref=e10422]
+                - generic [ref=e10423]: Cuidado y Hospedaje
+              - generic [ref=e10428]:
+                - heading "e2e-f2-3-1788978992034" [level=3] [ref=e10429]
+                - generic [ref=e10430]:
+                  - generic [ref=e10431]: $15.000 / por noche
+                  - generic [ref=e10432]: 0 vistas
+                - generic [ref=e10436]:
+                  - generic [ref=e10437] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10438]
+                    - generic [ref=e10440]: Activo
+                  - link "Ver" [ref=e10441] [cursor=pointer]:
+                    - /url: /servicio/ce71a7a5-e4ec-4f07-b90a-e8507dee6662
+                  - button "Editar" [ref=e10447] [cursor=pointer]
+                  - button "Eliminar" [ref=e10452] [cursor=pointer]
+            - generic [ref=e10457]:
+              - generic [ref=e10458]:
+                - img "e2e-f2-3-1788978875469" [ref=e10459]
+                - generic [ref=e10460]: Cuidado y Hospedaje
+              - generic [ref=e10465]:
+                - heading "e2e-f2-3-1788978875469" [level=3] [ref=e10466]
+                - generic [ref=e10467]:
+                  - generic [ref=e10468]: $15.000 / por noche
+                  - generic [ref=e10469]: 0 vistas
+                - generic [ref=e10473]:
+                  - generic [ref=e10474] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10475]
+                    - generic [ref=e10477]: Activo
+                  - link "Ver" [ref=e10478] [cursor=pointer]:
+                    - /url: /servicio/dcdfc2cc-fe09-4a93-923e-3950513a954d
+                  - button "Editar" [ref=e10484] [cursor=pointer]
+                  - button "Eliminar" [ref=e10489] [cursor=pointer]
+            - generic [ref=e10494]:
+              - generic [ref=e10495]:
+                - img "e2e-f2-3-1788978310513" [ref=e10496]
+                - generic [ref=e10497]: Cuidado y Hospedaje
+              - generic [ref=e10502]:
+                - heading "e2e-f2-3-1788978310513" [level=3] [ref=e10503]
+                - generic [ref=e10504]:
+                  - generic [ref=e10505]: $15.000 / por noche
+                  - generic [ref=e10506]: 0 vistas
+                - generic [ref=e10510]:
+                  - generic [ref=e10511] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10512]
+                    - generic [ref=e10514]: Activo
+                  - link "Ver" [ref=e10515] [cursor=pointer]:
+                    - /url: /servicio/0ba5b3e9-fc86-4205-b075-0dbbe416ee7a
+                  - button "Editar" [ref=e10521] [cursor=pointer]
+                  - button "Eliminar" [ref=e10526] [cursor=pointer]
+            - generic [ref=e10531]:
+              - generic [ref=e10532]:
+                - img "e2e-f2-3-1788978307641" [ref=e10533]
+                - generic [ref=e10534]: Cuidado y Hospedaje
+              - generic [ref=e10539]:
+                - heading "e2e-f2-3-1788978307641" [level=3] [ref=e10540]
+                - generic [ref=e10541]:
+                  - generic [ref=e10542]: $15.000 / por noche
+                  - generic [ref=e10543]: 0 vistas
+                - generic [ref=e10547]:
+                  - generic [ref=e10548] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10549]
+                    - generic [ref=e10551]: Activo
+                  - link "Ver" [ref=e10552] [cursor=pointer]:
+                    - /url: /servicio/bfc3cc80-2642-4cd6-8636-f38027366583
+                  - button "Editar" [ref=e10558] [cursor=pointer]
+                  - button "Eliminar" [ref=e10563] [cursor=pointer]
+            - generic [ref=e10568]:
+              - generic [ref=e10569]:
+                - img "e2e-f2-3-1788978297518" [ref=e10570]
+                - generic [ref=e10571]: Cuidado y Hospedaje
+              - generic [ref=e10576]:
+                - heading "e2e-f2-3-1788978297518" [level=3] [ref=e10577]
+                - generic [ref=e10578]:
+                  - generic [ref=e10579]: $15.000 / por noche
+                  - generic [ref=e10580]: 0 vistas
+                - generic [ref=e10584]:
+                  - generic [ref=e10585] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10586]
+                    - generic [ref=e10588]: Activo
+                  - link "Ver" [ref=e10589] [cursor=pointer]:
+                    - /url: /servicio/40d3f956-c19c-4dba-bbab-46d6521cff58
+                  - button "Editar" [ref=e10595] [cursor=pointer]
+                  - button "Eliminar" [ref=e10600] [cursor=pointer]
+            - generic [ref=e10605]:
+              - generic [ref=e10606]:
+                - img "e2e-f2-3-1788978294708" [ref=e10607]
+                - generic [ref=e10608]: Cuidado y Hospedaje
+              - generic [ref=e10613]:
+                - heading "e2e-f2-3-1788978294708" [level=3] [ref=e10614]
+                - generic [ref=e10615]:
+                  - generic [ref=e10616]: $15.000 / por noche
+                  - generic [ref=e10617]: 0 vistas
+                - generic [ref=e10621]:
+                  - generic [ref=e10622] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10623]
+                    - generic [ref=e10625]: Activo
+                  - link "Ver" [ref=e10626] [cursor=pointer]:
+                    - /url: /servicio/fea0dec2-79a4-4489-8450-6b24793bf855
+                  - button "Editar" [ref=e10632] [cursor=pointer]
+                  - button "Eliminar" [ref=e10637] [cursor=pointer]
+            - generic [ref=e10642]:
+              - generic [ref=e10643]:
+                - img "e2e-f2-3-1788978278161-F1" [ref=e10644]
+                - generic [ref=e10645]: Paseo de Perros
+              - generic [ref=e10652]:
+                - heading "e2e-f2-3-1788978278161-F1" [level=3] [ref=e10653]
+                - generic [ref=e10654]:
+                  - generic [ref=e10655]: $10.000 / por paseo
+                  - generic [ref=e10656]: 0 vistas
+                - generic [ref=e10660]:
+                  - generic [ref=e10661] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10662]
+                    - generic [ref=e10664]: Activo
+                  - link "Ver" [ref=e10665] [cursor=pointer]:
+                    - /url: /servicio/b1e59b6c-e4f0-4fea-8809-7ea34d252dfa
+                  - button "Editar" [ref=e10671] [cursor=pointer]
+                  - button "Eliminar" [ref=e10676] [cursor=pointer]
+            - generic [ref=e10681]:
+              - generic [ref=e10682]:
+                - img "e2e-f2-3-1788978271906" [ref=e10683]
+                - generic [ref=e10684]: Cuidado y Hospedaje
+              - generic [ref=e10689]:
+                - heading "e2e-f2-3-1788978271906" [level=3] [ref=e10690]
+                - generic [ref=e10691]:
+                  - generic [ref=e10692]: $15.000 / por noche
+                  - generic [ref=e10693]: 0 vistas
+                - generic [ref=e10697]:
+                  - generic [ref=e10698] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10699]
+                    - generic [ref=e10701]: Activo
+                  - link "Ver" [ref=e10702] [cursor=pointer]:
+                    - /url: /servicio/6f3260c7-2e7d-49d1-b53b-c33bee86bc38
+                  - button "Editar" [ref=e10708] [cursor=pointer]
+                  - button "Eliminar" [ref=e10713] [cursor=pointer]
+            - generic [ref=e10718]:
+              - generic [ref=e10719]:
+                - img "e2e-f2-3-1788978228944" [ref=e10720]
+                - generic [ref=e10721]: Cuidado y Hospedaje
+              - generic [ref=e10726]:
+                - heading "e2e-f2-3-1788978228944" [level=3] [ref=e10727]
+                - generic [ref=e10728]:
+                  - generic [ref=e10729]: $15.000 / por noche
+                  - generic [ref=e10730]: 0 vistas
+                - generic [ref=e10734]:
+                  - generic [ref=e10735] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10736]
+                    - generic [ref=e10738]: Activo
+                  - link "Ver" [ref=e10739] [cursor=pointer]:
+                    - /url: /servicio/6d748bc3-37f7-49d5-bc18-e00e503c299b
+                  - button "Editar" [ref=e10745] [cursor=pointer]
+                  - button "Eliminar" [ref=e10750] [cursor=pointer]
+            - generic [ref=e10755]:
+              - generic [ref=e10756]:
+                - img "e2e-f2-3-1788978222931" [ref=e10757]
+                - generic [ref=e10758]: Cuidado y Hospedaje
+              - generic [ref=e10763]:
+                - heading "e2e-f2-3-1788978222931" [level=3] [ref=e10764]
+                - generic [ref=e10765]:
+                  - generic [ref=e10766]: $15.000 / por noche
+                  - generic [ref=e10767]: 0 vistas
+                - generic [ref=e10771]:
+                  - generic [ref=e10772] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10773]
+                    - generic [ref=e10775]: Activo
+                  - link "Ver" [ref=e10776] [cursor=pointer]:
+                    - /url: /servicio/618b314a-9c3e-4cd6-84e8-abf66bb8b816
+                  - button "Editar" [ref=e10782] [cursor=pointer]
+                  - button "Eliminar" [ref=e10787] [cursor=pointer]
+            - generic [ref=e10792]:
+              - generic [ref=e10793]:
+                - img "e2e-f2-3-1788978172005" [ref=e10794]
+                - generic [ref=e10795]: Cuidado y Hospedaje
+              - generic [ref=e10800]:
+                - heading "e2e-f2-3-1788978172005" [level=3] [ref=e10801]
+                - generic [ref=e10802]:
+                  - generic [ref=e10803]: $15.000 / por noche
+                  - generic [ref=e10804]: 0 vistas
+                - generic [ref=e10808]:
+                  - generic [ref=e10809] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10810]
+                    - generic [ref=e10812]: Activo
+                  - link "Ver" [ref=e10813] [cursor=pointer]:
+                    - /url: /servicio/1add5896-d966-44d7-80cf-62e08f60cd87
+                  - button "Editar" [ref=e10819] [cursor=pointer]
+                  - button "Eliminar" [ref=e10824] [cursor=pointer]
+            - generic [ref=e10829]:
+              - generic [ref=e10830]:
+                - img "e2e-f2-3-1788978123812" [ref=e10831]
+                - generic [ref=e10832]: Cuidado y Hospedaje
+              - generic [ref=e10837]:
+                - heading "e2e-f2-3-1788978123812" [level=3] [ref=e10838]
+                - generic [ref=e10839]:
+                  - generic [ref=e10840]: $15.000 / por noche
+                  - generic [ref=e10841]: 0 vistas
+                - generic [ref=e10845]:
+                  - generic [ref=e10846] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10847]
+                    - generic [ref=e10849]: Activo
+                  - link "Ver" [ref=e10850] [cursor=pointer]:
+                    - /url: /servicio/1ea1a60b-3eb6-41ae-8a01-361b58f1f528
+                  - button "Editar" [ref=e10856] [cursor=pointer]
+                  - button "Eliminar" [ref=e10861] [cursor=pointer]
+            - generic [ref=e10866]:
+              - generic [ref=e10867]:
+                - img "e2e-f2-3-1788978072929" [ref=e10868]
+                - generic [ref=e10869]: Cuidado y Hospedaje
+              - generic [ref=e10874]:
+                - heading "e2e-f2-3-1788978072929" [level=3] [ref=e10875]
+                - generic [ref=e10876]:
+                  - generic [ref=e10877]: $15.000 / por noche
+                  - generic [ref=e10878]: 0 vistas
+                - generic [ref=e10882]:
+                  - generic [ref=e10883] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10884]
+                    - generic [ref=e10886]: Activo
+                  - link "Ver" [ref=e10887] [cursor=pointer]:
+                    - /url: /servicio/72deacbd-44df-44b3-8e34-77b2d0a0d54a
+                  - button "Editar" [ref=e10893] [cursor=pointer]
+                  - button "Eliminar" [ref=e10898] [cursor=pointer]
+            - generic [ref=e10903]:
+              - generic [ref=e10904]:
+                - img "e2e-f2-3-1788975163540" [ref=e10905]
+                - generic [ref=e10906]: Cuidado y Hospedaje
+              - generic [ref=e10911]:
+                - heading "e2e-f2-3-1788975163540" [level=3] [ref=e10912]
+                - generic [ref=e10913]:
+                  - generic [ref=e10914]: $15.000 / por noche
+                  - generic [ref=e10915]: 0 vistas
+                - generic [ref=e10919]:
+                  - generic [ref=e10920] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10921]
+                    - generic [ref=e10923]: Activo
+                  - link "Ver" [ref=e10924] [cursor=pointer]:
+                    - /url: /servicio/746dd546-f443-4167-b6b5-31eb795bbd94
+                  - button "Editar" [ref=e10930] [cursor=pointer]
+                  - button "Eliminar" [ref=e10935] [cursor=pointer]
+            - generic [ref=e10940]:
+              - generic [ref=e10941]:
+                - img "e2e-f2-3-1788975161254" [ref=e10942]
+                - generic [ref=e10943]: Cuidado y Hospedaje
+              - generic [ref=e10948]:
+                - heading "e2e-f2-3-1788975161254" [level=3] [ref=e10949]
+                - generic [ref=e10950]:
+                  - generic [ref=e10951]: $15.000 / por noche
+                  - generic [ref=e10952]: 0 vistas
+                - generic [ref=e10956]:
+                  - generic [ref=e10957] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10958]
+                    - generic [ref=e10960]: Activo
+                  - link "Ver" [ref=e10961] [cursor=pointer]:
+                    - /url: /servicio/7b4b3536-24cb-4fcf-b568-fa4827a19b41
+                  - button "Editar" [ref=e10967] [cursor=pointer]
+                  - button "Eliminar" [ref=e10972] [cursor=pointer]
+            - generic [ref=e10977]:
+              - generic [ref=e10978]:
+                - img "e2e-f2-3-1788975155104" [ref=e10979]
+                - generic [ref=e10980]: Cuidado y Hospedaje
+              - generic [ref=e10985]:
+                - heading "e2e-f2-3-1788975155104" [level=3] [ref=e10986]
+                - generic [ref=e10987]:
+                  - generic [ref=e10988]: $15.000 / por noche
+                  - generic [ref=e10989]: 0 vistas
+                - generic [ref=e10993]:
+                  - generic [ref=e10994] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e10995]
+                    - generic [ref=e10997]: Activo
+                  - link "Ver" [ref=e10998] [cursor=pointer]:
+                    - /url: /servicio/0e95fdf2-4db4-4925-aae4-de4e555f8230
+                  - button "Editar" [ref=e11004] [cursor=pointer]
+                  - button "Eliminar" [ref=e11009] [cursor=pointer]
+            - generic [ref=e11014]:
+              - generic [ref=e11015]:
+                - img "e2e-f2-3-1788975151444" [ref=e11016]
+                - generic [ref=e11017]: Cuidado y Hospedaje
+              - generic [ref=e11022]:
+                - heading "e2e-f2-3-1788975151444" [level=3] [ref=e11023]
+                - generic [ref=e11024]:
+                  - generic [ref=e11025]: $15.000 / por noche
+                  - generic [ref=e11026]: 0 vistas
+                - generic [ref=e11030]:
+                  - generic [ref=e11031] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11032]
+                    - generic [ref=e11034]: Activo
+                  - link "Ver" [ref=e11035] [cursor=pointer]:
+                    - /url: /servicio/51dc908b-a79c-4743-8b7d-9773346b4b05
+                  - button "Editar" [ref=e11041] [cursor=pointer]
+                  - button "Eliminar" [ref=e11046] [cursor=pointer]
+            - generic [ref=e11051]:
+              - generic [ref=e11052]:
+                - img "e2e-f2-3-1788975139040-F1" [ref=e11053]
+                - generic [ref=e11054]: Paseo de Perros
+              - generic [ref=e11061]:
+                - heading "e2e-f2-3-1788975139040-F1" [level=3] [ref=e11062]
+                - generic [ref=e11063]:
+                  - generic [ref=e11064]: $10.000 / por paseo
+                  - generic [ref=e11065]: 0 vistas
+                - generic [ref=e11069]:
+                  - generic [ref=e11070] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11071]
+                    - generic [ref=e11073]: Activo
+                  - link "Ver" [ref=e11074] [cursor=pointer]:
+                    - /url: /servicio/9f64b337-0d84-4295-9804-181e53f22704
+                  - button "Editar" [ref=e11080] [cursor=pointer]
+                  - button "Eliminar" [ref=e11085] [cursor=pointer]
+            - generic [ref=e11090]:
+              - generic [ref=e11091]:
+                - img "e2e-f2-3-1788975128103" [ref=e11092]
+                - generic [ref=e11093]: Cuidado y Hospedaje
+              - generic [ref=e11098]:
+                - heading "e2e-f2-3-1788975128103" [level=3] [ref=e11099]
+                - generic [ref=e11100]:
+                  - generic [ref=e11101]: $15.000 / por noche
+                  - generic [ref=e11102]: 0 vistas
+                - generic [ref=e11106]:
+                  - generic [ref=e11107] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11108]
+                    - generic [ref=e11110]: Activo
+                  - link "Ver" [ref=e11111] [cursor=pointer]:
+                    - /url: /servicio/dc1b6057-c4eb-4b4a-87e9-ee3a2e9637b5
+                  - button "Editar" [ref=e11117] [cursor=pointer]
+                  - button "Eliminar" [ref=e11122] [cursor=pointer]
+            - generic [ref=e11127]:
+              - generic [ref=e11128]:
+                - img "e2e-f2-3-1788975092475" [ref=e11129]
+                - generic [ref=e11130]: Cuidado y Hospedaje
+              - generic [ref=e11135]:
+                - heading "e2e-f2-3-1788975092475" [level=3] [ref=e11136]
+                - generic [ref=e11137]:
+                  - generic [ref=e11138]: $15.000 / por noche
+                  - generic [ref=e11139]: 0 vistas
+                - generic [ref=e11143]:
+                  - generic [ref=e11144] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11145]
+                    - generic [ref=e11147]: Activo
+                  - link "Ver" [ref=e11148] [cursor=pointer]:
+                    - /url: /servicio/67d6d725-7f50-4b95-b86b-770078289311
+                  - button "Editar" [ref=e11154] [cursor=pointer]
+                  - button "Eliminar" [ref=e11159] [cursor=pointer]
+            - generic [ref=e11164]:
+              - generic [ref=e11165]:
+                - img "e2e-f2-3-1788975084122" [ref=e11166]
+                - generic [ref=e11167]: Cuidado y Hospedaje
+              - generic [ref=e11172]:
+                - heading "e2e-f2-3-1788975084122" [level=3] [ref=e11173]
+                - generic [ref=e11174]:
+                  - generic [ref=e11175]: $15.000 / por noche
+                  - generic [ref=e11176]: 0 vistas
+                - generic [ref=e11180]:
+                  - generic [ref=e11181] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11182]
+                    - generic [ref=e11184]: Activo
+                  - link "Ver" [ref=e11185] [cursor=pointer]:
+                    - /url: /servicio/1f6c8371-8dcd-4f24-865a-e01bd3dccd73
+                  - button "Editar" [ref=e11191] [cursor=pointer]
+                  - button "Eliminar" [ref=e11196] [cursor=pointer]
+            - generic [ref=e11201]:
+              - generic [ref=e11202]:
+                - img "e2e-f2-3-1788975036566" [ref=e11203]
+                - generic [ref=e11204]: Cuidado y Hospedaje
+              - generic [ref=e11209]:
+                - heading "e2e-f2-3-1788975036566" [level=3] [ref=e11210]
+                - generic [ref=e11211]:
+                  - generic [ref=e11212]: $15.000 / por noche
+                  - generic [ref=e11213]: 0 vistas
+                - generic [ref=e11217]:
+                  - generic [ref=e11218] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11219]
+                    - generic [ref=e11221]: Activo
+                  - link "Ver" [ref=e11222] [cursor=pointer]:
+                    - /url: /servicio/fe4a932b-8149-41e9-b94c-05a62f859141
+                  - button "Editar" [ref=e11228] [cursor=pointer]
+                  - button "Eliminar" [ref=e11233] [cursor=pointer]
+            - generic [ref=e11238]:
+              - generic [ref=e11239]:
+                - img "e2e-f2-3-1788974995316" [ref=e11240]
+                - generic [ref=e11241]: Cuidado y Hospedaje
+              - generic [ref=e11246]:
+                - heading "e2e-f2-3-1788974995316" [level=3] [ref=e11247]
+                - generic [ref=e11248]:
+                  - generic [ref=e11249]: $15.000 / por noche
+                  - generic [ref=e11250]: 0 vistas
+                - generic [ref=e11254]:
+                  - generic [ref=e11255] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11256]
+                    - generic [ref=e11258]: Activo
+                  - link "Ver" [ref=e11259] [cursor=pointer]:
+                    - /url: /servicio/756d8e39-abd6-440b-a948-4f7ca3fe11fb
+                  - button "Editar" [ref=e11265] [cursor=pointer]
+                  - button "Eliminar" [ref=e11270] [cursor=pointer]
+            - generic [ref=e11275]:
+              - generic [ref=e11276]:
+                - img "e2e-f2-3-1788974943853" [ref=e11277]
+                - generic [ref=e11278]: Cuidado y Hospedaje
+              - generic [ref=e11283]:
+                - heading "e2e-f2-3-1788974943853" [level=3] [ref=e11284]
+                - generic [ref=e11285]:
+                  - generic [ref=e11286]: $15.000 / por noche
+                  - generic [ref=e11287]: 0 vistas
+                - generic [ref=e11291]:
+                  - generic [ref=e11292] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11293]
+                    - generic [ref=e11295]: Activo
+                  - link "Ver" [ref=e11296] [cursor=pointer]:
+                    - /url: /servicio/478c6a05-129f-4d07-bcc7-b3fc5d344edd
+                  - button "Editar" [ref=e11302] [cursor=pointer]
+                  - button "Eliminar" [ref=e11307] [cursor=pointer]
+            - generic [ref=e11312]:
+              - generic [ref=e11313]:
+                - img "e2e-f2-3-1788970271090-F1" [ref=e11314]
+                - generic [ref=e11315]: Paseo de Perros
+              - generic [ref=e11322]:
+                - heading "e2e-f2-3-1788970271090-F1" [level=3] [ref=e11323]
+                - generic [ref=e11324]:
+                  - generic [ref=e11325]: $10.000 / por paseo
+                  - generic [ref=e11326]: 0 vistas
+                - generic [ref=e11330]:
+                  - generic [ref=e11331] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11332]
+                    - generic [ref=e11334]: Activo
+                  - link "Ver" [ref=e11335] [cursor=pointer]:
+                    - /url: /servicio/cfcbf564-ea07-470f-87f6-4f16411dc188
+                  - button "Editar" [ref=e11341] [cursor=pointer]
+                  - button "Eliminar" [ref=e11346] [cursor=pointer]
+            - generic [ref=e11351]:
+              - generic [ref=e11352]:
+                - img "e2e-f2-3-1788970264234" [ref=e11353]
+                - generic [ref=e11354]: Cuidado y Hospedaje
+              - generic [ref=e11359]:
+                - heading "e2e-f2-3-1788970264234" [level=3] [ref=e11360]
+                - generic [ref=e11361]:
+                  - generic [ref=e11362]: $15.000 / por noche
+                  - generic [ref=e11363]: 0 vistas
+                - generic [ref=e11367]:
+                  - generic [ref=e11368] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11369]
+                    - generic [ref=e11371]: Activo
+                  - link "Ver" [ref=e11372] [cursor=pointer]:
+                    - /url: /servicio/0bfed4c0-0052-4ced-ada5-8a1c80d77e83
+                  - button "Editar" [ref=e11378] [cursor=pointer]
+                  - button "Eliminar" [ref=e11383] [cursor=pointer]
+            - generic [ref=e11388]:
+              - generic [ref=e11389]:
+                - img "e2e-f2-3-1788970252785" [ref=e11390]
+                - generic [ref=e11391]: Cuidado y Hospedaje
+              - generic [ref=e11396]:
+                - heading "e2e-f2-3-1788970252785" [level=3] [ref=e11397]
+                - generic [ref=e11398]:
+                  - generic [ref=e11399]: $15.000 / por noche
+                  - generic [ref=e11400]: 0 vistas
+                - generic [ref=e11404]:
+                  - generic [ref=e11405] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11406]
+                    - generic [ref=e11408]: Activo
+                  - link "Ver" [ref=e11409] [cursor=pointer]:
+                    - /url: /servicio/0349dd94-d84e-41ee-9e98-833ee04f4876
+                  - button "Editar" [ref=e11415] [cursor=pointer]
+                  - button "Eliminar" [ref=e11420] [cursor=pointer]
+            - generic [ref=e11425]:
+              - generic [ref=e11426]:
+                - img "e2e-f2-3-1788970245666" [ref=e11427]
+                - generic [ref=e11428]: Cuidado y Hospedaje
+              - generic [ref=e11433]:
+                - heading "e2e-f2-3-1788970245666" [level=3] [ref=e11434]
+                - generic [ref=e11435]:
+                  - generic [ref=e11436]: $15.000 / por noche
+                  - generic [ref=e11437]: 0 vistas
+                - generic [ref=e11441]:
+                  - generic [ref=e11442] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11443]
+                    - generic [ref=e11445]: Activo
+                  - link "Ver" [ref=e11446] [cursor=pointer]:
+                    - /url: /servicio/2be09fcb-9634-486f-baa3-258c54592517
+                  - button "Editar" [ref=e11452] [cursor=pointer]
+                  - button "Eliminar" [ref=e11457] [cursor=pointer]
+            - generic [ref=e11462]:
+              - generic [ref=e11463]:
+                - img "e2e-f2-3-1788970227990" [ref=e11464]
+                - generic [ref=e11465]: Cuidado y Hospedaje
+              - generic [ref=e11470]:
+                - heading "e2e-f2-3-1788970227990" [level=3] [ref=e11471]
+                - generic [ref=e11472]:
+                  - generic [ref=e11473]: $15.000 / por noche
+                  - generic [ref=e11474]: 0 vistas
+                - generic [ref=e11478]:
+                  - generic [ref=e11479] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11480]
+                    - generic [ref=e11482]: Activo
+                  - link "Ver" [ref=e11483] [cursor=pointer]:
+                    - /url: /servicio/c6870e90-98b5-4f53-91d3-90ac97e98fa8
+                  - button "Editar" [ref=e11489] [cursor=pointer]
+                  - button "Eliminar" [ref=e11494] [cursor=pointer]
+            - generic [ref=e11499]:
+              - generic [ref=e11500]:
+                - img "e2e-f2-3-1788970215439" [ref=e11501]
+                - generic [ref=e11502]: Cuidado y Hospedaje
+              - generic [ref=e11507]:
+                - heading "e2e-f2-3-1788970215439" [level=3] [ref=e11508]
+                - generic [ref=e11509]:
+                  - generic [ref=e11510]: $15.000 / por noche
+                  - generic [ref=e11511]: 0 vistas
+                - generic [ref=e11515]:
+                  - generic [ref=e11516] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11517]
+                    - generic [ref=e11519]: Activo
+                  - link "Ver" [ref=e11520] [cursor=pointer]:
+                    - /url: /servicio/2b12b40e-cf70-4ff9-932f-bd70199f66f5
+                  - button "Editar" [ref=e11526] [cursor=pointer]
+                  - button "Eliminar" [ref=e11531] [cursor=pointer]
+            - generic [ref=e11536]:
+              - generic [ref=e11537]:
+                - img "e2e-f2-3-1788970190991" [ref=e11538]
+                - generic [ref=e11539]: Cuidado y Hospedaje
+              - generic [ref=e11544]:
+                - heading "e2e-f2-3-1788970190991" [level=3] [ref=e11545]
+                - generic [ref=e11546]:
+                  - generic [ref=e11547]: $15.000 / por noche
+                  - generic [ref=e11548]: 0 vistas
+                - generic [ref=e11552]:
+                  - generic [ref=e11553] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11554]
+                    - generic [ref=e11556]: Activo
+                  - link "Ver" [ref=e11557] [cursor=pointer]:
+                    - /url: /servicio/2f4dcbe0-3fc1-4a0b-a9b9-bd4e0112b1dd
+                  - button "Editar" [ref=e11563] [cursor=pointer]
+                  - button "Eliminar" [ref=e11568] [cursor=pointer]
+            - generic [ref=e11573]:
+              - generic [ref=e11574]:
+                - img "e2e-f2-3-1788969731407" [ref=e11575]
+                - generic [ref=e11576]: Cuidado y Hospedaje
+              - generic [ref=e11581]:
+                - heading "e2e-f2-3-1788969731407" [level=3] [ref=e11582]
+                - generic [ref=e11583]:
+                  - generic [ref=e11584]: $15.000 / por noche
+                  - generic [ref=e11585]: 0 vistas
+                - generic [ref=e11589]:
+                  - generic [ref=e11590] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11591]
+                    - generic [ref=e11593]: Activo
+                  - link "Ver" [ref=e11594] [cursor=pointer]:
+                    - /url: /servicio/f032eafc-a801-4a25-b71f-c4a34123e705
+                  - button "Editar" [ref=e11600] [cursor=pointer]
+                  - button "Eliminar" [ref=e11605] [cursor=pointer]
+            - generic [ref=e11610]:
+              - generic [ref=e11611]:
+                - img "e2e-f2-3-1788969729531" [ref=e11612]
+                - generic [ref=e11613]: Cuidado y Hospedaje
+              - generic [ref=e11618]:
+                - heading "e2e-f2-3-1788969729531" [level=3] [ref=e11619]
+                - generic [ref=e11620]:
+                  - generic [ref=e11621]: $15.000 / por noche
+                  - generic [ref=e11622]: 0 vistas
+                - generic [ref=e11626]:
+                  - generic [ref=e11627] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11628]
+                    - generic [ref=e11630]: Activo
+                  - link "Ver" [ref=e11631] [cursor=pointer]:
+                    - /url: /servicio/504a31d1-6bd3-477b-a04e-4a8c5bfaa06c
+                  - button "Editar" [ref=e11637] [cursor=pointer]
+                  - button "Eliminar" [ref=e11642] [cursor=pointer]
+            - generic [ref=e11647]:
+              - generic [ref=e11648]:
+                - img "e2e-f2-3-1788969721709" [ref=e11649]
+                - generic [ref=e11650]: Cuidado y Hospedaje
+              - generic [ref=e11655]:
+                - heading "e2e-f2-3-1788969721709" [level=3] [ref=e11656]
+                - generic [ref=e11657]:
+                  - generic [ref=e11658]: $15.000 / por noche
+                  - generic [ref=e11659]: 0 vistas
+                - generic [ref=e11663]:
+                  - generic [ref=e11664] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11665]
+                    - generic [ref=e11667]: Activo
+                  - link "Ver" [ref=e11668] [cursor=pointer]:
+                    - /url: /servicio/53e66e0e-04cf-44f3-b5e8-75ea2d0e43c6
+                  - button "Editar" [ref=e11674] [cursor=pointer]
+                  - button "Eliminar" [ref=e11679] [cursor=pointer]
+            - generic [ref=e11684]:
+              - generic [ref=e11685]:
+                - img "e2e-f2-3-1788969718445" [ref=e11686]
+                - generic [ref=e11687]: Cuidado y Hospedaje
+              - generic [ref=e11692]:
+                - heading "e2e-f2-3-1788969718445" [level=3] [ref=e11693]
+                - generic [ref=e11694]:
+                  - generic [ref=e11695]: $15.000 / por noche
+                  - generic [ref=e11696]: 0 vistas
+                - generic [ref=e11700]:
+                  - generic [ref=e11701] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11702]
+                    - generic [ref=e11704]: Activo
+                  - link "Ver" [ref=e11705] [cursor=pointer]:
+                    - /url: /servicio/43eeba53-8813-467f-9e01-d567d3cb29e5
+                  - button "Editar" [ref=e11711] [cursor=pointer]
+                  - button "Eliminar" [ref=e11716] [cursor=pointer]
+            - generic [ref=e11721]:
+              - generic [ref=e11722]:
+                - img "e2e-f2-3-1788969716138-F1" [ref=e11723]
+                - generic [ref=e11724]: Paseo de Perros
+              - generic [ref=e11731]:
+                - heading "e2e-f2-3-1788969716138-F1" [level=3] [ref=e11732]
+                - generic [ref=e11733]:
+                  - generic [ref=e11734]: $10.000 / por paseo
+                  - generic [ref=e11735]: 0 vistas
+                - generic [ref=e11739]:
+                  - generic [ref=e11740] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11741]
+                    - generic [ref=e11743]: Activo
+                  - link "Ver" [ref=e11744] [cursor=pointer]:
+                    - /url: /servicio/ff1c89a0-d733-4168-b0f5-eafc9f63ba3a
+                  - button "Editar" [ref=e11750] [cursor=pointer]
+                  - button "Eliminar" [ref=e11755] [cursor=pointer]
+            - generic [ref=e11760]:
+              - generic [ref=e11761]:
+                - img "e2e-f2-3-1788969707695" [ref=e11762]
+                - generic [ref=e11763]: Cuidado y Hospedaje
+              - generic [ref=e11768]:
+                - heading "e2e-f2-3-1788969707695" [level=3] [ref=e11769]
+                - generic [ref=e11770]:
+                  - generic [ref=e11771]: $15.000 / por noche
+                  - generic [ref=e11772]: 0 vistas
+                - generic [ref=e11776]:
+                  - generic [ref=e11777] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11778]
+                    - generic [ref=e11780]: Activo
+                  - link "Ver" [ref=e11781] [cursor=pointer]:
+                    - /url: /servicio/24342ac1-a49a-4d7d-bb9f-41363800459a
+                  - button "Editar" [ref=e11787] [cursor=pointer]
+                  - button "Eliminar" [ref=e11792] [cursor=pointer]
+            - generic [ref=e11797]:
+              - generic [ref=e11798]:
+                - img "e2e-f2-3-1788969695062" [ref=e11799]
+                - generic [ref=e11800]: Cuidado y Hospedaje
+              - generic [ref=e11805]:
+                - heading "e2e-f2-3-1788969695062" [level=3] [ref=e11806]
+                - generic [ref=e11807]:
+                  - generic [ref=e11808]: $15.000 / por noche
+                  - generic [ref=e11809]: 0 vistas
+                - generic [ref=e11813]:
+                  - generic [ref=e11814] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11815]
+                    - generic [ref=e11817]: Activo
+                  - link "Ver" [ref=e11818] [cursor=pointer]:
+                    - /url: /servicio/c6b6d7d9-1d27-4b09-b9fb-3c08c38c09a0
+                  - button "Editar" [ref=e11824] [cursor=pointer]
+                  - button "Eliminar" [ref=e11829] [cursor=pointer]
+            - generic [ref=e11834]:
+              - generic [ref=e11835]:
+                - img "e2e-f2-3-1788969683612" [ref=e11836]
+                - generic [ref=e11837]: Cuidado y Hospedaje
+              - generic [ref=e11842]:
+                - heading "e2e-f2-3-1788969683612" [level=3] [ref=e11843]
+                - generic [ref=e11844]:
+                  - generic [ref=e11845]: $15.000 / por noche
+                  - generic [ref=e11846]: 0 vistas
+                - generic [ref=e11850]:
+                  - generic [ref=e11851] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11852]
+                    - generic [ref=e11854]: Activo
+                  - link "Ver" [ref=e11855] [cursor=pointer]:
+                    - /url: /servicio/fb65ddbd-ad17-465b-b35a-ad3e30cb6288
+                  - button "Editar" [ref=e11861] [cursor=pointer]
+                  - button "Eliminar" [ref=e11866] [cursor=pointer]
+            - generic [ref=e11871]:
+              - generic [ref=e11872]:
+                - img "e2e-f2-3-1788969637812" [ref=e11873]
+                - generic [ref=e11874]: Cuidado y Hospedaje
+              - generic [ref=e11879]:
+                - heading "e2e-f2-3-1788969637812" [level=3] [ref=e11880]
+                - generic [ref=e11881]:
+                  - generic [ref=e11882]: $15.000 / por noche
+                  - generic [ref=e11883]: 0 vistas
+                - generic [ref=e11887]:
+                  - generic [ref=e11888] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11889]
+                    - generic [ref=e11891]: Activo
+                  - link "Ver" [ref=e11892] [cursor=pointer]:
+                    - /url: /servicio/d87af0e4-d75d-49a8-bd54-52dbe714f3ff
+                  - button "Editar" [ref=e11898] [cursor=pointer]
+                  - button "Eliminar" [ref=e11903] [cursor=pointer]
+            - generic [ref=e11908]:
+              - generic [ref=e11909]:
+                - img "e2e-f2-3-1788969618554" [ref=e11910]
+                - generic [ref=e11911]: Cuidado y Hospedaje
+              - generic [ref=e11916]:
+                - heading "e2e-f2-3-1788969618554" [level=3] [ref=e11917]
+                - generic [ref=e11918]:
+                  - generic [ref=e11919]: $15.000 / por noche
+                  - generic [ref=e11920]: 0 vistas
+                - generic [ref=e11924]:
+                  - generic [ref=e11925] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11926]
+                    - generic [ref=e11928]: Activo
+                  - link "Ver" [ref=e11929] [cursor=pointer]:
+                    - /url: /servicio/6b485ee2-42f2-4cdc-8f12-2b82d179294e
+                  - button "Editar" [ref=e11935] [cursor=pointer]
+                  - button "Eliminar" [ref=e11940] [cursor=pointer]
+            - generic [ref=e11945]:
+              - generic [ref=e11946]:
+                - img "e2e-f2-3-1788969587611" [ref=e11947]
+                - generic [ref=e11948]: Cuidado y Hospedaje
+              - generic [ref=e11953]:
+                - heading "e2e-f2-3-1788969587611" [level=3] [ref=e11954]
+                - generic [ref=e11955]:
+                  - generic [ref=e11956]: $15.000 / por noche
+                  - generic [ref=e11957]: 0 vistas
+                - generic [ref=e11961]:
+                  - generic [ref=e11962] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e11963]
+                    - generic [ref=e11965]: Activo
+                  - link "Ver" [ref=e11966] [cursor=pointer]:
+                    - /url: /servicio/c68b438d-2692-41d7-a361-5f53bb20d7e8
+                  - button "Editar" [ref=e11972] [cursor=pointer]
+                  - button "Eliminar" [ref=e11977] [cursor=pointer]
+            - generic [ref=e11982]:
+              - generic [ref=e11983]:
+                - img "e2e-f2-3-1788969495493" [ref=e11984]
+                - generic [ref=e11985]: Cuidado y Hospedaje
+              - generic [ref=e11990]:
+                - heading "e2e-f2-3-1788969495493" [level=3] [ref=e11991]
+                - generic [ref=e11992]:
+                  - generic [ref=e11993]: $15.000 / por noche
+                  - generic [ref=e11994]: 0 vistas
+                - generic [ref=e11998]:
+                  - generic [ref=e11999] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12000]
+                    - generic [ref=e12002]: Activo
+                  - link "Ver" [ref=e12003] [cursor=pointer]:
+                    - /url: /servicio/70ec868a-177d-4507-af87-6b111dff7bf6
+                  - button "Editar" [ref=e12009] [cursor=pointer]
+                  - button "Eliminar" [ref=e12014] [cursor=pointer]
+            - generic [ref=e12019]:
+              - generic [ref=e12020]:
+                - img "e2e-f2-3-1788969493007" [ref=e12021]
+                - generic [ref=e12022]: Cuidado y Hospedaje
+              - generic [ref=e12027]:
+                - heading "e2e-f2-3-1788969493007" [level=3] [ref=e12028]
+                - generic [ref=e12029]:
+                  - generic [ref=e12030]: $15.000 / por noche
+                  - generic [ref=e12031]: 0 vistas
+                - generic [ref=e12035]:
+                  - generic [ref=e12036] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12037]
+                    - generic [ref=e12039]: Activo
+                  - link "Ver" [ref=e12040] [cursor=pointer]:
+                    - /url: /servicio/53e7ed48-61bd-4e0a-b76e-cb93705e6dc7
+                  - button "Editar" [ref=e12046] [cursor=pointer]
+                  - button "Eliminar" [ref=e12051] [cursor=pointer]
+            - generic [ref=e12056]:
+              - generic [ref=e12057]:
+                - img "e2e-f2-3-1788969486140" [ref=e12058]
+                - generic [ref=e12059]: Cuidado y Hospedaje
+              - generic [ref=e12064]:
+                - heading "e2e-f2-3-1788969486140" [level=3] [ref=e12065]
+                - generic [ref=e12066]:
+                  - generic [ref=e12067]: $15.000 / por noche
+                  - generic [ref=e12068]: 0 vistas
+                - generic [ref=e12072]:
+                  - generic [ref=e12073] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12074]
+                    - generic [ref=e12076]: Activo
+                  - link "Ver" [ref=e12077] [cursor=pointer]:
+                    - /url: /servicio/f8c0866d-3645-43a3-8e39-27e7df51a096
+                  - button "Editar" [ref=e12083] [cursor=pointer]
+                  - button "Eliminar" [ref=e12088] [cursor=pointer]
+            - generic [ref=e12093]:
+              - generic [ref=e12094]:
+                - img "e2e-f2-3-1788969483062" [ref=e12095]
+                - generic [ref=e12096]: Cuidado y Hospedaje
+              - generic [ref=e12101]:
+                - heading "e2e-f2-3-1788969483062" [level=3] [ref=e12102]
+                - generic [ref=e12103]:
+                  - generic [ref=e12104]: $15.000 / por noche
+                  - generic [ref=e12105]: 0 vistas
+                - generic [ref=e12109]:
+                  - generic [ref=e12110] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12111]
+                    - generic [ref=e12113]: Activo
+                  - link "Ver" [ref=e12114] [cursor=pointer]:
+                    - /url: /servicio/431d9e14-d448-44df-9b37-3b25e76a1463
+                  - button "Editar" [ref=e12120] [cursor=pointer]
+                  - button "Eliminar" [ref=e12125] [cursor=pointer]
+            - generic [ref=e12130]:
+              - generic [ref=e12131]:
+                - img "e2e-f2-3-1788969481315-F1" [ref=e12132]
+                - generic [ref=e12133]: Paseo de Perros
+              - generic [ref=e12140]:
+                - heading "e2e-f2-3-1788969481315-F1" [level=3] [ref=e12141]
+                - generic [ref=e12142]:
+                  - generic [ref=e12143]: $10.000 / por paseo
+                  - generic [ref=e12144]: 0 vistas
+                - generic [ref=e12148]:
+                  - generic [ref=e12149] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12150]
+                    - generic [ref=e12152]: Activo
+                  - link "Ver" [ref=e12153] [cursor=pointer]:
+                    - /url: /servicio/9168f7ad-b844-4368-b995-9607c0d891b4
+                  - button "Editar" [ref=e12159] [cursor=pointer]
+                  - button "Eliminar" [ref=e12164] [cursor=pointer]
+            - generic [ref=e12169]:
+              - generic [ref=e12170]:
+                - img "e2e-f2-3-1788969475024" [ref=e12171]
+                - generic [ref=e12172]: Cuidado y Hospedaje
+              - generic [ref=e12177]:
+                - heading "e2e-f2-3-1788969475024" [level=3] [ref=e12178]
+                - generic [ref=e12179]:
+                  - generic [ref=e12180]: $15.000 / por noche
+                  - generic [ref=e12181]: 0 vistas
+                - generic [ref=e12185]:
+                  - generic [ref=e12186] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12187]
+                    - generic [ref=e12189]: Activo
+                  - link "Ver" [ref=e12190] [cursor=pointer]:
+                    - /url: /servicio/8bb29023-905f-4210-8bbe-f26c7039efd4
+                  - button "Editar" [ref=e12196] [cursor=pointer]
+                  - button "Eliminar" [ref=e12201] [cursor=pointer]
+            - generic [ref=e12206]:
+              - generic [ref=e12207]:
+                - img "e2e-f2-3-1788969466832" [ref=e12208]
+                - generic [ref=e12209]: Cuidado y Hospedaje
+              - generic [ref=e12214]:
+                - heading "e2e-f2-3-1788969466832" [level=3] [ref=e12215]
+                - generic [ref=e12216]:
+                  - generic [ref=e12217]: $15.000 / por noche
+                  - generic [ref=e12218]: 0 vistas
+                - generic [ref=e12222]:
+                  - generic [ref=e12223] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12224]
+                    - generic [ref=e12226]: Activo
+                  - link "Ver" [ref=e12227] [cursor=pointer]:
+                    - /url: /servicio/bb155d2b-2125-478b-87b2-568a3c052bce
+                  - button "Editar" [ref=e12233] [cursor=pointer]
+                  - button "Eliminar" [ref=e12238] [cursor=pointer]
+            - generic [ref=e12243]:
+              - generic [ref=e12244]:
+                - img "e2e-f2-3-1788969457940" [ref=e12245]
+                - generic [ref=e12246]: Cuidado y Hospedaje
+              - generic [ref=e12251]:
+                - heading "e2e-f2-3-1788969457940" [level=3] [ref=e12252]
+                - generic [ref=e12253]:
+                  - generic [ref=e12254]: $15.000 / por noche
+                  - generic [ref=e12255]: 0 vistas
+                - generic [ref=e12259]:
+                  - generic [ref=e12260] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12261]
+                    - generic [ref=e12263]: Activo
+                  - link "Ver" [ref=e12264] [cursor=pointer]:
+                    - /url: /servicio/af6f1305-e1e9-4d8e-896e-0d5a9303f1fc
+                  - button "Editar" [ref=e12270] [cursor=pointer]
+                  - button "Eliminar" [ref=e12275] [cursor=pointer]
+            - generic [ref=e12280]:
+              - generic [ref=e12281]:
+                - img "e2e-f2-3-1788969432247" [ref=e12282]
+                - generic [ref=e12283]: Cuidado y Hospedaje
+              - generic [ref=e12288]:
+                - heading "e2e-f2-3-1788969432247" [level=3] [ref=e12289]
+                - generic [ref=e12290]:
+                  - generic [ref=e12291]: $15.000 / por noche
+                  - generic [ref=e12292]: 0 vistas
+                - generic [ref=e12296]:
+                  - generic [ref=e12297] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12298]
+                    - generic [ref=e12300]: Activo
+                  - link "Ver" [ref=e12301] [cursor=pointer]:
+                    - /url: /servicio/710814d9-201b-45a6-bb6b-399f072d6d6c
+                  - button "Editar" [ref=e12307] [cursor=pointer]
+                  - button "Eliminar" [ref=e12312] [cursor=pointer]
+            - generic [ref=e12317]:
+              - generic [ref=e12318]:
+                - img "e2e-f2-3-1788969418198" [ref=e12319]
+                - generic [ref=e12320]: Cuidado y Hospedaje
+              - generic [ref=e12325]:
+                - heading "e2e-f2-3-1788969418198" [level=3] [ref=e12326]
+                - generic [ref=e12327]:
+                  - generic [ref=e12328]: $15.000 / por noche
+                  - generic [ref=e12329]: 0 vistas
+                - generic [ref=e12333]:
+                  - generic [ref=e12334] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12335]
+                    - generic [ref=e12337]: Activo
+                  - link "Ver" [ref=e12338] [cursor=pointer]:
+                    - /url: /servicio/4e1e8115-8d46-4940-99ba-8ac50b25f758
+                  - button "Editar" [ref=e12344] [cursor=pointer]
+                  - button "Eliminar" [ref=e12349] [cursor=pointer]
+            - generic [ref=e12354]:
+              - generic [ref=e12355]:
+                - img "e2e-f2-3-1788969390732" [ref=e12356]
+                - generic [ref=e12357]: Cuidado y Hospedaje
+              - generic [ref=e12362]:
+                - heading "e2e-f2-3-1788969390732" [level=3] [ref=e12363]
+                - generic [ref=e12364]:
+                  - generic [ref=e12365]: $15.000 / por noche
+                  - generic [ref=e12366]: 0 vistas
+                - generic [ref=e12370]:
+                  - generic [ref=e12371] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12372]
+                    - generic [ref=e12374]: Activo
+                  - link "Ver" [ref=e12375] [cursor=pointer]:
+                    - /url: /servicio/e9d38f7b-6a63-4872-a267-1f76d54979e7
+                  - button "Editar" [ref=e12381] [cursor=pointer]
+                  - button "Eliminar" [ref=e12386] [cursor=pointer]
+            - generic [ref=e12391]:
+              - generic [ref=e12392]:
+                - img "e2e-f2-3-1788969296578" [ref=e12393]
+                - generic [ref=e12394]: Cuidado y Hospedaje
+              - generic [ref=e12399]:
+                - heading "e2e-f2-3-1788969296578" [level=3] [ref=e12400]
+                - generic [ref=e12401]:
+                  - generic [ref=e12402]: $15.000 / por noche
+                  - generic [ref=e12403]: 0 vistas
+                - generic [ref=e12407]:
+                  - generic [ref=e12408] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12409]
+                    - generic [ref=e12411]: Activo
+                  - link "Ver" [ref=e12412] [cursor=pointer]:
+                    - /url: /servicio/6111bbda-13b9-440f-9f1a-c3f692a4a482
+                  - button "Editar" [ref=e12418] [cursor=pointer]
+                  - button "Eliminar" [ref=e12423] [cursor=pointer]
+            - generic [ref=e12428]:
+              - generic [ref=e12429]:
+                - img "e2e-f2-3-1788969293432" [ref=e12430]
+                - generic [ref=e12431]: Cuidado y Hospedaje
+              - generic [ref=e12436]:
+                - heading "e2e-f2-3-1788969293432" [level=3] [ref=e12437]
+                - generic [ref=e12438]:
+                  - generic [ref=e12439]: $15.000 / por noche
+                  - generic [ref=e12440]: 0 vistas
+                - generic [ref=e12444]:
+                  - generic [ref=e12445] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12446]
+                    - generic [ref=e12448]: Activo
+                  - link "Ver" [ref=e12449] [cursor=pointer]:
+                    - /url: /servicio/c6274d34-0fee-495c-9332-7dd5482c9c4d
+                  - button "Editar" [ref=e12455] [cursor=pointer]
+                  - button "Eliminar" [ref=e12460] [cursor=pointer]
+            - generic [ref=e12465]:
+              - generic [ref=e12466]:
+                - img "e2e-f2-3-1788969287329" [ref=e12467]
+                - generic [ref=e12468]: Cuidado y Hospedaje
+              - generic [ref=e12473]:
+                - heading "e2e-f2-3-1788969287329" [level=3] [ref=e12474]
+                - generic [ref=e12475]:
+                  - generic [ref=e12476]: $15.000 / por noche
+                  - generic [ref=e12477]: 0 vistas
+                - generic [ref=e12481]:
+                  - generic [ref=e12482] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12483]
+                    - generic [ref=e12485]: Activo
+                  - link "Ver" [ref=e12486] [cursor=pointer]:
+                    - /url: /servicio/11f99120-1c12-481b-b610-d21454080b08
+                  - button "Editar" [ref=e12492] [cursor=pointer]
+                  - button "Eliminar" [ref=e12497] [cursor=pointer]
+            - generic [ref=e12502]:
+              - generic [ref=e12503]:
+                - img "e2e-f2-3-1788969284242" [ref=e12504]
+                - generic [ref=e12505]: Cuidado y Hospedaje
+              - generic [ref=e12510]:
+                - heading "e2e-f2-3-1788969284242" [level=3] [ref=e12511]
+                - generic [ref=e12512]:
+                  - generic [ref=e12513]: $15.000 / por noche
+                  - generic [ref=e12514]: 0 vistas
+                - generic [ref=e12518]:
+                  - generic [ref=e12519] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12520]
+                    - generic [ref=e12522]: Activo
+                  - link "Ver" [ref=e12523] [cursor=pointer]:
+                    - /url: /servicio/94692cd9-8063-4473-8b3f-c8775ad9e164
+                  - button "Editar" [ref=e12529] [cursor=pointer]
+                  - button "Eliminar" [ref=e12534] [cursor=pointer]
+            - generic [ref=e12539]:
+              - generic [ref=e12540]:
+                - img "e2e-f2-3-1788969282494-F1" [ref=e12541]
+                - generic [ref=e12542]: Paseo de Perros
+              - generic [ref=e12549]:
+                - heading "e2e-f2-3-1788969282494-F1" [level=3] [ref=e12550]
+                - generic [ref=e12551]:
+                  - generic [ref=e12552]: $10.000 / por paseo
+                  - generic [ref=e12553]: 0 vistas
+                - generic [ref=e12557]:
+                  - generic [ref=e12558] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12559]
+                    - generic [ref=e12561]: Activo
+                  - link "Ver" [ref=e12562] [cursor=pointer]:
+                    - /url: /servicio/5a0b379b-e6ed-4879-b2b3-2449e2346f7b
+                  - button "Editar" [ref=e12568] [cursor=pointer]
+                  - button "Eliminar" [ref=e12573] [cursor=pointer]
+            - generic [ref=e12578]:
+              - generic [ref=e12579]:
+                - img "e2e-f2-3-1788969273546" [ref=e12580]
+                - generic [ref=e12581]: Cuidado y Hospedaje
+              - generic [ref=e12586]:
+                - heading "e2e-f2-3-1788969273546" [level=3] [ref=e12587]
+                - generic [ref=e12588]:
+                  - generic [ref=e12589]: $15.000 / por noche
+                  - generic [ref=e12590]: 0 vistas
+                - generic [ref=e12594]:
+                  - generic [ref=e12595] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12596]
+                    - generic [ref=e12598]: Activo
+                  - link "Ver" [ref=e12599] [cursor=pointer]:
+                    - /url: /servicio/087670bc-f5ab-4ac5-a9fb-2dad6b36a468
+                  - button "Editar" [ref=e12605] [cursor=pointer]
+                  - button "Eliminar" [ref=e12610] [cursor=pointer]
+            - generic [ref=e12615]:
+              - generic [ref=e12616]:
+                - img "e2e-f2-3-1788969265401" [ref=e12617]
+                - generic [ref=e12618]: Cuidado y Hospedaje
+              - generic [ref=e12623]:
+                - heading "e2e-f2-3-1788969265401" [level=3] [ref=e12624]
+                - generic [ref=e12625]:
+                  - generic [ref=e12626]: $15.000 / por noche
+                  - generic [ref=e12627]: 0 vistas
+                - generic [ref=e12631]:
+                  - generic [ref=e12632] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12633]
+                    - generic [ref=e12635]: Activo
+                  - link "Ver" [ref=e12636] [cursor=pointer]:
+                    - /url: /servicio/46af168a-386b-41ed-b132-416ab1577e89
+                  - button "Editar" [ref=e12642] [cursor=pointer]
+                  - button "Eliminar" [ref=e12647] [cursor=pointer]
+            - generic [ref=e12652]:
+              - generic [ref=e12653]:
+                - img "e2e-f2-3-1788969256864" [ref=e12654]
+                - generic [ref=e12655]: Cuidado y Hospedaje
+              - generic [ref=e12660]:
+                - heading "e2e-f2-3-1788969256864" [level=3] [ref=e12661]
+                - generic [ref=e12662]:
+                  - generic [ref=e12663]: $15.000 / por noche
+                  - generic [ref=e12664]: 0 vistas
+                - generic [ref=e12668]:
+                  - generic [ref=e12669] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12670]
+                    - generic [ref=e12672]: Activo
+                  - link "Ver" [ref=e12673] [cursor=pointer]:
+                    - /url: /servicio/b5824494-f903-4f80-b475-450196bc8a67
+                  - button "Editar" [ref=e12679] [cursor=pointer]
+                  - button "Eliminar" [ref=e12684] [cursor=pointer]
+            - generic [ref=e12689]:
+              - generic [ref=e12690]:
+                - img "e2e-f2-3-1788969229764" [ref=e12691]
+                - generic [ref=e12692]: Cuidado y Hospedaje
+              - generic [ref=e12697]:
+                - heading "e2e-f2-3-1788969229764" [level=3] [ref=e12698]
+                - generic [ref=e12699]:
+                  - generic [ref=e12700]: $15.000 / por noche
+                  - generic [ref=e12701]: 0 vistas
+                - generic [ref=e12705]:
+                  - generic [ref=e12706] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12707]
+                    - generic [ref=e12709]: Activo
+                  - link "Ver" [ref=e12710] [cursor=pointer]:
+                    - /url: /servicio/e9e28545-dd64-4b5e-8e5b-84178a1741fa
+                  - button "Editar" [ref=e12716] [cursor=pointer]
+                  - button "Eliminar" [ref=e12721] [cursor=pointer]
+            - generic [ref=e12726]:
+              - generic [ref=e12727]:
+                - img "e2e-f2-3-1788969215738" [ref=e12728]
+                - generic [ref=e12729]: Cuidado y Hospedaje
+              - generic [ref=e12734]:
+                - heading "e2e-f2-3-1788969215738" [level=3] [ref=e12735]
+                - generic [ref=e12736]:
+                  - generic [ref=e12737]: $15.000 / por noche
+                  - generic [ref=e12738]: 0 vistas
+                - generic [ref=e12742]:
+                  - generic [ref=e12743] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12744]
+                    - generic [ref=e12746]: Activo
+                  - link "Ver" [ref=e12747] [cursor=pointer]:
+                    - /url: /servicio/ab76e2a9-835b-4e2c-a00a-ceb3fbbabcfe
+                  - button "Editar" [ref=e12753] [cursor=pointer]
+                  - button "Eliminar" [ref=e12758] [cursor=pointer]
+            - generic [ref=e12763]:
+              - generic [ref=e12764]:
+                - img "e2e-f2-3-1788969189993" [ref=e12765]
+                - generic [ref=e12766]: Cuidado y Hospedaje
+              - generic [ref=e12771]:
+                - heading "e2e-f2-3-1788969189993" [level=3] [ref=e12772]
+                - generic [ref=e12773]:
+                  - generic [ref=e12774]: $15.000 / por noche
+                  - generic [ref=e12775]: 0 vistas
+                - generic [ref=e12779]:
+                  - generic [ref=e12780] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12781]
+                    - generic [ref=e12783]: Activo
+                  - link "Ver" [ref=e12784] [cursor=pointer]:
+                    - /url: /servicio/c4e54bbb-a50d-4444-bfc5-8d7921cbe04e
+                  - button "Editar" [ref=e12790] [cursor=pointer]
+                  - button "Eliminar" [ref=e12795] [cursor=pointer]
+            - generic [ref=e12800]:
+              - generic [ref=e12801]:
+                - img "e2e-f2-3-1788968879146" [ref=e12802]
+                - generic [ref=e12803]: Cuidado y Hospedaje
+              - generic [ref=e12808]:
+                - heading "e2e-f2-3-1788968879146" [level=3] [ref=e12809]
+                - generic [ref=e12810]:
+                  - generic [ref=e12811]: $15.000 / por noche
+                  - generic [ref=e12812]: 0 vistas
+                - generic [ref=e12816]:
+                  - generic [ref=e12817] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12818]
+                    - generic [ref=e12820]: Activo
+                  - link "Ver" [ref=e12821] [cursor=pointer]:
+                    - /url: /servicio/c8d75451-4ccb-478d-86f4-a3182e9a81c0
+                  - button "Editar" [ref=e12827] [cursor=pointer]
+                  - button "Eliminar" [ref=e12832] [cursor=pointer]
+            - generic [ref=e12837]:
+              - generic [ref=e12838]:
+                - img "e2e-f2-3-1788968877120" [ref=e12839]
+                - generic [ref=e12840]: Cuidado y Hospedaje
+              - generic [ref=e12845]:
+                - heading "e2e-f2-3-1788968877120" [level=3] [ref=e12846]
+                - generic [ref=e12847]:
+                  - generic [ref=e12848]: $15.000 / por noche
+                  - generic [ref=e12849]: 0 vistas
+                - generic [ref=e12853]:
+                  - generic [ref=e12854] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12855]
+                    - generic [ref=e12857]: Activo
+                  - link "Ver" [ref=e12858] [cursor=pointer]:
+                    - /url: /servicio/1aeebb6d-2c54-444b-a4df-f996b30553db
+                  - button "Editar" [ref=e12864] [cursor=pointer]
+                  - button "Eliminar" [ref=e12869] [cursor=pointer]
+            - generic [ref=e12874]:
+              - generic [ref=e12875]:
+                - img "e2e-f2-3-1788968871431" [ref=e12876]
+                - generic [ref=e12877]: Cuidado y Hospedaje
+              - generic [ref=e12882]:
+                - heading "e2e-f2-3-1788968871431" [level=3] [ref=e12883]
+                - generic [ref=e12884]:
+                  - generic [ref=e12885]: $15.000 / por noche
+                  - generic [ref=e12886]: 0 vistas
+                - generic [ref=e12890]:
+                  - generic [ref=e12891] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12892]
+                    - generic [ref=e12894]: Activo
+                  - link "Ver" [ref=e12895] [cursor=pointer]:
+                    - /url: /servicio/51b31e25-5ada-435f-98a3-072070382a73
+                  - button "Editar" [ref=e12901] [cursor=pointer]
+                  - button "Eliminar" [ref=e12906] [cursor=pointer]
+            - generic [ref=e12911]:
+              - generic [ref=e12912]:
+                - img "e2e-f2-3-1788968868276" [ref=e12913]
+                - generic [ref=e12914]: Cuidado y Hospedaje
+              - generic [ref=e12919]:
+                - heading "e2e-f2-3-1788968868276" [level=3] [ref=e12920]
+                - generic [ref=e12921]:
+                  - generic [ref=e12922]: $15.000 / por noche
+                  - generic [ref=e12923]: 0 vistas
+                - generic [ref=e12927]:
+                  - generic [ref=e12928] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12929]
+                    - generic [ref=e12931]: Activo
+                  - link "Ver" [ref=e12932] [cursor=pointer]:
+                    - /url: /servicio/1f532890-8990-4fc2-b550-6a63d3bdc46f
+                  - button "Editar" [ref=e12938] [cursor=pointer]
+                  - button "Eliminar" [ref=e12943] [cursor=pointer]
+            - generic [ref=e12948]:
+              - generic [ref=e12949]:
+                - img "e2e-f2-3-1788968866080-F1" [ref=e12950]
+                - generic [ref=e12951]: Paseo de Perros
+              - generic [ref=e12958]:
+                - heading "e2e-f2-3-1788968866080-F1" [level=3] [ref=e12959]
+                - generic [ref=e12960]:
+                  - generic [ref=e12961]: $10.000 / por paseo
+                  - generic [ref=e12962]: 0 vistas
+                - generic [ref=e12966]:
+                  - generic [ref=e12967] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e12968]
+                    - generic [ref=e12970]: Activo
+                  - link "Ver" [ref=e12971] [cursor=pointer]:
+                    - /url: /servicio/46fabfbe-f298-4977-81cf-2d8e38de67aa
+                  - button "Editar" [ref=e12977] [cursor=pointer]
+                  - button "Eliminar" [ref=e12982] [cursor=pointer]
+            - generic [ref=e12987]:
+              - generic [ref=e12988]:
+                - img "e2e-f2-3-1788968858324" [ref=e12989]
+                - generic [ref=e12990]: Cuidado y Hospedaje
+              - generic [ref=e12995]:
+                - heading "e2e-f2-3-1788968858324" [level=3] [ref=e12996]
+                - generic [ref=e12997]:
+                  - generic [ref=e12998]: $15.000 / por noche
+                  - generic [ref=e12999]: 0 vistas
+                - generic [ref=e13003]:
+                  - generic [ref=e13004] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13005]
+                    - generic [ref=e13007]: Activo
+                  - link "Ver" [ref=e13008] [cursor=pointer]:
+                    - /url: /servicio/2614a0d7-c172-4c3d-bb4a-8b0792c6606a
+                  - button "Editar" [ref=e13014] [cursor=pointer]
+                  - button "Eliminar" [ref=e13019] [cursor=pointer]
+            - generic [ref=e13024]:
+              - generic [ref=e13025]:
+                - img "e2e-f2-3-1788968847077" [ref=e13026]
+                - generic [ref=e13027]: Cuidado y Hospedaje
+              - generic [ref=e13032]:
+                - heading "e2e-f2-3-1788968847077" [level=3] [ref=e13033]
+                - generic [ref=e13034]:
+                  - generic [ref=e13035]: $15.000 / por noche
+                  - generic [ref=e13036]: 0 vistas
+                - generic [ref=e13040]:
+                  - generic [ref=e13041] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13042]
+                    - generic [ref=e13044]: Activo
+                  - link "Ver" [ref=e13045] [cursor=pointer]:
+                    - /url: /servicio/94398c7d-4632-4f16-a654-b0c33a837cda
+                  - button "Editar" [ref=e13051] [cursor=pointer]
+                  - button "Eliminar" [ref=e13056] [cursor=pointer]
+            - generic [ref=e13061]:
+              - generic [ref=e13062]:
+                - img "e2e-f2-3-1788968835791" [ref=e13063]
+                - generic [ref=e13064]: Cuidado y Hospedaje
+              - generic [ref=e13069]:
+                - heading "e2e-f2-3-1788968835791" [level=3] [ref=e13070]
+                - generic [ref=e13071]:
+                  - generic [ref=e13072]: $15.000 / por noche
+                  - generic [ref=e13073]: 0 vistas
+                - generic [ref=e13077]:
+                  - generic [ref=e13078] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13079]
+                    - generic [ref=e13081]: Activo
+                  - link "Ver" [ref=e13082] [cursor=pointer]:
+                    - /url: /servicio/5ca03de5-b241-432f-8d2a-90629da7d1e8
+                  - button "Editar" [ref=e13088] [cursor=pointer]
+                  - button "Eliminar" [ref=e13093] [cursor=pointer]
+            - generic [ref=e13098]:
+              - generic [ref=e13099]:
+                - img "e2e-f2-3-1788968807119" [ref=e13100]
+                - generic [ref=e13101]: Cuidado y Hospedaje
+              - generic [ref=e13106]:
+                - heading "e2e-f2-3-1788968807119" [level=3] [ref=e13107]
+                - generic [ref=e13108]:
+                  - generic [ref=e13109]: $15.000 / por noche
+                  - generic [ref=e13110]: 0 vistas
+                - generic [ref=e13114]:
+                  - generic [ref=e13115] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13116]
+                    - generic [ref=e13118]: Activo
+                  - link "Ver" [ref=e13119] [cursor=pointer]:
+                    - /url: /servicio/2572eac3-bfb4-4179-972f-3d7f3a5c06e3
+                  - button "Editar" [ref=e13125] [cursor=pointer]
+                  - button "Eliminar" [ref=e13130] [cursor=pointer]
+            - generic [ref=e13135]:
+              - generic [ref=e13136]:
+                - img "e2e-f2-3-1788968794530" [ref=e13137]
+                - generic [ref=e13138]: Cuidado y Hospedaje
+              - generic [ref=e13143]:
+                - heading "e2e-f2-3-1788968794530" [level=3] [ref=e13144]
+                - generic [ref=e13145]:
+                  - generic [ref=e13146]: $15.000 / por noche
+                  - generic [ref=e13147]: 0 vistas
+                - generic [ref=e13151]:
+                  - generic [ref=e13152] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13153]
+                    - generic [ref=e13155]: Activo
+                  - link "Ver" [ref=e13156] [cursor=pointer]:
+                    - /url: /servicio/309ff4cd-fe27-478d-86c1-e532d867ebe0
+                  - button "Editar" [ref=e13162] [cursor=pointer]
+                  - button "Eliminar" [ref=e13167] [cursor=pointer]
+            - generic [ref=e13172]:
+              - generic [ref=e13173]:
+                - img "e2e-f2-3-1788968774987" [ref=e13174]
+                - generic [ref=e13175]: Cuidado y Hospedaje
+              - generic [ref=e13180]:
+                - heading "e2e-f2-3-1788968774987" [level=3] [ref=e13181]
+                - generic [ref=e13182]:
+                  - generic [ref=e13183]: $15.000 / por noche
+                  - generic [ref=e13184]: 0 vistas
+                - generic [ref=e13188]:
+                  - generic [ref=e13189] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13190]
+                    - generic [ref=e13192]: Activo
+                  - link "Ver" [ref=e13193] [cursor=pointer]:
+                    - /url: /servicio/de8b02d2-0a61-4c1e-b3db-92fa3af5c0db
+                  - button "Editar" [ref=e13199] [cursor=pointer]
+                  - button "Eliminar" [ref=e13204] [cursor=pointer]
+            - generic [ref=e13209]:
+              - generic [ref=e13210]:
+                - img "e2e-f2-3-1788968686323" [ref=e13211]
+                - generic [ref=e13212]: Cuidado y Hospedaje
+              - generic [ref=e13217]:
+                - heading "e2e-f2-3-1788968686323" [level=3] [ref=e13218]
+                - generic [ref=e13219]:
+                  - generic [ref=e13220]: $15.000 / por noche
+                  - generic [ref=e13221]: 0 vistas
+                - generic [ref=e13225]:
+                  - generic [ref=e13226] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13227]
+                    - generic [ref=e13229]: Activo
+                  - link "Ver" [ref=e13230] [cursor=pointer]:
+                    - /url: /servicio/09817888-72a8-4bc0-ac7a-7c1343eb72d3
+                  - button "Editar" [ref=e13236] [cursor=pointer]
+                  - button "Eliminar" [ref=e13241] [cursor=pointer]
+            - generic [ref=e13246]:
+              - generic [ref=e13247]:
+                - img "e2e-f2-3-1788968684537" [ref=e13248]
+                - generic [ref=e13249]: Cuidado y Hospedaje
+              - generic [ref=e13254]:
+                - heading "e2e-f2-3-1788968684537" [level=3] [ref=e13255]
+                - generic [ref=e13256]:
+                  - generic [ref=e13257]: $15.000 / por noche
+                  - generic [ref=e13258]: 0 vistas
+                - generic [ref=e13262]:
+                  - generic [ref=e13263] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13264]
+                    - generic [ref=e13266]: Activo
+                  - link "Ver" [ref=e13267] [cursor=pointer]:
+                    - /url: /servicio/6d37a827-99c5-468c-8784-0b4221e9b9bd
+                  - button "Editar" [ref=e13273] [cursor=pointer]
+                  - button "Eliminar" [ref=e13278] [cursor=pointer]
+            - generic [ref=e13283]:
+              - generic [ref=e13284]:
+                - img "e2e-f2-3-1788968678240" [ref=e13285]
+                - generic [ref=e13286]: Cuidado y Hospedaje
+              - generic [ref=e13291]:
+                - heading "e2e-f2-3-1788968678240" [level=3] [ref=e13292]
+                - generic [ref=e13293]:
+                  - generic [ref=e13294]: $15.000 / por noche
+                  - generic [ref=e13295]: 0 vistas
+                - generic [ref=e13299]:
+                  - generic [ref=e13300] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13301]
+                    - generic [ref=e13303]: Activo
+                  - link "Ver" [ref=e13304] [cursor=pointer]:
+                    - /url: /servicio/1b84cb9f-89d7-4b75-a4da-fcfa6ed201fd
+                  - button "Editar" [ref=e13310] [cursor=pointer]
+                  - button "Eliminar" [ref=e13315] [cursor=pointer]
+            - generic [ref=e13320]:
+              - generic [ref=e13321]:
+                - img "e2e-f2-3-1788968675004" [ref=e13322]
+                - generic [ref=e13323]: Cuidado y Hospedaje
+              - generic [ref=e13328]:
+                - heading "e2e-f2-3-1788968675004" [level=3] [ref=e13329]
+                - generic [ref=e13330]:
+                  - generic [ref=e13331]: $15.000 / por noche
+                  - generic [ref=e13332]: 0 vistas
+                - generic [ref=e13336]:
+                  - generic [ref=e13337] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13338]
+                    - generic [ref=e13340]: Activo
+                  - link "Ver" [ref=e13341] [cursor=pointer]:
+                    - /url: /servicio/98594eb3-fa6b-4a79-9fb6-dc6259c50c1f
+                  - button "Editar" [ref=e13347] [cursor=pointer]
+                  - button "Eliminar" [ref=e13352] [cursor=pointer]
+            - generic [ref=e13357]:
+              - generic [ref=e13358]:
+                - img "e2e-f2-3-1788968673193-F1" [ref=e13359]
+                - generic [ref=e13360]: Paseo de Perros
+              - generic [ref=e13367]:
+                - heading "e2e-f2-3-1788968673193-F1" [level=3] [ref=e13368]
+                - generic [ref=e13369]:
+                  - generic [ref=e13370]: $10.000 / por paseo
+                  - generic [ref=e13371]: 0 vistas
+                - generic [ref=e13375]:
+                  - generic [ref=e13376] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13377]
+                    - generic [ref=e13379]: Activo
+                  - link "Ver" [ref=e13380] [cursor=pointer]:
+                    - /url: /servicio/412ce12b-5af1-4f04-bf6f-1fb6f968a6db
+                  - button "Editar" [ref=e13386] [cursor=pointer]
+                  - button "Eliminar" [ref=e13391] [cursor=pointer]
+            - generic [ref=e13396]:
+              - generic [ref=e13397]:
+                - img "e2e-f2-3-1788968664979" [ref=e13398]
+                - generic [ref=e13399]: Cuidado y Hospedaje
+              - generic [ref=e13404]:
+                - heading "e2e-f2-3-1788968664979" [level=3] [ref=e13405]
+                - generic [ref=e13406]:
+                  - generic [ref=e13407]: $15.000 / por noche
+                  - generic [ref=e13408]: 0 vistas
+                - generic [ref=e13412]:
+                  - generic [ref=e13413] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13414]
+                    - generic [ref=e13416]: Activo
+                  - link "Ver" [ref=e13417] [cursor=pointer]:
+                    - /url: /servicio/a7122868-e8fc-4f38-a5ee-b143fbcbd6ee
+                  - button "Editar" [ref=e13423] [cursor=pointer]
+                  - button "Eliminar" [ref=e13428] [cursor=pointer]
+            - generic [ref=e13433]:
+              - generic [ref=e13434]:
+                - img "e2e-f2-3-1788968654488" [ref=e13435]
+                - generic [ref=e13436]: Cuidado y Hospedaje
+              - generic [ref=e13441]:
+                - heading "e2e-f2-3-1788968654488" [level=3] [ref=e13442]
+                - generic [ref=e13443]:
+                  - generic [ref=e13444]: $15.000 / por noche
+                  - generic [ref=e13445]: 0 vistas
+                - generic [ref=e13449]:
+                  - generic [ref=e13450] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13451]
+                    - generic [ref=e13453]: Activo
+                  - link "Ver" [ref=e13454] [cursor=pointer]:
+                    - /url: /servicio/61c1ba20-bb70-4b83-9621-81bc716fd2d5
+                  - button "Editar" [ref=e13460] [cursor=pointer]
+                  - button "Eliminar" [ref=e13465] [cursor=pointer]
+            - generic [ref=e13470]:
+              - generic [ref=e13471]:
+                - img "e2e-f2-3-1788968643256" [ref=e13472]
+                - generic [ref=e13473]: Cuidado y Hospedaje
+              - generic [ref=e13478]:
+                - heading "e2e-f2-3-1788968643256" [level=3] [ref=e13479]
+                - generic [ref=e13480]:
+                  - generic [ref=e13481]: $15.000 / por noche
+                  - generic [ref=e13482]: 0 vistas
+                - generic [ref=e13486]:
+                  - generic [ref=e13487] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13488]
+                    - generic [ref=e13490]: Activo
+                  - link "Ver" [ref=e13491] [cursor=pointer]:
+                    - /url: /servicio/6847c226-ce2d-417b-8443-cb70b9018f4b
+                  - button "Editar" [ref=e13497] [cursor=pointer]
+                  - button "Eliminar" [ref=e13502] [cursor=pointer]
+            - generic [ref=e13507]:
+              - generic [ref=e13508]:
+                - img "e2e-f2-3-1788968615214" [ref=e13509]
+                - generic [ref=e13510]: Cuidado y Hospedaje
+              - generic [ref=e13515]:
+                - heading "e2e-f2-3-1788968615214" [level=3] [ref=e13516]
+                - generic [ref=e13517]:
+                  - generic [ref=e13518]: $15.000 / por noche
+                  - generic [ref=e13519]: 0 vistas
+                - generic [ref=e13523]:
+                  - generic [ref=e13524] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13525]
+                    - generic [ref=e13527]: Activo
+                  - link "Ver" [ref=e13528] [cursor=pointer]:
+                    - /url: /servicio/3637177b-521b-4d2f-a5f0-805804f1ff35
+                  - button "Editar" [ref=e13534] [cursor=pointer]
+                  - button "Eliminar" [ref=e13539] [cursor=pointer]
+            - generic [ref=e13544]:
+              - generic [ref=e13545]:
+                - img "e2e-f2-3-1788968601696" [ref=e13546]
+                - generic [ref=e13547]: Cuidado y Hospedaje
+              - generic [ref=e13552]:
+                - heading "e2e-f2-3-1788968601696" [level=3] [ref=e13553]
+                - generic [ref=e13554]:
+                  - generic [ref=e13555]: $15.000 / por noche
+                  - generic [ref=e13556]: 0 vistas
+                - generic [ref=e13560]:
+                  - generic [ref=e13561] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13562]
+                    - generic [ref=e13564]: Activo
+                  - link "Ver" [ref=e13565] [cursor=pointer]:
+                    - /url: /servicio/32451502-afe5-44b9-b3bc-bf353ffc8c9d
+                  - button "Editar" [ref=e13571] [cursor=pointer]
+                  - button "Eliminar" [ref=e13576] [cursor=pointer]
+            - generic [ref=e13581]:
+              - generic [ref=e13582]:
+                - img "e2e-f2-3-1788968576458" [ref=e13583]
+                - generic [ref=e13584]: Cuidado y Hospedaje
+              - generic [ref=e13589]:
+                - heading "e2e-f2-3-1788968576458" [level=3] [ref=e13590]
+                - generic [ref=e13591]:
+                  - generic [ref=e13592]: $15.000 / por noche
+                  - generic [ref=e13593]: 0 vistas
+                - generic [ref=e13597]:
+                  - generic [ref=e13598] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13599]
+                    - generic [ref=e13601]: Activo
+                  - link "Ver" [ref=e13602] [cursor=pointer]:
+                    - /url: /servicio/e31d0435-ed82-4748-8f69-b899ca836788
+                  - button "Editar" [ref=e13608] [cursor=pointer]
+                  - button "Eliminar" [ref=e13613] [cursor=pointer]
+            - generic [ref=e13618]:
+              - generic [ref=e13619]:
+                - img "e2e-f2-3-1788965495738" [ref=e13620]
+                - generic [ref=e13621]: Cuidado y Hospedaje
+              - generic [ref=e13626]:
+                - heading "e2e-f2-3-1788965495738" [level=3] [ref=e13627]
+                - generic [ref=e13628]:
+                  - generic [ref=e13629]: $15.000 / por noche
+                  - generic [ref=e13630]: 0 vistas
+                - generic [ref=e13634]:
+                  - generic [ref=e13635] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13636]
+                    - generic [ref=e13638]: Activo
+                  - link "Ver" [ref=e13639] [cursor=pointer]:
+                    - /url: /servicio/10819e48-b433-4fae-be7d-64c02720a585
+                  - button "Editar" [ref=e13645] [cursor=pointer]
+                  - button "Eliminar" [ref=e13650] [cursor=pointer]
+            - generic [ref=e13655]:
+              - generic [ref=e13656]:
+                - img "e2e-f2-3-1788965493795" [ref=e13657]
+                - generic [ref=e13658]: Cuidado y Hospedaje
+              - generic [ref=e13663]:
+                - heading "e2e-f2-3-1788965493795" [level=3] [ref=e13664]
+                - generic [ref=e13665]:
+                  - generic [ref=e13666]: $15.000 / por noche
+                  - generic [ref=e13667]: 0 vistas
+                - generic [ref=e13671]:
+                  - generic [ref=e13672] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13673]
+                    - generic [ref=e13675]: Activo
+                  - link "Ver" [ref=e13676] [cursor=pointer]:
+                    - /url: /servicio/f4f204bb-9c7e-4ac5-bac5-524f9eaedae6
+                  - button "Editar" [ref=e13682] [cursor=pointer]
+                  - button "Eliminar" [ref=e13687] [cursor=pointer]
+            - generic [ref=e13692]:
+              - generic [ref=e13693]:
+                - img "e2e-f2-3-1788965487619" [ref=e13694]
+                - generic [ref=e13695]: Cuidado y Hospedaje
+              - generic [ref=e13700]:
+                - heading "e2e-f2-3-1788965487619" [level=3] [ref=e13701]
+                - generic [ref=e13702]:
+                  - generic [ref=e13703]: $15.000 / por noche
+                  - generic [ref=e13704]: 0 vistas
+                - generic [ref=e13708]:
+                  - generic [ref=e13709] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13710]
+                    - generic [ref=e13712]: Activo
+                  - link "Ver" [ref=e13713] [cursor=pointer]:
+                    - /url: /servicio/355453b7-3933-4e4b-8d82-c11aaf30b76f
+                  - button "Editar" [ref=e13719] [cursor=pointer]
+                  - button "Eliminar" [ref=e13724] [cursor=pointer]
+            - generic [ref=e13729]:
+              - generic [ref=e13730]:
+                - img "e2e-f2-3-1788965485366" [ref=e13731]
+                - generic [ref=e13732]: Cuidado y Hospedaje
+              - generic [ref=e13737]:
+                - heading "e2e-f2-3-1788965485366" [level=3] [ref=e13738]
+                - generic [ref=e13739]:
+                  - generic [ref=e13740]: $15.000 / por noche
+                  - generic [ref=e13741]: 0 vistas
+                - generic [ref=e13745]:
+                  - generic [ref=e13746] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13747]
+                    - generic [ref=e13749]: Activo
+                  - link "Ver" [ref=e13750] [cursor=pointer]:
+                    - /url: /servicio/c5fd9483-50a9-428d-a881-7e9b1e0d3541
+                  - button "Editar" [ref=e13756] [cursor=pointer]
+                  - button "Eliminar" [ref=e13761] [cursor=pointer]
+            - generic [ref=e13766]:
+              - generic [ref=e13767]:
+                - img "e2e-f2-3-1788965484003-F1" [ref=e13768]
+                - generic [ref=e13769]: Paseo de Perros
+              - generic [ref=e13776]:
+                - heading "e2e-f2-3-1788965484003-F1" [level=3] [ref=e13777]
+                - generic [ref=e13778]:
+                  - generic [ref=e13779]: $10.000 / por paseo
+                  - generic [ref=e13780]: 0 vistas
+                - generic [ref=e13784]:
+                  - generic [ref=e13785] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13786]
+                    - generic [ref=e13788]: Activo
+                  - link "Ver" [ref=e13789] [cursor=pointer]:
+                    - /url: /servicio/5213f89a-c97e-461b-b614-36b10158b4f0
+                  - button "Editar" [ref=e13795] [cursor=pointer]
+                  - button "Eliminar" [ref=e13800] [cursor=pointer]
+            - generic [ref=e13805]:
+              - generic [ref=e13806]:
+                - img "e2e-f2-3-1788965483809" [ref=e13807]
+                - generic [ref=e13808]: Cuidado y Hospedaje
+              - generic [ref=e13813]:
+                - heading "e2e-f2-3-1788965483809" [level=3] [ref=e13814]
+                - generic [ref=e13815]:
+                  - generic [ref=e13816]: $15.000 / por noche
+                  - generic [ref=e13817]: 0 vistas
+                - generic [ref=e13821]:
+                  - generic [ref=e13822] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13823]
+                    - generic [ref=e13825]: Activo
+                  - link "Ver" [ref=e13826] [cursor=pointer]:
+                    - /url: /servicio/f1161a90-58cb-417e-827e-2e71c6a16d0a
+                  - button "Editar" [ref=e13832] [cursor=pointer]
+                  - button "Eliminar" [ref=e13837] [cursor=pointer]
+            - generic [ref=e13842]:
+              - generic [ref=e13843]:
+                - img "e2e-f2-3-1788965480268" [ref=e13844]
+                - generic [ref=e13845]: Cuidado y Hospedaje
+              - generic [ref=e13850]:
+                - heading "e2e-f2-3-1788965480268" [level=3] [ref=e13851]
+                - generic [ref=e13852]:
+                  - generic [ref=e13853]: $15.000 / por noche
+                  - generic [ref=e13854]: 0 vistas
+                - generic [ref=e13858]:
+                  - generic [ref=e13859] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13860]
+                    - generic [ref=e13862]: Activo
+                  - link "Ver" [ref=e13863] [cursor=pointer]:
+                    - /url: /servicio/850c5eec-2f45-434e-ac70-c3ed51847a47
+                  - button "Editar" [ref=e13869] [cursor=pointer]
+                  - button "Eliminar" [ref=e13874] [cursor=pointer]
+            - generic [ref=e13879]:
+              - generic [ref=e13880]:
+                - img "e2e-f2-3-1788965476481" [ref=e13881]
+                - generic [ref=e13882]: Cuidado y Hospedaje
+              - generic [ref=e13887]:
+                - heading "e2e-f2-3-1788965476481" [level=3] [ref=e13888]
+                - generic [ref=e13889]:
+                  - generic [ref=e13890]: $15.000 / por noche
+                  - generic [ref=e13891]: 0 vistas
+                - generic [ref=e13895]:
+                  - generic [ref=e13896] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13897]
+                    - generic [ref=e13899]: Activo
+                  - link "Ver" [ref=e13900] [cursor=pointer]:
+                    - /url: /servicio/25641a8c-ffcd-40d2-bee2-5ced68978ed7
+                  - button "Editar" [ref=e13906] [cursor=pointer]
+                  - button "Eliminar" [ref=e13911] [cursor=pointer]
+            - generic [ref=e13916]:
+              - generic [ref=e13917]:
+                - img "e2e-f2-3-1788965472292" [ref=e13918]
+                - generic [ref=e13919]: Cuidado y Hospedaje
+              - generic [ref=e13924]:
+                - heading "e2e-f2-3-1788965472292" [level=3] [ref=e13925]
+                - generic [ref=e13926]:
+                  - generic [ref=e13927]: $15.000 / por noche
+                  - generic [ref=e13928]: 0 vistas
+                - generic [ref=e13932]:
+                  - generic [ref=e13933] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13934]
+                    - generic [ref=e13936]: Activo
+                  - link "Ver" [ref=e13937] [cursor=pointer]:
+                    - /url: /servicio/70880738-a93f-44a0-b4cf-bdc5011bfcf3
+                  - button "Editar" [ref=e13943] [cursor=pointer]
+                  - button "Eliminar" [ref=e13948] [cursor=pointer]
+            - generic [ref=e13953]:
+              - generic [ref=e13954]:
+                - img "e2e-f2-3-1788965471106" [ref=e13955]
+                - generic [ref=e13956]: Cuidado y Hospedaje
+              - generic [ref=e13961]:
+                - heading "e2e-f2-3-1788965471106" [level=3] [ref=e13962]
+                - generic [ref=e13963]:
+                  - generic [ref=e13964]: $15.000 / por noche
+                  - generic [ref=e13965]: 0 vistas
+                - generic [ref=e13969]:
+                  - generic [ref=e13970] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e13971]
+                    - generic [ref=e13973]: Activo
+                  - link "Ver" [ref=e13974] [cursor=pointer]:
+                    - /url: /servicio/7cd92d9a-8bdf-463c-b9a1-e19a489721c2
+                  - button "Editar" [ref=e13980] [cursor=pointer]
+                  - button "Eliminar" [ref=e13985] [cursor=pointer]
+            - generic [ref=e13990]:
+              - generic [ref=e13991]:
+                - img "e2e-f2-3-1788965466064" [ref=e13992]
+                - generic [ref=e13993]: Cuidado y Hospedaje
+              - generic [ref=e13998]:
+                - heading "e2e-f2-3-1788965466064" [level=3] [ref=e13999]
+                - generic [ref=e14000]:
+                  - generic [ref=e14001]: $15.000 / por noche
+                  - generic [ref=e14002]: 0 vistas
+                - generic [ref=e14006]:
+                  - generic [ref=e14007] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14008]
+                    - generic [ref=e14010]: Activo
+                  - link "Ver" [ref=e14011] [cursor=pointer]:
+                    - /url: /servicio/f0a8d60f-6406-4faa-8272-749bb61fd834
+                  - button "Editar" [ref=e14017] [cursor=pointer]
+                  - button "Eliminar" [ref=e14022] [cursor=pointer]
+            - generic [ref=e14027]:
+              - generic [ref=e14028]:
+                - img "e2e-f2-3-1788965310553" [ref=e14029]
+                - generic [ref=e14030]: Cuidado y Hospedaje
+              - generic [ref=e14035]:
+                - heading "e2e-f2-3-1788965310553" [level=3] [ref=e14036]
+                - generic [ref=e14037]:
+                  - generic [ref=e14038]: $15.000 / por noche
+                  - generic [ref=e14039]: 0 vistas
+                - generic [ref=e14043]:
+                  - generic [ref=e14044] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14045]
+                    - generic [ref=e14047]: Activo
+                  - link "Ver" [ref=e14048] [cursor=pointer]:
+                    - /url: /servicio/3a42a9ae-3369-4dd8-ab60-91aeec234516
+                  - button "Editar" [ref=e14054] [cursor=pointer]
+                  - button "Eliminar" [ref=e14059] [cursor=pointer]
+            - generic [ref=e14064]:
+              - generic [ref=e14065]:
+                - img "e2e-f2-3-1788965308531" [ref=e14066]
+                - generic [ref=e14067]: Cuidado y Hospedaje
+              - generic [ref=e14072]:
+                - heading "e2e-f2-3-1788965308531" [level=3] [ref=e14073]
+                - generic [ref=e14074]:
+                  - generic [ref=e14075]: $15.000 / por noche
+                  - generic [ref=e14076]: 0 vistas
+                - generic [ref=e14080]:
+                  - generic [ref=e14081] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14082]
+                    - generic [ref=e14084]: Activo
+                  - link "Ver" [ref=e14085] [cursor=pointer]:
+                    - /url: /servicio/7e4a7e72-15ae-4178-b422-2bbe52dc0be5
+                  - button "Editar" [ref=e14091] [cursor=pointer]
+                  - button "Eliminar" [ref=e14096] [cursor=pointer]
+            - generic [ref=e14101]:
+              - generic [ref=e14102]:
+                - img "e2e-f2-3-1788965301509" [ref=e14103]
+                - generic [ref=e14104]: Cuidado y Hospedaje
+              - generic [ref=e14109]:
+                - heading "e2e-f2-3-1788965301509" [level=3] [ref=e14110]
+                - generic [ref=e14111]:
+                  - generic [ref=e14112]: $15.000 / por noche
+                  - generic [ref=e14113]: 0 vistas
+                - generic [ref=e14117]:
+                  - generic [ref=e14118] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14119]
+                    - generic [ref=e14121]: Activo
+                  - link "Ver" [ref=e14122] [cursor=pointer]:
+                    - /url: /servicio/82eebf2e-c5fa-4f87-b1fd-c4a09c6de7fc
+                  - button "Editar" [ref=e14128] [cursor=pointer]
+                  - button "Eliminar" [ref=e14133] [cursor=pointer]
+            - generic [ref=e14138]:
+              - generic [ref=e14139]:
+                - img "e2e-f2-3-1788965298353" [ref=e14140]
+                - generic [ref=e14141]: Cuidado y Hospedaje
+              - generic [ref=e14146]:
+                - heading "e2e-f2-3-1788965298353" [level=3] [ref=e14147]
+                - generic [ref=e14148]:
+                  - generic [ref=e14149]: $15.000 / por noche
+                  - generic [ref=e14150]: 0 vistas
+                - generic [ref=e14154]:
+                  - generic [ref=e14155] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14156]
+                    - generic [ref=e14158]: Activo
+                  - link "Ver" [ref=e14159] [cursor=pointer]:
+                    - /url: /servicio/bea9e1ee-57d0-4506-a8ab-634408bdc145
+                  - button "Editar" [ref=e14165] [cursor=pointer]
+                  - button "Eliminar" [ref=e14170] [cursor=pointer]
+            - generic [ref=e14175]:
+              - generic [ref=e14176]:
+                - img "e2e-f2-3-1788965296843-F1" [ref=e14177]
+                - generic [ref=e14178]: Paseo de Perros
+              - generic [ref=e14185]:
+                - heading "e2e-f2-3-1788965296843-F1" [level=3] [ref=e14186]
+                - generic [ref=e14187]:
+                  - generic [ref=e14188]: $10.000 / por paseo
+                  - generic [ref=e14189]: 0 vistas
+                - generic [ref=e14193]:
+                  - generic [ref=e14194] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14195]
+                    - generic [ref=e14197]: Activo
+                  - link "Ver" [ref=e14198] [cursor=pointer]:
+                    - /url: /servicio/70cf351c-ad79-4c64-8e4c-141e6a64f6c7
+                  - button "Editar" [ref=e14204] [cursor=pointer]
+                  - button "Eliminar" [ref=e14209] [cursor=pointer]
+            - generic [ref=e14214]:
+              - generic [ref=e14215]:
+                - img "e2e-f2-3-1788965296091" [ref=e14216]
+                - generic [ref=e14217]: Cuidado y Hospedaje
+              - generic [ref=e14222]:
+                - heading "e2e-f2-3-1788965296091" [level=3] [ref=e14223]
+                - generic [ref=e14224]:
+                  - generic [ref=e14225]: $15.000 / por noche
+                  - generic [ref=e14226]: 0 vistas
+                - generic [ref=e14230]:
+                  - generic [ref=e14231] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14232]
+                    - generic [ref=e14234]: Activo
+                  - link "Ver" [ref=e14235] [cursor=pointer]:
+                    - /url: /servicio/e867429c-57f7-4d67-b9b1-27ca360e164f
+                  - button "Editar" [ref=e14241] [cursor=pointer]
+                  - button "Eliminar" [ref=e14246] [cursor=pointer]
+            - generic [ref=e14251]:
+              - generic [ref=e14252]:
+                - img "e2e-f2-3-1788965293988" [ref=e14253]
+                - generic [ref=e14254]: Cuidado y Hospedaje
+              - generic [ref=e14259]:
+                - heading "e2e-f2-3-1788965293988" [level=3] [ref=e14260]
+                - generic [ref=e14261]:
+                  - generic [ref=e14262]: $15.000 / por noche
+                  - generic [ref=e14263]: 0 vistas
+                - generic [ref=e14267]:
+                  - generic [ref=e14268] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14269]
+                    - generic [ref=e14271]: Activo
+                  - link "Ver" [ref=e14272] [cursor=pointer]:
+                    - /url: /servicio/e8e42f6b-26e4-4258-a2c6-89ccb91e6284
+                  - button "Editar" [ref=e14278] [cursor=pointer]
+                  - button "Eliminar" [ref=e14283] [cursor=pointer]
+            - generic [ref=e14288]:
+              - generic [ref=e14289]:
+                - img "e2e-f2-3-1788965290000" [ref=e14290]
+                - generic [ref=e14291]: Cuidado y Hospedaje
+              - generic [ref=e14296]:
+                - heading "e2e-f2-3-1788965290000" [level=3] [ref=e14297]
+                - generic [ref=e14298]:
+                  - generic [ref=e14299]: $15.000 / por noche
+                  - generic [ref=e14300]: 0 vistas
+                - generic [ref=e14304]:
+                  - generic [ref=e14305] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14306]
+                    - generic [ref=e14308]: Activo
+                  - link "Ver" [ref=e14309] [cursor=pointer]:
+                    - /url: /servicio/0ff3cf91-83aa-4ea4-a8c5-6518cac594cc
+                  - button "Editar" [ref=e14315] [cursor=pointer]
+                  - button "Eliminar" [ref=e14320] [cursor=pointer]
+            - generic [ref=e14325]:
+              - generic [ref=e14326]:
+                - img "e2e-f2-3-1788965284452" [ref=e14327]
+                - generic [ref=e14328]: Cuidado y Hospedaje
+              - generic [ref=e14333]:
+                - heading "e2e-f2-3-1788965284452" [level=3] [ref=e14334]
+                - generic [ref=e14335]:
+                  - generic [ref=e14336]: $15.000 / por noche
+                  - generic [ref=e14337]: 0 vistas
+                - generic [ref=e14341]:
+                  - generic [ref=e14342] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14343]
+                    - generic [ref=e14345]: Activo
+                  - link "Ver" [ref=e14346] [cursor=pointer]:
+                    - /url: /servicio/843c435b-f5ee-4755-9f2f-de6868565ce4
+                  - button "Editar" [ref=e14352] [cursor=pointer]
+                  - button "Eliminar" [ref=e14357] [cursor=pointer]
+            - generic [ref=e14362]:
+              - generic [ref=e14363]:
+                - img "e2e-f2-3-1788965281064" [ref=e14364]
+                - generic [ref=e14365]: Cuidado y Hospedaje
+              - generic [ref=e14370]:
+                - heading "e2e-f2-3-1788965281064" [level=3] [ref=e14371]
+                - generic [ref=e14372]:
+                  - generic [ref=e14373]: $15.000 / por noche
+                  - generic [ref=e14374]: 0 vistas
+                - generic [ref=e14378]:
+                  - generic [ref=e14379] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14380]
+                    - generic [ref=e14382]: Activo
+                  - link "Ver" [ref=e14383] [cursor=pointer]:
+                    - /url: /servicio/5edd08ca-2e64-4724-abaf-8cd75172bfd4
+                  - button "Editar" [ref=e14389] [cursor=pointer]
+                  - button "Eliminar" [ref=e14394] [cursor=pointer]
+            - generic [ref=e14399]:
+              - generic [ref=e14400]:
+                - img "e2e-f2-3-1788965269541" [ref=e14401]
+                - generic [ref=e14402]: Cuidado y Hospedaje
+              - generic [ref=e14407]:
+                - heading "e2e-f2-3-1788965269541" [level=3] [ref=e14408]
+                - generic [ref=e14409]:
+                  - generic [ref=e14410]: $15.000 / por noche
+                  - generic [ref=e14411]: 0 vistas
+                - generic [ref=e14415]:
+                  - generic [ref=e14416] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14417]
+                    - generic [ref=e14419]: Activo
+                  - link "Ver" [ref=e14420] [cursor=pointer]:
+                    - /url: /servicio/7a0e790b-0e9d-41d0-b7d3-750b457d789b
+                  - button "Editar" [ref=e14426] [cursor=pointer]
+                  - button "Eliminar" [ref=e14431] [cursor=pointer]
+            - generic [ref=e14436]:
+              - generic [ref=e14437]:
+                - img "prueba f2" [ref=e14438]
+                - generic [ref=e14439]: Cuidado y Hospedaje
+              - generic [ref=e14444]:
+                - heading "prueba f2" [level=3] [ref=e14445]
+                - generic [ref=e14446]:
+                  - generic [ref=e14447]: $15.000 / por noche
+                  - generic [ref=e14448]: 0 vistas
+                - generic [ref=e14452]:
+                  - generic [ref=e14453] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14454]
+                    - generic [ref=e14456]: Activo
+                  - link "Ver" [ref=e14457] [cursor=pointer]:
+                    - /url: /servicio/8bfe8675-d3b5-4a47-96b1-83954ca5ece7
+                  - button "Editar" [ref=e14463] [cursor=pointer]
+                  - button "Eliminar" [ref=e14468] [cursor=pointer]
+            - generic [ref=e14473]:
+              - generic [ref=e14474]:
+                - img "Paseos dinamicos" [ref=e14475]
+                - generic [ref=e14476]: Paseo de Perros
+              - generic [ref=e14483]:
+                - heading "Paseos dinamicos" [level=3] [ref=e14484]
+                - generic [ref=e14485]:
+                  - generic [ref=e14486]: $15.000 / por paseo
+                  - generic [ref=e14487]: 0 vistas
+                - generic [ref=e14491]:
+                  - generic [ref=e14492] [cursor=pointer]:
+                    - checkbox "Activo" [checked] [ref=e14493]
+                    - generic [ref=e14495]: Activo
+                  - link "Ver" [ref=e14496] [cursor=pointer]:
+                    - /url: /servicio/385063f9-8fd0-4322-aa33-a866fa7cd2b4
+                  - button "Editar" [ref=e14502] [cursor=pointer]
+                  - button "Eliminar" [ref=e14507] [cursor=pointer]
+    - contentinfo [ref=e14512]:
+      - generic [ref=e14513]:
+        - generic [ref=e14514]:
+          - link [ref=e14516] [cursor=pointer]:
+            - /url: /
+            - img "Pawnecta" [ref=e14517]
+          - paragraph [ref=e14518]: Conectamos tutores con cuidadores de confianza en Chile.
+          - paragraph [ref=e14519]: Interactive SpA
+        - generic [ref=e14520]:
+          - heading "Servicios" [level=4] [ref=e14521]
+          - list [ref=e14522]:
+            - listitem [ref=e14523]:
+              - link "Hospedaje" [ref=e14524] [cursor=pointer]:
+                - /url: /explorar?categoria=hospedaje
+            - listitem [ref=e14525]:
+              - link "Cuidado en casa del tutor" [ref=e14526] [cursor=pointer]:
+                - /url: /explorar?categoria=cuidado
+            - listitem [ref=e14527]:
+              - link "Guardería diurna" [ref=e14528] [cursor=pointer]:
+                - /url: /explorar?categoria=guarderia
+            - listitem [ref=e14529]:
+              - link "Paseador de perros" [ref=e14530] [cursor=pointer]:
+                - /url: /explorar?categoria=paseos
+            - listitem [ref=e14531]:
+              - link "Peluquería" [ref=e14532] [cursor=pointer]:
+                - /url: /explorar?categoria=peluqueria
+            - listitem [ref=e14533]:
+              - link "Adiestramiento" [ref=e14534] [cursor=pointer]:
+                - /url: /explorar?categoria=adiestramiento
+            - listitem [ref=e14535]:
+              - link "Etología y conducta" [ref=e14536] [cursor=pointer]:
+                - /url: /explorar?categoria=etologia
+            - listitem [ref=e14537]:
+              - link "Veterinario a domicilio" [ref=e14538] [cursor=pointer]:
+                - /url: /explorar?categoria=veterinario
+            - listitem [ref=e14539]:
+              - link "Retratos de mascotas" [ref=e14540] [cursor=pointer]:
+                - /url: /explorar?categoria=retratos
+            - listitem [ref=e14541]:
+              - link "Traslado" [ref=e14542] [cursor=pointer]:
+                - /url: /explorar?categoria=traslado
+        - generic [ref=e14543]:
+          - heading "Pawnecta" [level=4] [ref=e14544]
+          - list [ref=e14545]:
+            - listitem [ref=e14546]:
+              - link "Quiénes somos" [ref=e14547] [cursor=pointer]:
+                - /url: /quienes-somos
+            - listitem [ref=e14548]:
+              - link "Preguntas frecuentes" [ref=e14549] [cursor=pointer]:
+                - /url: /faq
+            - listitem [ref=e14550]:
+              - link "Blog" [ref=e14551] [cursor=pointer]:
+                - /url: /blog
+            - listitem [ref=e14552]:
+              - link "Publicar mi servicio" [ref=e14553] [cursor=pointer]:
+                - /url: /register?rol=proveedor
+            - listitem [ref=e14554]:
+              - link "contacto@pawnecta.com" [ref=e14555] [cursor=pointer]:
+                - /url: mailto:contacto@pawnecta.com
+      - group [ref=e14558]:
+        - generic "Explorar por categoría y comuna" [ref=e14559] [cursor=pointer]
+      - generic [ref=e14564]:
+        - paragraph [ref=e14565]: © 2026 Pawnecta. Todos los derechos reservados.
+        - generic [ref=e14566]:
+          - link "Términos y Condiciones" [ref=e14567] [cursor=pointer]:
+            - /url: /terminos
+          - generic [ref=e14568]: ·
+          - link "Política de Privacidad" [ref=e14569] [cursor=pointer]:
+            - /url: /privacidad
+          - generic [ref=e14570]: ·
+          - button "Configurar cookies" [ref=e14571] [cursor=pointer]
+        - link "Instagram" [ref=e14573] [cursor=pointer]:
+          - /url: https://www.instagram.com/pawnecta
+    - button "Enviar feedback" [ref=e14577] [cursor=pointer]:
+      - generic [ref=e14580]: Feedback
+  - alert [ref=e14581]
+```
+
+# Test source
+
+```ts
+  73  |     test('reproduce cuelgue en /', async ({ browser }) => {
+  74  |         // Context guest (sin storageState).
+  75  |         const ctx = await browser.newContext({ storageState: undefined });
+  76  |         const page = await ctx.newPage();
+  77  |         const { warnings } = trackearWarnings(page);
+  78  | 
+  79  |         const t0 = Date.now();
+  80  |         await page.goto('/', { waitUntil: 'domcontentloaded' });
+  81  |         await page.waitForTimeout(CUELGUE_WAIT_MS);
+  82  | 
+  83  |         const locks = await capturarLocks(page);
+  84  |         const wallMs = Date.now() - t0;
+  85  | 
+  86  |         console.log(`[A1.a] wall=${wallMs}ms | warns=${warnings.length} | locks=${JSON.stringify(locks).slice(0, 400)}`);
+  87  |         if (warnings.length > 0) console.log(`[A1.a] SAMPLE WARN: ${warnings[0].slice(0, 300)}`);
+  88  | 
+  89  |         // Cero assertion de reproducción — reportamos. El único fail real
+  90  |         // es si capturarLocks() reventó (navigator.locks no disponible).
+  91  |         expect(locks).toBeDefined();
+  92  |         await ctx.close();
+  93  |     });
+  94  | });
+  95  | 
+  96  | // ---------------------------------------------------------------------------
+  97  | // A1.b — Guest sin sesión, 2 pestañas simultáneas
+  98  | // ---------------------------------------------------------------------------
+  99  | // Predicción PO: 2 pestañas guests pueden generar contención en el
+  100 | // navigator.locks (aunque el noOpLock del proyecto no debería —
+  101 | // intencionalmente saltea el lock). Ver navigator.locks.query() en ambas.
+  102 | test.describe.serial('A1.b — Guest sin sesión, 2 pestañas simultáneas', () => {
+  103 |     test('reproduce cuelgue en 2 pestañas /', async ({ browser }) => {
+  104 |         const ctx = await browser.newContext({ storageState: undefined });
+  105 |         const page1 = await ctx.newPage();
+  106 |         const page2 = await ctx.newPage();
+  107 |         const w1 = trackearWarnings(page1);
+  108 |         const w2 = trackearWarnings(page2);
+  109 | 
+  110 |         const t0 = Date.now();
+  111 |         await Promise.all([
+  112 |             page1.goto('/', { waitUntil: 'domcontentloaded' }),
+  113 |             page2.goto('/', { waitUntil: 'domcontentloaded' }),
+  114 |         ]);
+  115 |         await page1.waitForTimeout(CUELGUE_WAIT_MS);
+  116 | 
+  117 |         const locks1 = await capturarLocks(page1);
+  118 |         const locks2 = await capturarLocks(page2);
+  119 |         const wallMs = Date.now() - t0;
+  120 | 
+  121 |         console.log(`[A1.b] wall=${wallMs}ms | tab1_warns=${w1.warnings.length} | tab2_warns=${w2.warnings.length}`);
+  122 |         console.log(`[A1.b] LOCKS tab1: ${JSON.stringify(locks1).slice(0, 400)}`);
+  123 |         console.log(`[A1.b] LOCKS tab2: ${JSON.stringify(locks2).slice(0, 400)}`);
+  124 |         if (w1.warnings.length > 0) console.log(`[A1.b] SAMPLE tab1 WARN: ${w1.warnings[0].slice(0, 300)}`);
+  125 |         if (w2.warnings.length > 0) console.log(`[A1.b] SAMPLE tab2 WARN: ${w2.warnings[0].slice(0, 300)}`);
+  126 | 
+  127 |         expect(locks1).toBeDefined();
+  128 |         expect(locks2).toBeDefined();
+  129 |         await ctx.close();
+  130 |     });
+  131 | });
+  132 | 
+  133 | // ---------------------------------------------------------------------------
+  134 | // A1.c — Autenticado (proveedor), 2 pestañas misma sesión
+  135 | // ---------------------------------------------------------------------------
+  136 | // Predicción PO: contención de navigator.locks entre pestañas de la misma
+  137 | // sesión — patrón #2426 supabase-js (tab switch + Chrome Memory Saver →
+  138 | // freeze indefinido). Nuestra versión 2.84.0 es anterior al fix.
+  139 | test.describe.serial('A1.c — Autenticado 2 pestañas misma sesión (proveedor)', () => {
+  140 |     // Sprint cue-1-fix B2 (2026-09-24) — assertion NEGATIVA post fix del
+  141 |     // stale closure watchdog: hydrate OK debe dar warns=0. Antes del fix
+  142 |     // el watchdog disparaba falso positivo (isLoading stale del closure
+  143 |     // inicial). Post-fix stateForWatchdogRef, si el hydrate resuelve
+  144 |     // exitoso el watchdog NO debe disparar.
+  145 |     test('hydrate OK → cero warnings del watchdog (fix stale closure)', async ({ browser }) => {
+  146 |         const ctx = await browser.newContext({ storageState: 'e2e/.auth/proveedor.json' });
+  147 |         const page1 = await ctx.newPage();
+  148 |         const page2 = await ctx.newPage();
+  149 |         const w1 = trackearWarnings(page1);
+  150 |         const w2 = trackearWarnings(page2);
+  151 | 
+  152 |         const t0 = Date.now();
+  153 |         await Promise.all([
+  154 |             page1.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+  155 |             page2.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+  156 |         ]);
+  157 |         await page1.waitForTimeout(CUELGUE_WAIT_MS);
+  158 | 
+  159 |         const locks1 = await capturarLocks(page1);
+  160 |         const locks2 = await capturarLocks(page2);
+  161 |         const wallMs = Date.now() - t0;
+  162 | 
+  163 |         console.log(`[A1.c] wall=${wallMs}ms | tab1_warns=${w1.warnings.length} | tab2_warns=${w2.warnings.length}`);
+  164 |         console.log(`[A1.c] LOCKS tab1: ${JSON.stringify(locks1).slice(0, 200)}`);
+  165 |         console.log(`[A1.c] LOCKS tab2: ${JSON.stringify(locks2).slice(0, 200)}`);
+  166 |         if (w1.warnings.length > 0) console.log(`[A1.c] SAMPLE tab1 WARN: ${w1.warnings[0].slice(0, 300)}`);
+  167 |         if (w2.warnings.length > 0) console.log(`[A1.c] SAMPLE tab2 WARN: ${w2.warnings[0].slice(0, 300)}`);
+  168 | 
+  169 |         // Sprint cue-1-fix B2 — assertion regresión permanente:
+  170 |         // post-fix stale closure, hydrate exitoso (Promise.all resuelve
+  171 |         // en <1s con hasData=true) NO debe disparar el watchdog.
+  172 |         // Pre-fix esta assertion fallaba con warns=1+1.
+> 173 |         expect(w1.warnings.length, '[A1.c REGRESIÓN] tab1: hydrate OK debe dar cero warns (fix stale closure watchdog)').toBe(0);
+      |                                                                                                                          ^ Error: [A1.c REGRESIÓN] tab1: hydrate OK debe dar cero warns (fix stale closure watchdog)
+  174 |         expect(w2.warnings.length, '[A1.c REGRESIÓN] tab2: hydrate OK debe dar cero warns (fix stale closure watchdog)').toBe(0);
+  175 |         expect(locks1).toBeDefined();
+  176 |         expect(locks2).toBeDefined();
+  177 |         await ctx.close();
+  178 |     });
+  179 | });
+  180 | 
+  181 | // ---------------------------------------------------------------------------
+  182 | // A1.e — Simulación #2426 supabase-js: tab oculta 90s+ (refresh token pausado)
+  183 | // ---------------------------------------------------------------------------
+  184 | // Hipótesis PO 2026-09-23: patrón #2426 CLOSED en 2.10x (nuestra 2.84.0 es
+  185 | // anterior) — tab suspendida 20-30s → freeze indefinido. El mecanismo:
+  186 | // el refresh de token del SDK Supabase corre en background timer; cuando la
+  187 | // tab está oculta el timer pausa; el lock queda tomado; al reactivar la
+  188 | // tab, todas las queries que llegan quedan encoladas esperando el lock que
+  189 | // ya no se libera.
+  190 | //
+  191 | // Simulación: 2 pestañas mismo contexto autenticado, tab B se oculta via
+  192 | // document.hidden=true + dispatchEvent(visibilitychange), esperar 90s (más
+  193 | // del refresh interval del token, típicamente 60s), bringToFront a B,
+  194 | // medir getSession() + locks.query() durante la espera Y post-reactivación.
+  195 | //
+  196 | // Cero fix. Solo reportar reproducción sí/no. Si no reproduce → Memory
+  197 | // Saver real no simulable en Playwright y evidencia queda en Sentry tags.
+  198 | test.describe.serial('A1.e — Tab oculta 90s+ (simulación #2426)', () => {
+  199 |     test('reproduce cuelgue post-hidden 90s + reactivación', async ({ browser }) => {
+  200 |         test.setTimeout(180_000);   // 90s espera + margen holgado.
+  201 | 
+  202 |         const ctx = await browser.newContext({ storageState: 'e2e/.auth/proveedor.json' });
+  203 |         const pageA = await ctx.newPage();
+  204 |         const pageB = await ctx.newPage();
+  205 |         const wA = trackearWarnings(pageA);
+  206 |         const wB = trackearWarnings(pageB);
+  207 | 
+  208 |         const t0 = Date.now();
+  209 |         await Promise.all([
+  210 |             pageA.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+  211 |             pageB.goto('/proveedor', { waitUntil: 'domcontentloaded' }),
+  212 |         ]);
+  213 | 
+  214 |         // Warm-up 3s para que UserContext hidrate en ambas tabs.
+  215 |         await pageA.waitForTimeout(3_000);
+  216 | 
+  217 |         // Locks pre-hidden.
+  218 |         const locksPre = await capturarLocks(pageB);
+  219 |         console.log(`[A1.e] pre-hidden LOCKS_B: ${JSON.stringify(locksPre).slice(0, 300)}`);
+  220 | 
+  221 |         // Ocultar tab B via API document.hidden + dispatchEvent.
+  222 |         await pageB.evaluate(() => {
+  223 |             Object.defineProperty(document, 'hidden', { value: true, configurable: true });
+  224 |             Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+  225 |             document.dispatchEvent(new Event('visibilitychange'));
+  226 |         });
+  227 |         console.log('[A1.e] tab B oculta — esperando 90s...');
+  228 | 
+  229 |         // Esperar 90s — más del refresh interval del token (default supabase 60s).
+  230 |         await pageA.waitForTimeout(90_000);
+  231 | 
+  232 |         // Locks mid-espera (desde tab A, para no dispararla en B).
+  233 |         const locksMidA = await capturarLocks(pageA);
+  234 |         console.log(`[A1.e] mid-90s LOCKS_A: ${JSON.stringify(locksMidA).slice(0, 300)}`);
+  235 | 
+  236 |         // Reactivar tab B.
+  237 |         await pageB.evaluate(() => {
+  238 |             Object.defineProperty(document, 'hidden', { value: false, configurable: true });
+  239 |             Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
+  240 |             document.dispatchEvent(new Event('visibilitychange'));
+  241 |         });
+  242 |         await pageB.bringToFront();
+  243 | 
+  244 |         // Medir: intentar getSession() en B con timeout. Si el lock quedó
+  245 |         // tomado, getSession() se queda encolado indefinidamente.
+  246 |         const getSessionResult = await pageB.evaluate(async () => {
+  247 |             const start = Date.now();
+  248 |             try {
+  249 |                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  250 |                 const w = window as any;
+  251 |                 if (!w.supabase?.auth?.getSession) {
+  252 |                     return { ok: false, ms: 0, error: 'supabase not on window' };
+  253 |                 }
+  254 |                 // Race manual: getSession() vs timeout 20s.
+  255 |                 const raced = await Promise.race([
+  256 |                     w.supabase.auth.getSession().then((r: unknown) => ({ ok: true, r })),
+  257 |                     new Promise((resolve) => setTimeout(() => resolve({ ok: false, timedOut: true }), 20_000)),
+  258 |                 ]);
+  259 |                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  260 |                 const rr = raced as any;
+  261 |                 return { ok: rr.ok === true, ms: Date.now() - start, timedOut: !!rr.timedOut };
+  262 |             } catch (err) {
+  263 |                 return { ok: false, ms: Date.now() - start, error: (err as Error).message };
+  264 |             }
+  265 |         });
+  266 | 
+  267 |         const locksPost = await capturarLocks(pageB);
+  268 |         const wallMs = Date.now() - t0;
+  269 | 
+  270 |         console.log(`[A1.e] getSession post-reactivación: ${JSON.stringify(getSessionResult)}`);
+  271 |         console.log(`[A1.e] LOCKS_B post: ${JSON.stringify(locksPost).slice(0, 300)}`);
+  272 |         console.log(`[A1.e] wall=${wallMs}ms | tabA_warns=${wA.warnings.length} | tabB_warns=${wB.warnings.length}`);
+  273 |         if (wA.warnings.length > 0) console.log(`[A1.e] SAMPLE tabA WARN: ${wA.warnings[0].slice(0, 300)}`);
+```
