@@ -156,6 +156,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const content = msg.content || '';
         const messagePreview = content.substring(0, 80) + (content.length > 80 ? '...' : '');
 
+        // Sufijo para el párrafo del body: si el nombre ya termina en punto
+        // (caso "Camila F." o nombre_publico "Constanza B."), no agregamos
+        // otro — evita el doble punto ".." reportado en el smoke del commit
+        // 0d1a4c8 por el PO (decisión PO 2026-11-10).
+        const senderNameDot = senderName.endsWith('.') ? '' : '.';
+
         // 7. URL del chat — construida server-side desde el conv_id.
         const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://www.pawnecta.com';
         const chatUrl = `${baseUrl}/mensajes?id=${conv.id}`;
@@ -177,7 +183,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             html: `
                 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:24px">
                     <h2 style="color:#0f172a;margin-bottom:8px">Nuevo mensaje en Pawnecta</h2>
-                    <p style="color:#475569">Tienes un nuevo mensaje de <strong>${escapeHtml(senderName)}</strong>.</p>
+                    <p style="color:#475569">Tienes un nuevo mensaje de <strong>${escapeHtml(senderName)}</strong>${senderNameDot}</p>
                     ${messagePreview ? `<blockquote style="border-left:3px solid #10b981;padding:8px 16px;color:#64748b;font-style:italic;margin:16px 0">${escapeHtml(messagePreview)}</blockquote>` : ''}
                     <a href="${escapeHtml(chatUrl)}" style="display:inline-block;margin-top:16px;padding:12px 24px;background:#059669;color:#fff;text-decoration:none;border-radius:8px;font-weight:600">
                         Ver mensaje

@@ -232,6 +232,49 @@ async function main() {
         assert.ok(/^Un usuario/.test(subject), `fallback esperado. Subject: ${subject}`);
     });
 
+    await runOne('[P8 REGRESIÓN SMOKE PO 2026-11-10 — doble punto] body NO debe contener ".." cuando el nombre termina en punto', async () => {
+        // Regresión del smoke del commit 0d1a4c8: el body decía "Tienes un
+        // nuevo mensaje de Camila F.." (doble punto) porque la plantilla
+        // agregaba un "." fijo después del nombre. Fix: sufijo condicional
+        // `senderNameDot = senderName.endsWith('.') ? '' : '.'`. Este test
+        // bloquea la regresión para los 2 casos: nombre con inicial formateada
+        // (Camila F.) y nombre_publico ya con punto (Constanza B.).
+        for (const [label, state_setup, expectedFragment] of [
+            ['usuarios_buscadores con nombre completo (produce "Camila F.")',
+                () => { state.bus = { nombre: 'Camila Figueroa Mendoza' }; },
+                'Camila F.'],
+            ['proveedor con nombre_publico literal "Constanza B."',
+                () => { state.prov = { nombre_publico: 'Constanza B.', nombre: 'Constanza', apellido_p: 'Beltrán' }; },
+                'Constanza B.'],
+            ['proveedor sin nombre_publico (produce "Eduardo C.")',
+                () => { state.prov = { nombre_publico: null, nombre: 'Eduardo', apellido_p: 'Cano' }; },
+                'Eduardo C.'],
+        ] as Array<[string, () => void, string]>) {
+            resetState();
+            state_setup();
+            const res = makeRes();
+            await handler(makeReq(), res);
+            const html: string = state.sentArgs[0].html;
+            assert.ok(html.includes(expectedFragment), `body debe contener '${expectedFragment}' — caso: ${label}`);
+            // La regresión clave: cero "..", punto seguido de punto.
+            assert.ok(!/\.\./.test(html), `body NO debe contener ".." (doble punto) — caso: ${label}. Fragmento HTML: ${html.substring(html.indexOf(expectedFragment) - 30, html.indexOf(expectedFragment) + 60)}`);
+        }
+    });
+
+    await runOne('[P8] nombre sin punto (ej. "Jorge") → body sí debe tener su punto propio final', async () => {
+        // Caso complementario: un nombre que NO termina en punto (1 token) SÍ
+        // debe recibir el punto de la plantilla. Sin este test, un fix mal
+        // hecho que siempre omita el punto dejaría el body sin puntuación.
+        resetState();
+        state.bus = { nombre: 'Jorge' };
+        const res = makeRes();
+        await handler(makeReq(), res);
+        const html: string = state.sentArgs[0].html;
+        assert.ok(html.includes('Jorge'), `body debe contener 'Jorge'. HTML fragmento: ${html.substring(0, 200)}`);
+        // El párrafo cierra con "Jorge</strong>." + cierre </p>.
+        assert.ok(html.includes('Jorge</strong>.'), `body debe cerrar con "Jorge</strong>." cuando el nombre no tiene punto propio. HTML: ${html.substring(html.indexOf('Jorge') - 10, html.indexOf('Jorge') + 50)}`);
+    });
+
     if (process.exitCode === 1) {
         console.error('\nFAIL: al menos un test falló.');
     } else {
