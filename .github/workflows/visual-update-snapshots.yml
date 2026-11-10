@@ -156,12 +156,45 @@ jobs:
           # Supabase Auth staging en paralelo — cuello de infra observado en
           # primer run del workflow (35031817315, 2026-09-15 22:38 UTC).
           # Los 14 snapshots del spec visual son secuenciales igual entre sí.
-          npx playwright test e2e/specs/visual/ --project=visual --update-snapshots --workers=1 || true
-          # El --update-snapshots hace que playwright genere/regenere los
-          # snapshots faltantes. Los tests fallan la primera vez porque no
-          # había baseline (comportamiento esperado) — || true captura ese
-          # exit code y no rompe el workflow. Los snapshots quedan escritos
-          # a disk, listos para el commit.
+          #
+          # Sprint estab-e2e-tokens (2026-11-10) — capturar salida completa
+          # para el guard P8 del step siguiente. `|| true` se mantiene acá
+          # porque `--update-snapshots` emite exit 1 cuando escribe snapshots
+          # nuevos (comportamiento intencional de Playwright, no fatal). El
+          # guard real de "corrió o no" lo hace el step `Verify snapshots
+          # regenerated` parseando la salida.
+          npx playwright test e2e/specs/visual/ --project=visual --update-snapshots --workers=1 2>&1 | tee /tmp/playwright-out.log || true
+
+      - name: Verify snapshots regenerated (P8 guard - no verde falso)
+        # Sprint estab-e2e-tokens (2026-11-10) — guard explícito contra el
+        # verde falso del workflow. Incidente origen (run 42870109001,
+        # 2026-11-10 17:56 UTC): setup `authenticate as proveedor` falló
+        # por timing race del token en localStorage, 14 specs `did not run`,
+        # el `|| true` del step anterior capturó el exit 1, y el workflow
+        # reportó `conclusion=success`. El upload-artifact subió las PNG
+        # viejas del commit base como si fueran nuevas (idénticas byte-a-byte
+        # verificadas con `cmp -s`). Falso verde = peor que rojo.
+        #
+        # Guard: parsear la salida de Playwright para contar specs que
+        # corrieron. Si el setup falló (0 passed o muchos did_not_run), este
+        # step falla loud → workflow rojo → nadie commitea PNG falsas.
+        #
+        # Threshold: el spec tiene ~14 tests entre viewports. Pedimos al
+        # menos 10 passed y menos de 3 did_not_run (margen para skips
+        # legítimos de baselineMissing durante bootstrap).
+        run: |
+          PASSED=$(grep -oE '^\s+[0-9]+\s+passed' /tmp/playwright-out.log | head -1 | grep -oE '[0-9]+' || echo "0")
+          DID_NOT_RUN=$(grep -oE '^\s+[0-9]+\s+did not run' /tmp/playwright-out.log | head -1 | grep -oE '[0-9]+' || echo "0")
+          FAILED=$(grep -oE '^\s+[0-9]+\s+failed' /tmp/playwright-out.log | head -1 | grep -oE '[0-9]+' || echo "0")
+          echo "=== Resumen: passed=$PASSED failed=$FAILED did_not_run=$DID_NOT_RUN ==="
+          if [ "$PASSED" -lt 10 ] || [ "$DID_NOT_RUN" -ge 3 ]; then
+            echo "FAIL: setup o specs no corrieron suficientes tests."
+            echo "  passed=$PASSED (mín 10), did_not_run=$DID_NOT_RUN (máx 2)"
+            echo "=== Últimas 40 líneas del log de Playwright ==="
+            tail -40 /tmp/playwright-out.log
+            exit 1
+          fi
+          echo "OK: $PASSED specs pasaron, snapshots regenerados."
 
       - name: Upload snapshots as artifact (siempre, para audit trail)
         uses: actions/upload-artifact@v4
