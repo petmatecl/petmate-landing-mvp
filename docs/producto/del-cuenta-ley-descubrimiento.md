@@ -251,3 +251,51 @@ Las siguientes columnas apuntan a users pero no aparecen en las queries de FK �
 ---
 
 **Fin del descubrimiento**. Listo para la sesión de 30 min.
+
+---
+
+## 9. Decisiones del PO (sesión producto 2026-09-23)
+
+Resultado de la sesión de 30 min con el PO sobre las 10 preguntas + 2 reglas nuevas que el descubrimiento no anticipó.
+
+### Respuestas a las 10 preguntas
+
+1. **Alcance**: **anonimización preservando registros de negocio**. Fundamento legal pendiente confirmación asesor (ver `docs/producto/del-cuenta-preguntas-asesor.md`).
+2. **Ventana de gracia**: **confirmación por correo con enlace de 24 h**, luego **ventana de gracia de 14 días** (no 30) con cancelación posible desde la cuenta. Cron diario ejecuta el borrado real al vencer los 14 días. **Durante la ventana el proveedor NO aparece en el catálogo** (el `estado` cambia a `'eliminado_pendiente'` desde el momento del click, antes del borrado real).
+3. **Reviews**: **anonimizar autor** (`nombre_autor = '(Usuario eliminado)'`, `usuario_id = NULL`), **conservar rating y comentario** como historial público del proveedor.
+4. **Cuenta doble**: **se elimina todo en un solo flujo** — un `auth.users` con perfil de tutor + proveedor elimina ambos en la misma request.
+5. **Consent logs**: **NO borrar la fila**. Conservar `document_version`, `timestamp` y `user_id` (UUID que ya no resuelve a persona por el anonimizado del perfil); **poner en NULL `ip_address` y `user_agent`**. Plazo de retención específico queda para el asesor legal.
+6. **Chat**: **NO borrar en el acto**. Conservar `conversations` y `messages` con `sender` anonimizado (nombre `'(Usuario eliminado)'`) durante **6 meses desde la última reserva entre las dos partes**; cron diario los borra después. **Requiere cambiar el CASCADE actual de `conversations.client_id/sitter_id` y `messages.sender_id` a SET NULL o equivalente** — cambio incluido en la migración del sprint.
+7. **Fotos Storage**: **borrar binarios en la misma transacción del endpoint** (no diferir a orphan-cleanup).
+8. **Auditoría**: **sí, tabla nueva `deletion_log`** con contadores por tabla en `data_summary` (JSON), cero PII.
+9. **Copy legal**: **borrador propio en español chileno tuteo**, revisión de asesor antes de habilitar en prod. Copy en `docs/producto/del-cuenta-copy.md` para que el PO lo lleve al asesor.
+10. **Timing**: **Tramo 2 (viaje del PO)**, después de `cue-1-fix`. PR abierto sin merge hasta el regreso del PO (2026-10-28).
+
+### Reglas nuevas que el descubrimiento no anticipó
+
+**Regla A — Bloqueo por reservas activas**: no se puede solicitar la eliminación si el user tiene reservas activas (como tutor O como proveedor). La UI lo explica y enlaza a `/mis-reservas` para cancelar o esperar a que se complete. Estados que cuentan como activos:
+
+| Rol | Estado | Alcance |
+|---|---|---|
+| tutor | `pendiente` | Reservas que aún no fueron aprobadas por el proveedor |
+| tutor | `confirmada` | Reservas confirmadas con `fecha_preferida` o `fecha_fin` futura respecto a `now()` |
+| proveedor | `pendiente` | Reservas pendientes de responder |
+| proveedor | `confirmada` | Reservas confirmadas con fecha futura |
+
+Estados que **NO** bloquean:
+- `cancelada`, `cancelada_proveedor`, `rechazada` — terminales.
+- `confirmada` con fecha pasada (`REALIZADA` / `VENCIDA` derivados en render-time) — historial de negocio, no requiere acción.
+
+**Regla B — CARNET-RETENCION** (ítem separado y ANTES de DEL-CUENTA-LEY en Tramo 2): `proveedores.foto_carnet` y `proveedores.foto_carnet_dorso` se **borran de Storage y se ponen en NULL** en dos casos:
+- **Al aprobar al proveedor** (transición `verificacion_estado` → `'aprobado'` en `components/Admin/ProveedorApprovalList.tsx:197-198`): el carnet cumplió su función, borrar inmediato.
+- **A los 30 días de la solicitud** si queda `'rechazado'` o abandonada (no revisada, sin acción del admin en 30 días).
+
+Motivo: minimización de datos. El carnet es el dato **más sensible** que guardamos (RUT + foto de identidad) y solo sirve para verificar identidad una vez. Sprint dedicado incluye limpieza única de las que hoy existen en prod:
+- SQL de verificación previa (contar cuántos proveedores con `verificacion_estado='aprobado'` tienen `foto_carnet` / `foto_carnet_dorso` populado).
+- Bloque de limpieza con `RETURNING` para evidencia.
+- Verificación posterior (conteo 0).
+- **Lista de paths Storage a borrar** — extraída de las URLs guardadas en BD, pasada al helper Storage con `.remove()`.
+
+**FKs faltantes del anexo B** entran en la misma migración del sprint DEL-CUENTA-LEY: `contactos.auth_user_id` y `preguntas.auth_user_id` con `ON DELETE SET NULL`.
+
+Ver kickoff detallado en [`docs/sprints/del-cuenta-ley.md`](../sprints/del-cuenta-ley.md).
