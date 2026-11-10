@@ -118,6 +118,51 @@ async function waitForStablePaint(page: Page) {
     await page.waitForTimeout(300);
 }
 
+// Sprint vis-bypass (2026-11-06) — bypass Vercel Deployment Protection para
+// las páginas públicas (storageState vacío = sin cookie `_vercel_jwt` previa).
+// Mismo patrón que `e2e/setup/authenticate.ts:33-37` y los otros specs sin
+// sesión que ya aplican bypass por query en el primer goto. El bug raíz que
+// este sprint cierra: el spec estuvo capturando la pantalla "Log in to Vercel"
+// del SSO durante ~52 días (desde G-3 seed 2026-09-15) sin que nadie lo
+// detectara — los baselines commiteados eran de la propia SSO y el test
+// pasaba por estabilidad del widget Vercel, no por estabilidad de la app.
+const BYPASS_TOKEN = process.env.PLAYWRIGHT_BYPASS ?? '';
+const BYPASS_QUERY = BYPASS_TOKEN
+    ? `?x-vercel-protection-bypass=${encodeURIComponent(BYPASS_TOKEN)}&x-vercel-set-bypass-cookie=samesitenone`
+    : '';
+
+/**
+ * Guardia P8 obligatoria pre-screenshot (vis-bypass 2026-11-06). Si la
+ * página capturó el SSO de Vercel Deployment Protection en vez de la app
+ * Pawnecta, el test falla loud con mensaje explícito. Sin esta guardia, un
+ * fallo del bypass queda silencioso y los baselines se regeneran con la
+ * SSO Vercel — el mismo bug que originó este sprint. Verifica dos señales
+ * positivas: (a) el logo Pawnecta (<img alt="Pawnecta">) del header está
+ * visible, (b) el <title> no empieza por "Log in to Vercel".
+ */
+async function assertPawnectaRendered(page: Page, pageLabel: string) {
+    const vercelSsoHeading = page.getByRole('heading', { name: /log in to vercel/i }).first();
+    const sawVercelSso = await vercelSsoHeading.isVisible().catch(() => false);
+    if (sawVercelSso) {
+        const title = await page.title();
+        throw new Error(
+            `[vis-bypass guardia P8] La página "${pageLabel}" capturó la pantalla ` +
+            `"Log in to Vercel" del SSO de Deployment Protection en vez de la app Pawnecta. ` +
+            `Verificar: (1) secret PLAYWRIGHT_BYPASS seteado y vigente en GitHub Secrets, ` +
+            `(2) BYPASS_QUERY incluido en el primer goto de este test, ` +
+            `(3) cookie _vercel_jwt emitida por Vercel en la primera redirect. ` +
+            `page.title()="${title}"`
+        );
+    }
+    // Señal positiva doble: logo del header con alt="Pawnecta" visible.
+    const logo = page.locator('header img[alt="Pawnecta"]').first();
+    await expect(
+        logo,
+        `[vis-bypass guardia P8] El logo Pawnecta del header no apareció en "${pageLabel}" dentro de 5s — ` +
+        `posible redirect SSO silente o fallo del bypass.`
+    ).toBeVisible({ timeout: 5_000 });
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // Público (sin auth) — 4 páginas × 2 viewports = 8 snapshots
 // ═══════════════════════════════════════════════════════════════════════════
@@ -125,28 +170,68 @@ async function waitForStablePaint(page: Page) {
 test.describe('visual público', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
+    // Sprint vis-bypass ajuste PO (2026-11-06) — inyectar el consent de cookies
+    // en localStorage ANTES de la primera navegación de cada test. Match exacto
+    // con el schema del helper useConsent (lib/useConsent.ts): clave
+    // `pawnecta-cookie-consent`, version=1, prefs analytics+marketing+timestamp.
+    // Con esto, el banner del CookieBanner no aparece (useConsent.hydrated=true
+    // + isSet=true → setView(null) → return null). El banner superior "Estamos
+    // construyendo Pawnecta" queda visible por diseño; solo el overlay inferior
+    // de cookies se evita.
+    test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try {
+                localStorage.setItem('pawnecta-cookie-consent', JSON.stringify({
+                    analytics: true,
+                    marketing: true,
+                    timestamp: '2026-11-06T00:00:00.000Z',
+                    version: 1,
+                }));
+            } catch { /* localStorage puede fallar en ciertos contextos — no bloqueante */ }
+        });
+    });
+
     for (const vp of VIEWPORTS) {
         test.describe(`viewport ${vp.name} ${vp.width}x${vp.height}`, () => {
             test.use({ viewport: { width: vp.width, height: vp.height } });
 
             test(`home (/)`, async ({ page }) => {
                 skipIfBaselineMissing(`home-${vp.name}.png`);
-                await page.goto('/');
+                await page.goto(`/${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `home (/) ${vp.name}`);
                 await expect(page).toHaveScreenshot(`home-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
             test(`explorar (/explorar)`, async ({ page }) => {
                 skipIfBaselineMissing(`explorar-${vp.name}.png`);
-                await page.goto('/explorar');
+                await page.goto(`/explorar${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
-                await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, SNAPSHOT_OPTS);
+                await assertPawnectaRendered(page, `explorar (/explorar) ${vp.name}`);
+                // Ajuste PO (2026-11-06): máscara sobre contador de resultados
+                // (`N resultado(s)`, cambia con el listing de staging) y grilla
+                // de cards (puede reordenarse entre runs). Layout, filtros y
+                // header se mantienen visibles para que el visual test siga
+                // detectando regresión real del shell de la página.
+                const countLocator = page.locator('p.text-slate-500.font-medium').filter({ hasText: /resultado/i }).first();
+                const gridLocator = page.locator('div.grid.gap-5.grid-cols-1.sm\\:grid-cols-2.xl\\:grid-cols-3').first();
+                // Verificación loud: si el selector se rompió por refactor UI,
+                // fail explícito en vez de mask silente de nada.
+                await expect(countLocator, 'Contador de resultados no visible — selector roto').toBeVisible({ timeout: 5_000 });
+                await expect(gridLocator, 'Grilla de cards no visible — selector roto').toBeVisible({ timeout: 5_000 });
+                await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, {
+                    ...SNAPSHOT_OPTS,
+                    mask: [countLocator, gridLocator],
+                });
             });
 
             test(`login (/login)`, async ({ page }) => {
                 skipIfBaselineMissing(`login-${vp.name}.png`);
-                await page.goto('/login');
+                await page.goto(`/login${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
+                await assertPawnectaRendered(page, `login (/login) ${vp.name}`);
+                // Ajuste PO (2026-11-06): foco inicial del campo email se
+                // mantiene como está. Cero máscara.
                 await expect(page).toHaveScreenshot(`login-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
@@ -166,9 +251,28 @@ test.describe('visual público', () => {
                 // que evita dependencia de listing anon.
                 skipIfBaselineMissing(`ficha-servicio-${vp.name}.png`);
                 const SEED_SERVICIO = 'c1000001-0000-4000-8000-000000000006';
-                await page.goto(`/servicio/${SEED_SERVICIO}`);
+                await page.goto(`/servicio/${SEED_SERVICIO}${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
-                await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, SNAPSHOT_OPTS);
+                await assertPawnectaRendered(page, `ficha-servicio (${SEED_SERVICIO}) ${vp.name}`);
+                // Ajuste PO (2026-11-06): máscara sobre contador de visitas
+                // (sube con cada request, VisitCounter con aria-label estable
+                // desde components/Shared/VisitCounter.tsx:39).
+                // Iter 2026-11-10 — la ficha renderea 2 variantes del
+                // VisitCounter con el mismo aria-label pero visibles en
+                // viewports distintos (mobile: linea sutil post-hero;
+                // desktop: sticky right `hidden lg:block`). Sin filtro por
+                // visibilidad, `.first()` apunta a la variante oculta del
+                // viewport actual y `toBeVisible` falla. Fix: filtrar por
+                // `:visible` pseudo-selector.
+                const visitasAll = page.locator('[aria-label*="visitas totales"]');
+                const visitasVisible = page.locator('[aria-label*="visitas totales"]:visible').first();
+                await expect(visitasVisible, 'Contador de visitas no visible — selector roto o service sin visitas').toBeVisible({ timeout: 5_000 });
+                // Mask se pasa sobre TODAS las instancias (display:none no
+                // emite overlay; el visible queda tapado).
+                await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, {
+                    ...SNAPSHOT_OPTS,
+                    mask: [visitasAll],
+                });
             });
         });
     }
