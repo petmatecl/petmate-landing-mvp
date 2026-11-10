@@ -7,7 +7,7 @@ import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
-  ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users, IdCard, ClipboardCheck, Star,
+  ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users,
   BadgeCheck, Sparkles
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import SearchBar from "../components/Home/SearchBar";
 import StepCard from "../components/Home/StepCard";
 import HomeVisitorCounter from "../components/Home/HomeVisitorCounter";
-import TestimonialCard from "../components/Home/TestimonialCard";
 import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 
 // ─── PrelaunchDemandCapture ─────────────────────────────────────────────────
@@ -53,7 +52,7 @@ function PrelaunchDemandCapture() {
       <div className="max-w-2xl mx-auto text-center">
         <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-4">Sé el primero en enterarte</h2>
         <p className="text-slate-600 max-w-xl mx-auto mb-8">
-          Estamos activando proveedores verificados en cada categoría y comuna. Deja tu correo y te avisamos cuando haya opciones disponibles cerca tuyo.
+          Estamos activando proveedores en cada categoría y comuna. Deja tu correo y te avisamos cuando haya opciones disponibles cerca tuyo.
         </p>
 
         {done ? (
@@ -245,13 +244,25 @@ function FranjaDual({
             {combined.map((s: any, i: number) => (
               <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
             ))}
-            {combined.length < 4 && Array.from({ length: 4 - combined.length }).map((_, i) => (
+            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
+                slug ausente, cero relleno genérico. Antes el loop i<4 con
+                i%2 generaba 2 placeholders del mismo slug cuando combined
+                tenía pocos items, duplicando el CTA (ej. 2× "¿Eres
+                veterinario a domicilio?" en la franja Veterinario+Peluquería). */}
+            {serviciosA.length === 0 && (
               <ServicePlaceholderCard
-                key={`placeholder-${i}`}
-                categoriaSlug={i % 2 === 0 ? slugA : slugB}
+                key={`placeholder-${slugA}`}
+                categoriaSlug={slugA}
                 variant="compact"
               />
-            ))}
+            )}
+            {serviciosB.length === 0 && (
+              <ServicePlaceholderCard
+                key={`placeholder-${slugB}`}
+                categoriaSlug={slugB}
+                variant="compact"
+              />
+            )}
           </div>
         </div>
       </div>
@@ -288,13 +299,11 @@ function FranjaCategoria({
             {visible.map((s: any, i: number) => (
               <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
             ))}
-            {visible.length < 4 && Array.from({ length: 4 - visible.length }).map((_, i) => (
-              <ServicePlaceholderCard
-                key={`placeholder-${i}`}
-                categoriaSlug={categoria.slug}
-                variant="compact"
-              />
-            ))}
+            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
+                categoría. FranjaCategoria se retorna null arriba si
+                visible=0; si visible≥1 ya hay al menos 1 real del slug,
+                entonces cero placeholder (antes había hasta 3 repetidos
+                del mismo slug rellenando al slot de 4). */}
           </div>
         </div>
       </div>
@@ -333,27 +342,20 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
     estado: ((categoryCounts[cat.slug] ?? 0) > 0 ? 'activa' : 'proxima') as 'activa' | 'proxima',
   }));
 
-  const testimonios = [
-    { nombre: "Valentina M.", ciudad: "Providencia, Santiago", mascota: "Border Collie", verificado: false, texto: "Encontré a la cuidadora de Nico en menos de diez minutos. Lo que más me convenció fue poder ver las reseñas y hablar directamente con ella antes de dejar a mi perro." },
-    { nombre: "Rodrigo F.", ciudad: "Ñuñoa, Santiago", mascota: "Gato Maine Coon", verificado: false, texto: "Necesitaba alguien de confianza para Miso mientras viajaba. Pawnecta me permitió comparar opciones en mi comuna y elegir con calma. La comunicación fue directa y sin complicaciones." },
-    { nombre: "Catalina R.", ciudad: "Las Condes, Santiago", mascota: "Golden Retriever", verificado: false, texto: "Me tranquiliza saber que los proveedores están verificados. Encontré paseador para Luna en el mismo barrio y quedé muy conforme con el servicio." },
-    { nombre: "Ignacio V.", ciudad: "Maipú, Santiago", rol: "Paseador y proveedor", verificado: false, texto: "Publiqué mi servicio en menos de 20 minutos. Desde el primer día empecé a recibir consultas de dueños de mi misma comuna. Es la forma más simple que he encontrado de crecer." }
-  ];
-
   return (
     <div className="min-h-screen bg-white">
       <Head>
         <title>Pawnecta — Marketplace de servicios para mascotas</title>
-        <meta name="description" content="Encuentra cuidadores, paseadores, peluqueros y veterinarios verificados cerca de ti. Busca por comuna, compara perfiles y contacta directo. Gratis en lanzamiento." />
+        <meta name="description" content="Encuentra paseadores, cuidadores y veterinarios cerca de ti. Busca por comuna y contacta directo. Gratis en lanzamiento." />
         <link rel="canonical" href="https://pawnecta.com" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://pawnecta.com" />
         <meta property="og:title" content="Pawnecta — Marketplace de servicios para mascotas" />
-        <meta property="og:description" content="Encuentra cuidadores, paseadores y veterinarios verificados cerca de ti." />
+        <meta property="og:description" content="Encuentra paseadores, cuidadores y veterinarios cerca de ti." />
         <meta property="og:image" content="https://pawnecta.com/og-image.jpg" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Pawnecta — Marketplace de servicios para mascotas" />
-        <meta name="twitter:description" content="Proveedores verificados en tu comuna." />
+        <meta name="twitter:description" content="Proveedores en tu comuna." />
         <meta name="twitter:image" content="https://pawnecta.com/og-image.jpg" />
         <script
           type="application/ld+json"
@@ -448,13 +450,13 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
             {[
               {
                 Icon: ShieldCheck,
-                titulo: 'Verificación con RUT',
-                desc: 'Cada proveedor confirma su identidad antes de publicar',
+                titulo: 'Identidad verificable',
+                desc: 'Los proveedores pueden verificar su identidad con RUT y mostrar una insignia en su ficha',
               },
               {
                 Icon: BadgeCheck,
-                titulo: 'Revisión por Pawnecta',
-                desc: 'Revisamos cada perfil antes de aprobarlo',
+                titulo: 'Sin comisión en el lanzamiento',
+                desc: 'No cobramos comisión; lo que acuerdas con el proveedor queda entre ustedes',
               },
               {
                 Icon: MessageCircle,
@@ -579,58 +581,18 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <StepCard paso={1} titulo="Busca por servicio y comuna" descripcion="Filtra por el servicio que necesitas y encuentra proveedores cerca de ti" Icon={Search} variante="light" />
-          <StepCard paso={2} titulo="Compara perfiles y reseñas" descripcion="Revisa la experiencia, fotos y evaluaciones de cada proveedor" Icon={FileText} variante="light" />
+          <StepCard paso={2} titulo="Compara perfiles y precios" descripcion="Revisa la experiencia, fotos y precios de cada proveedor" Icon={FileText} variante="light" />
           <StepCard paso={3} titulo="Contacta y coordina directo" descripcion="Escribe al proveedor por el chat interno y coordina los detalles" Icon={MessageCircle} variante="light" />
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECCIÓN 5 — CONFIANZA / TESTIMONIOS — sin cambios
-      ═══════════════════════════════════════════ */}
-      {stats.proveedores >= 1 ? (
-        <section aria-label="Verificación de proveedores y testimonios" className="py-20 px-4 sm:px-6 lg:px-8 bg-white border-b border-slate-200">
-          <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-16">
-              <h2 className="text-3xl font-semibold text-slate-900 tracking-tight mb-10">Proveedores que puedes conocer</h2>
-              <div className="flex flex-col md:flex-row justify-center items-start md:items-center gap-8 md:gap-12 bg-slate-900 p-8 md:px-12 rounded-3xl mb-12 max-w-5xl mx-auto text-left md:text-center">
-                <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <IdCard className="w-8 h-8 text-accent-500 mb-3" />
-                  <h4 className="font-semibold text-white mb-2">Verificación de identidad</h4>
-                  <p className="text-sm text-slate-300">RUT validado y revisión manual del equipo Pawnecta antes de activar cada perfil</p>
-                </div>
-                <div className="hidden md:block w-px h-24 bg-slate-700" />
-                <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <ClipboardCheck className="w-8 h-8 text-accent-500 mb-3" />
-                  <h4 className="font-semibold text-white mb-2">Revisión del equipo</h4>
-                  <p className="text-sm text-slate-300">El equipo de Pawnecta revisa y aprueba cada solicitud</p>
-                </div>
-                <div className="hidden md:block w-px h-24 bg-slate-700" />
-                <div className="flex flex-col items-start md:items-center md:flex-1">
-                  <Star className="w-8 h-8 text-accent-500 mb-3" />
-                  <h4 className="font-semibold text-white mb-2">Reseñas reales</h4>
-                  <p className="text-sm text-slate-300">Solo dueños que contactaron al proveedor pueden dejar evaluaciones</p>
-                </div>
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {testimonios.map((testimonio, idx) => (
-                <TestimonialCard key={`testimonio-${idx}`} {...testimonio} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : (
-        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-slate-50 border-b border-slate-200">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-2xl font-semibold text-slate-900 tracking-tight mb-4">Únete a nuestra red de proveedores</h2>
-            <p className="text-slate-600 mb-8">Sé de los primeros proveedores en ofrecer tus servicios en tu comuna</p>
-            <Link href="/register?rol=proveedor"
-              className="inline-flex items-center justify-center h-12 rounded-2xl bg-accent-600 hover:bg-accent-700 px-8 text-base font-semibold text-white shadow-sm transition-colors">
-              Registrarse como proveedor
-            </Link>
-          </div>
-        </section>
-      )}
+      {/* Sprint HOME-VERDAD (2026-11-10) — sección "Proveedores que puedes
+          conocer" + condicional stats + "Únete a nuestra red de proveedores"
+          eliminadas enteras por decisión PO: contenía afirmaciones falsas
+          (verificación obligatoria / revisión manual del equipo / reseñas
+          reales) + testimonios ficticios. El CTA de proveedores sigue
+          cubierto por la sección "Ofrece tus servicios en Pawnecta" más
+          abajo. */}
 
       {/* ═══════════════════════════════════════════
           SECCIÓN 6 — CÓMO FUNCIONA (PROVEEDORES) — sin cambios
@@ -663,7 +625,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
         <div className="max-w-7xl mx-auto text-center relative">
           <h2 className="text-4xl font-semibold text-slate-900 mb-4 tracking-tight">¿Buscas un servicio para tu mascota?</h2>
-          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores verificados en tu comuna ahora.</p>
+          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores en tu comuna ahora.</p>
           <button
             onClick={() => router.push('/explorar')}
             className="inline-flex items-center justify-center h-14 rounded-2xl bg-accent-600 hover:bg-accent-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
