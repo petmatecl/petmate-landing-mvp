@@ -257,18 +257,21 @@ test.describe('visual público', () => {
                 // Ajuste PO (2026-11-06): máscara sobre contador de visitas
                 // (sube con cada request, VisitCounter con aria-label estable
                 // desde components/Shared/VisitCounter.tsx:39).
-                const visitasLocator = page.locator('[aria-label*="visitas totales"]');
-                // La ficha mobile tiene el VisitCounter oculto bajo el hero;
-                // la desktop lo muestra en el sticky right. En ambos viewports
-                // existe el elemento con aria-label — es el mismo componente
-                // renderizado condicional por CSS lg:block. Usamos `.first()`
-                // para evitar strict mode violation si hay 2 instancias (mobile
-                // + desktop variants en el DOM) y verificamos al menos uno visible.
-                const visitasFirst = visitasLocator.first();
-                await expect(visitasFirst, 'Contador de visitas no visible — selector roto o service sin visitas').toBeVisible({ timeout: 5_000 });
+                // Iter 2026-11-10 — la ficha renderea 2 variantes del
+                // VisitCounter con el mismo aria-label pero visibles en
+                // viewports distintos (mobile: linea sutil post-hero;
+                // desktop: sticky right `hidden lg:block`). Sin filtro por
+                // visibilidad, `.first()` apunta a la variante oculta del
+                // viewport actual y `toBeVisible` falla. Fix: filtrar por
+                // `:visible` pseudo-selector.
+                const visitasAll = page.locator('[aria-label*="visitas totales"]');
+                const visitasVisible = page.locator('[aria-label*="visitas totales"]:visible').first();
+                await expect(visitasVisible, 'Contador de visitas no visible — selector roto o service sin visitas').toBeVisible({ timeout: 5_000 });
+                // Mask se pasa sobre TODAS las instancias (display:none no
+                // emite overlay; el visible queda tapado).
                 await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, {
                     ...SNAPSHOT_OPTS,
-                    mask: [visitasLocator],
+                    mask: [visitasAll],
                 });
             });
         });
