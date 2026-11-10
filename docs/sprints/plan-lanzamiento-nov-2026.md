@@ -67,130 +67,114 @@ Cierre Tramo 2: cero hotfix ejecutado. Cero merge. Los PRs #85, #87,
 
 ## Tramo 3 — 2026-11-05 al 2026-11-18 (regreso PO, ejecución pre-launch)
 
-**Decisiones de alcance (PO 2026-11-05)**:
+**Decisiones de alcance (PO 2026-11-05, ampliado 2026-11-10)**:
 
-- **Críticos para 2026-11-18**: #85 cue-1-fix + triage CUE-1, merges
-  ordenados de #87/#84/#77, SQL RPC-C lote 3, smokes golden path.
-- **Objetivo (si el tiempo alcanza)**: DEL-CUENTA-LEY código (corte duro
-  — ver abajo). Si es chico adicional: SHARE-PROV. Parche mínimo de
-  observabilidad para `Error: Rejected` (captureException + contexto).
+- **Críticos para 2026-11-18**: merge `vis-bypass` → cola secuencial
+  `#92 → #87 → #84 → #77`, SQL RPC-C lote 3 (lo ejecuta el PO), parche
+  observabilidad `Error: Rejected`, smokes golden path proveedor / tutor
+  / admin, revalidación Lighthouse + DMARC pre-freeze.
+- **Objetivo (si alcanza)**: SHARE-PROV completo (0.5-1 día), fixes
+  bloqueantes de Lighthouse según reporte del lunes 16 (correrla hoy
+  martes 10 post-merge vis-bypass — no se corrió el fin de semana).
+  Si sobra margen: bypass del spec `visits-doble/idempotencia-24h.spec.ts`
+  (deuda hallada en vis-bypass §3, misma clase de bug que vis-bypass
+  solo que sin assertion visual — pasa silencioso).
 - **Post-lanzamiento (semana 19-30 noviembre o después)**:
-  - **CARNET-RETENCION** completo (sale del scope de lanzamiento).
+  - **CARNET-RETENCION** completo.
+  - **DEL-CUENTA-LEY código** completo (actualización 2026-11-10 PO:
+    sale del scope del lanzamiento 18-11, se ejecuta dentro del plazo
+    legal de la Ley 21.719 que entra en vigencia diciembre 2026). PR
+    #84 `del-cuenta-docs` igual se mergea en la cola Tramo 3 para
+    aterrizar el descubrimiento técnico + copy + reglas A/B definidos.
   - BUTTON-UNIF código.
   - AUTH-LINK-PROPIO.
-  - #86 supajs-upgrade (post-launch, cero merge antes del 18-11).
+  - #86 supajs-upgrade (cero merge antes del 18-11).
   - SENTRY-TOAST completo (40 catches pendientes de `captureException`).
 
-### Corte duro DEL-CUENTA-LEY
+### Precondición de SQL irreversible
 
-Si el **viernes 2026-11-13** el PR de DEL-CUENTA-LEY no tiene (a) 5/5
-checks verdes, (b) QA del PO aprobada sobre el preview, entonces el
-sprint **se diifere a la semana 19-30 noviembre** (post-lanzamiento,
-dentro del plazo legal de la Ley 21.719 vigente desde diciembre 2026).
-
-**Cero migración grande el lunes 16** si el corte duro aplica. El lunes
-16 queda para smokes golden path + operativos.
-
-### Precondición de migraciones grandes y SQL irreversible
-
-Toda migración grande (DEL-CUENTA-LEY, cambio de CASCADE/SET NULL,
-columnas nuevas con backfill) y todo SQL irreversible en prod:
-**Supabase Pro activo + backup verificado**. Supabase Pro se activa
-antes del lunes 2026-11-09 (acción del PO durante el fin de semana).
-Sin Pro activo + backup verificado el lunes por la mañana, los sprints
-que requieren migración grande quedan en hold.
+Todo SQL irreversible en prod (RPC-C lote 3 REVOKE + lo que aparezca):
+**Supabase Pro activo + backup verificado**. Supabase Pro ya se activó
+el fin de semana del 07-08 por el PO (precondición original para
+DEL-CUENTA-LEY). Aplica también al Lote 3 y a cualquier migración
+futura del plan.
 
 ### Plan día a día
 
-**Jueves 2026-11-05** (hoy)
-- Cierre de #72 y #69 sin merge con comentario.
-- Rebase #85 sobre main (verificado que ya estaba al día — no se forzó push).
-- Reporte al PO: #85 con 5/5 verde + preview URL para QA (2 tabs 5 min + logout).
-- Ajustes a este plan + BACKLOG.md dentro de PR #77.
+**Jueves 2026-11-05 (regreso PO del viaje) — EJECUTADO**
+- Cierre de #72 y #69 sin merge.
+- Rebase + merge #85 (`cue-1-fix` → `72afefb`) tras QA del PO en preview
+  (15:30 CLT con `acanocts@gmail.com` + `acanocts+tutor@gmail.com`). Tag
+  anotado `cue-1-prod-20261106` creado sobre `72afefb` (deploy prod
+  jueves ~15:40 CLT).
+- Apertura PR #92 (`tuteo-rule` — regla anti-voseo expandida + nota
+  cuenta `canocortes@gmail.com` staging).
+- Diagnóstico bug visual descubierto en intento de merge #77 → GO opción A.
 
-**Viernes 2026-11-06**
-- Tras OK de QA del PO → **merge #85** + tag `cue-1-prod-20261106`.
-- Arranque **ventana de observación CUE-1 48-72 h**: query Sentry cada
-  24 h sobre events `user_context_stuck` / `hydrate_exhausted`,
-  agrupados por `user.id`, filtrando los conocidos (`aff2a90d`,
-  `0c2ab509`, cuentas E2E). Reporte diario al PO.
-- **Rebase #87** (button-unif-doc) sobre main + merge tras checks verdes. Docs-only, cero riesgo.
-- **Rebase #77** (auth-mail-phish) sobre main. Confirmación visual con
-  el PO que los 6 templates docs del PR = los 6 aplicados en Supabase
-  (comparación side-by-side `docs/auth/email-templates/*.md` ↔
-  Dashboard). Tras OK → merge.
-- **Rebase #84** (del-cuenta-docs) sobre main + merge tras checks verdes.
-  Habilita el arranque del código DEL-CUENTA-LEY (precondición
-  descubrimiento mergeado).
+**Viernes 2026-11-06 — EJECUTADO**
+- Primer reporte ventana CUE-1 (17 h 35 min desde deploy 72afefb): 0
+  events `user_context_stuck`, 0 events `hydrate exhausted`. Método
+  validado con positivo conocido.
+- Sprint `vis-bypass` abierto (PR #93): fix spec + guardia P8 + acta +
+  workflow `visual-update-snapshots` con input `artifact_only`.
+- Dispatch inicial del workflow + review de 8 PNGs iniciales por el PO.
+- Aprobación con 4 ajustes para baselines definitivas.
 
 **Sábado 2026-11-07 — Domingo 2026-11-08**
-- Ventana CUE-1 en observación (24 h y 48 h de los checkpoints).
-  Reporte breve el sábado + domingo.
-- **PO**: activación Supabase Pro + backup verificado (precondición
-  lunes).
-- **Auditor**: medición Lighthouse **solo lectura** sobre prod actual
-  (home, explorar, ficha de servicio, perfil proveedor, dashboard
-  proveedor, mis-reservas). Reporte entregado al PO el lunes 09
-  mañana con hallazgos priorizados.
-- Si cero events CUE-1 con `user.id` nuevo → cerrar como ruido del
-  stale closure + clasificación vuelve a CONVIENE.
-- Si aparecen events nuevos → kickoff investigación aparte, ajuste del
-  plan día a día en el acto.
+- PO activa Supabase Pro + backup verificado.
+- Lighthouse **no corrida** (se pospone a hoy martes 10 post-merge
+  vis-bypass).
 
-**Lunes 2026-11-09**
-- Verificación: Supabase Pro activo + backup verificado. Sin eso, los
-  frentes con migración grande quedan en hold y se replanifica.
-- Reporte Lighthouse al PO → agendar fixes bloqueantes dentro del tramo.
-- **Arranque DEL-CUENTA-LEY código**:
-  - Verificación previa de columnas afectadas contra
-    `information_schema` + `pg_constraint`.
-  - Migración grande (`deletion_log` + enum `'eliminado_pendiente'` +
-    `'eliminado'` en `proveedores.estado` + RPC `buscar_servicios`
-    filter + `conversations.{client,sitter}_id` CASCADE → SET NULL +
-    `messages.sender_id` idem + FKs nuevas `contactos.auth_user_id` y
-    `preguntas.auth_user_id` SET NULL + columna
-    `conversations.deleted_participant_at`).
-- SQL **RPC-C Lote 3** en prod (bloque listo, 15 min + smoke).
-- **Parche Error: Rejected** (1-2 h) — commit propio en rama corta, PR
-  con 5/5 verdes, merge tras QA.
+**Lunes 2026-11-09 — Martes 2026-11-10 (hoy)**
+- Aplicación de los 4 ajustes al spec `visual/paginas-clave.spec.ts`:
+  consent inyectado en `beforeEach`, máscara contador visitas ficha,
+  máscara contador resultados + grilla explorar, login sin máscara.
+  Commit `ec2f9f9` + corrección fecha acta `31f5f55`.
+- Dispatch segundo workflow (run `42812265005`, `artifact_only=true`)
+  para regenerar baselines definitivas sobre el commit nuevo.
+- Sweep final CUE-1 (ventana completa jueves 05 15:40 CLT → martes 10):
+  6 events NEXTJS-7 todos `(no user)` anónimos + 0 events NEXTJS-5. Cero
+  usuarios reales desconocidos → **CUE-1 CERRADO como resuelto por el
+  watchdog fix #85**. Clasificación formal baja a CONVIENE (ítem
+  `cue-1-mobile-toast` post-lanzamiento sigue abierto, no bloquea).
+- **Hoy restante martes 10 + miércoles 11**:
+  - Entrega 8 PNGs nuevas al PO + GO commit + merge PR #93 vis-bypass.
+  - **Cola secuencial estricta** (un PR en CI a la vez):
+    1. #92 `tuteo-rule` (rebase + rerun si quedó cancelado por
+       concurrency + merge).
+    2. #87 `button-unif-doc` (rebase + merge).
+    3. #84 `del-cuenta-docs` (rebase + merge — aterriza descubrimiento
+       técnico + reglas A/B + copy; el código del borrado va a
+       post-lanzamiento).
+    4. #77 `auth-mail-phish` (rebase + confirmación visual templates +
+       merge).
+  - SQL **RPC-C Lote 3** en prod (bloque entregado, lo ejecuta el PO
+    directo en Studio prod).
+  - **Parche Error: Rejected** (1-2 h, rama corta propia): fortalecer
+    `isSwRegisterRejection` + agregar `Sentry.captureException` con
+    tags `subsystem: service-worker, phase: register` deduplicado en
+    el listener `unhandledrejection` de `instrumentation-client.ts`.
+  - **Lighthouse** solo-lectura sobre prod: home, explorar, ficha de
+    servicio, perfil proveedor, dashboard proveedor, mis-reservas.
+    Entrega hoy post-merge vis-bypass con bloqueantes priorizados.
 
-**Martes 2026-11-10**
-- Si CUE-1 sigue sin events reales nuevos → clasificación formal
-  cerrada.
-- DEL-CUENTA-LEY: endpoint `pages/api/user/eliminar-cuenta.ts` (POST
-  solicitud + GET confirmación + POST cancelación).
-- Fixes Lighthouse bloqueantes identificados en el reporte del lunes.
-
-**Miércoles 2026-11-11**
-- DEL-CUENTA-LEY: UI `/usuario` y `/proveedor` con Regla A (bloqueo por
-  reservas activas) + banners de estado.
-- 4 templates email (`AccountDeletion{Requested,Confirmed,Completed,Cancelled}Email.tsx`).
-
-**Jueves 2026-11-12**
-- DEL-CUENTA-LEY: fase 4 del endpoint (borrado real anonimizado en
-  transacción única, pasos 1-12 del kickoff).
-- Cron diario `procesar-eliminaciones-pendientes.ts` + cron chat 6
-  meses.
-
-**Viernes 2026-11-13 — Corte duro DEL-CUENTA-LEY**
-- Tests unitarios (`lib/eliminar-cuenta.test.ts`) + e2e
-  (`e2e/specs/del-cuenta-ley/`).
-- PR DEL-CUENTA-LEY con 5/5 verdes.
-- **Si el PR no está 5/5 verde + QA del PO aprobada en preview al
-  cerrar el viernes** → corte duro activo: DEL-CUENTA-LEY se diifere a
-  semana 19-30 noviembre. Lunes 16 queda para smokes + operativos.
-- SHARE-PROV se evalúa recién después de este corte (si DEL-CUENTA-LEY
-  cerró viernes + sobra margen).
+**Jueves 2026-11-12 — Viernes 2026-11-13**
+- **SHARE-PROV** completo (WhatsApp + copiar enlace + share nativo +
+  OG tags + evento GA4, ~0.5-1 día).
+- **Fixes bloqueantes de Lighthouse** identificados en el reporte del
+  martes 10.
+- Si sobra margen: **bypass del spec `visits-doble/idempotencia-24h.spec.ts`**
+  (hallazgo colateral del acta vis-bypass §3 — captura SSO Vercel pero
+  pasa silente porque solo lee contador BD).
 
 **Sábado 2026-11-14 — Domingo 2026-11-15**
-- Buffer. Si SHARE-PROV aprobado como objetivo → PR + checks + QA +
-  merge durante el sábado.
+- Buffer.
 - Revisión de reportes DMARC acumulados en `dmarc-reports@pawnecta.com`
-  (Zoho). Decidir con el PO si se sube `_dmarc.pawnecta.com` a
-  `p=reject` antes del freeze del martes.
+  (Zoho). Decisión PO sobre subir `_dmarc.pawnecta.com` a `p=reject`
+  antes del freeze del martes.
 
-**Lunes 2026-11-16 — Smokes + operativos**
-- **Smokes golden path** (día completo):
+**Lunes 2026-11-16 — Smokes golden path completos**
+- Día completo de smokes end-to-end en prod:
   - Proveedor: registro → perfil → publicar servicio → agenda F1/F2 →
     recibir solicitud → confirmar.
   - Tutor: búsqueda → ficha → reserva F1 → reserva F2 → cancelación →
@@ -203,13 +187,11 @@ que requieren migración grande quedan en hold.
   - Nicole cuenta vieja (decisión consolidar o preservar).
   - 5 proveedoras reactivadas.
 
-**Martes 2026-11-17 — Freeze**
+**Martes 2026-11-17 — Revalidación + freeze**
 - **Mañana**: revalidación Lighthouse (solo revalida los targets de los
   fixes aplicados). Cero medición nueva — solo confirmación que las
   mejoras tomaron efecto.
-- DMARC: aplicar `p=reject` si los reportes acumulados vienen limpios
-  (decisión PO del fin de semana).
-- Ventana CUE-1 cierra formalmente (observación de 10 días post-#85).
+- DMARC: aplicar `p=reject` si los reportes acumulados vienen limpios.
 - **16:00 CLT**: **freeze pre-launch**. Cero merge entre freeze y
   lanzamiento salvo hotfix por Sentry alerta real.
 - Checklist final de lanzamiento (archivo nuevo
@@ -219,7 +201,7 @@ que requieren migración grande quedan en hold.
 
 **Miércoles 2026-11-18 — Lanzamiento**
 - Checklist de lanzamiento ejecutado punto por punto con evidencia.
-- Comunicación tuya (canales que decidas).
+- Comunicación del PO (canales que decida).
 - Monitoreo activo primeras 4 h: Sentry + Vercel logs + Supabase
   dashboard.
 
@@ -235,8 +217,11 @@ que requieren migración grande quedan en hold.
   con > 30 días; para `pendiente` > 30 días **notifica al admin**
   en vez de borrar, para evitar que se pierda un carnet en revisión
   pendiente).
-- **DEL-CUENTA-LEY** (si el corte duro del viernes 13-11 aplica —
-  dentro del plazo legal de la Ley 21.719, vigencia diciembre 2026).
+- **DEL-CUENTA-LEY código** (decisión PO 2026-11-10: sale del scope de
+  lanzamiento, se ejecuta la semana 19-30 noviembre dentro del plazo
+  legal de la Ley 21.719, vigencia diciembre 2026). El PR #84
+  `del-cuenta-docs` igual se mergea en la cola Tramo 3 para aterrizar
+  el descubrimiento técnico + copy + reglas A/B definidos pre-regreso.
 - **BUTTON-UNIF** código (rama de implementación sobre #87 docs ya
   mergeado).
 - **AUTH-LINK-PROPIO**.
@@ -247,21 +232,24 @@ que requieren migración grande quedan en hold.
 
 ---
 
-## Riesgos que miden contra el 18-11
+## Riesgos que miden contra el 18-11 (actualizado 2026-11-10)
 
-1. **CUE-1 destapa bug real** post-merge #85 (users distintos del PO
-   con `user.id` en Sentry). Mitigación: DEL-CUENTA-LEY código pasa a
-   semana 19-30, se ganan 3 días hábiles para investigar.
-2. **Supabase Pro + backup no verificado al lunes 09-11 mañana**.
-   Mitigación: DEL-CUENTA-LEY no arranca; se replanifica la semana en
-   el acto.
-3. **Smokes golden path revelan regresión del tren post-viaje**.
+1. **CUE-1 reabre** si aparece `user.id` nuevo. **Estado actual 2026-11-10**:
+   sweep final de la ventana jueves 05 15:40 CLT → martes 10 arrojó 6 events
+   `user_context_stuck` todos `(no user)` anónimos + 0 events `hydrate_exhausted`
+   = cero usuarios reales desconocidos. CUE-1 **cerrado como resuelto**
+   por el watchdog fix #85. Riesgo baja a observación pasiva.
+2. **Smokes golden path revelan regresión del tren post-viaje**.
    Mitigación: lunes 16 es el día de smokes. Bug blocker → se pospone
    al respaldo miércoles 2026-11-25.
-4. **Lighthouse revela regresión de performance severa** (LCP > 3s
-   móvil). Mitigación: fixes se agendan con la información del lunes
-   09; si son más grandes que lo estimado, los bloqueantes se
-   diifieren a post-launch.
+3. **Lighthouse revela regresión de performance severa** (LCP > 3s
+   móvil). Mitigación: medición hoy martes 10 post-merge vis-bypass +
+   fixes bloqueantes agendados en la ventana jueves 12 / viernes 13; si
+   son más grandes que lo estimado, los bloqueantes se diifieren a
+   post-launch y se reevalúa si bloquean el 18-11.
+4. **Cola de merges cae por CI-CONCURRENCY durante la ejecución**
+   (vis-bypass, #92, #87, #84, #77). Mitigación: secuencia estricta un
+   PR en CI a la vez (regla PO), evidencia CI-CONCURRENCY ya registrada.
 
 ---
 
