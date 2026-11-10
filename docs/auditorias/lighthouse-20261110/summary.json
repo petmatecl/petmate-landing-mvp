@@ -1,0 +1,243 @@
+[
+  {
+    "page": "home",
+    "form": "desktop",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:14:12.778Z",
+    "scores": {
+      "perf": 86,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 2485.0559999999996,
+      "fcp_ms": 481.552,
+      "cls": 0,
+      "tbt_ms": 0,
+      "tti_ms": 2485.0559999999996,
+      "si_ms": 1213.747774572436
+    },
+    "opportunities": [
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 0
+      }
+    ]
+  },
+  {
+    "page": "home",
+    "form": "mobile",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:14:57.424Z",
+    "scores": {
+      "perf": 88,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 3988.043,
+      "fcp_ms": 1048.0410000000002,
+      "cls": 0,
+      "tbt_ms": 28,
+      "tti_ms": 5074.8419,
+      "si_ms": 1238.364865689659
+    },
+    "opportunities": [
+      {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "savings_ms": 160
+      },
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 160
+      }
+    ]
+  },
+  {
+    "page": "explorar",
+    "form": "desktop",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:14:29.075Z",
+    "scores": {
+      "perf": 75,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 7536.665999999999,
+      "fcp_ms": 269.116,
+      "cls": 0,
+      "tbt_ms": 0,
+      "tti_ms": 7548.9145,
+      "si_ms": 818.3942417607465
+    },
+    "opportunities": [
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 100
+      },
+      {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "savings_ms": 0
+      }
+    ]
+  },
+  {
+    "page": "explorar",
+    "form": "mobile",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:15:10.881Z",
+    "scores": {
+      "perf": 70,
+      "a11y": 90,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 7393.9519999999975,
+      "fcp_ms": 810.025,
+      "cls": 0,
+      "tbt_ms": 280.0000000000001,
+      "tti_ms": 7523.991699999998,
+      "si_ms": 2244.2059126850663
+    },
+    "opportunities": [
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 170
+      },
+      {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "savings_ms": 0
+      }
+    ]
+  },
+  {
+    "page": "ficha-servicio",
+    "form": "desktop",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:21:54.342Z",
+    "scores": {
+      "perf": 70,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 4846.207999999998,
+      "fcp_ms": 305.572,
+      "cls": 0.11185810187734496,
+      "tbt_ms": 0,
+      "tti_ms": 4846.207999999999,
+      "si_ms": 1993.818203966248
+    },
+    "opportunities": [
+      {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "savings_ms": 0
+      },
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 0
+      }
+    ]
+  },
+  {
+    "page": "ficha-servicio",
+    "form": "mobile",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:22:11.192Z",
+    "scores": {
+      "perf": 56,
+      "a11y": 92,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 40398.477,
+      "fcp_ms": 890.1329999999999,
+      "cls": 0,
+      "tbt_ms": 596.9999999999999,
+      "tti_ms": 40398.477,
+      "si_ms": 5159.9952293059505
+    },
+    "opportunities": [
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 330
+      }
+    ]
+  },
+  {
+    "page": "perfil-proveedor",
+    "form": "desktop",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:15:34.493Z",
+    "scores": {
+      "perf": 96,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 277.001,
+      "fcp_ms": 277.001,
+      "cls": 0.001116444903021355,
+      "tbt_ms": 0,
+      "tti_ms": 277.001,
+      "si_ms": 1977.3024228098457
+    },
+    "opportunities": [
+      {
+        "id": "unused-css-rules",
+        "title": "Reduce unused CSS",
+        "savings_ms": 0
+      },
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 0
+      }
+    ]
+  },
+  {
+    "page": "perfil-proveedor",
+    "form": "mobile",
+    "lhv": "13.6.0",
+    "fetchTime": "2026-11-10T13:15:51.064Z",
+    "scores": {
+      "perf": 83,
+      "a11y": 95,
+      "bp": 100,
+      "seo": 92
+    },
+    "metrics": {
+      "lcp_ms": 4164.95,
+      "fcp_ms": 896.1060000000001,
+      "cls": 0,
+      "tbt_ms": 37,
+      "tti_ms": 5191.212500000001,
+      "si_ms": 4608.988351534054
+    },
+    "opportunities": [
+      {
+        "id": "unused-javascript",
+        "title": "Reduce unused JavaScript",
+        "savings_ms": 450
+      }
+    ]
+  }
+]
