@@ -42,7 +42,7 @@ de Deployment Protection, no la app Pawnecta.
   de ~0.19% en desktop y ~0.81% en mobile — **8 fails en el mismo spot
   del layout centrado** (bbox 183×293 px, la caja del `<form>` SSO),
   idéntico en las 4 páginas desktop y las 4 páginas mobile.
-- **2026-11-06 Tramo 3 kickoff** — Diagnóstico del auditor con bajada de
+- **2026-11-05 Tramo 3 kickoff** (jueves, regreso del PO del viaje) — Diagnóstico del auditor con bajada de
   los 8 artifacts + cálculo pixelmatch + inspección visual del
   `-expected.png` revela que la pantalla capturada era "Log in to
   Vercel", no la app. Decisión PO opción A.
