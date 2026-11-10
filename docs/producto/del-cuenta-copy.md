@@ -19,10 +19,10 @@
 
 **Advertencia estructurada — qué pasa con tus datos**:
 
-Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **eliminan** o **anonimizan** según su categoría:
+Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **eliminan** o **seudonimizan** según su categoría:
 
 - **Se eliminan de inmediato**: tus fotos guardadas, direcciones registradas, mensajes privados, notificaciones y favoritos.
-- **Se anonimizan (queda el registro sin tu identidad)**: reservas históricas contigo (para que el proveedor conserve su historial de servicios prestados) y reviews que dejaste (para que el proveedor conserve las opiniones recibidas, sin tu nombre).
+- **Se seudonimizan (queda el registro sin tu identidad)**: reservas históricas contigo (para que el proveedor conserve su historial de servicios prestados) y reviews que dejaste (para que el proveedor conserve las opiniones recibidas, sin tu nombre).
 - **No podrás iniciar sesión nunca más** con este correo.
 
 **Botón principal** (rojo, disabled si Regla A):
@@ -44,7 +44,7 @@ Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **
 **Advertencia estructurada — qué pasa con tus datos de proveedor**:
 
 - **Se eliminan de inmediato**: tu foto de perfil, galería, carnet de identidad (si aún está guardado), direcciones y mensajes privados.
-- **Se anonimizan**: tus reviews recibidas (siguen visibles sin tu nombre, para preservar la reputación pública de la plataforma), tus reservas históricas con clientes (los clientes conservan su historial), tus certificaciones y tus servicios publicados quedan marcados como inactivos.
+- **Se seudonimizan**: tus reviews recibidas (siguen visibles sin tu nombre, para preservar la reputación pública de la plataforma), tus reservas históricas con clientes (los clientes conservan su historial), tus certificaciones y tus servicios publicados quedan marcados como inactivos.
 - **Se conservan por 6 meses después**: las conversaciones con clientes activos hasta esa fecha (sin tu nombre en los mensajes). Después se eliminan.
 - **No podrás iniciar sesión nunca más** con este correo.
 
@@ -62,7 +62,7 @@ Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **
 
 > **¿Seguro que quieres eliminar tu cuenta?**
 >
-> Vamos a enviarte un correo a `{email}` con un enlace para confirmar. Tienes 24 horas para hacer clic. Después empieza una ventana de gracia de 14 días en la que puedes cancelar la eliminación desde esta misma pantalla. Al cumplirse los 14 días, tus datos se eliminan y anonimizan según lo explicado arriba.
+> Vamos a enviarte un correo a `{email}` con un enlace para confirmar. Tienes 24 horas para hacer clic. Después empieza una ventana de gracia de 14 días en la que puedes cancelar la eliminación desde esta misma pantalla. Al cumplirse los 14 días, tus datos se eliminan y seudonimizan según lo explicado arriba.
 >
 > [ ] Entiendo que este proceso no es inmediato y que puedo cancelar dentro de la ventana de gracia.
 >
@@ -160,7 +160,7 @@ Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **
 >
 > Este es el último correo que te enviamos. El `{fecha_borrado_real}` se completó la eliminación de tu cuenta en Pawnecta, tal como solicitaste el `{fecha_confirmacion}`.
 >
-> - Tus datos personales fueron eliminados o anonimizados según nuestra política de datos.
+> - Tus datos personales fueron eliminados o seudonimizados según nuestra política de datos.
 > - Ya no puedes iniciar sesión con este correo.
 > - Si quieres volver a Pawnecta en el futuro, tendrás que crear una cuenta nueva desde cero.
 >
@@ -169,7 +169,7 @@ Tu cuenta y tus datos personales (nombre, correo, RUT, direcciones, fotos) se **
 > — Equipo Pawnecta
 
 **Footer legal**:
-> Si crees que esta eliminación fue por error, escribe a `contacto@pawnecta.com` antes de 30 días para asistencia — algunos registros históricos anonimizados pueden ayudar a orientar el caso.
+> Si crees que esta eliminación fue por error, escribe a `contacto@pawnecta.com` antes de 30 días para asistencia — algunos registros históricos seudonimizados pueden ayudar a orientar el caso.
 
 ### 2.4 `AccountDeletionCancelledEmail` (user canceló dentro de la ventana)
 
@@ -219,10 +219,10 @@ Para agregar a `/privacidad` (`pages/privacidad.tsx`) en una sección nueva "Der
 
 ## 4. Notas para el asesor legal
 
-1. **Preservación de reviews con autor anónimo** (§1.2 arriba): confirmar si califica como "anonimización" bajo art. 8 Ley 21.719 o si el asesor recomienda borrado completo. El compromiso comercial es preservar (patrón estándar TripAdvisor/Airbnb).
-2. **Preservación de snapshots en `agendamientos`** con datos operativos (fechas, precios, dirección del servicio anonimizada): confirmar si "obligaciones contractuales del otro parte" cubre la retención. GDPR art. 17.3 (b) lo permite; Chile normalmente sigue precedente europeo pero conviene confirmar.
+1. **Preservación de reviews con autor anónimo** (§1.2 arriba): confirmar si califica como "seudonimización" bajo art. 8 Ley 21.719 o si el asesor recomienda borrado completo. El compromiso comercial es preservar (patrón estándar TripAdvisor/Airbnb).
+2. **Preservación de snapshots en `agendamientos`** con datos operativos (fechas, precios, dirección del servicio seudonimizada): confirmar si "obligaciones contractuales del otro parte" cubre la retención. GDPR art. 17.3 (b) lo permite; Chile normalmente sigue precedente europeo pero conviene confirmar.
 3. **Retención de `consent_logs` con `user_id` UUID + `document_version` + `timestamp`** sin PII directa: es evidencia interna de aceptación de términos. Sin plazo legal específico chileno para plataformas B2C. **Pregunta al asesor**: ¿retención máxima recomendada?
-4. **Retención de `deletion_log`**: sin plazo (registro anonimizado por definición, útil como evidencia interna de cumplimiento de solicitudes). ¿Aceptable?
+4. **Retención de `deletion_log`**: sin plazo (registro seudonimizado por definición, útil como evidencia interna de cumplimiento de solicitudes). ¿Aceptable?
 5. **Copy de bloqueo por reservas activas**: confirmar que decir "primero deberás cancelar o esperar" cumple con la Ley (no puede leerse como "negativa del derecho de eliminación"). Nuestro fundamento: la Ley 21.719 art. 8 permite excepciones cuando el tratamiento es necesario para "el cumplimiento de obligaciones legales o contractuales" — una reserva confirmada es contrato entre partes.
 
 ---

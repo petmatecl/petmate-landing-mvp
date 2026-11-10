@@ -61,7 +61,7 @@ En orden, transacción única:
    - `direcciones WHERE user_id = <deleted>`.
    - `favoritos WHERE user_id = <deleted>` (CASCADE ya lo cubre, redundante pero explícito para audit).
    - `notifications WHERE user_id = <deleted>` (CASCADE).
-   - `mascotas WHERE user_id = <deleted> AND id NOT IN (SELECT mascota_id FROM agendamientos WHERE mascota_id IS NOT NULL)`. Si tiene reservas históricas, anonimizar el row en lugar de borrarlo.
+   - `mascotas WHERE user_id = <deleted> AND id NOT IN (SELECT mascota_id FROM agendamientos WHERE mascota_id IS NOT NULL)`. Si tiene reservas históricas, seudonimizar el row en lugar de borrarlo.
 5. **Anonimizar `evaluaciones`**: `nombre_autor='(Usuario eliminado)'`, `usuario_id=NULL`. Preservar `rating`, `comentario`, `respuesta_proveedor`. Si `evaluaciones.fotos[]` tiene URLs → borrar los binarios Storage + poner el array en `[]`.
 6. **Anonimizar `consent_logs`**: `UPDATE consent_logs SET ip_address = NULL, user_agent = NULL WHERE user_id = <deleted>`. Preserva `document_version`, `timestamp`, `user_id` (UUID sin resolución humana).
 7. **Chat**: `UPDATE conversations SET client_id = NULL, deleted_participant_at = NOW() WHERE client_id = <deleted>` (idem sitter_id). El cron de 6 meses barre después. `messages.sender_id` se pone en NULL por la FK ON DELETE SET NULL (aunque no borramos `auth.users` en este paso, la transición podría requerir UPDATE manual — ver §4 abajo).
@@ -69,20 +69,20 @@ En orden, transacción única:
 9. **Borrar binarios Storage**:
    - `proveedores.foto_perfil`, `foto_carnet`, `foto_carnet_dorso`, `galeria[]` → `supabase.storage.from('avatars').remove([...paths])`.
    - `mascotas.foto_mascota`, `fotos_galeria[]` → idem.
-   - `servicios_publicados.fotos[]` para los servicios del proveedor eliminado (o solo anonimizar el titulo/descripcion y marcar `activo=false`, sin borrar fotos — decisión post-revisión legal).
+   - `servicios_publicados.fotos[]` para los servicios del proveedor eliminado (o solo seudonimizar el titulo/descripcion y marcar `activo=false`, sin borrar fotos — decisión post-revisión legal).
    - `evaluaciones.fotos[]` de las reviews del user eliminado.
    - `certificaciones.documento_url` → cero preserva, borrar (documento personal del proveedor).
-10. **Invalidar sesión de `auth.users`**: `admin.updateUserById(id, { ban_duration: '87600h' })` (10 años). NO borrar el row de `auth.users` — CASCADE explotaría los perfiles ya anonimizados; el ban es la vía correcta para "user no puede loguear más".
+10. **Invalidar sesión de `auth.users`**: `admin.updateUserById(id, { ban_duration: '87600h' })` (10 años). NO borrar el row de `auth.users` — CASCADE explotaría los perfiles ya seudonimizados; el ban es la vía correcta para "user no puede loguear más".
 11. **Insert `deletion_log`** con `data_summary` JSON con contadores por tabla:
 ```json
 {
-  "usuarios_buscadores_anonimizados": 1,
-  "proveedores_anonimizados": 0,
-  "agendamientos_snapshots_anonimizados": 12,
+  "usuarios_buscadores_seudonimizados": 1,
+  "proveedores_seudonimizados": 0,
+  "agendamientos_snapshots_seudonimizados": 12,
   "direcciones_borradas": 2,
   "notifications_borradas_cascade": 47,
-  "evaluaciones_anonimizadas": 3,
-  "consent_logs_anonimizados": 5,
+  "evaluaciones_seudonimizadas": 3,
+  "consent_logs_seudonimizados": 5,
   "conversations_set_null": 4,
   "storage_paths_borrados": 8
 }
@@ -92,13 +92,13 @@ En orden, transacción única:
 ### 1.3 UI
 
 **`/usuario` → sección "Eliminar cuenta"** (`pages/usuario/index.tsx` o `pages/usuario/eliminar.tsx`):
-- Warning modal 2 pasos: (a) explica qué se anonimiza/borra/preserva; (b) confirmación con checkbox "Entiendo que…" + botón rojo "Solicitar eliminación".
+- Warning modal 2 pasos: (a) explica qué se seudonimiza/borra/preserva; (b) confirmación con checkbox "Entiendo que…" + botón rojo "Solicitar eliminación".
 - **Bloqueo por Regla A**: si hay reservas activas (`estado IN ('pendiente','confirmada') AND fecha_preferida >= NOW()`), NO permite solicitar. Muestra copy explicativo + link a `/mis-reservas` para cancelar o esperar.
 - Estado post-click: banner "Solicitud enviada, revisa tu correo (24h para confirmar)".
 - Estado post-confirmación email: banner "Ventana de gracia hasta <fecha_+14d>. Puedes cancelar aquí." + botón "Cancelar eliminación".
 
 **`/proveedor` → misma sección** con warnings específicos del proveedor:
-- "Tu perfil se anonimiza y desaparece del catálogo".
+- "Tu perfil se seudonimiza y desaparece del catálogo".
 - "Los reviews recibidos quedan sin nombre de tu cuenta".
 - "Los agendamientos históricos preservan datos operativos (fechas, precios) sin tu identidad".
 - Regla A también bloquea si tiene reservas activas como proveedor.
@@ -234,3 +234,86 @@ Antes de escribir el fix, el auditor debe correr el bloque `VERIFICACIÓN PREVIA
 ## 7. Preguntas abiertas para el asesor legal
 
 Migradas a [`docs/producto/del-cuenta-preguntas-asesor.md`](../producto/del-cuenta-preguntas-asesor.md) para que el PO las lleve.
+
+**Actualización 2026-11-10**: las 11 preguntas fueron **respondidas internamente** por el PO con fundamento Ley 21.719, sin asesor externo por ahora. Ver tabla de decisiones en [docs/producto/del-cuenta-ley-descubrimiento.md §10](../producto/del-cuenta-ley-descubrimiento.md) + ajustes al alcance de este sprint en §8 abajo.
+
+---
+
+## 8. Ajustes PO 2026-11-10 — alcance consolidado para implementación
+
+Esta sección consolida los cambios al alcance del sprint tras las decisiones del PO sobre las 11 preguntas. Las §1-§6 originales se mantienen como foto del kickoff 2026-09-23; los ítems de §8 **mandan sobre §1-§6 en caso de conflicto**.
+
+### 8.1 Timing del sprint (actualiza §6)
+
+- **Ejecución código**: semana 19-30 noviembre 2026 (post-lanzamiento 2026-11-18).
+- **Meta pre-vigencia**: 01-12-2026.
+- **Precondición**: lanzamiento 2026-11-18 ejecutado + CARNET-RETENCION (puede ir dentro del mismo sprint o antes, decisión del PO en el kickoff de ejecución).
+
+### 8.2 Terminología (aplica a docs, copy visible y correos)
+
+"Anonimizar" → **"seudonimizar"**. Cambio ya aplicado en este doc + [del-cuenta-copy.md](../producto/del-cuenta-copy.md). **NO** se renombran identificadores de código, archivos ni columnas de BD.
+
+### 8.3 Migración SQL (actualiza §1.1)
+
+Agregados sobre el alcance original del kickoff:
+
+- Columna nueva `conversations.deleted_participant_id UUID` + `conversations.deleted_role TEXT CHECK (deleted_role IN ('client','sitter'))` — pobladas antes del SET NULL para que el cron chat de 90d pueda cross-check reservas sin perder la identidad del user eliminado.
+- Columna nueva `usuarios_buscadores.estado TEXT DEFAULT 'activo'` con valor `'eliminado'` análogo a `proveedores.estado='eliminado'`. Permite al cron mensual de borrado de reservas (nuevo, §8.6) identificar rows cuyo tutor fue eliminado.
+- Chat ventana: `conversations.deleted_participant_at` ya estaba en el kickoff; sigue vigente pero con interval **90 days** en el cron (no 6 meses).
+- Resto del alcance SQL del kickoff queda igual: `deletion_log` tabla nueva, FKs faltantes anexo B, valores enum `proveedores.estado` (`eliminado_pendiente`, `eliminado`), `conversations.client_id/sitter_id` + `messages.sender_id` CASCADE → SET NULL.
+
+### 8.4 Endpoint fase 4 (actualiza §1.2)
+
+Cambios sobre los 12 pasos del kickoff:
+
+- **Paso 3 (snapshots agendamientos)**: igual, pero **adicionar cancelación batch** — `UPDATE agendamientos SET estado='cancelada', motivo_cancelacion='cuenta_eliminada' WHERE (tutor_id=X OR proveedor_id=X) AND estado IN ('pendiente','confirmada') AND COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida) >= NOW()`. Por cada row cancelada, disparar email a contraparte via helper existente (`pages/api/agendamientos/notify-proveedor-cancel.ts` o `notify-tutor-reserva-cancelada.ts`). **Reuso del estado `cancelada` + motivo, cero migración de enum**.
+- **Paso 5 (evaluaciones)**: agregar branch por checkbox UI "borrar también mis reseñas". Si flag true → `DELETE FROM evaluaciones WHERE usuario_id=X` en vez de seudonimizar. Reportar en `data_summary` ambos contadores (`evaluaciones_seudonimizadas` vs `evaluaciones_borradas`).
+- **Paso 7 (chat)**: antes del SET NULL, poblar `deleted_participant_id` + `deleted_role`. Luego, evaluar en la misma transacción: `SELECT 1 FROM agendamientos WHERE ((tutor_id=user AND proveedor_id=otra_parte) OR al revés) AND COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida) > NOW()-INTERVAL '90 days' LIMIT 1`. Cero match → `DELETE conversation + messages` inmediato; match → SET NULL + `deleted_participant_at=NOW()`, cron de 90d barre después.
+- **Paso 11 (deletion_log data_summary)**: agregar contador `agendamientos_cancelados_batch` del paso 3.
+
+### 8.5 UI (actualiza §1.3)
+
+- **Invertir Regla A**: eliminar el bloqueo "no puedes solicitar si tienes reservas activas". La solicitud se acepta siempre.
+- **Modal paso 2**: agregar lista "estas reservas futuras se cancelarán: [...]" (query lista de reservas activas del user como tutor + como proveedor con fecha futura). Checkbox nuevo "Entiendo que se cancelarán y se avisará a los proveedores/tutores". Checkbox "Borrar también mis reseñas" (decisión 2).
+- **Email de rechazo**: no se crea template nuevo. La mención del derecho a reclamar ante la Agencia va en el fragmento de política de privacidad ([del-cuenta-copy.md](../producto/del-cuenta-copy.md) §3) y en el email `AccountDeletionCancelledEmail` cuando aplique por caducidad 24h.
+
+### 8.6 Crons nuevos (amplia §1.1)
+
+Además del cron `procesar-eliminaciones-pendientes.ts` (día 14-15) y del cron de chat 90d (ambos del kickoff), agregar:
+
+- **`pages/api/cron/purgar-reservas-prescritas.ts`**: mensual. `DELETE FROM agendamientos WHERE COALESCE(fecha_fin_estadia, fecha_fin, fecha_preferida) < NOW() - INTERVAL '5 years' AND (tutor_id IN (SELECT id FROM usuarios_buscadores WHERE estado='eliminado') OR proveedor_id IN (SELECT id FROM proveedores WHERE estado='eliminado'))`. Decisión 1 PO 2026-11-10.
+- **`pages/api/cron/purgar-logs-cumplimiento.ts`**: diario (coste minúsculo, acopla consent_logs + deletion_log). `DELETE FROM consent_logs WHERE timestamp < NOW() - INTERVAL '5 years'` + `DELETE FROM deletion_log WHERE deleted_at < NOW() - INTERVAL '5 years'`. Decisiones 3 + 4 PO 2026-11-10.
+- **Caducidad solicitud 24h**: dentro del cron `procesar-eliminaciones-pendientes.ts`, añadir check para `deletion_requested_at < NOW() - INTERVAL '24 hours' AND deletion_confirmed_at IS NULL` → limpiar `deletion_requested_at` + email `AccountDeletionExpiredEmail` nuevo (o reciclar `AccountDeletionCancelledEmail` con variante).
+
+### 8.7 Templates email (actualiza §1.4)
+
+- **`AccountDeletionCompletedEmail`**: enumerar en **3-4 líneas** qué se borró, qué se conservó y por cuánto tiempo (serializar `data_summary` JSON → copy humano legible). Ejemplo: "Borramos tu perfil, direcciones, favoritos y notificaciones. Conservamos tu historial de reservas (12) sin tu nombre durante 5 años. Las reseñas que dejaste quedaron publicadas sin tu nombre."
+- **Caducidad 24h**: template nuevo o reuso con variante.
+- **Sin template de rechazo** (decisión 10).
+
+### 8.8 Sentry (decisión 11)
+
+Verificación config Sentry.io: **"Prevent Storing of IP Addresses" activado** en org + proyecto `javascript-nextjs` (PO 2026-11-10). Plan **Developer (gratis)**, retención **30 días** = mínima del plan, declarada en política de privacidad. Volumen observado: 53 errores / 5K cuota.
+
+Código: agregar en [lib/sentryScrub.ts](../../lib/sentryScrub.ts) scrub explícito:
+
+```ts
+// Scrub explícito de IP + geografía derivada. Cinturón sobre el toggle
+// del proyecto Sentry (Prevent Storing of IP Addresses) + sendDefaultPii
+// false — en caso de que alguna integration la pueble.
+if (event.user) {
+    delete event.user.ip_address;
+}
+if (event.request?.env) {
+    delete event.request.env.REMOTE_ADDR;
+}
+if (event.contexts?.geo) {
+    delete event.contexts.geo;
+}
+```
+
+Sin borrado proactivo de eventos al eliminar cuenta — la retención 30d resuelve naturalmente. **Prioridad SENTRY-PII sube a antes de 2026-12-01** (ya no es "post-lanzamiento"); agendar en el mismo sprint DEL-CUENTA-LEY semana 19-30 noviembre.
+
+### 8.9 Fundamentos legales [LEGAL]
+
+Puntos marcados [LEGAL] en la tabla de decisiones del descubrimiento §10 (fundamento + plazos + texto de política de privacidad) quedan como ítems a revisar **si** se contrata asesor legal en el futuro. Hasta entonces, la implementación va con el fundamento interno declarado.

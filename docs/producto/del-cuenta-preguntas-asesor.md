@@ -1,8 +1,34 @@
-# Preguntas para asesor legal — DEL-CUENTA-LEY
+# Registro histórico — preguntas legales DEL-CUENTA-LEY
 
-**Contexto**: Ley 21.719 de Protección de Datos Personales (Chile), vigencia diciembre 2026. Sprint técnico DEL-CUENTA-LEY en Tramo 2 (2026-09-29 → 2026-10-27), PR abierto sin merge hasta regreso PO 2026-10-28. Revisión asesor legal previa al merge y habilitación en prod.
+> **Estado 2026-11-10**: este archivo pasó a **registro histórico**. No se contrata asesor legal externo por ahora; las 11 preguntas fueron respondidas internamente por el PO con fundamento Ley 21.719, marcando con **[LEGAL]** los puntos que se revisarán si se contrata uno en el futuro. Ver decisiones consolidadas en [del-cuenta-ley-descubrimiento.md §10](del-cuenta-ley-descubrimiento.md) y alcance consolidado para implementación en [docs/sprints/del-cuenta-ley.md §8](../sprints/del-cuenta-ley.md).
 
-**Estructura**: cada pregunta lleva (a) el contexto técnico del descubrimiento / kickoff, (b) la decisión que tomamos internamente con fundamento GDPR-precedente (Chile normalmente sigue precedente europeo), (c) la pregunta concreta al asesor.
+---
+
+## Tabla de decisiones (PO 2026-11-10)
+
+| # | Pregunta (resumen) | Decisión interna | Fundamento | [LEGAL]? |
+|---|---|---|---|---|
+| 1 | Alcance borrado reservas | Seudonimización preservando registros + borrado de la fila **5 años post fecha del servicio** cuando al menos una parte está eliminada, sin importar la contraparte. Cron mensual. | Ley 21.719 art. 8 + prescripción ordinaria art. 2515 CC. | [LEGAL] plazo exacto |
+| 2 | Reviews con autor seudonimizado | Autor `"(Usuario eliminado)"` + `usuario_id=NULL`, preservar rating/comentario. **Casilla UI opcional "borrar también mis reseñas"**. | Patrón TripAdvisor/Google/Airbnb bajo GDPR art. 17.3. | No |
+| 3 | Retención consent_logs | `ip_address=NULL` + `user_agent=NULL`; preservar `user_id` + `document_version` + `timestamp`. **Plazo 5 años post última modificación**. | Evidencia interna sin PII directa. | [LEGAL] plazo |
+| 4 | Retención deletion_log | **5 años** (no indefinido). Cron TTL. | Minimización + evidencia suficiente. | No |
+| 5 | Retención chat | **90 días máx** (no 6 meses) con pivote `fecha del servicio`. Si no hubo reservas entre ambos en últimos 90d → borrado inmediato en fase 4. Columna nueva `conversations.deleted_participant_id UUID` + `deleted_role`. | Minimización + necesidad legítima acotada de la contraparte. | No |
+| 6 | Retención fotos carnet | Borrar al aprobar + **15 días** (no 30) para no aprobados. Conservar solo estado + fecha. Ajusta CARNET-RETENCION. | Minimización del dato más sensible. | No |
+| 7 | Plazo respuesta | **30 días corridos**, prorrogables una vez por 30d. Ejecución día 14-15 OK. Si no confirma en 24h → caduca con correo. Correo final enumera en 3-4 líneas qué se borró, qué se conservó y por cuánto. | Ley 21.719 plazo legal + verificación identidad por correo. | No |
+| 8 | Copy política privacidad | **Sin "anonimizamos"**. Lenguaje simple: qué se elimina, qué se conserva sin datos de contacto, para qué, por cuánto tiempo. | Transparencia sin jerga. | [LEGAL] texto final |
+| 9 | Bloqueo reservas activas | **Eliminar el bloqueo**. Solicitud se acepta siempre; antes de confirmar se avisa que reservas futuras se cancelarán; en fase 4 se cancelan con aviso a contraparte. Reuso estado `cancelada` + motivo `cuenta_eliminada`. | Eliminación efectiva + aviso proporcional. | No |
+| 10 | Auditoría cumplimiento | **Sin reporte periódico** a la Agencia. `deletion_log` interno. Si se rechaza (caducidad 24h, admin no-self), mención del derecho a reclamar en política de privacidad (no template de rechazo nuevo). Procedimiento de aviso de brechas documentado (ítem `BRECHAS-PROCEDIMIENTO` BACKLOG). | Transparencia + rendición interna. | [LEGAL] confirmar obligación de reporte |
+| 11 | Retención Sentry con user.id + IP | **"Prevent Storing of IP Addresses" activado** en org + proyecto (PO 2026-11-10). Plan Developer (gratis) retención **30 días** = mínima del plan. Scrub explícito `event.user.ip_address = undefined` en `lib/sentryScrub.ts`. Sin borrado proactivo de eventos al eliminar cuenta. **SENTRY-PII sube a prioridad pre-01-12-2026**. Volumen actual: 53 errores / 5K cuota. | Minimización + retención mínima del plan. | No |
+
+**Lectura del campo [LEGAL]**: 4 puntos quedan abiertos para revisión por asesor legal futuro. Resto se implementa con el fundamento interno declarado.
+
+---
+
+## Anexo A — detalle original del listado (preservado 2026-09-17)
+
+**Nota**: el texto de las 11 preguntas abajo se preserva tal cual se redactó en septiembre 2026, antes de las decisiones del PO 2026-11-10. **Las decisiones aterrizadas de arriba mandan sobre cualquier "decisión interna" propuesta en las secciones de abajo**, que son el borrador previo del auditor para la sesión con asesor.
+
+**Estructura del anexo**: cada pregunta lleva (a) el contexto técnico del descubrimiento / kickoff, (b) la decisión que tomamos internamente con fundamento GDPR-precedente (Chile normalmente sigue precedente europeo), (c) la pregunta concreta al asesor.
 
 ---
 
