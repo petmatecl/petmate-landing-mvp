@@ -18,21 +18,25 @@ import { strict as assert } from 'node:assert';
 
 // Estado mutable de cada test — lo resetea `resetState()`.
 type MsgRow = { id: string; content: string; sender_id: string; conversation_id: string; conversations: { id: string; client_id: string; sitter_id: string | null } };
-type ProvRow = { nombre_publico: string | null; nombre: string | null } | null;
+type ProvRow = { nombre_publico: string | null; nombre: string | null; apellido_p: string | null } | null;
 type BusRow = { nombre: string | null } | null;
 
 interface State {
     prov: ProvRow;
+    provError: any;
     bus: BusRow;
+    busError: any;
     authEmail: string;
     sentArgs: Array<{ from: string; to: string | string[]; subject: string; html: string }>;
 }
 
-const state: State = { prov: null, bus: null, authEmail: 'recipient@example.com', sentArgs: [] };
+const state: State = { prov: null, provError: null, bus: null, busError: null, authEmail: 'recipient@example.com', sentArgs: [] };
 
 function resetState() {
     state.prov = null;
+    state.provError = null;
     state.bus = null;
+    state.busError = null;
     state.authEmail = 'recipient@example.com';
     state.sentArgs.length = 0;
 }
@@ -65,14 +69,14 @@ require.cache[require.resolve('@supabase/supabase-js')] = {
                 if (table === 'proveedores') {
                     return {
                         select: () => ({
-                            eq: () => ({ maybeSingle: async () => ({ data: state.prov, error: null }) }),
+                            eq: () => ({ maybeSingle: async () => ({ data: state.prov, error: state.provError }) }),
                         }),
                     };
                 }
                 if (table === 'usuarios_buscadores') {
                     return {
                         select: () => ({
-                            eq: () => ({ maybeSingle: async () => ({ data: state.bus, error: null }) }),
+                            eq: () => ({ maybeSingle: async () => ({ data: state.bus, error: state.busError }) }),
                         }),
                     };
                 }
@@ -150,40 +154,74 @@ async function runOne(label: string, fn: () => Promise<void>) {
 }
 
 async function main() {
-    await runOne('[P8] proveedor con nombre_publico → subject lo usa, NO "Un usuario"', async () => {
-        state.prov = { nombre_publico: 'Constanza B.', nombre: 'Constanza' };
+    await runOne('[P8] proveedor con nombre_publico → subject lo usa literal (se respeta tal cual)', async () => {
+        state.prov = { nombre_publico: 'Constanza B.', nombre: 'Constanza', apellido_p: 'Beltrán' };
         const res = makeRes();
         await handler(makeReq(), res);
         assert.equal(res.statusCode, 200, 'status debe ser 200');
         assert.equal(state.sentArgs.length, 1, 'debe enviar exactamente 1 email');
         const subject: string = state.sentArgs[0].subject;
-        assert.ok(
-            !/^Un usuario/.test(subject),
-            `Fallback "Un usuario" en subject cuando el remitente SÍ tiene nombre en BD — bug pre-hf-name-resolve. Subject: ${subject}`
-        );
-        assert.ok(subject.includes('Constanza B.'), `subject debe contener 'Constanza B.' — recibido: ${subject}`);
+        assert.ok(!/^Un usuario/.test(subject), `NO debe ser fallback. Subject: ${subject}`);
+        assert.ok(subject.includes('Constanza B.'), `subject debe contener literal 'Constanza B.' — recibido: ${subject}`);
+        // nombre_publico NO debe disparar el formateo con apellido_p. Se usa tal cual.
+        assert.ok(!subject.includes('Beltrán'), `nombre_publico se usa literal, NO debe sumar apellido_p. Subject: ${subject}`);
     });
 
-    await runOne('[P8] proveedor sin nombre_publico (solo nombre de pila) → subject usa "Eduardo", NO incluye apellido', async () => {
-        // Simula lo que devolvería la query real: nombre_publico null.
-        // La select ya NO pide apellido_p (decisión PO 2026-11-10 — solo
-        // nombre de pila, nunca apellido ni correo ni teléfono en el subject).
-        state.prov = { nombre_publico: null, nombre: 'Eduardo' };
+    await runOne('[P8] proveedor sin nombre_publico, con nombre="Eduardo" + apellido_p="Cano" → subject "Eduardo C."', async () => {
+        state.prov = { nombre_publico: null, nombre: 'Eduardo', apellido_p: 'Cano' };
         const res = makeRes();
         await handler(makeReq(), res);
         const subject: string = state.sentArgs[0].subject;
-        assert.ok(subject.includes('Eduardo'), `subject debe contener 'Eduardo' — recibido: ${subject}`);
-        assert.ok(!subject.includes('Cano'), `NO debe incluir apellido. Subject: ${subject}`);
+        assert.ok(subject.includes('Eduardo C.'), `subject debe contener 'Eduardo C.' — recibido: ${subject}`);
+        // Regresión 2026-11-10 noche: NO debe incluir apellido completo.
+        assert.ok(!subject.includes('Cano '), `NO debe incluir apellido completo 'Cano' seguido de espacio. Subject: ${subject}`);
         assert.ok(!/^Un usuario/.test(subject), `NO debe ser fallback. Subject: ${subject}`);
     });
 
-    await runOne('[P8] sin proveedor pero con usuarios_buscadores.nombre → subject usa ese nombre (caso Camila)', async () => {
-        state.bus = { nombre: 'Camila' };
+    await runOne('[P8 REGRESIÓN SMOKE PO 2026-11-10] usuarios_buscadores.nombre="Camila Figueroa Mendoza" → subject "Camila F." (NO nombre completo)', async () => {
+        // Regresión del smoke del PO en commit 63d2cd8: el subject aterrizó
+        // literal "Camila Figueroa Mendoza" porque usuarios_buscadores.nombre
+        // concatena nombres+apellidos (schema prod verificado: 5 users con 3+
+        // tokens en nombre, 1 con 2 tokens, 1 con 1 token). Fix:
+        // formatearNombreInicial toma token[0] como nombre pila y token[1][0]
+        // como inicial del primer apellido.
+        state.bus = { nombre: 'Camila Figueroa Mendoza' };
         const res = makeRes();
         await handler(makeReq(), res);
         const subject: string = state.sentArgs[0].subject;
-        assert.ok(subject.includes('Camila'), `subject debe contener 'Camila' — recibido: ${subject}`);
-        assert.ok(!/^Un usuario/.test(subject), `NO debe ser fallback. Subject: ${subject}`);
+        assert.ok(subject.includes('Camila F.'), `subject debe contener 'Camila F.' — recibido: ${subject}`);
+        assert.ok(!subject.includes('Figueroa'), `NO debe incluir apellido completo 'Figueroa'. Subject: ${subject}`);
+        assert.ok(!subject.includes('Mendoza'), `NO debe incluir segundo apellido 'Mendoza'. Subject: ${subject}`);
+    });
+
+    await runOne('[P8] usuarios_buscadores.nombre="Jorge" (1 token) → subject "Jorge" sin inicial', async () => {
+        state.bus = { nombre: 'Jorge' };
+        const res = makeRes();
+        await handler(makeReq(), res);
+        const subject: string = state.sentArgs[0].subject;
+        assert.ok(subject.includes('Jorge'), `subject debe contener 'Jorge' — recibido: ${subject}`);
+        assert.ok(!subject.includes('Jorge .'), `nombre sin apellido no debe tener "Nombre ." colgado. Subject: ${subject}`);
+    });
+
+    await runOne('[P8] error simulado en query proveedores → cae a usuarios_buscadores, NO silencia (console.error para Sentry)', async () => {
+        // El error de la primera query no debe hacer que caigamos a fallback
+        // directo. El handler debe seguir intentando con usuarios_buscadores
+        // y emitir console.error para que el wrap Sentry lo capture.
+        state.provError = { message: 'simulated prov query error', code: '42501' };
+        state.bus = { nombre: 'Camila Figueroa Mendoza' };
+        const originalErr = console.error;
+        const capturedErrors: any[] = [];
+        console.error = (...args: any[]) => { capturedErrors.push(args); };
+        try {
+            const res = makeRes();
+            await handler(makeReq(), res);
+            const subject: string = state.sentArgs[0].subject;
+            assert.ok(subject.includes('Camila F.'), `debe caer al segundo nivel y producir 'Camila F.' — subject recibido: ${subject}`);
+            const found = capturedErrors.some(args => args.some((a: any) => typeof a === 'string' && a.includes('[new-message:resolveSenderName] proveedores query error')));
+            assert.ok(found, 'console.error debe loggear el error de la query de proveedores para que llegue a Sentry');
+        } finally {
+            console.error = originalErr;
+        }
     });
 
     await runOne('[P8 control negativo] sin perfil en ninguna tabla → fallback "Un usuario" sigue válido', async () => {

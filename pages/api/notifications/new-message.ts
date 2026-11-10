@@ -94,27 +94,60 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         // Fix: query directa con el `supabaseAdmin` ya instanciado en este
         // endpoint (línea 34). Lee SOLO `nombre` — no se expone otro campo —
         // y mantiene la precedencia proveedores → usuarios_buscadores.
+        // Formato "Nombre I." (primer nombre + inicial del primer apellido),
+        // decisión PO 2026-11-10 tras smoke del commit 63d2cd8 que aterrizó
+        // el nombre completo "Camila Figueroa Mendoza" porque en
+        // `usuarios_buscadores` el campo `nombre` concatena nombres+apellidos.
+        // Regla: si `nombre_publico` existe se usa literal (el proveedor lo
+        // definió como alias público); si no, se compone "Nombre I." desde
+        // nombre + apellido_p (proveedores) o desde los tokens del campo
+        // nombre (usuarios_buscadores, que no tiene columnas separadas).
+        const formatearNombreInicial = (nombreCompleto: string, apellidoSeparado?: string | null): string => {
+            const tokens = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+            if (tokens.length === 0) return 'Un usuario';
+            const nombrePila = tokens[0];
+            // Preferencia 1: apellido en columna separada (proveedores).
+            const apellidoClean = apellidoSeparado?.trim() || '';
+            if (apellidoClean) return `${nombrePila} ${apellidoClean[0]}.`;
+            // Preferencia 2: apellido como segundo token del `nombre` (usuarios_buscadores).
+            if (tokens.length >= 2 && tokens[1]) return `${nombrePila} ${tokens[1][0]}.`;
+            // Solo un token — devolver tal cual, sin inicial.
+            return nombrePila;
+        };
+
         const resolveSenderName = async (authUserId: string): Promise<string> => {
-            // Precedencia 1: proveedor. SOLO nombre de pila — nunca apellido
-            // ni correo ni teléfono (decisión PO 2026-11-10). Si hay
-            // `nombre_publico`, se usa literal porque el proveedor lo definió
-            // como su alias público; no se parsea ni se trunca.
-            const { data: prov } = await supabaseAdmin
+            // Precedencia 1: proveedor. Si hay `nombre_publico`, se respeta literal
+            // (el proveedor lo definió como alias público). Si no, se compone
+            // "Nombre I." con nombre + apellido_p.
+            // Decisión PO 2026-11-10: nunca correo ni teléfono en el subject; el
+            // apellido se reduce a inicial.
+            const { data: prov, error: provErr } = await supabaseAdmin
                 .from('proveedores')
-                .select('nombre_publico, nombre')
+                .select('nombre_publico, nombre, apellido_p')
                 .eq('auth_user_id', authUserId)
                 .maybeSingle();
+            if (provErr) {
+                // No silenciamos: console.error llega a Sentry via wrap. Seguimos
+                // al siguiente nivel de precedencia para no quedar en fallback
+                // "Un usuario" por un fallo transitorio de permisos/red.
+                console.error('[new-message:resolveSenderName] proveedores query error:', provErr);
+            }
             if (prov) {
                 if (prov.nombre_publico) return prov.nombre_publico;
-                if (prov.nombre) return prov.nombre;
+                if (prov.nombre) return formatearNombreInicial(prov.nombre, prov.apellido_p);
             }
-            // Precedencia 2: usuarios_buscadores — solo tiene `nombre`.
-            const { data: bus } = await supabaseAdmin
+            // Precedencia 2: usuarios_buscadores — solo tiene `nombre` (concatena
+            // nombres+apellidos como texto libre; por eso el formato aplica
+            // sobre los tokens).
+            const { data: bus, error: busErr } = await supabaseAdmin
                 .from('usuarios_buscadores')
                 .select('nombre')
                 .eq('auth_user_id', authUserId)
                 .maybeSingle();
-            if (bus?.nombre) return bus.nombre;
+            if (busErr) {
+                console.error('[new-message:resolveSenderName] usuarios_buscadores query error:', busErr);
+            }
+            if (bus?.nombre) return formatearNombreInicial(bus.nombre, null);
             return 'Un usuario';
         };
         const senderName = await resolveSenderName(userId);
