@@ -170,6 +170,27 @@ async function assertPawnectaRendered(page: Page, pageLabel: string) {
 test.describe('visual público', () => {
     test.use({ storageState: { cookies: [], origins: [] } });
 
+    // Sprint vis-bypass ajuste PO (2026-11-06) — inyectar el consent de cookies
+    // en localStorage ANTES de la primera navegación de cada test. Match exacto
+    // con el schema del helper useConsent (lib/useConsent.ts): clave
+    // `pawnecta-cookie-consent`, version=1, prefs analytics+marketing+timestamp.
+    // Con esto, el banner del CookieBanner no aparece (useConsent.hydrated=true
+    // + isSet=true → setView(null) → return null). El banner superior "Estamos
+    // construyendo Pawnecta" queda visible por diseño; solo el overlay inferior
+    // de cookies se evita.
+    test.beforeEach(async ({ page }) => {
+        await page.addInitScript(() => {
+            try {
+                localStorage.setItem('pawnecta-cookie-consent', JSON.stringify({
+                    analytics: true,
+                    marketing: true,
+                    timestamp: '2026-11-06T00:00:00.000Z',
+                    version: 1,
+                }));
+            } catch { /* localStorage puede fallar en ciertos contextos — no bloqueante */ }
+        });
+    });
+
     for (const vp of VIEWPORTS) {
         test.describe(`viewport ${vp.name} ${vp.width}x${vp.height}`, () => {
             test.use({ viewport: { width: vp.width, height: vp.height } });
@@ -187,7 +208,21 @@ test.describe('visual público', () => {
                 await page.goto(`/explorar${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
                 await assertPawnectaRendered(page, `explorar (/explorar) ${vp.name}`);
-                await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, SNAPSHOT_OPTS);
+                // Ajuste PO (2026-11-06): máscara sobre contador de resultados
+                // (`N resultado(s)`, cambia con el listing de staging) y grilla
+                // de cards (puede reordenarse entre runs). Layout, filtros y
+                // header se mantienen visibles para que el visual test siga
+                // detectando regresión real del shell de la página.
+                const countLocator = page.locator('p.text-slate-500.font-medium').filter({ hasText: /resultado/i }).first();
+                const gridLocator = page.locator('div.grid.gap-5.grid-cols-1.sm\\:grid-cols-2.xl\\:grid-cols-3').first();
+                // Verificación loud: si el selector se rompió por refactor UI,
+                // fail explícito en vez de mask silente de nada.
+                await expect(countLocator, 'Contador de resultados no visible — selector roto').toBeVisible({ timeout: 5_000 });
+                await expect(gridLocator, 'Grilla de cards no visible — selector roto').toBeVisible({ timeout: 5_000 });
+                await expect(page).toHaveScreenshot(`explorar-${vp.name}.png`, {
+                    ...SNAPSHOT_OPTS,
+                    mask: [countLocator, gridLocator],
+                });
             });
 
             test(`login (/login)`, async ({ page }) => {
@@ -195,6 +230,8 @@ test.describe('visual público', () => {
                 await page.goto(`/login${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
                 await assertPawnectaRendered(page, `login (/login) ${vp.name}`);
+                // Ajuste PO (2026-11-06): foco inicial del campo email se
+                // mantiene como está. Cero máscara.
                 await expect(page).toHaveScreenshot(`login-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
@@ -217,7 +254,22 @@ test.describe('visual público', () => {
                 await page.goto(`/servicio/${SEED_SERVICIO}${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
                 await assertPawnectaRendered(page, `ficha-servicio (${SEED_SERVICIO}) ${vp.name}`);
-                await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, SNAPSHOT_OPTS);
+                // Ajuste PO (2026-11-06): máscara sobre contador de visitas
+                // (sube con cada request, VisitCounter con aria-label estable
+                // desde components/Shared/VisitCounter.tsx:39).
+                const visitasLocator = page.locator('[aria-label*="visitas totales"]');
+                // La ficha mobile tiene el VisitCounter oculto bajo el hero;
+                // la desktop lo muestra en el sticky right. En ambos viewports
+                // existe el elemento con aria-label — es el mismo componente
+                // renderizado condicional por CSS lg:block. Usamos `.first()`
+                // para evitar strict mode violation si hay 2 instancias (mobile
+                // + desktop variants en el DOM) y verificamos al menos uno visible.
+                const visitasFirst = visitasLocator.first();
+                await expect(visitasFirst, 'Contador de visitas no visible — selector roto o service sin visitas').toBeVisible({ timeout: 5_000 });
+                await expect(page).toHaveScreenshot(`ficha-servicio-${vp.name}.png`, {
+                    ...SNAPSHOT_OPTS,
+                    mask: [visitasLocator],
+                });
             });
         });
     }
