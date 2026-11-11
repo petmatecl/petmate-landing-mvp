@@ -335,6 +335,7 @@ qué seguimos?".
 **Operaciones manuales ejecutadas por PO en prod hoy** (no van a main — solo registro):
 
 - **18:43 CLT — SQL NFKC normalización** sobre 3 servicios con caracteres decorativos Unicode (`5d7d75f0` título "𝐏𝐚𝐬𝐞í𝐭𝐨𝐬 𝐏𝐞𝐫𝐫𝐮𝐧𝐨𝐬" → "Paseítos Perrunos", `52a6e060` + `7ccd98e8` descripciones con caracteres de compatibilidad invisibles). Snapshot exportado, verificación previa 3 filas, UPDATE 3 filas con `normalize(…, NFKC)`, verificación posterior 0. OK.
+- **18:53 CLT — SQL DESC-SEED-LEGACY** sobre 3 descripciones truncadas del seed 2026-05-06 (todas de Eduardo C.: `7ccd98e8` Visitas domicilio, `52a6e060` Fotografía, `35c16aee` Paseos grupos pequeños). Snapshot exportado, UPDATE una transacción Success, verificación posterior: largos finales 436 / 498 / 455 respectivamente, los tres terminando en oración completa. Textos quedaron exactamente como los 3 propuestos aprobados por PO. **Mis estimaciones predichas (442 / 491 / 459) no coincidieron por ±4-7 chars**: fueron conteo mental sin herramienta. **Lección operativa**: para próximo SQL con textos custom, medir `text.length` con JS/node o `SELECT length('<texto>')` en SQL antes de pasar la predicción al PO — patrón P8 aplicado a estimaciones (cero números predichos sin verificación).
 
 **Revisión matutina del día (resultados)**:
 
@@ -355,7 +356,7 @@ qué seguimos?".
 
 ### Primer bloque AM
 
-1. **Recordar al PO ejecutar el SQL DESC-SEED-LEGACY** (3 UPDATEs descripciones Eduardo C., textos aprobados). Paso 1 snapshot → Paso 2 verificación previa → Paso 3 UPDATE con RETURNING → Paso 4 verificación posterior (= 0 pendientes). Textos preservados en el chat de este turno.
+1. **~~Recordar al PO ejecutar el SQL DESC-SEED-LEGACY~~** — **YA EJECUTADO POR PO 2026-11-11 18:53 CLT** (ver bloque operaciones manuales arriba). Pendiente para mañana: registrar el cierre en `BACKLOG > DESC-SEED-LEGACY` dentro del PR de SHARE-PROV con el detalle operativo (3 UPDATEs, largos finales 436/498/455, textos tal cual los aprobados).
 2. **Arrancar SHARE-PROV** (PR propio `share-prov`, estimación 4-6 h):
    - Botones Compartir (WhatsApp + Copiar + Share nativo móvil) en ficha `/servicio/[id]`, `/proveedor/[id]`, dashboard `/proveedor`.
    - 3 textos prellenados aprobados (variantes por origen).
