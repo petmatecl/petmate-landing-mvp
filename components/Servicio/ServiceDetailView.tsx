@@ -3,6 +3,8 @@ import dynamic from 'next/dynamic';
 import { useStickyBox } from 'react-sticky-box';
 import Head from 'next/head';
 import Link from 'next/link';
+import ShareButtons from '../Share/ShareButtons';
+import { getOgImageUrl, getCanonicalUrl } from '../../lib/shareUrl';
 
 // Sprint E-4 MAP-FICHA (2026-09-15) — mapa en /servicio/[id] solo
 // cuando modalidad = casa_cuidador. Reutiliza LocationMap (Leaflet,
@@ -727,13 +729,21 @@ export default function ServiceDetailView({
                 <meta property="og:description" content={service.descripcion?.substring(0, 160)} />
                 <meta property="og:type" content="website" />
                 <meta property="og:url" content={`https://www.pawnecta.com/servicio/${service.id}`} />
-                <meta property="og:image" content={service.fotos?.[0] || 'https://www.pawnecta.com/og-image.jpg'} />
+                {/* Sprint share-prov (2026-11-12) — og:image optimizado via
+                    /_next/image&w=1200 en vez de foto original (JPEG 944 KB -
+                    2.4 MB en Supabase Storage). WhatsApp/Facebook suelen no
+                    mostrar previews pesadas. Width/height declarados 1200×630
+                    (ratio 1.9:1 WhatsApp/Twitter); el crawler recorta por
+                    default — declararlo orienta el ratio. */}
+                <meta property="og:image" content={getOgImageUrl(service.fotos?.[0])} />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
                 <meta property="og:locale" content="es_CL" />
                 <meta property="og:site_name" content="Pawnecta" />
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={`${service.titulo} | Pawnecta`} />
                 <meta name="twitter:description" content={service.descripcion?.substring(0, 160)} />
-                <meta name="twitter:image" content={service.fotos?.[0] || 'https://www.pawnecta.com/og-image.jpg'} />
+                <meta name="twitter:image" content={getOgImageUrl(service.fotos?.[0])} />
                 <script
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{
@@ -869,6 +879,17 @@ export default function ServiceDetailView({
                                         </div>
                                     </div>
                                 )}
+
+                                {/* Sprint share-prov (2026-11-12) — botón Compartir
+                                    flotante en esquina superior derecha del hero.
+                                    Fondo blanco + sombra para contraste sobre la foto. */}
+                                <div className="absolute top-3 right-3 z-10">
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
+                                        tipo="servicio"
+                                        entidadId={service.id}
+                                    />
+                                </div>
 
                                 {/* Overlay para owner sin fotos del servicio */}
                                 {isOwner && (!service.fotos || service.fotos.length === 0) && (

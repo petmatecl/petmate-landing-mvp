@@ -658,7 +658,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             });
             return toast.error(msg);
         }
-        if (descripcion.length > 500) return toast.error("La descripción es muy larga (máx. 500 caracteres).");
+        // Sprint share-prov anexo DESC-SEED-LEGACY (2026-11-12) — límite
+        // subido de 500 → 1000 chars (decisión PO 2026-11-11). El textarea
+        // tiene maxLength={1000} HTML native que impide escribir más allá,
+        // este guard es cinturón server-side simbólico (nunca debería
+        // dispararse en flujo normal).
+        if (descripcion.length > 1000) return toast.error("La descripción es muy larga (máx. 1000 caracteres).");
         if (!precioDesde) return toast.error("El precio desde es obligatorio.");
         if (!perros && !gatos && !otras) return toast.error("Selecciona al menos un tipo de mascota aceptada.");
         if (comunasCobertura.length === 0) return toast.error("Selecciona al menos una comuna de cobertura.");
@@ -1630,7 +1635,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 // rojo bajo un campo que el user ya está corrigiendo.
                                                 if (descripcionError) setDescripcionError(null);
                                             }}
-                                            maxLength={500}
+                                            maxLength={1000}
                                             rows={3}
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
                                             aria-invalid={!!descripcionError}
@@ -1653,8 +1658,22 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 {descripcionError}
                                             </p>
                                         )}
-                                        <div className={`text-right text-xs mt-1 ${descripcion.trim().length < 100 ? 'text-warning-700 font-medium' : 'text-slate-500'}`}>
-                                            {descripcion.length}/500
+                                        {/* Sprint share-prov anexo DESC-SEED-LEGACY (2026-11-12) —
+                                            contador con 3 umbrales: amarillo si < 100 chars (falta
+                                            para el mínimo), amarillo si ≥ 900 (acerca al tope 1000),
+                                            rojo si ≥ 980 (muy cerca del tope), gris default. */}
+                                        <div
+                                            className={`text-right text-xs mt-1 font-medium ${
+                                                descripcion.length >= 980
+                                                    ? 'text-danger-600'
+                                                    : descripcion.length >= 900
+                                                        ? 'text-warning-700'
+                                                        : descripcion.trim().length < 100
+                                                            ? 'text-warning-700'
+                                                            : 'text-slate-500 font-normal'
+                                            }`}
+                                        >
+                                            {descripcion.length}/1000
                                             {descripcion.trim().length < 100 && (
                                                 <span> · faltan {100 - descripcion.trim().length} para el mínimo</span>
                                             )}

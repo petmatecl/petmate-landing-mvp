@@ -75,7 +75,8 @@ export type EventoDemanda =
     | 'contacto_iniciado'                // ⭐ KEY — {canal: chat|whatsapp|telefono}
     | 'reserva_confirmada'               // ⭐ KEY — {familia: F1|F2|legacy} INSERT estado=confirmada
     | 'solicitud_enviada'                // INSERT estado=pendiente (flujo viejo)
-    | 'resena_publicada';                // post-approval evaluaciones.estado=aprobado
+    | 'resena_publicada'                 // post-approval evaluaciones.estado=aprobado
+    | 'share_click';                     // {canal: whatsapp|copiar|share_nativo, entidad: servicio|proveedor_publico|proveedor_dashboard, entidad_id: <uuid>}
 
 // Union completo — usar como `EventoTracking` para expresar "cualquiera de los 11".
 export type EventoTracking = EventoOferta | EventoDemanda;

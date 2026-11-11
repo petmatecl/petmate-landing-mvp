@@ -11,6 +11,8 @@ import { useProveedorStats } from '../../lib/useProveedorStats';
 import { runReadQuery } from '../../lib/supabaseReadQuery';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
+import ShareButtons from '../../components/Share/ShareButtons';
+import { getCanonicalUrl } from '../../lib/shareUrl';
 import { prefetchCategorias } from '../../lib/catalogoCategorias';
 import VerificationGateModal from '../../components/Proveedor/VerificationGateModal';
 import ConversationList from '../../components/Chat/ConversationList';
@@ -1704,7 +1706,22 @@ export default function ProveedorDashboard() {
                         Sticky save bar aparece SOLO si perfilDirty. */}
                     {activeTab === 'perfil' && (
                         <div className="animate-in fade-in duration-300 max-w-3xl pb-32">
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">Mi Perfil</h1>
+                            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mi Perfil</h1>
+                                {/* Sprint share-prov (2026-11-12) — botón primario
+                                    "Compartir mi perfil" en el dashboard. Caso
+                                    principal: proveedor difunde su ficha pública
+                                    entre clientes via WhatsApp / copiar / share
+                                    nativo. Solo visible si el proveedor ya tiene
+                                    id en context (hidratación completa). */}
+                                {proveedorRow?.id && (
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/proveedor/${proveedorRow.id}`)}
+                                        tipo="proveedor_dashboard"
+                                        entidadId={proveedorRow.id}
+                                    />
+                                )}
+                            </div>
 
                             {/* Sub-tabs nav. Scroll horizontal en mobile si no
                                 entran (spec: no colapsar a dropdown). */}

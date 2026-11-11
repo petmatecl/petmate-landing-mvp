@@ -3,6 +3,8 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
+import ShareButtons from '../../components/Share/ShareButtons';
+import { getOgImageUrl, getCanonicalUrl } from '../../lib/shareUrl';
 import { supabase } from '../../lib/supabaseClient';
 import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar, CheckCircle, Circle } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -131,7 +133,11 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta name="description" content={desc} />
                 <meta property="og:title" content={title} />
                 <meta property="og:description" content={desc} />
-                <meta property="og:image" content={proveedor.foto_perfil || 'https://www.pawnecta.com/og-image.jpg'} />
+                {/* Sprint share-prov (2026-11-12) — og:image optimizado via
+                    /_next/image&w=1200 en vez de foto de perfil original. */}
+                <meta property="og:image" content={getOgImageUrl(proveedor.foto_perfil)} />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
                 <meta property="og:type" content="profile" />
                 <meta property="og:url" content={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
                 <meta property="og:locale" content="es_CL" />
@@ -139,7 +145,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <meta name="twitter:card" content="summary_large_image" />
                 <meta name="twitter:title" content={title} />
                 <meta name="twitter:description" content={desc} />
-                <meta name="twitter:image" content={proveedor.foto_perfil || 'https://www.pawnecta.com/og-image.jpg'} />
+                <meta name="twitter:image" content={getOgImageUrl(proveedor.foto_perfil)} />
                 <link rel="canonical" href={`https://www.pawnecta.com/proveedor/${proveedor.id}`} />
                 <script
                     type="application/ld+json"
@@ -320,6 +326,17 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         <BadgeCheck size={12} /> Perfil completo
                                     </span>
                                 )}
+                                {/* Sprint share-prov (2026-11-12) — botón Compartir
+                                    en el header del perfil público del proveedor,
+                                    alineado a la derecha en desktop para no interferir
+                                    con el h1 + badges. */}
+                                <div className="sm:ml-auto">
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/proveedor/${proveedor.id}`)}
+                                        tipo="proveedor_publico"
+                                        entidadId={proveedor.id}
+                                    />
+                                </div>
                             </div>
 
                             {proveedor.tipo_entidad === 'empresa' && (
