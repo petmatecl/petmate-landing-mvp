@@ -321,3 +321,78 @@ qué seguimos?".
 - Verificar CI de main: `gh run list --branch main --limit 5`.
 
 **Tag anotado del día**: `eod-2026-11-10` (marca el estado del repo al cierre). Crear con `git tag -a eod-2026-11-10 -m "Estado al cierre sesión martes"` tras merge del PR que aterriza esta nota.
+
+---
+
+## Estado al cierre 2026-11-11 EOD (sesión miércoles)
+
+**Mergeado a main hoy** (1 PR docs-only):
+
+| SHA | PR | Alcance |
+|---|---|---|
+| `a34a8e42` | #100 `lh-mediana-nov` | Reporte Lighthouse mediana 3 corridas (home/explorar/ficha/register × desktop/mobile = 8 escenarios). 4 bloqueantes identificados (ficha mobile LCP 39.5s, ficha desktop LCP 6.6s + CLS 0.112, explorar LCP 7-8s, home mobile LCP 2.6s marginal). Causa raíz ficha confirmada **peso de imagen** (8.2 MB en 6 imágenes directas Supabase sin optimizar, no render delay). 4 entradas BACKLOG: RPC-C Lote 3 cierre observación 24h + ANON-RLS-PROVEEDORES nueva (post-launch, Opción 2 estructural con SECURITY DEFINER function) + UPLOAD-IMG-RESIZE nueva (5 ítems con detalle recorte interactivo) + Sentry Error: Rejected cierre empírico (0 issues 7 días). |
+
+**Operaciones manuales ejecutadas por PO en prod hoy** (no van a main — solo registro):
+
+- **18:43 CLT — SQL NFKC normalización** sobre 3 servicios con caracteres decorativos Unicode (`5d7d75f0` título "𝐏𝐚𝐬𝐞í𝐭𝐨𝐬 𝐏𝐞𝐫𝐫𝐮𝐧𝐨𝐬" → "Paseítos Perrunos", `52a6e060` + `7ccd98e8` descripciones con caracteres de compatibilidad invisibles). Snapshot exportado, verificación previa 3 filas, UPDATE 3 filas con `normalize(…, NFKC)`, verificación posterior 0. OK.
+
+**Revisión matutina del día (resultados)**:
+
+1. **Sentry `incrementar_vistas` 42501** en ventana 24h post RPC-C Lote 3 (2026-11-10T15:48 → 2026-11-11T15:48 UTC): **0 eventos**. REVOKE OK en runtime. Observación cerrada.
+2. **`public.messages` prod** desde merge #95: **0 mensajes** en 22h. Nada que cruzar con Resend. El fix `Nombre I.` del PR #95 no se ha ejercitado en prod todavía.
+3. **Hallazgo colateral — `permission denied for table proveedores`**: 100-120 denies/día en postgres_logs prod. Latente desde ≥2026-11-07. NO es RPC-C Lote 3 (bug distinto). Root cause: rol `anon` sin SELECT privilege sobre `public.proveedores` + policies de `contactos`/`certificaciones` con subquery a `proveedores` → policy explota. Impacto visible pre-launch = 0 (regla "contador ≥3 personas distintas" + 0 cert aprobadas prod hoy). Pasa a post-launch como `ANON-RLS-PROVEEDORES` con Opción 2 estructural.
+
+**No mergeados hoy** (pendientes):
+
+- **SHARE-PROV**: planeado jueves 2026-11-12 AM. Textos WhatsApp aprobados, UTM aprobados, botón "Compartir mi perfil" en dashboard `/proveedor` aprobado, og:image optimizado (no fotos originales 1-2 MB).
+- **`perf-ficha` + `/explorar` ServiceCard** (combinado si el PR no se vuelve muy ancho): planeado jueves PM. `<Image>` de Next + `aspect-ratio` + `object-fit: cover` + `loading="lazy"` en galería. Prerequisito: PO midió ficha en móvil real con cache y carga instantánea — el 39 s de Lighthouse es worst case throttled. Fix acotado 3-4 h.
+- **HOME-CARRUSEL** (items 1-3 un PR): planeado viernes 2026-11-13 AM. Carrusel real (scroll-snap + swipe + flechas con estado) + una fila + placeholder como última tarjeta + mover "Por qué confiar" debajo franjas. 5-7 h. A11y teclado + aria-label.
+- **DESC-SEED-LEGACY — anexo PR SHARE-PROV**: subir límite descripción a 1000 chars + contador visible (amarillo ≥900, rojo ≥980) + `maxLength={1000}` HTML native en textarea. Verificar en smoke que ficha + cards `/explorar` manejan 1000 chars sin romper layout (line-clamp donde aplique).
+- **SQL corrección 3 descripciones truncadas** (Eduardo C.): preparado en el chat del miércoles con textos propuestos **aprobados por PO**. PO lo ejecuta mañana AM cuando el auditor se lo recuerde. Protocolo P5 completo (snapshot, verificación previa, UPDATE RETURNING, verificación posterior, rollback plan).
+- **Lighthouse fixes secundarios**: home marginal (viernes PM si sobra). `norm-titulos` post-launch (3 casos legacy ya resueltos a mano, script no necesario).
+
+**Pendientes para retomar mañana jueves 2026-11-12**:
+
+### Primer bloque AM
+
+1. **Recordar al PO ejecutar el SQL DESC-SEED-LEGACY** (3 UPDATEs descripciones Eduardo C., textos aprobados). Paso 1 snapshot → Paso 2 verificación previa → Paso 3 UPDATE con RETURNING → Paso 4 verificación posterior (= 0 pendientes). Textos preservados en el chat de este turno.
+2. **Arrancar SHARE-PROV** (PR propio `share-prov`, estimación 4-6 h):
+   - Botones Compartir (WhatsApp + Copiar + Share nativo móvil) en ficha `/servicio/[id]`, `/proveedor/[id]`, dashboard `/proveedor`.
+   - 3 textos prellenados aprobados (variantes por origen).
+   - UTM params (`utm_source={whatsapp|copiar|share_nativo}, utm_medium=share, utm_campaign=share_prov`).
+   - OG metadata dinámico (`og:image` optimizado vía `/_next/image?url=<foto>&w=1200`, declarar `og:image:width` + `og:image:height`, no fotos originales 1-2 MB).
+   - Evento GA4 `share_click`.
+   - **Anexo DESC-SEED-LEGACY** en el mismo PR: contador + `maxLength={1000}` + subir límite 500 → 1000 en [ServiceFormModal.tsx:661](components/Proveedor/ServiceFormModal.tsx#L661).
+   - Smoke manual PO + CI 4/4 verde + merge.
+
+### PM
+
+3. **`perf-ficha`** (PR propio `perf-ficha`, estimación 3-5 h):
+   - `<Image>` Next.js en 4 call sites de `components/Servicio/ServiceDetailView.tsx` (hero + galería + avatar + espacio proveedor).
+   - `aspect-ratio` + `object-fit: cover` en containers para eliminar CLS 0.112 + preparar proporciones futuras (UPLOAD-IMG-RESIZE 4:3 / 1:1).
+   - `priority` en hero, `loading="lazy"` en galería/thumbs.
+   - Verificar `images.remotePatterns` cubre `ouezpeeiwjwawauidrqq.supabase.co/storage/v1/object/public/**`.
+   - **Decisión de ancho**: si `/explorar` ServiceCard también carga fotos originales sin optimizar (**verificado hoy: sí, usa `<img>` nativo en L95 + L149**), cubrir en el mismo PR. Si queda muy ancho, PR separado inmediato.
+
+### Viernes 2026-11-13
+
+- AM: **HOME-CARRUSEL** items 1-3 (5-7 h).
+- PM: `/explorar` perf si no entró jueves + `norm-titulos` si hay buffer, sino post-launch.
+
+### Reglas vigentes (sin cambios desde martes)
+
+- Un PR en CI a la vez.
+- Nunca mergear con rojo (P11).
+- Enmienda P11 rerun autónomo: solo infra inequívoca (ECONNRESET, timeouts, 5xx Vercel/Supabase, SSL/DNS), máx 1 por PR, anotado.
+- Smoke manual pre-merge: GO explícito PO para código productivo.
+- Baselines visuales: aprobación con copias `NUEVA-SIN-CACHE-rX.png`.
+- Cero smoke manual durante CI + cero `signOut` manual QA mientras corre CI.
+- Tuteo estricto en output al PO (sin voseo en ningún mensaje visible).
+
+### Reglas de reinicio de sesión (si mañana arranca sesión nueva)
+
+- Leer: (1) este bloque "Estado al cierre 2026-11-11 EOD", (2) `BACKLOG.md > PEDIDOS DIRECTOS DEL PO`, (3) CLAUDE.md top.
+- Verificar main: `git log --oneline origin/main | head -10`.
+- Primer acción AM: recordar al PO ejecutar SQL DESC-SEED-LEGACY (textos preservados en chat miércoles, pedirlos de nuevo en esta sesión).
+
+**Tag anotado del día**: `eod-2026-11-11` a crear tras merge del PR que aterriza esta nota.
