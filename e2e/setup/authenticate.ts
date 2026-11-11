@@ -138,30 +138,125 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // apenas la URL cambia) y persistSession() del SDK (que corre después
     // del onAuthStateChange SIGNED_IN handler). Timeout 10s: si en ese
     // margen no aparece el token, es fallo real del login (no timing).
-    try {
-        await page.waitForFunction(
-            () => {
-                try {
-                    for (let i = 0; i < localStorage.length; i++) {
-                        const k = localStorage.key(i);
-                        if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
-                            const v = localStorage.getItem(k);
-                            if (v && v.includes('"access_token"')) return true;
+    // Helper local: polling de localStorage por el token Supabase.
+    // Devuelve true si aparece dentro del timeout, false si se vence.
+    const waitForTokenInStorage = async (timeoutMs: number): Promise<boolean> => {
+        try {
+            await page.waitForFunction(
+                () => {
+                    try {
+                        for (let i = 0; i < localStorage.length; i++) {
+                            const k = localStorage.key(i);
+                            if (k && k.startsWith('sb-') && k.endsWith('-auth-token')) {
+                                const v = localStorage.getItem(k);
+                                if (v && v.includes('"access_token"')) return true;
+                            }
                         }
-                    }
-                    return false;
-                } catch { return false; }
-            },
-            { timeout: 10_000 },
-        );
-    } catch {
-        throw new Error(
-            `[authenticate:${opts.roleName}] Login pareció exitoso (waitForURL fuera de /login OK) ` +
-            `pero Supabase NO persistió el token en localStorage tras 10s (buscando key sb-*-auth-token ` +
-            `con access_token). Race del token vs storageState capture, o el signIn cliente-side no ` +
-            `completó realmente. URL actual: ${page.url()}. Detiene el setup acá para evitar cascada ` +
-            `de fails "No se encontró {access_token, refresh_token}" en todos los specs downstream.`
-        );
+                        return false;
+                    } catch { return false; }
+                },
+                { timeout: timeoutMs },
+            );
+            return true;
+        } catch {
+            return false;
+        }
+    };
+
+    // Primer intento: esperar a que el flow UI del signIn persista el token.
+    let tokenPresente = await waitForTokenInStorage(10_000);
+
+    if (!tokenPresente) {
+        // Sprint setup-hardening (2026-11-12) — re-login server-side si el
+        // flow UI dejó el token en estado inconsistente (race timing,
+        // cross-fire cross-tab Supabase, signOut global previo de otro
+        // navegador, etc). Patrón espejo del fallback en fixture runtime
+        // e2e/fixtures/supabase.ts > buildEntry (pieza B sprint
+        // estab-e2e-tokens, merged 2026-11-10): llamar directo a
+        // /auth/v1/token?grant_type=password desde el browser + escribir
+        // el par de tokens en localStorage bajo la key canónica
+        // sb-<projectref>-auth-token. Cubre el setup project que pieza B
+        // no cubría — era la mitad faltante.
+        //
+        // Falla fuerte (P8) si TAMBIÉN el re-login falla: no silente, no
+        // verde falso. Un setup fallido debe cascadear visible como lo
+        // hace hoy, pero ahora con doble intento previo.
+        const supabaseUrl = process.env.E2E_SUPABASE_URL;
+        const anonKey = process.env.E2E_SUPABASE_ANON_KEY;
+        if (!supabaseUrl || !anonKey) {
+            throw new Error(
+                `[authenticate:${opts.roleName}] Token no persistió tras 10s del flow UI, ` +
+                `y re-login server-side no es posible: faltan E2E_SUPABASE_URL o ` +
+                `E2E_SUPABASE_ANON_KEY en el env. Setup detenido.`,
+            );
+        }
+
+        const reloginResult = await page.evaluate(async (args) => {
+            try {
+                const resp = await fetch(`${args.supabaseUrl}/auth/v1/token?grant_type=password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': args.anonKey,
+                        'Authorization': `Bearer ${args.anonKey}`,
+                    },
+                    body: JSON.stringify({ email: args.email, password: args.password }),
+                });
+                if (!resp.ok) {
+                    const body = await resp.text().catch(() => '');
+                    return { ok: false, reason: `HTTP ${resp.status}: ${body.slice(0, 200)}` };
+                }
+                const data = await resp.json();
+                if (!data.access_token || !data.refresh_token) {
+                    return { ok: false, reason: `response sin tokens: ${JSON.stringify(data).slice(0, 200)}` };
+                }
+                // Escribir con la key canónica Supabase: sb-<projectref>-auth-token.
+                // El projectref es el primer segmento del host (ej.
+                // "jmtadvdkicyylcwjcmcl" para staging).
+                const ref = new URL(args.supabaseUrl).host.split('.')[0];
+                const key = `sb-${ref}-auth-token`;
+                const now = Math.floor(Date.now() / 1000);
+                localStorage.setItem(key, JSON.stringify({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                    expires_at: now + (data.expires_in ?? 3600),
+                    expires_in: data.expires_in ?? 3600,
+                    token_type: data.token_type ?? 'bearer',
+                    user: data.user ?? null,
+                }));
+                return { ok: true };
+            } catch (err: any) {
+                return { ok: false, reason: `fetch threw: ${err?.message ?? String(err)}` };
+            }
+        }, {
+            supabaseUrl,
+            anonKey,
+            email: opts.email,
+            password: opts.password,
+        });
+
+        if (!reloginResult.ok) {
+            throw new Error(
+                `[authenticate:${opts.roleName}] Token no persistió tras flow UI (10s) ` +
+                `Y re-login server-side también falló: ${reloginResult.reason}. ` +
+                `URL actual: ${page.url()}. Setup detenido para evitar cascada.`,
+            );
+        }
+
+        // Segunda verificación (más corta: el token ya está escrito, solo
+        // confirmamos que el polling lo detecta). Si aún así no aparece,
+        // hay algo raro con el origin del localStorage — fallar fuerte.
+        tokenPresente = await waitForTokenInStorage(5_000);
+        if (!tokenPresente) {
+            throw new Error(
+                `[authenticate:${opts.roleName}] Re-login server-side reportó OK ` +
+                `pero el polling de localStorage no detectó la key sb-*-auth-token ` +
+                `tras 5s. Posible mismatch de origin (el localStorage de page.evaluate ` +
+                `vs el que Playwright serializa). URL actual: ${page.url()}. Setup detenido.`,
+            );
+        }
+
+        console.log(`[authenticate:${opts.roleName}] re-login server-side OK tras flow UI fallido`);
     }
 
     // Sprint hf-usuario-fix iteración 2 (2026-09-24) — captura ampliada para
