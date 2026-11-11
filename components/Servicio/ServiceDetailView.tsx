@@ -880,16 +880,11 @@ export default function ServiceDetailView({
                                     </div>
                                 )}
 
-                                {/* Sprint share-prov (2026-11-12) — botón Compartir
-                                    flotante en esquina superior derecha del hero.
-                                    Fondo blanco + sombra para contraste sobre la foto. */}
-                                <div className="absolute top-3 right-3 z-10">
-                                    <ShareButtons
-                                        shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
-                                        tipo="servicio"
-                                        entidadId={service.id}
-                                    />
-                                </div>
+                                {/* Sprint share-prov smoke ajuste 1 (PO 2026-11-11) —
+                                    el botón flotante del hero chocaba con el corazón
+                                    de favoritos (se leía "Compar"). Movido a la
+                                    tarjeta de contacto abajo como enlace secundario
+                                    discreto (variant="link"). */}
 
                                 {/* Overlay para owner sin fotos del servicio */}
                                 {isOwner && (!service.fotos || service.fotos.length === 0) && (
@@ -1755,6 +1750,21 @@ export default function ServiceDetailView({
                                         onCallTracked={() => trackContacto('llamada')}
                                     />
                                 )}
+
+                                {/* Sprint share-prov smoke ajuste 1 (PO 2026-11-11) —
+                                    Compartir como enlace secundario discreto dentro
+                                    de la tarjeta de contacto, abajo de los CTAs
+                                    principales (Mensaje + WhatsApp + Teléfono). No
+                                    debe confundirse con el verde de WhatsApp. */}
+                                <div className="pt-1 flex justify-center">
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
+                                        tipo="servicio"
+                                        entidadId={service.id}
+                                        label="Compartir este servicio"
+                                        variant="link"
+                                    />
+                                </div>
                             </div>
 
                             {/* ── PROVEEDOR — bloque eliminado en Commit 4 del

@@ -36,6 +36,11 @@ interface ShareButtonsProps {
     label?: string;
     /** Clases extra para el botón trigger (layout, spacing). */
     className?: string;
+    /** Estilo del trigger — "button" (default, con border + bg blanco) o
+     *  "link" (texto discreto con icono, sin border; para zonas donde ya
+     *  hay CTAs prominentes como la tarjeta de contacto). Ajuste PO
+     *  post-smoke 2026-11-11. */
+    variant?: 'button' | 'link';
 }
 
 /** Texto prellenado según origen (aprobado PO 2026-11-11). Sin emojis. */
@@ -53,18 +58,20 @@ const LABELS_DEFAULT: Record<Tipo, string> = {
     proveedor_dashboard: 'Compartir mi perfil',
 };
 
-/** Appendar UTM params al URL base. Preserva query existente si hay. */
+/** Appendar UTM params al URL base. Preserva query existente si hay.
+ *  Ajuste PO 2026-11-11 post-smoke: quitar utm_campaign para acortar el
+ *  enlace compartido (quedan solo utm_source + utm_medium=share, suficiente
+ *  para GA4 Enhanced Measurement). */
 function withUtm(baseUrl: string, canal: Canal): string {
     try {
         const u = new URL(baseUrl);
         u.searchParams.set('utm_source', canal);
         u.searchParams.set('utm_medium', 'share');
-        u.searchParams.set('utm_campaign', 'share_prov');
         return u.toString();
     } catch {
         // URL inválida — fallback append simple.
         const sep = baseUrl.includes('?') ? '&' : '?';
-        return `${baseUrl}${sep}utm_source=${canal}&utm_medium=share&utm_campaign=share_prov`;
+        return `${baseUrl}${sep}utm_source=${canal}&utm_medium=share`;
     }
 }
 
@@ -74,6 +81,7 @@ export default function ShareButtons({
     entidadId,
     label,
     className = '',
+    variant = 'button',
 }: ShareButtonsProps) {
     const [open, setOpen] = useState(false);
     const [canNativeShare, setCanNativeShare] = useState(false);
@@ -139,6 +147,16 @@ export default function ShareButtons({
 
     const labelText = label ?? LABELS_DEFAULT[tipo];
 
+    // Estilo del trigger según variant:
+    //  - button: pill con border + bg blanco + sombra (primario, para zonas
+    //    de header o dashboard donde el share es acción destacada).
+    //  - link: texto discreto con icono + underline on hover + sin bg;
+    //    para zonas con otros CTAs ya prominentes (ej. tarjeta de contacto
+    //    de la ficha donde están Enviar mensaje + WhatsApp verde + teléfono).
+    const triggerClass = variant === 'link'
+        ? 'inline-flex items-center gap-1.5 text-sm font-medium text-slate-600 hover:text-slate-900 hover:underline focus:outline-none focus:ring-2 focus:ring-accent-500 rounded'
+        : 'inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-500';
+
     return (
         <div className={`relative inline-block ${className}`} ref={popoverRef}>
             <button
@@ -147,7 +165,7 @@ export default function ShareButtons({
                 aria-haspopup="menu"
                 aria-expanded={open}
                 aria-label={labelText}
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-500"
+                className={triggerClass}
             >
                 <Share2 size={16} strokeWidth={2} aria-hidden="true" />
                 <span>{labelText}</span>
