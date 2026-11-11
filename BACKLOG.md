@@ -89,6 +89,11 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
   2. **Soporte HEIC (iPhone)**: conversión en el cliente via `heic2any` o similar lib. Si no es viable técnicamente (bundle grande, compat browser), mostrar mensaje claro al usuario explicando que HEIC no se soporta y pidiendo convertir a JPEG/PNG antes.
   3. **Tamaño mínimo**: rechazar con mensaje amable las imágenes por debajo de **~800 px de ancho** (fotos de servicio) y **~400 px** (avatar proveedor). Evita placeholders pixelados.
   4. **Recorte al subir con proporción fija**: **4:3 para fotos de servicio** y **1:1 para avatar**. **Revisar si existe un componente de recorte reutilizable** antes de implementar (ej. el que usan las fichas de mascotas si tiene algo similar; grep en `components/` por `crop|resize|ImageUpload`).
+
+     **Detalle del flow de recorte (ampliado PO 2026-11-11)**:
+     - Si la foto subida **no coincide** con la proporción (4:3 servicio, 1:1 avatar), se abre automáticamente un **encuadre interactivo** donde el usuario mueve la imagen y hace zoom para elegir el crop.
+     - Si el usuario **no ajusta nada**, se aplica un encuadre centrado por defecto, **sin bloquear la subida** (nunca frustrar el upload por indecisión del user).
+     - Desde el panel del proveedor puede **reencuadrar después sin volver a subir la foto**: se guarda el original comprimido + los parámetros de recorte (`{x, y, width, height, zoom}`) en una columna JSON (ej. `servicios_publicados.fotos_crop_params` o similar), para que al reencuadrar no se pierda calidad por re-encodes. **Aplica también a las fotos ya subidas** (migradas con el script del ítem 5, inicialmente con default center-crop).
   5. **Script único de recompresión del catálogo existente**: `scripts/recomprimir-imgs-storage.ts` que lista objects del bucket `servicios-fotos` + `avatars`, descarga, recomprime con la misma pipeline del cliente, sube de vuelta con `upsert`. **Snapshot previo obligatorio** (dump de las URLs + metadata actual antes del run) para poder revertir si algo sale mal.
 
   Beneficios: reduce bucket storage (hoy acumulado desconocido, pero 20 proveedores × 5 fotos × 2 MB = ~200 MB fácil), reduce bandwidth al servir, reduce costo de optimización en Vercel Image (si existe quota paga).
