@@ -1,6 +1,7 @@
 ﻿import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 import { ShieldCheck, Star, Sparkles, CalendarCheck } from 'lucide-react';
 import VisitCounter from '../Shared/VisitCounter';
 import FavoritoButton from '../Shared/FavoritoButton';
@@ -102,6 +103,7 @@ export default function ServiceCard({ service }: Props) {
                     alt={service.titulo}
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized={isPreOptimizedHost(coverImage)}
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
@@ -157,6 +159,7 @@ export default function ServiceCard({ service }: Props) {
                                 alt={service.proveedor_nombre}
                                 width={24}
                                 height={24}
+                                unoptimized={isPreOptimizedHost(service.proveedor_foto)}
                                 className="w-full h-full object-cover"
                             />
                         ) : (

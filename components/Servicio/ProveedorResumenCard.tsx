@@ -14,6 +14,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ShieldCheck, CheckCircle, Star, Briefcase } from 'lucide-react';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 
 interface ProveedorResumenCardProps {
     proveedor: any;
@@ -71,6 +72,7 @@ export default function ProveedorResumenCard({
                                 width={96}
                                 height={96}
                                 sizes="96px"
+                                unoptimized={isPreOptimizedHost(proveedor.foto_perfil)}
                                 className="w-full h-full object-cover"
                             />
                         ) : (

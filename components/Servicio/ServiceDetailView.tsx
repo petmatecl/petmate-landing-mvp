@@ -4,6 +4,7 @@ import { useStickyBox } from 'react-sticky-box';
 import Head from 'next/head';
 import Link from 'next/link';
 import Image from 'next/image';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 import ShareButtons from '../Share/ShareButtons';
 import { getOgImageUrl, getCanonicalUrl } from '../../lib/shareUrl';
 
@@ -834,26 +835,31 @@ export default function ServiceDetailView({
                                     <div className="w-full h-full flex items-center justify-center bg-slate-100">
                                         {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
                                     </div>
-                                ) : (
-                                    // Sprint perf-ficha (2026-11-12): migrado a
-                                    // next/image. `fill` + `sizes` sirven WebP
-                                    // responsive (mobile ~780w, desktop ~1200w);
-                                    // antes `<img>` cargaba siempre el original
-                                    // sin importar viewport. `priority` solo en
-                                    // fotoActiva===0 (LCP). `fetchPriority="high"`
-                                    // del PERF-1 absorbido por `priority` de Next.
-                                    // Container ya tiene h-[340px] md:h-[500px]
-                                    // → fill llena sin CLS.
-                                    <Image
-                                        src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
-                                        alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
-                                        fill
-                                        sizes="(max-width: 1024px) 100vw, 60vw"
-                                        priority={fotoActiva === 0}
-                                        className="object-cover transition-opacity duration-200"
-                                        onError={() => setImgError(true)}
-                                    />
-                                )}
+                                ) : (() => {
+                                    // Sprint perf-ficha (2026-11-12): migrado a next/image.
+                                    // `fill` + `sizes` sirven WebP responsive; `priority`
+                                    // solo en fotoActiva===0 (LCP). `quality=85` para que
+                                    // el hero no pierda detalle en re-encode WebP.
+                                    // `unoptimized` cuando el host ya entrega imágenes
+                                    // optimizadas (Unsplash/Pexels) — evita el double
+                                    // encoding JPEG→WebP q=75 que PO detectó pixelado
+                                    // con el fixture Unsplash `?w=400`. Container ya tiene
+                                    // h-[340px] md:h-[500px] → fill llena sin CLS.
+                                    const heroSrc = service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage;
+                                    return (
+                                        <Image
+                                            src={heroSrc}
+                                            alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
+                                            fill
+                                            sizes="(max-width: 1024px) 100vw, 60vw"
+                                            priority={fotoActiva === 0}
+                                            quality={85}
+                                            unoptimized={isPreOptimizedHost(heroSrc)}
+                                            className="object-cover transition-opacity duration-200"
+                                            onError={() => setImgError(true)}
+                                        />
+                                    );
+                                })()}
 
                                 {/* Overlay título */}
                                 {!imgError && (
@@ -951,7 +957,7 @@ export default function ServiceDetailView({
                                                 }`}
                                         >
                                             {/* Sprint perf-ficha (2026-11-12): thumbnails 64×64 con next/image — lazy nativo, WebP optimizado. */}
-                                            <Image src={foto} alt={`Miniatura foto ${i + 1}`} width={64} height={64} className="w-full h-full object-cover" />
+                                            <Image src={foto} alt={`Miniatura foto ${i + 1}`} width={64} height={64} unoptimized={isPreOptimizedHost(foto)} className="w-full h-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
@@ -1493,6 +1499,7 @@ export default function ServiceDetailView({
                                     <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
                                         <Image src={proveedor.galeria[0]} alt="Espacio del proveedor"
                                             fill sizes="(max-width: 1024px) 100vw, 60vw"
+                                            unoptimized={isPreOptimizedHost(proveedor.galeria[0])}
                                             className="object-cover" />
                                     </div>
                                 ) : (
@@ -1501,7 +1508,7 @@ export default function ServiceDetailView({
                                         {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
                                             <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
                                                 {/* Sprint perf-ficha: next/image fill + sizes grid responsive. */}
-                                                <Image src={url} alt="" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-cover hover:scale-105 transition-transform duration-300" />
+                                                <Image src={url} alt="" fill sizes="(max-width: 640px) 50vw, 33vw" unoptimized={isPreOptimizedHost(url)} className="object-cover hover:scale-105 transition-transform duration-300" />
                                                 {i === 2 && proveedor.galeria.length > 3 && (
                                                     <Link href={`/proveedor/${proveedor.id}`}
                                                         className="absolute inset-0 bg-black/55 flex items-center justify-center hover:bg-black/65 transition-colors">
