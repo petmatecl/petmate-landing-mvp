@@ -18,12 +18,21 @@ export function Footer() {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <Link href="/" className="relative block">
+              {/* Sprint cls-footer (2026-11-12): dimensiones CSS fijas que
+                  matchean el aspect ratio 130/36 del source. Antes `w-auto`
+                  dejaba al browser calcular el width dependiendo del
+                  intrinsic size, que no está disponible pre-load → browser
+                  reservaba 0 width → al cargar el logo, el footer crecía
+                  y empujaba toda la página arriba del fold hacia abajo
+                  (CLS 0.11 reportado por Lighthouse "Media element lacking
+                  an explicit size on Pawnecta"). h-8=32px × (130/36) ≈ 116
+                  → `w-[116px]`. sm:h-9=36px × (130/36) = 130 → `sm:w-[130px]`. */}
               <Image
                 src="/pawnecta_logo_final-trans.png"
                 alt="Pawnecta"
                 width={130}
                 height={36}
-                className="h-8 sm:h-9 w-auto"
+                className="h-8 sm:h-9 w-[116px] sm:w-[130px]"
               />
             </Link>
           </div>
