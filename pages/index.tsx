@@ -1,14 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState, useId } from "react";
+import { useState, useId, useRef, useEffect } from "react";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users,
-  BadgeCheck, Sparkles
+  BadgeCheck, Sparkles, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { fetchProveedoresPublicosByIds } from "../lib/supabase/queries/proveedoresPublicos";
@@ -199,6 +199,87 @@ function ServiceCardItem({ s }: { s: any }) {
   );
 }
 
+// ─── Horizontal carousel helper (sprint home-carrusel 2026-11-12) ─────────────
+// Scroll horizontal con snap + flechas con estado disabled en extremos.
+// Keyboard: ArrowLeft/ArrowRight scrollea un ancho de card. Swipe mobile
+// nativo del browser. Scrollbar oculta por CSS inline (Tailwind no tiene
+// clase estándar). Placeholder va al final de los children.
+function HorizontalScroller({ children, ariaLabel }: { children: React.ReactNode; ariaLabel: string }) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [canPrev, setCanPrev] = useState(false);
+    const [canNext, setCanNext] = useState(false);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const update = () => {
+            setCanPrev(el.scrollLeft > 4);
+            setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+        };
+        update();
+        el.addEventListener('scroll', update, { passive: true });
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => { el.removeEventListener('scroll', update); ro.disconnect(); };
+    }, [children]);
+
+    const scrollByCard = (dir: 1 | -1) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const card = el.children[0] as HTMLElement | undefined;
+        const w = card?.clientWidth ?? 300;
+        el.scrollBy({ left: dir * (w + 16), behavior: 'smooth' });
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByCard(-1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCard(1); }
+    };
+
+    return (
+        <div className="relative">
+            <div
+                ref={scrollRef}
+                role="group"
+                aria-label={ariaLabel}
+                tabIndex={0}
+                onKeyDown={onKeyDown}
+                className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded-xl"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {children}
+            </div>
+            {/* Scrollbar hide WebKit */}
+            <style jsx>{`div[role="group"]::-webkit-scrollbar { display: none; }`}</style>
+            {/* Flechas: solo visibles con contenido excedente. En mobile se ocultan
+                — el swipe nativo cubre la UX. */}
+            <button
+                type="button"
+                onClick={() => scrollByCard(-1)}
+                disabled={!canPrev}
+                aria-label={`Anterior en ${ariaLabel}`}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-0 disabled:pointer-events-none transition-opacity z-10"
+            >
+                <ChevronLeft size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+            <button
+                type="button"
+                onClick={() => scrollByCard(1)}
+                disabled={!canNext}
+                aria-label={`Siguiente en ${ariaLabel}`}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-0 disabled:pointer-events-none transition-opacity z-10"
+            >
+                <ChevronRight size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+        </div>
+    );
+}
+
+// Clase estándar de card del carrusel: shrink-0 + snap-start + ancho fijo
+// consistente entre FranjaDual y FranjaCategoria. 280 px mobile, 300 px
+// sm+ para caber ~3-4 cards en lg antes de recortar.
+const CAROUSEL_CARD_CLS = 'shrink-0 snap-start w-[280px] sm:w-[300px]';
+
 // ─── Dual category block: 2 categories merged, grid layout, no scroll ─────────
 function FranjaDual({
   titulo, IconA, IconB, serviciosA, serviciosB, slugA, slugB,
@@ -240,30 +321,26 @@ function FranjaDual({
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Sprint home-carrusel (2026-11-12) — grid → scroll horizontal
+              una fila + flechas con estado + swipe mobile. Placeholder
+              ausente va al FINAL del scroll (no en celda vacía). */}
+          <HorizontalScroller ariaLabel={titulo}>
             {combined.map((s: any, i: number) => (
-              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+              <div key={`${s.servicio_id ?? s.id}-${i}`} className={CAROUSEL_CARD_CLS}>
+                <ServiceCardItem s={s} />
+              </div>
             ))}
-            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
-                slug ausente, cero relleno genérico. Antes el loop i<4 con
-                i%2 generaba 2 placeholders del mismo slug cuando combined
-                tenía pocos items, duplicando el CTA (ej. 2× "¿Eres
-                veterinario a domicilio?" en la franja Veterinario+Peluquería). */}
             {serviciosA.length === 0 && (
-              <ServicePlaceholderCard
-                key={`placeholder-${slugA}`}
-                categoriaSlug={slugA}
-                variant="compact"
-              />
+              <div key={`placeholder-${slugA}`} className={CAROUSEL_CARD_CLS}>
+                <ServicePlaceholderCard categoriaSlug={slugA} variant="compact" />
+              </div>
             )}
             {serviciosB.length === 0 && (
-              <ServicePlaceholderCard
-                key={`placeholder-${slugB}`}
-                categoriaSlug={slugB}
-                variant="compact"
-              />
+              <div key={`placeholder-${slugB}`} className={CAROUSEL_CARD_CLS}>
+                <ServicePlaceholderCard categoriaSlug={slugB} variant="compact" />
+              </div>
             )}
-          </div>
+          </HorizontalScroller>
         </div>
       </div>
     </section>
@@ -295,16 +372,14 @@ function FranjaCategoria({
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
             </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Sprint home-carrusel (2026-11-12) — scroll horizontal una fila. */}
+          <HorizontalScroller ariaLabel={categoria.nombre}>
             {visible.map((s: any, i: number) => (
-              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+              <div key={`${s.servicio_id ?? s.id}-${i}`} className={CAROUSEL_CARD_CLS}>
+                <ServiceCardItem s={s} />
+              </div>
             ))}
-            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
-                categoría. FranjaCategoria se retorna null arriba si
-                visible=0; si visible≥1 ya hay al menos 1 real del slug,
-                entonces cero placeholder (antes había hasta 3 repetidos
-                del mismo slug rellenando al slot de 4). */}
-          </div>
+          </HorizontalScroller>
         </div>
       </div>
     </section>
@@ -439,45 +514,12 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECCIÓN 1.5 — POR QUÉ CONFIAR EN PAWNECTA
-      ═══════════════════════════════════════════ */}
-      <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto">
-          <h2 id="trust-heading" className="text-3xl md:text-4xl font-semibold text-slate-900 text-center mb-12 tracking-tight">
-            Por qué confiar en Pawnecta
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                Icon: ShieldCheck,
-                titulo: 'Identidad verificable',
-                desc: 'Los proveedores pueden verificar su identidad con RUT y mostrar una insignia en su ficha',
-              },
-              {
-                Icon: BadgeCheck,
-                titulo: 'Sin comisión en el lanzamiento',
-                desc: 'No cobramos comisión; lo que acuerdas con el proveedor queda entre ustedes',
-              },
-              {
-                Icon: MessageCircle,
-                titulo: 'Contacto directo',
-                desc: 'Coordinas y pagas directamente con el proveedor, sin intermediarios',
-              },
-            ].map(({ Icon, titulo, desc }) => (
-              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-50 text-accent-600 mb-4">
-                  <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════
           SECCIÓN 2 — FRANJAS POR CATEGORÍA (pares)
+          Sprint home-carrusel (2026-11-12): subida antes de
+          "Por qué confiar" (swap de orden) — las franjas van
+          primero porque son el acceso directo al catálogo; el
+          bloque de confianza pasa a servir de refuerzo DESPUÉS
+          de ver los servicios reales.
       ═══════════════════════════════════════════ */}
       {(() => {
         if (!featuredServices || featuredServices.length === 0) return <PrelaunchDemandCapture />;
@@ -529,6 +571,48 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         );
       })()}
 
+
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 2.5 — POR QUÉ CONFIAR EN PAWNECTA
+          Sprint home-carrusel (2026-11-12): movida de ANTES de las
+          franjas (sección 1.5 pre-sprint) a DESPUÉS de las franjas.
+          Lógica: usuario ve primero los servicios reales, luego
+          encuentra el refuerzo de confianza.
+      ═══════════════════════════════════════════ */}
+      <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <h2 id="trust-heading" className="text-3xl md:text-4xl font-semibold text-slate-900 text-center mb-12 tracking-tight">
+            Por qué confiar en Pawnecta
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                Icon: ShieldCheck,
+                titulo: 'Identidad verificable',
+                desc: 'Los proveedores pueden verificar su identidad con RUT y mostrar una insignia en su ficha',
+              },
+              {
+                Icon: BadgeCheck,
+                titulo: 'Sin comisión en el lanzamiento',
+                desc: 'No cobramos comisión; lo que acuerdas con el proveedor queda entre ustedes',
+              },
+              {
+                Icon: MessageCircle,
+                titulo: 'Contacto directo',
+                desc: 'Coordinas y pagas directamente con el proveedor, sin intermediarios',
+              },
+            ].map(({ Icon, titulo, desc }) => (
+              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-50 text-accent-600 mb-4">
+                  <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ═══════════════════════════════════════════
           SECCIÓN 3 — GRID DE CATEGORÍAS (acceso secundario)
