@@ -119,7 +119,7 @@ function ServiceCardItem({ s }: { s: any }) {
   return (
     <a
       href={`/servicio/${s.servicio_id ?? s.id}`}
-      className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
+      className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col h-full"
     >
       <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}

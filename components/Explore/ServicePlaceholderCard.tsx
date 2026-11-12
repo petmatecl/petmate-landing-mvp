@@ -49,12 +49,21 @@ export default function ServicePlaceholderCard({
         // ServiceCardItem (foto aspect-4/3 ~210px + titulo + proveedor +
         // comuna + precio) para que el carrusel no quede con un "hueco"
         // visual cuando el placeholder es la última tarjeta.
+        // Sprint home-carrusel punto 3 ajuste final (PO 2026-11-12):
+        // `min-h-[380px]` REMOVIDO. Si el placeholder fuerza un min-height
+        // fijo cuando las cards naturales son más chicas, el stretch del
+        // flex-row del carrusel iguala TODAS las cards al min del placeholder
+        // → se ve "alto fantasma" en cards con poco contenido. Sin min-h,
+        // `h-full` toma el alto natural de la card más grande de la fila
+        // por `align-items: stretch` default del flex (el carrusel usa
+        // `flex` sin `items-*` override). Placeholder y cards quedan
+        // SIEMPRE del mismo alto, variando por franja según contenido real.
         const registerUrl = `/register?rol=proveedor${categoriaSlug ? `&categoria=${encodeURIComponent(categoriaSlug)}` : ''}`;
         return (
             <Link
                 href={registerUrl}
                 aria-label={`${question} — publica tus servicios en Pawnecta`}
-                className="flex flex-col h-full min-h-[380px] rounded-2xl border border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-accent-400 overflow-hidden transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
+                className="flex flex-col h-full rounded-2xl border border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-accent-400 overflow-hidden transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             >
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
                     <div className="text-slate-400">
