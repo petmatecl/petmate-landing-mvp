@@ -97,13 +97,20 @@ export default function ReviewSummary({ servicioId, proveedorId, reviewsOverride
         fetchRatings();
     }, [servicioId, proveedorId, reviewsOverride]);
 
+    // Sprint cls-ficha (2026-11-12): loading + empty state unificados en
+    // `min-h-[240px]` para evitar CLS 0.11 en ficha desktop. Culprit
+    // identificado por Lighthouse post-perf-ficha mediana 3: el loading
+    // reservaba `h-48` (192 px) y el empty state renderizaba a ~220-240 px
+    // (padding + icon + title + subtitle). La transición loading→empty
+    // generaba el shift de ~30-50 px en la zona visible del viewport.
+    // Fix: ambos estados ahora reservan >=240 px desde el primer paint.
     if (loading) {
-        return <div className="animate-pulse bg-slate-100 rounded-2xl h-48 w-full border border-slate-200"></div>;
+        return <div className="animate-pulse bg-slate-100 rounded-2xl min-h-[240px] w-full border border-slate-200"></div>;
     }
 
     if (!stats || stats.total === 0) {
         return (
-            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 flex flex-col items-center justify-center text-center">
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-8 min-h-[240px] flex flex-col items-center justify-center text-center">
                 <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
                     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400">
                         <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
