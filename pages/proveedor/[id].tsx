@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import ShareButtons from '../../components/Share/ShareButtons';
@@ -298,11 +299,21 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                     <div className="p-6 md:p-8 flex flex-col sm:flex-row items-center sm:items-start gap-6">
 
-                        {/* Foto 120×120 */}
+                        {/* Foto 112×112 (w-28). Sprint perf-ficha (2026-11-12):
+                            next/image sirve WebP 112×112 en vez de la original
+                            (hasta ~1 MB reportada en Lighthouse). priority=true
+                            porque está en el hero del perfil público. */}
                         <div className={`w-28 h-28 rounded-2xl shrink-0 overflow-hidden border-2 ${proveedor.rut_verificado ? 'border-accent-400 ring-4 ring-accent-100' : 'border-slate-200'}`}>
                             {proveedor.foto_perfil ? (
-                                // eslint-disable-next-line @next/next/no-img-element
-                                <img src={proveedor.foto_perfil} alt={proveedor.nombre} className="w-full h-full object-cover" />
+                                <Image
+                                    src={proveedor.foto_perfil}
+                                    alt={proveedor.nombre}
+                                    width={112}
+                                    height={112}
+                                    sizes="112px"
+                                    priority
+                                    className="w-full h-full object-cover"
+                                />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-accent-50 text-accent-700 font-semibold text-4xl">
                                     {proveedor.nombre.charAt(0)}
@@ -740,16 +751,16 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             Fotos del espacio
                         </h2>
                         {proveedor.galeria.length === 1 ? (
+                            // Sprint perf-ficha (2026-11-12): fill + sizes WebP responsive.
                             <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={proveedor.galeria[0]} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                                <Image src={proveedor.galeria[0]} alt="" fill sizes="(max-width: 1024px) 100vw, 80vw" className="object-cover" />
                             </div>
                         ) : (
                             <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
                                 {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
                                     <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                        {/* Sprint perf-ficha: fill + sizes grid responsive. */}
+                                        <Image src={url} alt="" fill sizes="(max-width: 640px) 50vw, 33vw" className="object-cover hover:scale-105 transition-transform duration-300" />
                                         {i === 2 && proveedor.galeria.length > 3 && (
                                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                                 <span className="text-white font-semibold text-lg">+{proveedor.galeria.length - 3} fotos</span>
