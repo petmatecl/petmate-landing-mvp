@@ -1,5 +1,7 @@
 ﻿import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 import { ShieldCheck, Star, Sparkles, CalendarCheck } from 'lucide-react';
 import VisitCounter from '../Shared/VisitCounter';
 import FavoritoButton from '../Shared/FavoritoButton';
@@ -89,14 +91,20 @@ export default function ServiceCard({ service }: Props) {
                 />
             </div>
 
-            {/* Imagen Principal */}
+            {/* Imagen Principal — Sprint perf-ficha (2026-11-12): migrado a
+                next/image para WebP auto + srcset responsivo. Grid de /explorar
+                tiene breakpoints 1/2/3 cols → sizes refleja ancho por viewport
+                para que mobile cargue ~100vw y desktop ~33vw en vez de la
+                imagen original 1200w. `loading="lazy"` nativo de Next cuando
+                priority=false (default). */}
             <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                     src={coverImage}
                     alt={service.titulo}
-                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    unoptimized={isPreOptimizedHost(coverImage)}
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
                         if (target.src !== defaultImage) {
@@ -146,7 +154,14 @@ export default function ServiceCard({ service }: Props) {
                 <div className="flex items-center gap-2 mb-2">
                     <div className="w-6 h-6 rounded-full overflow-hidden bg-slate-200 shrink-0">
                         {service.proveedor_foto ? (
-                            <img src={service.proveedor_foto} alt={service.proveedor_nombre} className="w-full h-full object-cover" />
+                            <Image
+                                src={service.proveedor_foto}
+                                alt={service.proveedor_nombre}
+                                width={24}
+                                height={24}
+                                unoptimized={isPreOptimizedHost(service.proveedor_foto)}
+                                className="w-full h-full object-cover"
+                            />
                         ) : (
                             <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         )}

@@ -3,6 +3,8 @@ import dynamic from 'next/dynamic';
 import { useStickyBox } from 'react-sticky-box';
 import Head from 'next/head';
 import Link from 'next/link';
+import Image from 'next/image';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 import ShareButtons from '../Share/ShareButtons';
 import { getOgImageUrl, getCanonicalUrl } from '../../lib/shareUrl';
 
@@ -833,39 +835,31 @@ export default function ServiceDetailView({
                                     <div className="w-full h-full flex items-center justify-center bg-slate-100">
                                         {(() => { const I = SLUG_ICONS[categoria?.slug] ?? Grid2x2; return <I size={64} className="text-slate-300" />; })()}
                                     </div>
-                                ) : (
-                                    /* eslint-disable-next-line @next/next/no-img-element */
-                                    <img
-                                        src={service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage}
-                                        alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
-                                        /* Sprint PERF-2 Ítem R1 (2026-08-11) — width/height
-                                           intrínsecos para reservar aspect ratio ANTES del
-                                           image decode. Cierra el CLS 0.01-0.02 leve verde
-                                           observado en PERF-1 Fase E2 (baseline canónico
-                                           post-perf-1: ficha desktop CLS 0.01-0.02 vs 0.00
-                                           pre-perf-1). Ratio 3:2 típico de galería
-                                           (Unsplash sirve fotos hero en dimensiones
-                                           cercanas). object-cover del CSS mantiene el
-                                           visual: image llena el container `h-[340px]
-                                           md:h-[500px]` sin distorsión. width/height NO
-                                           afectan el layout renderizado — son señal al
-                                           browser para calcular intrinsic aspect ratio
-                                           mientras el image aún no decoded. */
-                                        width={1200}
-                                        height={800}
-                                        className="w-full h-full object-cover transition-opacity duration-200"
-                                        onError={() => setImgError(true)}
-                                        /* Sprint PERF-1 Bucket A: fetchpriority="high"
-                                           refuerza la prioridad del recurso LCP. Combinado
-                                           con el preload en <Head>, elimina el Load delay
-                                           de ~2s que el H1 del baseline detectó. Solo se
-                                           aplica cuando el user está viendo la foto 0
-                                           (fotoActiva === 0); las fotos posteriores del
-                                           carousel no son LCP y usan prioridad default
-                                           (auto). */
-                                        {...(fotoActiva === 0 ? { fetchPriority: 'high' as const } : {})}
-                                    />
-                                )}
+                                ) : (() => {
+                                    // Sprint perf-ficha (2026-11-12): migrado a next/image.
+                                    // `fill` + `sizes` sirven WebP responsive; `priority`
+                                    // solo en fotoActiva===0 (LCP). `quality=85` para que
+                                    // el hero no pierda detalle en re-encode WebP.
+                                    // `unoptimized` cuando el host ya entrega imágenes
+                                    // optimizadas (Unsplash/Pexels) — evita el double
+                                    // encoding JPEG→WebP q=75 que PO detectó pixelado
+                                    // con el fixture Unsplash `?w=400`. Container ya tiene
+                                    // h-[340px] md:h-[500px] → fill llena sin CLS.
+                                    const heroSrc = service.fotos?.[fotoActiva] || proveedor.foto_perfil || coverImage;
+                                    return (
+                                        <Image
+                                            src={heroSrc}
+                                            alt={service.fotos?.length > 1 ? `Foto ${fotoActiva + 1} de ${service.fotos.length} — ${service.titulo}` : service.titulo}
+                                            fill
+                                            sizes="(max-width: 1024px) 100vw, 60vw"
+                                            priority={fotoActiva === 0}
+                                            quality={85}
+                                            unoptimized={isPreOptimizedHost(heroSrc)}
+                                            className="object-cover transition-opacity duration-200"
+                                            onError={() => setImgError(true)}
+                                        />
+                                    );
+                                })()}
 
                                 {/* Overlay título */}
                                 {!imgError && (
@@ -962,8 +956,8 @@ export default function ServiceDetailView({
                                             className={`shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all ${fotoActiva === i ? 'border-accent-600 opacity-100' : 'border-transparent opacity-60 hover:opacity-90'
                                                 }`}
                                         >
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={foto} alt={`Miniatura foto ${i + 1}`} className="w-full h-full object-cover" />
+                                            {/* Sprint perf-ficha (2026-11-12): thumbnails 64×64 con next/image — lazy nativo, WebP optimizado. */}
+                                            <Image src={foto} alt={`Miniatura foto ${i + 1}`} width={64} height={64} unoptimized={isPreOptimizedHost(foto)} className="w-full h-full object-cover" />
                                         </button>
                                     ))}
                                 </div>
@@ -1501,19 +1495,20 @@ export default function ServiceDetailView({
                                 </h3>
 
                                 {proveedor.galeria.length === 1 ? (
-                                    // Una foto — full width
+                                    // Una foto — full width. Sprint perf-ficha: next/image fill + sizes para WebP responsive.
                                     <div className="relative w-full aspect-[16/9] rounded-xl overflow-hidden">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={proveedor.galeria[0]} alt="Espacio del proveedor"
-                                            className="absolute inset-0 w-full h-full object-cover" />
+                                        <Image src={proveedor.galeria[0]} alt="Espacio del proveedor"
+                                            fill sizes="(max-width: 1024px) 100vw, 60vw"
+                                            unoptimized={isPreOptimizedHost(proveedor.galeria[0])}
+                                            className="object-cover" />
                                     </div>
                                 ) : (
                                     // 2+ fotos — grid uniforme con aspect-ratio consistente
                                     <div className={`grid gap-2 ${proveedor.galeria.length === 2 ? 'grid-cols-2' : 'grid-cols-2 sm:grid-cols-3'}`}>
                                         {proveedor.galeria.slice(0, 3).map((url: string, i: number) => (
                                             <div key={i} className="aspect-[4/3] rounded-xl overflow-hidden relative">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={url} alt="" className="absolute inset-0 w-full h-full object-cover hover:scale-105 transition-transform duration-300" />
+                                                {/* Sprint perf-ficha: next/image fill + sizes grid responsive. */}
+                                                <Image src={url} alt="" fill sizes="(max-width: 640px) 50vw, 33vw" unoptimized={isPreOptimizedHost(url)} className="object-cover hover:scale-105 transition-transform duration-300" />
                                                 {i === 2 && proveedor.galeria.length > 3 && (
                                                     <Link href={`/proveedor/${proveedor.id}`}
                                                         className="absolute inset-0 bg-black/55 flex items-center justify-center hover:bg-black/65 transition-colors">

@@ -12,8 +12,9 @@
 
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ShieldCheck, CheckCircle, Star, Briefcase } from 'lucide-react';
-import { getProxyImageUrl } from '../../lib/utils';
+import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 
 interface ProveedorResumenCardProps {
     proveedor: any;
@@ -61,10 +62,17 @@ export default function ProveedorResumenCard({
                 <Link href={`/proveedor/${proveedor.id}`} className="shrink-0">
                     <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border-2 border-slate-200 hover:border-accent-600 overflow-hidden bg-slate-100 transition-colors">
                         {proveedor.foto_perfil ? (
-                            /* eslint-disable-next-line @next/next/no-img-element */
-                            <img
-                                src={getProxyImageUrl(proveedor.foto_perfil) || ''}
+                            // Sprint perf-ficha (2026-11-12): next/image sirve
+                            // WebP 96×96 en vez de la original (hasta 1 MB JPEG
+                            // reportada en Lighthouse). sizes fijo 96px porque
+                            // el container tiene tamaño estable.
+                            <Image
+                                src={proveedor.foto_perfil}
                                 alt={nombreVisible}
+                                width={96}
+                                height={96}
+                                sizes="96px"
+                                unoptimized={isPreOptimizedHost(proveedor.foto_perfil)}
                                 className="w-full h-full object-cover"
                             />
                         ) : (
