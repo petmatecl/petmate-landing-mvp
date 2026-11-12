@@ -202,7 +202,7 @@ export default defineConfig({
             // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
             // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
             // acá porque tiene "proveedor" en el filename.
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble|chat-open-error|incidente-usuario-fix)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble|chat-open-error|incidente-usuario-fix|share-mobile)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
