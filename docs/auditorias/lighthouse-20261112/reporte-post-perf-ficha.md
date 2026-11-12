@@ -57,6 +57,15 @@ Se mantuvo en los 4 escenarios (0, 0, 0, 0.112). El 0.112 de ficha-desktop es **
 - **Fix real (PR `cls-footer`)**: dimensiones CSS fijas al logo footer — `h-8 sm:h-9 w-[116px] sm:w-[130px]` reemplaza `w-auto`. Browser reserva 116×32 / 130×36 desde el primer paint, sin depender de intrinsic. ReviewSummary revertido a estado pre-cls-ficha.
 - **Lección meta**: Lighthouse `layout-shifts.details.items[].node` nombra el ELEMENTO QUE SE MOVIÓ, no el CAUSANTE. El causante está en `.subItems.items[].extra` + `.cause`. Primera lectura superficial llevó al fix en el elemento afectado; la lectura correcta llevó al causante real. Ancla cognitiva: en todo CLS diagnostic, buscar `cause` + `rootCauses` ANTES de parchear por el nombre del `node` visible.
 
+**Actualización post cls-footer (SHA 893130d, mediana 3 runs ficha-desktop)**:
+- CLS mediana: **0.1119** (sigue >0.1).
+- Culprit visible: "Sin evaluaciones todavía" con score 0.1106 (idéntico al pre-fix).
+- `subItems: []` (Lighthouse YA NO identifica root cause — antes decía "Media element lacking size on Pawnecta"). Confirma que el fix del logo footer ELIMINÓ esa causa pero **persiste otro empujador residual** de magnitud casi idéntica que Lighthouse no atribuye.
+- **Decisión PO 2026-11-12 (regla #1)**: >0.1 → STOP intentos pre-launch, HOME-CARRUSEL arranca igual, deuda queda en BACKLOG como `CLS-FICHA-RESIDUAL`. Cero bloqueo lanzamiento 18-11 (métrica en rango "mejorable", umbral "bueno" <0.1).
+- Hipótesis para post-launch: (a) web fonts reflow, (b) overlay lazy entre hero y evaluaciones, (c) ProveedorResumenCard avatar crece, (d) preload hint overridden. Diagnóstico con DevTools Performance panel + "Experience" track.
+
+**Nueva regla CLAUDE.md derivada**: toda medición de perf se hace en el **preview con bypass ANTES del merge** (mediana 3 Lighthouse), no después. Caso #107 (`cls-ficha`) es el antecedente: fix mergeado sin medición previa → CLS subió 0.112 → 0.1394 → PR correctivo + reversión + post-mortem. Regla vigente desde este sprint; incidente documentado en CLAUDE.md § "Todo fix de rendimiento se mide en el preview ANTES del merge".
+
 ---
 
 ## Raw runs (post)
