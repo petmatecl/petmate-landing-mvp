@@ -58,29 +58,36 @@ test('[e-explorar-ctas UX-2] cero CTA /register?rol=proveedor dentro de pages/ex
     ).toBeNull();
 });
 
-// Refactor 2026-09-15 (sprint E-2 UX-2): ServicePlaceholderCard fue refactorizado a card informacional (cero `<Link>`, cero "Publica gratis"), pero el JSDoc del sprint cita `<Link href="...">` y "Publica gratis" como referencia histórica; assertion actualizada a comparar código activo (strip líneas `//` + bloque `/** ... */`).
-test('[e-explorar-ctas UX-2] ServicePlaceholderCard sin Link CTA', async () => {
+// Refactor 2026-09-15 (sprint E-2 UX-2): ServicePlaceholderCard variant='full'
+// (usado en /explorar) sin Link CTA para no duplicar los 12 CTAs de registro
+// que /explorar tenía.
+// Update 2026-11-12 (sprint home-carrusel punto 3): variant='compact' (usado
+// en el carrusel del home) vuelve a ser clickable hacia /register — densidad
+// del home es baja y la captación de proveedores tiene sentido. El spec
+// ahora valida la POLÍTICA DIFERENCIADA: full sin link, compact con link.
+test('[e-explorar-ctas UX-2 updated 2026-11-12] ServicePlaceholderCard: Link CTA solo en variant=compact (home), full (explorar) sin Link', async () => {
     const source = await readFile(
         path.join(REPO_ROOT, 'components/Explore/ServicePlaceholderCard.tsx'),
         'utf-8',
     );
-    // Strip comentarios (`//` y bloques `/** */`) — el JSDoc del refactor
-    // cita el CTA viejo como referencia histórica (esperado).
-    const codeOnly = source
-        .replace(/\/\*[\s\S]*?\*\//g, '')
-        .split('\n')
-        .filter(l => !l.trim().startsWith('//'))
-        .join('\n');
-    // Ya no debería importar Link ni buildRegisterUrl.
-    expect(codeOnly, 'ServicePlaceholderCard NO importa Link').not.toMatch(
-        /from ['"]next\/link['"]/,
-    );
-    // Ya no debería usar el CTA "Publica gratis".
-    expect(codeOnly, 'sin footer CTA "Publica gratis" en código activo').not.toMatch(
-        /Publica gratis/,
-    );
-    // No debe haber ningún <Link> activo.
-    expect(codeOnly, 'sin ningún <Link> en código activo').not.toMatch(/<Link[\s>]/);
+    // Split el source en 2 bloques por el `if (variant === 'compact')`.
+    // El anchor del compact es ese if; todo lo que sigue hasta el último
+    // `return (` del archivo (que es el full) es el bloque compact.
+    const compactIdx = source.indexOf("if (variant === 'compact')");
+    const fullReturnIdx = source.lastIndexOf('return (');
+    expect(compactIdx, 'bloque compact debe existir').toBeGreaterThan(-1);
+    expect(fullReturnIdx, 'bloque full return debe existir').toBeGreaterThan(compactIdx);
+    const compactBlock = source.slice(compactIdx, fullReturnIdx);
+    const fullBlock = source.slice(fullReturnIdx);
+
+    // Compact (home carrusel): SÍ tiene <Link> + "Publica gratis" + /register.
+    expect(compactBlock, 'compact SÍ debe tener <Link>').toMatch(/<Link[\s>]/);
+    expect(compactBlock, 'compact SÍ debe tener "Publica gratis"').toMatch(/Publica gratis/);
+    expect(compactBlock, 'compact SÍ debe linkear a /register?rol=proveedor').toMatch(/\/register\?rol=proveedor/);
+
+    // Full (explorar): sigue SIN <Link> ni "Publica gratis" (política E-2 UX-2).
+    expect(fullBlock, 'full NO debe tener <Link>').not.toMatch(/<Link[\s>]/);
+    expect(fullBlock, 'full NO debe tener "Publica gratis"').not.toMatch(/Publica gratis/);
 });
 
 test('[e-explorar-ctas UX-3] ExampleCTAModal copy "a un proveedor real, regístrate"', async () => {

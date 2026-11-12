@@ -1,14 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useState, useId } from "react";
+import { useState, useId, useRef, useEffect } from "react";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
 import { ServiceResult } from "../components/Explore/ServiceCard";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import {
   Home, Sun, Footprints, MapPin, Scissors, Award, Stethoscope, Car, Camera,
   ShieldCheck, UserCheck, MessageCircle, Search, FileText, UserPlus, PlusCircle, Users,
-  BadgeCheck, Sparkles
+  BadgeCheck, Sparkles, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { fetchProveedoresPublicosByIds } from "../lib/supabase/queries/proveedoresPublicos";
@@ -16,7 +16,10 @@ import { toast } from "sonner";
 
 import SearchBar from "../components/Home/SearchBar";
 import StepCard from "../components/Home/StepCard";
-import HomeVisitorCounter from "../components/Home/HomeVisitorCounter";
+// Sprint home-carrusel punto 4 (2026-11-12): HomeVisitorCounter removido
+// del render con la eliminación de la SECCIÓN 7. El fetch del valor
+// `totalVisitasMes` se mantiene en getStaticProps por si otras secciones
+// futuras lo reutilizan sin re-escribir la query.
 import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 
 // ─── PrelaunchDemandCapture ─────────────────────────────────────────────────
@@ -116,7 +119,7 @@ function ServiceCardItem({ s }: { s: any }) {
   return (
     <a
       href={`/servicio/${s.servicio_id ?? s.id}`}
-      className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col"
+      className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col h-full"
     >
       <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -199,6 +202,119 @@ function ServiceCardItem({ s }: { s: any }) {
   );
 }
 
+// ─── Horizontal carousel helper (sprint home-carrusel 2026-11-12) ─────────────
+// Scroll horizontal con snap + flechas con estado disabled en extremos.
+// Keyboard: ArrowLeft/ArrowRight scrollea un ancho de card. Swipe mobile
+// nativo del browser. Scrollbar oculta por CSS inline (Tailwind no tiene
+// clase estándar). Placeholder va al final de los children.
+function HorizontalScroller({ children, ariaLabel }: { children: React.ReactNode; ariaLabel: string }) {
+    const scrollRef = useRef<HTMLDivElement>(null);
+    const [canPrev, setCanPrev] = useState(false);
+    const [canNext, setCanNext] = useState(false);
+
+    useEffect(() => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const update = () => {
+            setCanPrev(el.scrollLeft > 4);
+            setCanNext(el.scrollLeft + el.clientWidth < el.scrollWidth - 4);
+        };
+        update();
+        el.addEventListener('scroll', update, { passive: true });
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => { el.removeEventListener('scroll', update); ro.disconnect(); };
+    }, [children]);
+
+    const scrollByCard = (dir: 1 | -1) => {
+        const el = scrollRef.current;
+        if (!el) return;
+        const card = el.children[0] as HTMLElement | undefined;
+        const w = card?.clientWidth ?? 300;
+        el.scrollBy({ left: dir * (w + 16), behavior: 'smooth' });
+    };
+
+    const onKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); scrollByCard(-1); }
+        else if (e.key === 'ArrowRight') { e.preventDefault(); scrollByCard(1); }
+    };
+
+    return (
+        <div className="relative">
+            <div
+                ref={scrollRef}
+                role="group"
+                aria-label={ariaLabel}
+                tabIndex={0}
+                onKeyDown={onKeyDown}
+                className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded-xl"
+                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            >
+                {children}
+            </div>
+            {/* Scrollbar hide WebKit */}
+            <style jsx>{`div[role="group"]::-webkit-scrollbar { display: none; }`}</style>
+            {/* Flechas: solo visibles con contenido excedente. En mobile se ocultan
+                — el swipe nativo cubre la UX. */}
+            <button
+                type="button"
+                onClick={() => scrollByCard(-1)}
+                disabled={!canPrev}
+                aria-label={`Anterior en ${ariaLabel}`}
+                className="hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-0 disabled:pointer-events-none transition-opacity z-10"
+            >
+                <ChevronLeft size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+            <button
+                type="button"
+                onClick={() => scrollByCard(1)}
+                disabled={!canNext}
+                aria-label={`Siguiente en ${ariaLabel}`}
+                className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 w-10 h-10 rounded-full bg-white border border-slate-200 shadow-md items-center justify-center text-slate-700 hover:bg-slate-50 disabled:opacity-0 disabled:pointer-events-none transition-opacity z-10"
+            >
+                <ChevronRight size={20} strokeWidth={2.2} aria-hidden="true" />
+            </button>
+        </div>
+    );
+}
+
+// Clase estándar de card del carrusel: shrink-0 + snap-start + ancho fijo
+// consistente entre FranjaDual y FranjaCategoria. 280 px mobile, 300 px
+// sm+ para caber ~3-4 cards en lg antes de recortar.
+const CAROUSEL_CARD_CLS = 'shrink-0 snap-start w-[280px] sm:w-[300px]';
+
+/**
+ * Orden canónico de las tarjetas del carrusel del home.
+ *
+ * Sprint home-carrusel punto 2 (PO 2026-11-12):
+ *   1. Proveedores con identidad verificada primero (`proveedor_verificado`).
+ *   2. Servicios con foto Y descripción completas (foto >=1, descripción
+ *      > 20 chars) sobre los que falte alguno.
+ *   3. Más recientes primero dentro de cada grupo (`created_at desc`).
+ *
+ * Decisión documentada para poder ajustar post-launch sin arqueología:
+ * ver BACKLOG entry `CAROUSEL-RANK` para iteración futura (ej. boost de
+ * reviews altas, service featured, A/B test).
+ *
+ * Sort estable (Array.prototype.sort estable desde ES2019).
+ */
+function rankForCarousel<T extends { proveedor_verificado?: boolean; fotos?: string[]; descripcion?: string; created_at?: string }>(list: T[]): T[] {
+    return [...list].sort((a, b) => {
+        const av = a.proveedor_verificado ? 1 : 0;
+        const bv = b.proveedor_verificado ? 1 : 0;
+        if (av !== bv) return bv - av;
+        const ac = ((a.fotos?.length ?? 0) > 0 && (a.descripcion?.length ?? 0) > 20) ? 1 : 0;
+        const bc = ((b.fotos?.length ?? 0) > 0 && (b.descripcion?.length ?? 0) > 20) ? 1 : 0;
+        if (ac !== bc) return bc - ac;
+        const at = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bt = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bt - at;
+    });
+}
+
+/** Tope de tarjetas por franja. PO 2026-11-12: subir de 4 a 8. */
+const CAROUSEL_MAX = 8;
+
 // ─── Dual category block: 2 categories merged, grid layout, no scroll ─────────
 function FranjaDual({
   titulo, IconA, IconB, serviciosA, serviciosB, slugA, slugB,
@@ -213,13 +329,15 @@ function FranjaDual({
   onVerMas: () => void;
 }) {
   const titleId = useId();
-  // Interleave: A, B, A, B up to 4 total
-  const combined: any[] = [];
+  // Interleave A, B, A, B hasta CAROUSEL_MAX (8). Luego rankForCarousel
+  // aplica el orden canónico (verificado > completo > reciente).
+  const interleaved: any[] = [];
   let ai = 0, bi = 0;
-  while (combined.length < 4 && (ai < serviciosA.length || bi < serviciosB.length)) {
-    if (ai < serviciosA.length) combined.push(serviciosA[ai++]);
-    if (combined.length < 4 && bi < serviciosB.length) combined.push(serviciosB[bi++]);
+  while (interleaved.length < CAROUSEL_MAX && (ai < serviciosA.length || bi < serviciosB.length)) {
+    if (ai < serviciosA.length) interleaved.push(serviciosA[ai++]);
+    if (interleaved.length < CAROUSEL_MAX && bi < serviciosB.length) interleaved.push(serviciosB[bi++]);
   }
+  const combined = rankForCarousel(interleaved);
   const total = serviciosA.length + serviciosB.length;
   if (total === 0) return null;
 
@@ -227,43 +345,49 @@ function FranjaDual({
     <section aria-labelledby={titleId} className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1">
                 <IconA className="w-5 h-5 text-slate-400" />
                 <IconB className="w-4 h-4 text-accent-600" />
               </div>
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{titulo}</h2>
-              <span className="text-xs text-slate-400 font-medium">{total} disponible{total !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-slate-400 font-medium">
+                {total} disponible{total !== 1 ? 's' : ''}
+              </span>
+              {/* Sprint home-carrusel punto 1 (PO 2026-11-12): botón flecha
+                  redondo reemplazado por link "Ver todos →" para no
+                  confundirse con las flechas prev/next del carrusel. */}
+              <span className="text-xs text-slate-300" aria-hidden="true">·</span>
+              <Link
+                href={`/explorar?categoria=${slugA},${slugB}`}
+                className="text-xs font-semibold text-accent-700 hover:text-accent-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded"
+                aria-label={`Ver todos los servicios de ${titulo}`}
+              >
+                Ver todos →
+              </Link>
             </div>
-            <button onClick={onVerMas} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-accent-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${titulo}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Sprint home-carrusel (2026-11-12) — grid → scroll horizontal
+              una fila + flechas con estado + swipe mobile. Placeholder
+              ausente va al FINAL del scroll (no en celda vacía). */}
+          <HorizontalScroller ariaLabel={titulo}>
             {combined.map((s: any, i: number) => (
-              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+              <div key={`${s.servicio_id ?? s.id}-${i}`} className={CAROUSEL_CARD_CLS}>
+                <ServiceCardItem s={s} />
+              </div>
             ))}
-            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
-                slug ausente, cero relleno genérico. Antes el loop i<4 con
-                i%2 generaba 2 placeholders del mismo slug cuando combined
-                tenía pocos items, duplicando el CTA (ej. 2× "¿Eres
-                veterinario a domicilio?" en la franja Veterinario+Peluquería). */}
             {serviciosA.length === 0 && (
-              <ServicePlaceholderCard
-                key={`placeholder-${slugA}`}
-                categoriaSlug={slugA}
-                variant="compact"
-              />
+              <div key={`placeholder-${slugA}`} className={CAROUSEL_CARD_CLS}>
+                <ServicePlaceholderCard categoriaSlug={slugA} variant="compact" />
+              </div>
             )}
             {serviciosB.length === 0 && (
-              <ServicePlaceholderCard
-                key={`placeholder-${slugB}`}
-                categoriaSlug={slugB}
-                variant="compact"
-              />
+              <div key={`placeholder-${slugB}`} className={CAROUSEL_CARD_CLS}>
+                <ServicePlaceholderCard categoriaSlug={slugB} variant="compact" />
+              </div>
             )}
-          </div>
+          </HorizontalScroller>
         </div>
       </div>
     </section>
@@ -279,32 +403,40 @@ function FranjaCategoria({
   onVerTodos: () => void;
 }) {
   const titleId = useId();
-  const visible = servicios.slice(0, 4);
+  // Sprint home-carrusel punto 2: hasta CAROUSEL_MAX (8) con ranking.
+  const visible = rankForCarousel(servicios).slice(0, CAROUSEL_MAX);
   if (visible.length === 0) return null;
   return (
     <section aria-labelledby={titleId} className="bg-slate-50 py-3 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
-          <div className="flex items-center justify-between mb-5">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between mb-5 flex-wrap gap-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
               <categoria.Icon className="w-5 h-5 text-slate-400" />
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{categoria.nombre}</h2>
-              <span className="text-xs text-slate-400 font-medium">{servicios.length} disponible{servicios.length !== 1 ? 's' : ''}</span>
+              <span className="text-xs text-slate-400 font-medium">
+                {servicios.length} disponible{servicios.length !== 1 ? 's' : ''}
+              </span>
+              {/* Sprint home-carrusel punto 1 (PO 2026-11-12): flecha redonda
+                  reemplazada por link "Ver todos →". */}
+              <span className="text-xs text-slate-300" aria-hidden="true">·</span>
+              <Link
+                href={`/explorar?categoria=${categoria.slug}`}
+                className="text-xs font-semibold text-accent-700 hover:text-accent-800 hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500 rounded"
+                aria-label={`Ver todos los servicios de ${categoria.nombre}`}
+              >
+                Ver todos →
+              </Link>
             </div>
-            <button onClick={onVerTodos} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-accent-100 flex items-center justify-center transition-colors shrink-0" aria-label={`Ver más servicios de ${categoria.nombre}`}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><polyline points="9 18 15 12 9 6"/></svg>
-            </button>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {/* Sprint home-carrusel (2026-11-12) — scroll horizontal una fila. */}
+          <HorizontalScroller ariaLabel={categoria.nombre}>
             {visible.map((s: any, i: number) => (
-              <ServiceCardItem key={`${s.servicio_id ?? s.id}-${i}`} s={s} />
+              <div key={`${s.servicio_id ?? s.id}-${i}`} className={CAROUSEL_CARD_CLS}>
+                <ServiceCardItem s={s} />
+              </div>
             ))}
-            {/* Sprint HOME-VERDAD (2026-11-10) — máximo 1 placeholder por
-                categoría. FranjaCategoria se retorna null arriba si
-                visible=0; si visible≥1 ya hay al menos 1 real del slug,
-                entonces cero placeholder (antes había hasta 3 repetidos
-                del mismo slug rellenando al slot de 4). */}
-          </div>
+          </HorizontalScroller>
         </div>
       </div>
     </section>
@@ -439,45 +571,12 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       </section>
 
       {/* ═══════════════════════════════════════════
-          SECCIÓN 1.5 — POR QUÉ CONFIAR EN PAWNECTA
-      ═══════════════════════════════════════════ */}
-      <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
-        <div className="max-w-6xl mx-auto">
-          <h2 id="trust-heading" className="text-3xl md:text-4xl font-semibold text-slate-900 text-center mb-12 tracking-tight">
-            Por qué confiar en Pawnecta
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {[
-              {
-                Icon: ShieldCheck,
-                titulo: 'Identidad verificable',
-                desc: 'Los proveedores pueden verificar su identidad con RUT y mostrar una insignia en su ficha',
-              },
-              {
-                Icon: BadgeCheck,
-                titulo: 'Sin comisión en el lanzamiento',
-                desc: 'No cobramos comisión; lo que acuerdas con el proveedor queda entre ustedes',
-              },
-              {
-                Icon: MessageCircle,
-                titulo: 'Contacto directo',
-                desc: 'Coordinas y pagas directamente con el proveedor, sin intermediarios',
-              },
-            ].map(({ Icon, titulo, desc }) => (
-              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
-                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-50 text-accent-600 mb-4">
-                  <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
-                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════════════════════════════════
           SECCIÓN 2 — FRANJAS POR CATEGORÍA (pares)
+          Sprint home-carrusel (2026-11-12): subida antes de
+          "Por qué confiar" (swap de orden) — las franjas van
+          primero porque son el acceso directo al catálogo; el
+          bloque de confianza pasa a servir de refuerzo DESPUÉS
+          de ver los servicios reales.
       ═══════════════════════════════════════════ */}
       {(() => {
         if (!featuredServices || featuredServices.length === 0) return <PrelaunchDemandCapture />;
@@ -531,6 +630,48 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
 
 
       {/* ═══════════════════════════════════════════
+          SECCIÓN 2.5 — POR QUÉ CONFIAR EN PAWNECTA
+          Sprint home-carrusel (2026-11-12): movida de ANTES de las
+          franjas (sección 1.5 pre-sprint) a DESPUÉS de las franjas.
+          Lógica: usuario ve primero los servicios reales, luego
+          encuentra el refuerzo de confianza.
+      ═══════════════════════════════════════════ */}
+      <section aria-labelledby="trust-heading" className="bg-white py-16 px-4 sm:px-6 lg:px-8 border-b border-slate-100">
+        <div className="max-w-6xl mx-auto">
+          <h2 id="trust-heading" className="text-3xl md:text-4xl font-semibold text-slate-900 text-center mb-12 tracking-tight">
+            Por qué confiar en Pawnecta
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              {
+                Icon: ShieldCheck,
+                titulo: 'Identidad verificable',
+                desc: 'Los proveedores pueden verificar su identidad con RUT y mostrar una insignia en su ficha',
+              },
+              {
+                Icon: BadgeCheck,
+                titulo: 'Sin comisión en el lanzamiento',
+                desc: 'No cobramos comisión; lo que acuerdas con el proveedor queda entre ustedes',
+              },
+              {
+                Icon: MessageCircle,
+                titulo: 'Contacto directo',
+                desc: 'Coordinas y pagas directamente con el proveedor, sin intermediarios',
+              },
+            ].map(({ Icon, titulo, desc }) => (
+              <div key={titulo} className="bg-slate-50 border border-slate-100 rounded-2xl p-6 text-center">
+                <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-accent-50 text-accent-600 mb-4">
+                  <Icon size={26} strokeWidth={1.75} aria-hidden="true" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">{titulo}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════
           SECCIÓN 3 — GRID DE CATEGORÍAS (acceso secundario)
           Compacto, cerca del final — patrón ML
       ═══════════════════════════════════════════ */}
@@ -571,28 +712,20 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECCIÓN 4 — CÓMO FUNCIONA (DUEÑOS) — sin cambios
-      ═══════════════════════════════════════════ */}
-      <section aria-label="Cómo funciona para dueños de mascotas" className="py-20 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto text-center border-b border-slate-100">
-        <div className="mb-16">
-          <p className="text-accent-700 font-medium uppercase tracking-widest text-xs mb-3">Para dueños de mascotas</p>
-          <h2 className="text-3xl font-semibold text-slate-900 tracking-tight">Encuentra al proveedor ideal en minutos</h2>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <StepCard paso={1} titulo="Busca por servicio y comuna" descripcion="Filtra por el servicio que necesitas y encuentra proveedores cerca de ti" Icon={Search} variante="light" />
-          <StepCard paso={2} titulo="Compara perfiles y precios" descripcion="Revisa la experiencia, fotos y precios de cada proveedor" Icon={FileText} variante="light" />
-          <StepCard paso={3} titulo="Contacta y coordina directo" descripcion="Escribe al proveedor por el chat interno y coordina los detalles" Icon={MessageCircle} variante="light" />
-        </div>
-      </section>
-
       {/* Sprint HOME-VERDAD (2026-11-10) — sección "Proveedores que puedes
           conocer" + condicional stats + "Únete a nuestra red de proveedores"
           eliminadas enteras por decisión PO: contenía afirmaciones falsas
           (verificación obligatoria / revisión manual del equipo / reseñas
           reales) + testimonios ficticios. El CTA de proveedores sigue
           cubierto por la sección "Ofrece tus servicios en Pawnecta" más
-          abajo. */}
+          abajo.
+
+          Sprint home-carrusel punto 4 (PO 2026-11-12): sección 4 "Cómo
+          funciona (dueños) — Encuentra al proveedor ideal en minutos"
+          ELIMINADA (recorte home). Orden final del home: hero → franjas
+          → Por qué confiar → Explorar por categoría → Ofrece tus
+          servicios → footer. El rediseño completo del home sigue
+          post-lanzamiento. */}
 
       {/* ═══════════════════════════════════════════
           SECCIÓN 6 — CÓMO FUNCIONA (PROVEEDORES) — sin cambios
@@ -619,44 +752,12 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
         </div>
       </section>
 
-      {/* ═══════════════════════════════════════════
-          SECCIÓN 7 — CTA FINAL + STATS — sin cambios
-      ═══════════════════════════════════════════ */}
-      <section className="py-24 px-4 sm:px-6 lg:px-8 bg-white overflow-hidden">
-        <div className="max-w-7xl mx-auto text-center relative">
-          <h2 className="text-4xl font-semibold text-slate-900 mb-4 tracking-tight">¿Buscas un servicio para tu mascota?</h2>
-          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">Explora proveedores en tu comuna ahora.</p>
-          <button
-            onClick={() => router.push('/explorar')}
-            className="inline-flex items-center justify-center h-14 rounded-2xl bg-accent-600 hover:bg-accent-700 px-10 text-lg font-semibold text-white shadow-sm hover:-translate-y-0.5 hover:shadow-md transition-all mb-4">
-            Buscar servicios
-          </button>
-          <p className="text-slate-500 font-medium mb-16">Sin registro. Sin costo.</p>
-
-          {/* Social proof: oculto bajo 5.000 visitas/mes */}
-          <HomeVisitorCounter totalVisitasMes={totalVisitasMes} />
-
-          {/* Stats dinámicos: framing narrativo "Pawnecta en cifras" + datos reales
-              de BD + disclaimer "en crecimiento". Honestidad sin superlativos. */}
-          {(() => {
-            const parts = [
-              stats.servicios > 0 ? `${stats.servicios} ${stats.servicios === 1 ? 'servicio disponible' : 'servicios disponibles'}` : null,
-              stats.comunas > 0 ? `${stats.comunas} ${stats.comunas === 1 ? 'comuna activa' : 'comunas activas'}` : null,
-              stats.categorias > 0 ? `${stats.categorias} ${stats.categorias === 1 ? 'categoría de servicio' : 'categorías de servicio'}` : null,
-            ].filter(Boolean);
-
-            if (parts.length === 0) return null;
-
-            return (
-              <div className="max-w-2xl mx-auto border-t border-slate-200 pt-16 text-center">
-                <p className="text-sm font-medium text-slate-700 mb-2">Pawnecta en cifras</p>
-                <p className="text-sm text-slate-500">{parts.join(' · ')}</p>
-                <p className="text-xs text-slate-500 mt-2">Estamos en crecimiento — regístrate como tutor o publica tu servicio.</p>
-              </div>
-            );
-          })()}
-        </div>
-      </section>
+      {/* Sprint home-carrusel punto 4 (PO 2026-11-12): SECCIÓN 7
+          "¿Buscas un servicio para tu mascota?" + CTA "Buscar servicios"
+          + HomeVisitorCounter + "Pawnecta en cifras" ELIMINADA (recorte
+          home). El acceso al catálogo ya vive en el hero + franjas +
+          "Ver todos →" + grid de categorías, todas más arriba. El
+          rediseño completo del home sigue post-lanzamiento. */}
     </div>
   );
 }

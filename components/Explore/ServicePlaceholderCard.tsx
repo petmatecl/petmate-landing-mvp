@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Sparkles } from 'lucide-react';
 import { getPlaceholderQuestion, getPlaceholderSubtitle } from '../../lib/placeholderCopy';
 
@@ -39,12 +40,32 @@ export default function ServicePlaceholderCard({
     const subtitle = getPlaceholderSubtitle(categoriaSlug);
 
     if (variant === 'compact') {
+        // Sprint home-carrusel punto 3 (2026-11-12): placeholder del home
+        // vuelve a ser clickable hacia /register con el slug. La decisión
+        // E-2 UX-2 de hacer el placeholder NO-link se mantiene para
+        // variant='full' (que vive en /explorar donde había 12 CTAs de
+        // registro). En el home la densidad es baja y el CTA de captación
+        // tiene sentido. `min-h-[380px]` matchea la altura típica de
+        // ServiceCardItem (foto aspect-4/3 ~210px + titulo + proveedor +
+        // comuna + precio) para que el carrusel no quede con un "hueco"
+        // visual cuando el placeholder es la última tarjeta.
+        // Sprint home-carrusel punto 3 ajuste final (PO 2026-11-12):
+        // `min-h-[380px]` REMOVIDO. Si el placeholder fuerza un min-height
+        // fijo cuando las cards naturales son más chicas, el stretch del
+        // flex-row del carrusel iguala TODAS las cards al min del placeholder
+        // → se ve "alto fantasma" en cards con poco contenido. Sin min-h,
+        // `h-full` toma el alto natural de la card más grande de la fila
+        // por `align-items: stretch` default del flex (el carrusel usa
+        // `flex` sin `items-*` override). Placeholder y cards quedan
+        // SIEMPRE del mismo alto, variando por franja según contenido real.
+        const registerUrl = `/register?rol=proveedor${categoriaSlug ? `&categoria=${encodeURIComponent(categoriaSlug)}` : ''}`;
         return (
-            <div
-                aria-label={question}
-                className="flex flex-col rounded-2xl border border-dashed border-slate-200 bg-white overflow-hidden"
+            <Link
+                href={registerUrl}
+                aria-label={`${question} — publica tus servicios en Pawnecta`}
+                className="flex flex-col h-full rounded-2xl border border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-accent-400 overflow-hidden transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             >
-                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4 min-h-[200px]">
+                <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
                     <div className="text-slate-400">
                         <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
                     </div>
@@ -54,8 +75,9 @@ export default function ServicePlaceholderCard({
                     <p className="text-xs text-slate-500 leading-relaxed">
                         {subtitle}
                     </p>
+                    <span className="text-xs font-semibold text-accent-700 pt-2">Publica gratis →</span>
                 </div>
-            </div>
+            </Link>
         );
     }
 
