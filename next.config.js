@@ -45,6 +45,12 @@ const nextConfig = {
       { protocol: 'https', hostname: 'ui-avatars.com', pathname: '/**' },
       { protocol: 'https', hostname: 'vubmjguwzpesxcgenkxo.supabase.co', pathname: '/storage/v1/object/public/**' },
       { protocol: 'https', hostname: 'pwhplhjkmmbgnphcoibh.supabase.co', pathname: '/storage/v1/object/public/**' },
+      // Sprint share-prov (2026-11-12) — agregar host prod para que
+      // /_next/image acepte las fotos de servicios/avatars como source
+      // (og:image optimizado + fix perf-ficha jueves PM). Patrón idéntico
+      // a los otros 2 Supabase declarados arriba.
+      { protocol: 'https', hostname: 'ouezpeeiwjwawauidrqq.supabase.co', pathname: '/storage/v1/object/public/**' },
+      { protocol: 'https', hostname: 'jmtadvdkicyylcwjcmcl.supabase.co', pathname: '/storage/v1/object/public/**' },
       { protocol: 'https', hostname: 'images.pexels.com', pathname: '/**' },
       { protocol: 'https', hostname: 'images.unsplash.com', pathname: '/**' },
     ],

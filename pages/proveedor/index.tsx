@@ -11,6 +11,8 @@ import { useProveedorStats } from '../../lib/useProveedorStats';
 import { runReadQuery } from '../../lib/supabaseReadQuery';
 import RoleGuard from '../../components/Shared/RoleGuard';
 import ServiceFormModal from '../../components/Proveedor/ServiceFormModal';
+import ShareButtons from '../../components/Share/ShareButtons';
+import { getCanonicalUrl } from '../../lib/shareUrl';
 import { prefetchCategorias } from '../../lib/catalogoCategorias';
 import VerificationGateModal from '../../components/Proveedor/VerificationGateModal';
 import ConversationList from '../../components/Chat/ConversationList';
@@ -1590,14 +1592,28 @@ export default function ProveedorDashboard() {
                                 );
                             })()}
 
-                            <div className="flex justify-between items-center mb-8">
+                            <div className="flex justify-between items-center gap-3 mb-8 flex-wrap">
                                 <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mis Servicios</h1>
-                                <button
-                                    onClick={handlePublishClick}
-                                    className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
-                                >
-                                    <span>+</span><span className="hidden sm:inline">Publicar nuevo servicio</span><span className="sm:hidden">Nuevo</span>
-                                </button>
+                                <div className="flex items-center gap-2 ml-auto">
+                                    {/* Sprint share-prov smoke ajuste 2 (PO 2026-11-11) —
+                                        "Compartir mi perfil" también en la vista Mis
+                                        Servicios del dashboard (junto a Nuevo servicio),
+                                        no solo en tab Mi Perfil. Es la vista por default
+                                        que el proveedor abre, quiere el share a mano. */}
+                                    {proveedorRow?.id && (
+                                        <ShareButtons
+                                            shareUrl={getCanonicalUrl(`/proveedor/${proveedorRow.id}`)}
+                                            tipo="proveedor_dashboard"
+                                            entidadId={proveedorRow.id}
+                                        />
+                                    )}
+                                    <button
+                                        onClick={handlePublishClick}
+                                        className="bg-accent-600 hover:bg-accent-700 text-white font-medium tracking-wide py-2.5 px-5 rounded-xl transition-colors shadow-sm flex items-center gap-2"
+                                    >
+                                        <span>+</span><span className="hidden sm:inline">Publicar nuevo servicio</span><span className="sm:hidden">Nuevo</span>
+                                    </button>
+                                </div>
                             </div>
 
                             {serviciosError ? (
@@ -1642,7 +1658,18 @@ export default function ProveedorDashboard() {
 
                                             {/* Info */}
                                             <div className="flex-1 flex flex-col">
-                                                <h3 className="text-lg font-semibold text-slate-900 mb-1">{servicio.titulo}</h3>
+                                                {/* Sprint share-prov smoke ajuste 3 (PO 2026-11-11) —
+                                                    título clicable que abre la ficha pública (igual que
+                                                    el botón "Ver" abajo, nuevo target=_blank consistente). */}
+                                                <h3 className="text-lg font-semibold text-slate-900 mb-1">
+                                                    <Link
+                                                        href={`/servicio/${servicio.id}`}
+                                                        target="_blank"
+                                                        className="hover:text-accent-700 hover:underline focus:outline-none focus:underline"
+                                                    >
+                                                        {servicio.titulo}
+                                                    </Link>
+                                                </h3>
                                                 <div className="flex items-center gap-4 text-sm text-slate-500 font-medium mb-3">
                                                     <span className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">${servicio.precio_desde?.toLocaleString('es-CL')} / {servicio.unidad_precio}</span>
                                                     <span className="flex items-center gap-1 text-slate-400"><Eye size={14} /> {servicio.vistas || 0} vistas</span>
@@ -1704,7 +1731,22 @@ export default function ProveedorDashboard() {
                         Sticky save bar aparece SOLO si perfilDirty. */}
                     {activeTab === 'perfil' && (
                         <div className="animate-in fade-in duration-300 max-w-3xl pb-32">
-                            <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-6">Mi Perfil</h1>
+                            <div className="flex items-center justify-between gap-4 mb-6 flex-wrap">
+                                <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Mi Perfil</h1>
+                                {/* Sprint share-prov (2026-11-12) — botón primario
+                                    "Compartir mi perfil" en el dashboard. Caso
+                                    principal: proveedor difunde su ficha pública
+                                    entre clientes via WhatsApp / copiar / share
+                                    nativo. Solo visible si el proveedor ya tiene
+                                    id en context (hidratación completa). */}
+                                {proveedorRow?.id && (
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/proveedor/${proveedorRow.id}`)}
+                                        tipo="proveedor_dashboard"
+                                        entidadId={proveedorRow.id}
+                                    />
+                                )}
+                            </div>
 
                             {/* Sub-tabs nav. Scroll horizontal en mobile si no
                                 entran (spec: no colapsar a dropdown). */}
