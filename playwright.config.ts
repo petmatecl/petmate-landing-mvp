@@ -301,6 +301,18 @@ export default defineConfig({
             testMatch: /specs[\\/]visits-doble[\\/].*\.spec\.ts$/,
         },
         {
+            // Sprint share-mobile (2026-11-12) — spec de presencia del
+            // botón Compartir en mobile. Viewport Pixel 5 + storageState
+            // vacío (visitante anónimo, caso de uso real del link
+            // compartido). Sin dependencias de setup — no requiere login.
+            name: 'share-mobile',
+            use: {
+                ...devices['Pixel 5'],
+                storageState: { cookies: [], origins: [] },
+            },
+            testMatch: /specs[\\/]share-mobile[\\/].*\.spec\.ts$/,
+        },
+        {
             // Sprint bloque-i I-1 (2026-09-17) — spec canario del CI.
             // Cero dependencies (no setup, no auth, no navegación). El spec
             // solo throwea con `expect(false).toBe(true)`. El workflow
