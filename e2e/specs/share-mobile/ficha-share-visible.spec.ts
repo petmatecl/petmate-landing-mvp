@@ -31,13 +31,34 @@ import { test, expect } from '@playwright/test';
 // aislamiento del project.
 const SERVICIO_SEMILLA = 'c1000001-0000-4000-8000-000000000006';
 
+/**
+ * Construye URL con Vercel Deployment Protection bypass como query params.
+ * Mismo patrón que `e2e/setup/authenticate.ts:33-37`. El primer goto con
+ * estos params hace que Vercel setee `Set-Cookie: _vercel_jwt=...` y
+ * redirija a la URL limpia. Las navegaciones siguientes van sin query.
+ *
+ * El project `share-mobile` usa storageState vacío (visitante anónimo) →
+ * no hereda la cookie `_vercel_jwt` de los storageStates proveedor/tutor
+ * → el primer navigate SIEMPRE necesita los query params o Vercel responde
+ * con la pantalla de login.
+ */
+function withBypass(pathname: string): string {
+    const bypass = process.env.PLAYWRIGHT_BYPASS ?? '';
+    if (!bypass || bypass === 'cambiame') {
+        // El playwright.config guard ya throwea en el load — solo por completeness.
+        return pathname;
+    }
+    const sep = pathname.includes('?') ? '&' : '?';
+    return `${pathname}${sep}x-vercel-protection-bypass=${encodeURIComponent(bypass)}&x-vercel-set-bypass-cookie=samesitenone`;
+}
+
 test.describe('share-mobile — ficha de servicio', () => {
     // storageState vacío heredado del project share-mobile (sin login).
     // El share no requiere auth; probamos como usuario anónimo, que es el
     // caso real de alguien llegando a /servicio/<id> desde un link compartido.
 
     test('[SHARE-MOBILE-01] /servicio/[id] expone un botón Compartir visible en mobile', async ({ page }) => {
-        await page.goto(`/servicio/${SERVICIO_SEMILLA}`, { waitUntil: 'domcontentloaded' });
+        await page.goto(withBypass(`/servicio/${SERVICIO_SEMILLA}`), { waitUntil: 'domcontentloaded' });
 
         // Esperar a que el hero mount — la galería hace fetch de fotos.
         // La ficha renderiza mucho; usar un locator que tipicamente existe
