@@ -41,7 +41,21 @@ ficha-mobile **446 ms → 42 ms** (−91%). Main thread liberado por menos bytes
 
 ### CLS
 
-Se mantuvo en los 4 escenarios (0, 0, 0, 0.112). El 0.112 de ficha-desktop es **pre-existente** y NO regresión de perf-ficha. Culprit identificado por Lighthouse `layout-shifts` audit: el placeholder "Sin evaluaciones todavía" en `components/Service/ReviewSummary.tsx` transiciona de loading `h-48` (192 px) a empty state (~220-240 px) → shift ~30-50 px. Fix aterrizado en PR separado `cls-ficha`.
+Se mantuvo en los 4 escenarios (0, 0, 0, 0.112). El 0.112 de ficha-desktop es **pre-existente** y NO regresión de perf-ficha.
+
+**Post-mortem cls-ficha (fix fallido 2026-11-12 PR #107)**:
+- **Hipótesis inicial (errónea)**: la transición loading→empty de `ReviewSummary` producía shift porque loading era `h-48` (192 px) y empty ~220-240 px. Fix propuesto: `min-h-[240px]` en ambos estados.
+- **Verificación post-merge (mediana 3 runs)**: CLS subió de 0.112 → **0.1394**. El fix empeoró el problema.
+- **Re-diagnóstico con `rootCauses` del `layout-shifts` audit**: el shift NO era loading→empty. Lighthouse reporta:
+  ```
+  cause: Media element lacking an explicit size on Pawnecta
+  rootCause: <img ... loading="lazy" width="130" height="36" class="h-8 sm:h-9 w-auto">
+  path: FOOTER/A/IMG (logo footer)
+  ```
+  El culprit real es el **logo Pawnecta del footer** con `w-auto` + `loading="lazy"`. Pre-load, el browser no tiene intrinsic width (lazy no fetched), y `w-auto` depende de intrinsic → reserva 0 width → al cargar la imagen, el footer crece y empuja toda la página arriba del fold hacia arriba. Lighthouse atribuía el shift a la card "Sin evaluaciones" como ELEMENTO AFECTADO (moved vertically), pero el CAUSANTE era el logo.
+- **Por qué cls-ficha empeoró**: mi `min-h-[240px]` hizo la card de evaluaciones 48 px más alta → mayor área afectada por el shift del logo → CLS score subió proporcionalmente (impact_fraction × distance_fraction).
+- **Fix real (PR `cls-footer`)**: dimensiones CSS fijas al logo footer — `h-8 sm:h-9 w-[116px] sm:w-[130px]` reemplaza `w-auto`. Browser reserva 116×32 / 130×36 desde el primer paint, sin depender de intrinsic. ReviewSummary revertido a estado pre-cls-ficha.
+- **Lección meta**: Lighthouse `layout-shifts.details.items[].node` nombra el ELEMENTO QUE SE MOVIÓ, no el CAUSANTE. El causante está en `.subItems.items[].extra` + `.cause`. Primera lectura superficial llevó al fix en el elemento afectado; la lectura correcta llevó al causante real. Ancla cognitiva: en todo CLS diagnostic, buscar `cause` + `rootCauses` ANTES de parchear por el nombre del `node` visible.
 
 ---
 
