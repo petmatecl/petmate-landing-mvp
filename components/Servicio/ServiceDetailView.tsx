@@ -880,11 +880,19 @@ export default function ServiceDetailView({
                                     </div>
                                 )}
 
-                                {/* Sprint share-prov smoke ajuste 1 (PO 2026-11-11) —
-                                    el botón flotante del hero chocaba con el corazón
-                                    de favoritos (se leía "Compar"). Movido a la
-                                    tarjeta de contacto abajo como enlace secundario
-                                    discreto (variant="link"). */}
+                                {/* Sprint share-mobile (2026-11-12) — botón redondo
+                                    ícono-only junto al corazón del hero, SOLO mobile
+                                    (lg:hidden). Desktop usa el inline en tarjeta
+                                    de contacto. Click gatilla navigator.share si
+                                    existe; fallback copia al clipboard con toast. */}
+                                <div className="lg:hidden absolute top-3 right-16 z-10">
+                                    <ShareButtons
+                                        shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
+                                        tipo="servicio"
+                                        entidadId={service.id}
+                                        variant="icon-only"
+                                    />
+                                </div>
 
                                 {/* Overlay para owner sin fotos del servicio */}
                                 {isOwner && (!service.fotos || service.fotos.length === 0) && (
@@ -1751,18 +1759,15 @@ export default function ServiceDetailView({
                                     />
                                 )}
 
-                                {/* Sprint share-prov smoke ajuste 1 (PO 2026-11-11) —
-                                    Compartir como enlace secundario discreto dentro
-                                    de la tarjeta de contacto, abajo de los CTAs
-                                    principales (Mensaje + WhatsApp + Teléfono). No
-                                    debe confundirse con el verde de WhatsApp. */}
-                                <div className="pt-1 flex justify-center">
+                                {/* Sprint share-mobile (2026-11-12) — rediseño sin
+                                    menú: texto "Compartir:" + íconos WhatsApp y
+                                    Copiar (+ share nativo si existe). En tarjeta
+                                    contacto desktop, abajo de los CTAs principales. */}
+                                <div className="pt-2 flex justify-center">
                                     <ShareButtons
                                         shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
                                         tipo="servicio"
                                         entidadId={service.id}
-                                        label="Compartir este servicio"
-                                        variant="link"
                                     />
                                 </div>
                             </div>
@@ -1927,6 +1932,20 @@ export default function ServiceDetailView({
                             onCallTracked={() => trackContacto('llamada')}
                         />
                     )}
+
+                    {/* Sprint share-mobile (2026-11-12) — "Compartir este
+                        servicio" al final del sheet Contactar. El PO pidió
+                        que share esté también acá, no solo en el hero icono-
+                        only, para que el usuario que ya abrió el sheet lo
+                        encuentre sin cerrarlo. */}
+                    <div className="pt-3 border-t border-slate-100 flex justify-center">
+                        <ShareButtons
+                            shareUrl={getCanonicalUrl(`/servicio/${service.id}`)}
+                            tipo="servicio"
+                            entidadId={service.id}
+                            labelText="Compartir este servicio:"
+                        />
+                    </div>
                 </div>
             </MobileActionSheet>
 
