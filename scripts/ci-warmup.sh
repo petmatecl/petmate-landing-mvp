@@ -51,6 +51,16 @@ for _ in "${PATHS[@]}"; do done_arr+=(0); done
 
 all_ok=0
 attempt=0
+TMP_BODY=$(mktemp)
+trap 'rm -f "$TMP_BODY"' EXIT
+# Marcador esperado en el HTML real de la app. Si falta, el 200 vino de
+# la pantalla de Vercel "Deployment is building" (preview aun no listo) o
+# de una landing generica. El spec share-mobile (run 43463116657) fallo
+# por este false positive: warmup acepto 200 de "Deployment is building"
+# → setup auth + share-mobile fallaron porque el DOM era de Vercel, no
+# de Pawnecta. Fix del PR ci-warmup iter 2 (2026-11-13): grep del marcador.
+APP_MARKER="Pawnecta"
+
 while [ "$(date +%s)" -lt "$DEADLINE" ]; do
   attempt=$((attempt + 1))
   pending=0
@@ -58,13 +68,19 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     if [ "${done_arr[$i]}" = "1" ]; then continue; fi
     path="${PATHS[$i]}"
     t0=$(date +%s%3N)
-    status=$(curl -sS -o /dev/null -w "%{http_code}" -L --max-time 15 "${BASE_URL}${path}${QS}" || echo "000")
+    status=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" -L --max-time 15 "${BASE_URL}${path}${QS}" || echo "000")
     t1=$(date +%s%3N)
     elapsed=$((t1 - t0))
-    echo "[WARMUP] attempt=$attempt GET $path -> $status in ${elapsed}ms"
-    if [ "$status" = "200" ]; then
+    if [ "$status" = "200" ] && grep -q "$APP_MARKER" "$TMP_BODY" 2>/dev/null; then
+      echo "[WARMUP] attempt=$attempt GET $path -> $status (+app) in ${elapsed}ms"
       done_arr[$i]=1
+    elif [ "$status" = "200" ]; then
+      # 200 OK pero body sin "Pawnecta" → pantalla Vercel "building" o similar.
+      preview=$(head -c 120 "$TMP_BODY" 2>/dev/null | tr '\n' ' ' | tr -s ' ')
+      echo "[WARMUP] attempt=$attempt GET $path -> $status (sin app) in ${elapsed}ms · body=\"${preview}...\""
+      pending=1
     else
+      echo "[WARMUP] attempt=$attempt GET $path -> $status in ${elapsed}ms"
       pending=1
     fi
   done

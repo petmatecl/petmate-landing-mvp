@@ -55,8 +55,17 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // que los JS chunks + hidratación completaron.
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
     step('2 networkidle done');
-    await page.locator('#email').fill(opts.email, { timeout: 5_000 });
-    await page.locator('#password').fill(opts.password, { timeout: 5_000 });
+    // Sprint ci-warmup (2026-11-13) — fill timeout subido 5s → 15s. Los 5s
+    // originales de iter 2 del hf-auth-timeout eran demasiado agresivos para
+    // el first chromium.launch() del runner CI: aún con el preview warm (vía
+    // scripts/ci-warmup.sh curl pre-step), el browser Playwright enfrenta
+    // cold start propio (chunks JS del /login SSG, hidratación React) antes
+    // de que `#email` quede actionable. Observado en run 43463116657: goto +
+    // networkidle en ~1.5s pero el fill subsiguiente reventó a los 5s porque
+    // React aún no había bindeado el input. 15s cubre el peor caso del first
+    // chromium launch + hydration en runner frío sin ser laxo.
+    await page.locator('#email').fill(opts.email, { timeout: 15_000 });
+    await page.locator('#password').fill(opts.password, { timeout: 15_000 });
     step('3 form filled');
 
     // Sprint estab-e2e (2026-09-11) — retry ≤3× del submit + waitForURL.
