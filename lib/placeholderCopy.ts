@@ -2,10 +2,16 @@
 // Helper para cards placeholder "Aquí podría estar tu anuncio"
 // Usado en home franjas, /explorar, /[categoria], /[categoria]/[comuna]
 
+// Sprint home-placeholders (2026-11-13) — agregada key `cuidado` (vigente en
+// las franjas del home). `hospedaje` + `domicilio` quedan como alias deprecados
+// (slugs legacy fusionados en `cuidado` — ver CLAUDE.md > Tablas principales >
+// categorias_servicio). No se remueven todavía para preservar compat con
+// callers históricos que puedan referenciar los slugs viejos.
 const PLACEHOLDER_QUESTIONS: Record<string, string> = {
-    hospedaje: '¿Hospedas mascotas?',
+    cuidado: '¿Cuidas mascotas?',
+    hospedaje: '¿Hospedas mascotas?',               // deprecated, alias cuidado
     guarderia: '¿Tienes guardería?',
-    domicilio: '¿Cuidas mascotas a domicilio?',
+    domicilio: '¿Cuidas mascotas a domicilio?',     // deprecated, alias cuidado
     paseos: '¿Eres paseador?',
     peluqueria: '¿Eres peluquero canino?',
     adiestramiento: '¿Eres adiestrador?',
@@ -15,9 +21,10 @@ const PLACEHOLDER_QUESTIONS: Record<string, string> = {
 };
 
 const PLACEHOLDER_QUESTIONS_WITH_COMUNA: Record<string, (comuna: string) => string> = {
-    hospedaje: (c) => `¿Hospedas mascotas en ${c}?`,
+    cuidado: (c) => `¿Cuidas mascotas en ${c}?`,
+    hospedaje: (c) => `¿Hospedas mascotas en ${c}?`,               // deprecated
     guarderia: (c) => `¿Tienes guardería en ${c}?`,
-    domicilio: (c) => `¿Cuidas mascotas a domicilio en ${c}?`,
+    domicilio: (c) => `¿Cuidas mascotas a domicilio en ${c}?`,     // deprecated
     paseos: (c) => `¿Eres paseador en ${c}?`,
     peluqueria: (c) => `¿Eres peluquero canino en ${c}?`,
     adiestramiento: (c) => `¿Eres adiestrador en ${c}?`,
@@ -26,14 +33,40 @@ const PLACEHOLDER_QUESTIONS_WITH_COMUNA: Record<string, (comuna: string) => stri
     fotografia: (c) => `¿Fotografías mascotas en ${c}?`,
 };
 
+// Sprint home-placeholders (2026-11-13) — variante "has": texto invitador
+// cuando el slug SÍ tiene servicios pero la franja total < 4. Aprobada PO
+// 2026-11-13 (peluquería con corrección "haces peluquería canina"). Solo
+// aplica en home carousel (variant='compact'); /explorar y /[categoria]
+// usan el diccionario zero sin cambios.
+const PLACEHOLDER_QUESTIONS_HAS: Record<string, string> = {
+    cuidado: '¿También cuidas mascotas?',
+    guarderia: '¿También ofreces guardería?',
+    paseos: '¿También paseas perros?',
+    peluqueria: '¿También haces peluquería canina?',
+    adiestramiento: '¿También entrenas perros?',
+    veterinario: '¿También atiendes mascotas a domicilio?',
+    traslado: '¿También trasladas mascotas?',
+    fotografia: '¿También fotografías mascotas?',
+};
+
 /**
  * Construye la pregunta del placeholder según contexto.
  *  - Con categoría + comuna: "¿Hospedas mascotas en Las Condes?"
  *  - Solo categoría: "¿Hospedas mascotas?"
  *  - Sin contexto: "¿Tienes un servicio para mascotas?"
+ *
+ * Sprint home-placeholders (2026-11-13) — parámetro `kind` opcional:
+ *  - 'zero' (default): el slug tiene 0 servicios ("¿Eres X?")
+ *  - 'has': el slug tiene servicios pero la franja total < 4 ("¿También X?")
+ * `kind='has'` NO soporta comuna (no tiene sentido invitar con comuna cuando
+ * el proveedor existente ya cubre esa comuna). Si viene comuna + kind='has',
+ * cae al texto has sin comuna.
  */
-export function getPlaceholderQuestion(categoriaSlug?: string, comuna?: string): string {
+export function getPlaceholderQuestion(categoriaSlug?: string, comuna?: string, kind: 'zero' | 'has' = 'zero'): string {
     if (!categoriaSlug) return '¿Tienes un servicio para mascotas?';
+    if (kind === 'has') {
+        return PLACEHOLDER_QUESTIONS_HAS[categoriaSlug] ?? PLACEHOLDER_QUESTIONS[categoriaSlug] ?? '¿Tienes un servicio para mascotas?';
+    }
     if (comuna && PLACEHOLDER_QUESTIONS_WITH_COMUNA[categoriaSlug]) {
         return PLACEHOLDER_QUESTIONS_WITH_COMUNA[categoriaSlug](comuna);
     }
@@ -42,24 +75,23 @@ export function getPlaceholderQuestion(categoriaSlug?: string, comuna?: string):
 
 /**
  * Subtítulo del placeholder (1 línea bajo la pregunta principal).
- * Una variación distinta por categoría → evita la repetición de
- * "Sé el primero en tu zona" cuando el home muestra 8+ placeholders.
+ *
+ * Sprint home-placeholders (2026-11-13) — criterio HOME-VERDAD: no afirmar
+ * demanda que hoy no podemos respaldar ("Tutores buscan…", "con cupo",
+ * "prefieren…"). Un solo subtítulo por variant, independiente del slug:
+ *  - compact (home carousel): "Llega a tutores cerca de ti" — invitación
+ *    neutra que respeta que el card es clickable al register.
+ *  - full (/explorar, /[categoria]): "Aún no hay proveedores de esta
+ *    categoría en tu zona." — descriptivo, sin CTA, respeta política
+ *    E-2 UX-2 (variant='full' sin Link al register).
+ *
+ * Anterior diccionario por-slug removido ("Tutores buscan paseadores con
+ * tiempo y energía" etc.) por decisión PO 2026-11-13 con alcance ampliado
+ * a todas las superficies (criterio HOME-VERDAD).
  */
-const PLACEHOLDER_SUBTITLES: Record<string, string> = {
-    hospedaje: 'Tutores buscan un hogar de confianza',
-    guarderia: 'Tutores necesitan cuidado durante el día',
-    domicilio: 'Tutores buscan a alguien de confianza',
-    paseos: 'Tutores buscan paseadores con tiempo y energía',
-    peluqueria: 'Tutores con perros que necesitan corte',
-    adiestramiento: 'Tutores buscan ayuda con sus perros',
-    veterinario: 'Tutores prefieren consulta en casa',
-    traslado: 'Tutores necesitan trasladar a sus mascotas',
-    fotografia: 'Tutores quieren retratar a sus mascotas',
-};
-
-export function getPlaceholderSubtitle(categoriaSlug?: string): string {
-    if (!categoriaSlug) return 'Sé el primero en tu zona';
-    return PLACEHOLDER_SUBTITLES[categoriaSlug] ?? 'Sé el primero en tu zona';
+export function getPlaceholderSubtitle(variant: 'compact' | 'full' = 'full'): string {
+    if (variant === 'compact') return 'Llega a tutores cerca de ti';
+    return 'Aún no hay proveedores de esta categoría en tu zona.';
 }
 
 /**

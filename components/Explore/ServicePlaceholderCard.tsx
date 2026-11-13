@@ -7,6 +7,13 @@ interface ServicePlaceholderCardProps {
     comuna?: string;
     /** 'full' = grid de /explorar, /[categoria]; 'compact' = franjas del home */
     variant?: 'full' | 'compact';
+    /**
+     * Sprint home-placeholders (2026-11-13):
+     *  - 'zero' (default): el slug tiene 0 servicios ("¿Eres X?").
+     *  - 'has': el slug tiene servicios pero la franja total < 4 ("¿También X?").
+     * Solo relevante para variant='compact' del home.
+     */
+    kind?: 'zero' | 'has';
     /** Override del título principal (opcional). Si no, se genera con getPlaceholderQuestion */
     customTitle?: string;
 }
@@ -34,10 +41,11 @@ export default function ServicePlaceholderCard({
     categoriaSlug,
     comuna,
     variant = 'full',
+    kind = 'zero',
     customTitle,
 }: ServicePlaceholderCardProps) {
-    const question = customTitle ?? getPlaceholderQuestion(categoriaSlug, comuna);
-    const subtitle = getPlaceholderSubtitle(categoriaSlug);
+    const question = customTitle ?? getPlaceholderQuestion(categoriaSlug, comuna, kind);
+    const subtitle = getPlaceholderSubtitle(variant);
 
     if (variant === 'compact') {
         // Sprint home-carrusel punto 3 (2026-11-12): placeholder del home
