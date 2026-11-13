@@ -167,6 +167,12 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     let tokenPresente = await waitForTokenInStorage(10_000);
 
     if (!tokenPresente) {
+        // Sprint hf-auth-timeout (2026-11-13) — log visible y fácil de buscar
+        // en logs CI (`grep AUTH-FALLBACK-USED`). Si aparece seguido, la causa
+        // de fondo (token que no persiste en 10s tras login UI exitoso) sigue
+        // abierta y hay que atacarla post-lanzamiento → ver BACKLOG
+        // AUTH-TOKEN-PERSIST.
+        console.log(`[AUTH-FALLBACK-USED] rol=${opts.roleName}`);
         // Sprint setup-hardening (2026-11-12) — re-login server-side si el
         // flow UI dejó el token en estado inconsistente (race timing,
         // cross-fire cross-tab Supabase, signOut global previo de otro

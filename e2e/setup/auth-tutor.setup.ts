@@ -19,6 +19,9 @@ import path from 'path';
 import { authenticate } from './authenticate';
 
 setup('authenticate as tutor', async ({ page }) => {
+    // Sprint hf-auth-timeout (2026-11-13): ver comentario en auth.setup.ts.
+    // Mismo override 120s para cubrir peor caso de cold preview + fallback.
+    setup.setTimeout(120_000);
     await authenticate(page, {
         email: process.env.E2E_STAGING_TUTOR_EMAIL ?? '',
         password: process.env.E2E_STAGING_TUTOR_PASSWORD ?? '',
