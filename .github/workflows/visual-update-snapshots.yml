@@ -128,6 +128,11 @@ jobs:
         # Mismo pattern que e2e-error-audit.yml — sin este step, los setups
         # de auth pueden fallar por cold start Vercel + Supabase Auth
         # concurrent bajo mismo request.
+        # Sprint hf-fill-timeout (2026-11-13): agregado check "Pawnecta" en
+        # el body como señal de diagnóstico (warning-only, no bloqueante).
+        # Logging distinto por caso: "+app" = HTML de Pawnecta; "sin app" =
+        # HTML genérico de Vercel (building, SSO, etc). Si todos muestran
+        # "sin app" en runs post-merge, iniciar CI-WARMUP diferido.
         env:
           PREVIEW_URL: ${{ github.event.inputs.preview_url }}
           BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
@@ -135,8 +140,14 @@ jobs:
           BYPASS_QP="?x-vercel-protection-bypass=${BYPASS}"
           echo "=== Warmup preview endpoints ==="
           for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${PREVIEW_URL}${path}${BYPASS_QP}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
+            TMP=$(mktemp)
+            STATUS=$(curl -s -o "$TMP" -w "%{http_code}" -L "${PREVIEW_URL}${path}${BYPASS_QP}" || echo "000")
+            if grep -q "Pawnecta" "$TMP" 2>/dev/null; then
+              echo "  ${path} → HTTP ${STATUS} (+app)"
+            else
+              echo "  ${path} → HTTP ${STATUS} (sin app)"
+            fi
+            rm -f "$TMP"
             sleep 0.5
           done
           echo "=== Warmup done ==="
