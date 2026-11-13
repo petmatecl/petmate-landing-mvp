@@ -94,10 +94,13 @@ Cierre Tramo 2: cero hotfix ejecutado. Cero merge. Los PRs #85, #87,
 ### Precondición de SQL irreversible
 
 Todo SQL irreversible en prod (RPC-C lote 3 REVOKE + lo que aparezca):
-**Supabase Pro activo + backup verificado**. Supabase Pro ya se activó
-el fin de semana del 07-08 por el PO (precondición original para
-DEL-CUENTA-LEY). Aplica también al Lote 3 y a cualquier migración
-futura del plan.
+**Supabase Pro activo + backup verificado**. **Corrección 2026-11-13**:
+el plan previo decía que Pro se había activado el fin de semana del
+07-08; realidad verificada por PO 2026-11-13 al revisar auth advisors:
+Pro **aún NO está activo**. El PO lo activará lunes 2026-11-16 o martes
+2026-11-17 (ver sección "Lunes 2026-11-16" abajo con el checklist
+exacto). Aplica también al Lote 3 y a cualquier migración futura del
+plan — mientras Pro no esté activo, el SQL irreversible queda en espera.
 
 ### Plan día a día
 
@@ -121,7 +124,10 @@ futura del plan.
 - Aprobación con 4 ajustes para baselines definitivas.
 
 **Sábado 2026-11-07 — Domingo 2026-11-08**
-- PO activa Supabase Pro + backup verificado.
+- ~~PO activa Supabase Pro + backup verificado.~~ **Pospuesto** a lunes
+  2026-11-16 (verificado 2026-11-13: el advisor del project lo muestra
+  en estado Free; el checklist de activación va en la sección del lunes
+  16 abajo).
 - Lighthouse **no corrida** (se pospone a hoy martes 10 post-merge
   vis-bypass).
 
@@ -186,6 +192,26 @@ futura del plan.
   - Teléfono de Eduardo (perfil prod).
   - Nicole cuenta vieja (decisión consolidar o preservar).
   - 5 proveedoras reactivadas.
+  - **Activar Supabase Pro + habilitar Leaked Password Protection**
+    (pospuesto desde semana previa, pendiente desde pre-lanzamiento):
+    1. Dashboard Supabase prod (`ouezpeeiwjwawauidrqq`) → **Settings
+       → Billing** → cambiar plan Free → **Pro** (upgrade). Esperar
+       confirmación + verificar backup diario habilitado por default
+       en Pro (**Settings → Backups** → último backup visible <24h).
+    2. **Authentication → Providers → Email** (o **Authentication →
+       Policies** según versión actual del Dashboard) → activar
+       **"Leaked password protection"** / **"Prevent use of
+       compromised passwords (via HaveIBeenPwned)"** → Save.
+    3. **Verificar que quedó activo**: en Dashboard Supabase prod
+       → **Advisors** → Security (o pedir al auditor que corra
+       `get_advisors(type=security)` via MCP) → el warning
+       `auth_leaked_password_protection: Leaked Password Protection
+       Disabled` **debe desaparecer**. Si sigue listado, el switch
+       no persistió — reintentar.
+    4. Aviso al auditor cuando esté listo (confirma con el advisor
+       re-corrido).
+  - Nota: CAPTCHA, MFA TOTP y password min length >6 quedan
+    **POST-LANZAMIENTO** (ver BACKLOG `AUTH-ABUSE-MONITOR`).
 
 **Martes 2026-11-17 — Revalidación + freeze**
 - **Mañana**: revalidación Lighthouse (solo revalida los targets de los
