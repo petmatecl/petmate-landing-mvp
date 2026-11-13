@@ -222,17 +222,19 @@ jobs:
       # el auth setup puede hit el preview cold + Supabase Auth cold en
       # simultáneo → cascada de latencia que causa el timeout de setup
       # visto en run 1 de PR #21 (waitForURL 60s exceeded en ambos setups).
-      - name: Warmup preview endpoints (cold start amortization pre-setup)
-        run: |
-          BASE="${{ steps.preview.outputs.url }}"
-          BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
-          echo "=== Warmup preview endpoints (rapido) ==="
-          for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
-            sleep 0.5
-          done
-          echo "=== Warmup done (rapido) ==="
+      - name: Warmup preview (CI-WARMUP — retry + deadline + fail loud)
+        # Sprint ci-warmup (2026-11-13) — reemplaza el warmup logging-only
+        # anterior. Script scripts/ci-warmup.sh: reintenta hasta 200 en todos
+        # los paths con deadline global 60s. Si el preview no responde, el
+        # paso falla con "[WARMUP] preview no responde" (vs los timeouts
+        # confusos que aparecian despues en Playwright setup). Log de tiempos
+        # por request para diagnostico de cold start. Paths reducidos a los
+        # 3 publicos que SI responden sin auth: /, /login, /explorar (los
+        # demas requieren sesion y redirigen, no amortizan util el pool).
+        env:
+          BASE_URL: ${{ steps.preview.outputs.url }}
+          BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
+        run: bash scripts/ci-warmup.sh "$BASE_URL" "$BYPASS" / /login /explorar
 
       # Sprint cue-1-fix B3 (2026-09-24) — CI-SPEC-COUNT: defensa activa
       # contra "workflow ignora silenciosamente specs nuevos" (corolario P8
@@ -418,24 +420,17 @@ jobs:
       #   - /proveedor (auth check + panel bell)
       #   - /mis-reservas (query agendamientos, ruta que causó el s3/s7 stall)
       # 3 hits cada uno con 500ms de gap para no saturar cold pool.
-      - name: Warmup preview endpoints (cold start amortization)
-        run: |
-          URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
-          BASE="${{ steps.preview.outputs.url }}"
-          BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
-          echo "=== Warmup preview endpoints ==="
-          for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
-            sleep 0.5
-          done
-          # Segundo pass para asegurar que el pool warm queda estable.
-          for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} (2nd) → HTTP ${STATUS}"
-            sleep 0.5
-          done
-          echo "=== Warmup done ==="
+      - name: Warmup preview pre-F2 (CI-WARMUP — retry + deadline + fail loud)
+        # Sprint ci-warmup (2026-11-13) — ver comentario en el warmup previo
+        # (suite rapida). Mismo script + mismos 3 paths publicos. El pool
+        # Vercel de este runner ya quedo warm por el warmup previo + los
+        # tests de la suite rapida; este 2do warmup lo re-confirma antes de
+        # F2 que es la suite con mas sensibilidad a cold starts (F2 usa
+        # workers=1 y sus tests consumen varios endpoints secuencialmente).
+        env:
+          BASE_URL: ${{ steps.preview.outputs.url }}
+          BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
+        run: bash scripts/ci-warmup.sh "$BASE_URL" "$BYPASS" / /login /explorar
 
       - name: Run Playwright suite F2 (f2-2b + f2-3 + f2-recordatorios-cron) --workers=1
         env:

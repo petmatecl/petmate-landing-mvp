@@ -124,22 +124,19 @@ jobs:
           E2E_STAGING_CRON_SECRET=$E2E_STAGING_CRON_SECRET
           EOF
 
-      - name: Warmup preview endpoints (cold start amortization pre-setup)
-        # Mismo pattern que e2e-error-audit.yml — sin este step, los setups
-        # de auth pueden fallar por cold start Vercel + Supabase Auth
-        # concurrent bajo mismo request.
+      - name: Warmup preview (CI-WARMUP — retry + deadline + fail loud)
+        # Sprint ci-warmup (2026-11-13) — reemplaza el warmup logging-only
+        # anterior. Script scripts/ci-warmup.sh: reintenta hasta 200 en todos
+        # los paths con deadline global 60s. Si el preview no responde, el
+        # paso falla con "[WARMUP] preview no responde" (vs los timeouts
+        # confusos que aparecian despues en Playwright setup). Log de tiempos
+        # por request para diagnostico de cold start. Paths reducidos a los
+        # 3 publicos que SI responden sin auth: /, /login, /explorar (los
+        # demas requieren sesion y redirigen, no amortizan util el pool).
         env:
-          PREVIEW_URL: ${{ github.event.inputs.preview_url }}
+          BASE_URL: ${{ github.event.inputs.preview_url }}
           BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
-        run: |
-          BYPASS_QP="?x-vercel-protection-bypass=${BYPASS}"
-          echo "=== Warmup preview endpoints ==="
-          for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${PREVIEW_URL}${path}${BYPASS_QP}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
-            sleep 0.5
-          done
-          echo "=== Warmup done ==="
+        run: bash scripts/ci-warmup.sh "$BASE_URL" "$BYPASS" / /login /explorar
 
       - name: Update snapshots
         env:
