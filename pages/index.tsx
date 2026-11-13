@@ -371,20 +371,39 @@ function FranjaDual({
           {/* Sprint home-carrusel (2026-11-12) — grid → scroll horizontal
               una fila + flechas con estado + swipe mobile. Placeholder
               ausente va al FINAL del scroll (no en celda vacía). */}
+          {/* Sprint home-placeholders (2026-11-13) — regla ampliada PO:
+              placeholders al final del carrusel si la franja tiene menos de
+              4 servicios O si algún slug tiene 0 servicios. Max 1 por slug.
+              Kind depende del conteo del slug:
+                - sX.length === 0 → kind='zero' ("¿Eres X?")
+                - sX.length > 0  → kind='has' ("¿También X?")
+              Casos prod 2026-11-13:
+                * Cuidado 6 + Guardería 2 = 8, ambos >0 → sin placeholder.
+                * Paseos 8 + Adiestramiento 0 → 1 placeholder (B zero).
+                * Veterinario 1 + Peluquería 0 = 1 <4 → 2 placeholders (A has + B zero).
+                * Traslado 1 + Fotografía 1 = 2 <4 → 2 placeholders (ambos has). */}
           <HorizontalScroller ariaLabel={titulo}>
             {combined.map((s: any, i: number) => (
               <div key={`${s.servicio_id ?? s.id}-${i}`} className={CAROUSEL_CARD_CLS}>
                 <ServiceCardItem s={s} />
               </div>
             ))}
-            {serviciosA.length === 0 && (
+            {(total < 4 || serviciosA.length === 0) && (
               <div key={`placeholder-${slugA}`} className={CAROUSEL_CARD_CLS}>
-                <ServicePlaceholderCard categoriaSlug={slugA} variant="compact" />
+                <ServicePlaceholderCard
+                  categoriaSlug={slugA}
+                  variant="compact"
+                  kind={serviciosA.length === 0 ? 'zero' : 'has'}
+                />
               </div>
             )}
-            {serviciosB.length === 0 && (
+            {(total < 4 || serviciosB.length === 0) && (
               <div key={`placeholder-${slugB}`} className={CAROUSEL_CARD_CLS}>
-                <ServicePlaceholderCard categoriaSlug={slugB} variant="compact" />
+                <ServicePlaceholderCard
+                  categoriaSlug={slugB}
+                  variant="compact"
+                  kind={serviciosB.length === 0 ? 'zero' : 'has'}
+                />
               </div>
             )}
           </HorizontalScroller>
