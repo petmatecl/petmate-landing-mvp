@@ -41,9 +41,16 @@ else
 fi
 
 DEADLINE_S=60
+# MAX_DEADLINE se activa automaticamente si detectamos que el preview esta
+# todavia en build de Vercel ("Deployment is building" en el body). Un build
+# fresh de Next en Vercel tarda ~2-3 min; 60s no alcanza y 240s cubre el P99.
+# Cambio adaptive una sola vez por invocacion — si pasa a 240s y sigue sin
+# aparecer la app, falla loud igual.
+MAX_DEADLINE_S=240
 DEADLINE=$(( $(date +%s) + DEADLINE_S ))
+extended=0
 
-echo "[WARMUP] inicio · BASE=$BASE_URL · paths=${PATHS[*]} · deadline=${DEADLINE_S}s"
+echo "[WARMUP] inicio · BASE=$BASE_URL · paths=${PATHS[*]} · deadline=${DEADLINE_S}s (adaptive hasta ${MAX_DEADLINE_S}s si preview building)"
 
 # done_arr[i]=1 cuando PATHS[i] ya respondio 200.
 done_arr=()
@@ -74,8 +81,21 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     if [ "$status" = "200" ] && grep -q "$APP_MARKER" "$TMP_BODY" 2>/dev/null; then
       echo "[WARMUP] attempt=$attempt GET $path -> $status (+app) in ${elapsed}ms"
       done_arr[$i]=1
+    elif [ "$status" = "200" ] && grep -q "Deployment is building" "$TMP_BODY" 2>/dev/null; then
+      # Pantalla Vercel "Deployment is building" — el preview aun no termino
+      # su build. Trigger del workflow (pull_request synchronize) corre
+      # inmediato sin esperar `deployment_status success`, entonces este
+      # escenario es esperable en PRs frescos o pushes nuevos a un branch.
+      # Extender deadline a MAX_DEADLINE_S una sola vez para dar oxigeno.
+      echo "[WARMUP] attempt=$attempt GET $path -> $status (Vercel building) in ${elapsed}ms"
+      if [ "$extended" = "0" ]; then
+        DEADLINE=$(( $(date +%s) + MAX_DEADLINE_S - DEADLINE_S ))
+        extended=1
+        echo "[WARMUP] 'Deployment is building' detectado — deadline extendido a ${MAX_DEADLINE_S}s totales"
+      fi
+      pending=1
     elif [ "$status" = "200" ]; then
-      # 200 OK pero body sin "Pawnecta" → pantalla Vercel "building" o similar.
+      # 200 OK pero body sin "Pawnecta" ni "building" → landing generica, SSO, otro.
       preview=$(head -c 120 "$TMP_BODY" 2>/dev/null | tr '\n' ' ' | tr -s ' ')
       echo "[WARMUP] attempt=$attempt GET $path -> $status (sin app) in ${elapsed}ms · body=\"${preview}...\""
       pending=1
