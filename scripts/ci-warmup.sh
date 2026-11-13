@@ -30,14 +30,23 @@ if [ ${#PATHS[@]} -lt 1 ]; then
   exit 1
 fi
 
-# Query string del bypass. Sin BYPASS, el GET a preview protegido retorna
-# el HTML del SSO de Vercel con 401 — nunca llegaria a 200 y el warmup
-# fallaria sin razon util. BYPASS vacio queda explicito en el log.
+# Bypass via HEADERS, no query params. Motivación (sprint ci-warmup iter 4,
+# 2026-11-13): el iter 3 pasaba el bypass en query string sin URL-encode
+# (`?x-vercel-protection-bypass=$BYPASS`). Si el token contiene chars que
+# requieren encoding (+, /, =), Vercel rechaza el bypass y responde 302 a
+# `vercel.com/sso-api`. Con `curl -L` (que iter 3 usaba), curl seguia el
+# redirect y terminaba con 200 OK del HTML del SSO de Vercel (lang="en-US",
+# clases "dash") — false positive sutil que el grep "Pawnecta" si detectaba
+# correctamente (ver log del run 43467993397). Fix: headers sin encoding +
+# sin `-L`. Alineado con withBypass() de los tests Playwright, que usa
+# encodeURIComponent en query porque el browser no permite set custom
+# headers facil; curl no tiene esa limitacion.
+BYPASS_HEADERS=()
 if [ -n "$BYPASS" ]; then
-  QS="?x-vercel-protection-bypass=$BYPASS&x-vercel-set-bypass-cookie=samesitenone"
+  BYPASS_HEADERS+=(-H "x-vercel-protection-bypass: $BYPASS")
+  BYPASS_HEADERS+=(-H "x-vercel-set-bypass-cookie: samesitenone")
 else
-  QS=""
-  echo "[WARMUP] AVISO: BYPASS vacio — preview protegido retornara 401, warmup fallara"
+  echo "[WARMUP] AVISO: BYPASS vacio — preview protegido retornara 401/302, warmup fallara"
 fi
 
 DEADLINE_S=60
@@ -75,9 +84,19 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     if [ "${done_arr[$i]}" = "1" ]; then continue; fi
     path="${PATHS[$i]}"
     t0=$(date +%s%3N)
-    status=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" -L --max-time 15 "${BASE_URL}${path}${QS}" || echo "000")
+    # SIN `-L`. Si Vercel rechaza bypass, responde 3xx a sso-api; un `-L`
+    # seguiria el redirect y terminaria con 200 OK del SSO page (iter 3 bug).
+    status=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" --max-time 15 "${BYPASS_HEADERS[@]}" "${BASE_URL}${path}" || echo "000")
     t1=$(date +%s%3N)
     elapsed=$((t1 - t0))
+    # 3xx = bypass rechazado → error de config del CI, no es cuestion de reintentar.
+    case "$status" in
+      3[0-9][0-9])
+        echo "[WARMUP] bypass rechazado en $path: status $status (Vercel redirige a sso-api). Token PLAYWRIGHT_BYPASS puede estar invalido, vencido o faltar." >&2
+        rm -f "$TMP_BODY"
+        exit 1
+        ;;
+    esac
     if [ "$status" = "200" ] && grep -q "$APP_MARKER" "$TMP_BODY" 2>/dev/null; then
       echo "[WARMUP] attempt=$attempt GET $path -> $status (+app) in ${elapsed}ms"
       done_arr[$i]=1
