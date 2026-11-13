@@ -31,11 +31,18 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // "Log in to Vercel" y el login de la app no se renderiza.
     // Después de este primer goto, la cookie viaja automáticamente en el
     // browser context — el resto de tests navega sin query params.
+    // Sprint hf-auth-timeout iter 2 (2026-11-13) — instrumentación [AUTH-STEP]
+    // para identificar qué paso del setup consume los ~100s inexplicados del
+    // iter 1. Cada await con timeout explícito corto: si algo se cuelga, falla
+    // rápido y con nombre en vez de consumir el timeout global del test.
+    const step = (n: string) => console.log(`[AUTH-STEP][${opts.roleName}] ${n}`);
+    step('0 start');
     const bypassToken = process.env.PLAYWRIGHT_BYPASS ?? '';
     const bypassQuery = bypassToken
         ? `?x-vercel-protection-bypass=${encodeURIComponent(bypassToken)}&x-vercel-set-bypass-cookie=samesitenone`
         : '';
-    await page.goto(`/login${bypassQuery}`);
+    await page.goto(`/login${bypassQuery}`, { timeout: 30_000 });
+    step('1 goto /login done');
 
     // Sprint e2e-error-audit (2026-09-08) — esperar hidratación de React
     // antes del click al submit. En previews frescos de Vercel (primera
@@ -46,9 +53,11 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // waitForURL abajo timeouta buscando un redirect que nunca sucede.
     // networkidle espera 500ms sin requests → indicador confiable de
     // que los JS chunks + hidratación completaron.
-    await page.waitForLoadState('networkidle');
-    await page.locator('#email').fill(opts.email);
-    await page.locator('#password').fill(opts.password);
+    await page.waitForLoadState('networkidle', { timeout: 20_000 });
+    step('2 networkidle done');
+    await page.locator('#email').fill(opts.email, { timeout: 5_000 });
+    await page.locator('#password').fill(opts.password, { timeout: 5_000 });
+    step('3 form filled');
 
     // Sprint estab-e2e (2026-09-11) — retry ≤3× del submit + waitForURL.
     // Ante flake intermitente de Supabase Auth staging (endpoint
@@ -107,7 +116,9 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         );
     }
     console.log(`[AUTH-RETRY] ${opts.roleName} SUCCESS on attempt ${successAttempt}/${MAX_ATTEMPTS}`);
-    await expect(page).not.toHaveURL(/\/login/);
+    step('4 login retry loop OK');
+    await expect(page).not.toHaveURL(/\/login/, { timeout: 2_000 });
+    step('5 url not /login confirmed');
 
     // Aceptar el banner de cookies UNA VEZ. La preferencia se guarda en
     // storage (cookie + localStorage según CookieBanner.tsx) y el banner
@@ -117,11 +128,15 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // Best-effort: si el banner no está (usuario ya lo aceptó en un
     // storageState previo, por ej.), seguimos sin problema.
     const acceptCookies = page.getByRole('button', { name: /Aceptar todas/i });
-    if (await acceptCookies.isVisible().catch(() => false)) {
-        await acceptCookies.click();
+    const bannerVisible = await acceptCookies.isVisible({ timeout: 1_000 }).catch(() => false);
+    step(`6a banner visible=${bannerVisible}`);
+    if (bannerVisible) {
+        await acceptCookies.click({ timeout: 5_000 });
+        step('6b banner clicked');
         // Esperamos a que el banner desaparezca del DOM/viewport antes de
         // persistir el storageState — si no, la cookie puede no estar seteada.
         await expect(page.getByRole('region', { name: /Aviso de cookies/i })).not.toBeVisible({ timeout: 5_000 });
+        step('6c banner dismissed');
     }
 
     // Sprint hf-usuario-fix (2026-09-24) — guard contra race del token
@@ -164,9 +179,17 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     };
 
     // Primer intento: esperar a que el flow UI del signIn persista el token.
+    step('7 waitForTokenInStorage(10s) start');
     let tokenPresente = await waitForTokenInStorage(10_000);
+    step(`8 waitForTokenInStorage returned=${tokenPresente}`);
 
     if (!tokenPresente) {
+        // Sprint hf-auth-timeout (2026-11-13) — log visible y fácil de buscar
+        // en logs CI (`grep AUTH-FALLBACK-USED`). Si aparece seguido, la causa
+        // de fondo (token que no persiste en 10s tras login UI exitoso) sigue
+        // abierta y hay que atacarla post-lanzamiento → ver BACKLOG
+        // AUTH-TOKEN-PERSIST.
+        console.log(`[AUTH-FALLBACK-USED] rol=${opts.roleName}`);
         // Sprint setup-hardening (2026-11-12) — re-login server-side si el
         // flow UI dejó el token en estado inconsistente (race timing,
         // cross-fire cross-tab Supabase, signOut global previo de otro
@@ -191,16 +214,26 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
             );
         }
 
-        const reloginResult = await page.evaluate(async (args) => {
+        // Sprint hf-auth-timeout iter 2 (2026-11-13) — refactor del fallback
+        // para evitar el cuelgue de iter 1: el `page.evaluate` con fetch desde
+        // el browser context cold puede quedarse pending indefinidamente (no
+        // llegó un solo request a Supabase edge_logs durante los 111s del
+        // iter 1). Ahora el fetch se hace desde Node (fetch nativo + AbortSignal)
+        // con timeout 8s explícito; si Supabase cuelga, falla con nombre.
+        // Luego solo se inyecta el token resultante al localStorage del page
+        // via un page.evaluate corto (solo escritura a localStorage, cero red).
+        step('9a fallback fetch Supabase (Node, AbortSignal 8s) start');
+        const reloginResult = await (async (): Promise<{ ok: true; tokens: { access_token: string; refresh_token: string; expires_in: number; token_type: string; user: unknown } } | { ok: false; reason: string }> => {
             try {
-                const resp = await fetch(`${args.supabaseUrl}/auth/v1/token?grant_type=password`, {
+                const resp = await fetch(`${supabaseUrl}/auth/v1/token?grant_type=password`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'apikey': args.anonKey,
-                        'Authorization': `Bearer ${args.anonKey}`,
+                        'apikey': anonKey,
+                        'Authorization': `Bearer ${anonKey}`,
                     },
-                    body: JSON.stringify({ email: args.email, password: args.password }),
+                    body: JSON.stringify({ email: opts.email, password: opts.password }),
+                    signal: AbortSignal.timeout(8_000),
                 });
                 if (!resp.ok) {
                     const body = await resp.text().catch(() => '');
@@ -210,30 +243,33 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
                 if (!data.access_token || !data.refresh_token) {
                     return { ok: false, reason: `response sin tokens: ${JSON.stringify(data).slice(0, 200)}` };
                 }
-                // Escribir con la key canónica Supabase: sb-<projectref>-auth-token.
-                // El projectref es el primer segmento del host (ej.
-                // "jmtadvdkicyylcwjcmcl" para staging).
-                const ref = new URL(args.supabaseUrl).host.split('.')[0];
-                const key = `sb-${ref}-auth-token`;
-                const now = Math.floor(Date.now() / 1000);
-                localStorage.setItem(key, JSON.stringify({
-                    access_token: data.access_token,
-                    refresh_token: data.refresh_token,
-                    expires_at: now + (data.expires_in ?? 3600),
-                    expires_in: data.expires_in ?? 3600,
-                    token_type: data.token_type ?? 'bearer',
-                    user: data.user ?? null,
-                }));
-                return { ok: true };
-            } catch (err: any) {
-                return { ok: false, reason: `fetch threw: ${err?.message ?? String(err)}` };
+                return { ok: true, tokens: data };
+            } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
+                return { ok: false, reason: `fetch desde Node threw/aborted: ${msg}` };
             }
-        }, {
-            supabaseUrl,
-            anonKey,
-            email: opts.email,
-            password: opts.password,
-        });
+        })();
+        step(`9b fallback fetch done ok=${reloginResult.ok}`);
+
+        if (reloginResult.ok) {
+            step('9c inject tokens al localStorage del page');
+            const ref = new URL(supabaseUrl).host.split('.')[0];
+            const key = `sb-${ref}-auth-token`;
+            const now = Math.floor(Date.now() / 1000);
+            const tokens = reloginResult.tokens;
+            await page.evaluate(({ k, v }) => { localStorage.setItem(k, v); }, {
+                k: key,
+                v: JSON.stringify({
+                    access_token: tokens.access_token,
+                    refresh_token: tokens.refresh_token,
+                    expires_at: now + (tokens.expires_in ?? 3600),
+                    expires_in: tokens.expires_in ?? 3600,
+                    token_type: tokens.token_type ?? 'bearer',
+                    user: tokens.user ?? null,
+                }),
+            });
+            step('9d token injected');
+        }
 
         if (!reloginResult.ok) {
             throw new Error(
@@ -287,7 +323,9 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
         return { url: location.href, origin: location.origin, ls: items };
     });
 
+    step('10 storageState save start');
     await page.context().storageState({ path: opts.storageStatePath });
+    step('11 storageState save done');
 
     // Paso 2 · guard final: verificar el archivo escrito contiene un token
     // Supabase válido con MISMA lógica que el helper downstream
