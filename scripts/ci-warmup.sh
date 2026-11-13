@@ -30,23 +30,28 @@ if [ ${#PATHS[@]} -lt 1 ]; then
   exit 1
 fi
 
-# Bypass via HEADERS, no query params. Motivación (sprint ci-warmup iter 4,
-# 2026-11-13): el iter 3 pasaba el bypass en query string sin URL-encode
-# (`?x-vercel-protection-bypass=$BYPASS`). Si el token contiene chars que
-# requieren encoding (+, /, =), Vercel rechaza el bypass y responde 302 a
-# `vercel.com/sso-api`. Con `curl -L` (que iter 3 usaba), curl seguia el
-# redirect y terminaba con 200 OK del HTML del SSO de Vercel (lang="en-US",
-# clases "dash") — false positive sutil que el grep "Pawnecta" si detectaba
-# correctamente (ver log del run 43467993397). Fix: headers sin encoding +
-# sin `-L`. Alineado con withBypass() de los tests Playwright, que usa
-# encodeURIComponent en query porque el browser no permite set custom
-# headers facil; curl no tiene esa limitacion.
-BYPASS_HEADERS=()
+# Bypass via QUERY params (como withBypass() de los tests Playwright) con
+# --data-urlencode para que curl encodee correctamente cualquier char
+# especial del token. Historia del sprint ci-warmup:
+#   iter 3: query sin encode + `-L` → Vercel redirige 302/307 a sso-api,
+#           curl sigue el redirect y termina con 200 OK del HTML del SSO
+#           de Vercel UI (lang="en-US", clases "dash") — false positive
+#           que el grep "Pawnecta" si detectaba correctamente pero sin
+#           entender la causa.
+#   iter 4a: headers (x-vercel-protection-bypass + x-vercel-set-bypass-cookie)
+#           → Vercel devuelve 307 directo (header-based bypass no
+#           reconocido por Vercel aunque la doc oficial lo mencione).
+#   iter 4b (actual): query con --data-urlencode + SIN -L + case 3xx fail
+#           explicito. Query params con encoding es el metodo que el
+#           step "Wait for preview to be Ready" del workflow ya usa con
+#           exito, y es exacto espejo de withBypass() en los tests.
+BYPASS_ARGS=()
 if [ -n "$BYPASS" ]; then
-  BYPASS_HEADERS+=(-H "x-vercel-protection-bypass: $BYPASS")
-  BYPASS_HEADERS+=(-H "x-vercel-set-bypass-cookie: samesitenone")
+  BYPASS_ARGS+=(-G)
+  BYPASS_ARGS+=(--data-urlencode "x-vercel-protection-bypass=$BYPASS")
+  BYPASS_ARGS+=(--data-urlencode "x-vercel-set-bypass-cookie=samesitenone")
 else
-  echo "[WARMUP] AVISO: BYPASS vacio — preview protegido retornara 401/302, warmup fallara"
+  echo "[WARMUP] AVISO: BYPASS vacio — preview protegido retornara 307, warmup fallara"
 fi
 
 DEADLINE_S=60
@@ -86,7 +91,7 @@ while [ "$(date +%s)" -lt "$DEADLINE" ]; do
     t0=$(date +%s%3N)
     # SIN `-L`. Si Vercel rechaza bypass, responde 3xx a sso-api; un `-L`
     # seguiria el redirect y terminaria con 200 OK del SSO page (iter 3 bug).
-    status=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" --max-time 15 "${BYPASS_HEADERS[@]}" "${BASE_URL}${path}" || echo "000")
+    status=$(curl -sS -o "$TMP_BODY" -w "%{http_code}" --max-time 15 "${BYPASS_ARGS[@]}" "${BASE_URL}${path}" || echo "000")
     t1=$(date +%s%3N)
     elapsed=$((t1 - t0))
     # 3xx = bypass rechazado → error de config del CI, no es cuestion de reintentar.
