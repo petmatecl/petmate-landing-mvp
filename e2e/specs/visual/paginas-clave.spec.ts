@@ -278,7 +278,17 @@ test.describe('visual público', () => {
                 // visibilidad, `.first()` apunta a la variante oculta del
                 // viewport actual y `toBeVisible` falla. Fix: filtrar por
                 // `:visible` pseudo-selector.
-                const visitasAll = page.locator('[aria-label*="visitas totales"]');
+                // Iter 2026-11-13 (PR #111 hf-auth-timeout) — el `<span>` del
+                // VisitCounter es `inline-flex` → bounding box = width del
+                // contenido = varía con el número de dígitos ("206 visitas" vs
+                // "207"). La máscara `toHaveScreenshot` se adapta al bbox del
+                // elemento → aparecen ~160 px diff en los bordes exactos
+                // donde la máscara "cedió" o "excedió" entre baseline y run.
+                // Mismo patrón que /explorar documentado L212-219 arriba. Fix:
+                // enmascarar el `<div>` padre que envuelve al span (ancho
+                // fijo = ancho del card sticky). Span interior sigue existiendo
+                // para la aserción `toBeVisible` — no cambia.
+                const visitasAll = page.locator('div:has(> span[aria-label*="visitas totales"])');
                 const visitasVisible = page.locator('[aria-label*="visitas totales"]:visible').first();
                 await expect(visitasVisible, 'Contador de visitas no visible — selector roto o service sin visitas').toBeVisible({ timeout: 5_000 });
                 // Mask se pasa sobre TODAS las instancias (display:none no
