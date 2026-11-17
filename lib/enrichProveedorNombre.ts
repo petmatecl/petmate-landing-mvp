@@ -27,8 +27,23 @@
 // deprecado y el mapper aplica `displayName()` directo.
 // ---------------------------------------------------------------------------
 import type { SupabaseClient } from '@supabase/supabase-js';
+import * as Sentry from '@sentry/nextjs';
 import type { ServiceResult } from '../components/Explore/ServiceCard';
 import { displayName } from './displayName';
+
+/**
+ * Fallback de seguridad cuando el enrich no puede obtener los 3 campos
+ * separados: devolver solo el primer token del string pre-armado del RPC.
+ * Para "Renata Gacitúa" → "Renata" (nunca el apellido). Para un
+ * nombre_publico con espacio ("Peluquería Luna") → "Peluquería" (pierde
+ * la segunda palabra, trade-off aceptado por safety sobre fidelidad).
+ */
+function safeFirstToken(raw: string | null | undefined): string {
+    const s = (raw ?? '').trim();
+    if (!s) return 'Proveedor';
+    const tokens = s.split(/\s+/).filter(Boolean);
+    return tokens[0] || 'Proveedor';
+}
 
 export async function enrichServiceResultsWithDisplayName(
     results: ServiceResult[],
@@ -49,11 +64,19 @@ export async function enrichServiceResultsWithDisplayName(
             .in('id', ids);
 
         if (error || !data) {
-            // Fallo silente: devolvemos los results sin tocar. El mapper
-            // dejó `proveedor_nombre` como vino del RPC (expone apellido
-            // para los 17/22 sin nombre_publico) — es menos malo que
-            // mostrar "Proveedor" genérico.
-            return results;
+            // Sprint pii-nombre-publico iter 2 (2026-11-17): fallo CERRADO.
+            // Antes: devolvíamos results sin tocar → `proveedor_nombre` del
+            // RPC seguía como "Nombre Apellido_P" para los 17/22 sin
+            // nombre_publico. Decisión PO: nunca exponer apellido. Fallback
+            // ahora aplica safeFirstToken sobre el string del RPC → solo
+            // primer token (pierde fidelidad en nombre_publico multi-palabra
+            // pero nunca filtra PII).
+            Sentry.captureMessage('[enrichServiceResultsWithDisplayName] query to proveedores_publicos failed, applying safeFirstToken fallback', {
+                level: 'warning',
+                tags: { subsystem: 'pii-nombre-publico', phase: 'enrich' },
+                extra: { error_code: (error as any)?.code, error_message: (error as any)?.message, n_ids: ids.length },
+            });
+            return results.map(r => ({ ...r, proveedor_nombre: safeFirstToken(r.proveedor_nombre) }));
         }
 
         const byId = new Map<string, { nombre_publico: string | null; nombre: string | null; apellido_p: string | null }>();
@@ -67,13 +90,20 @@ export async function enrichServiceResultsWithDisplayName(
 
         return results.map(r => {
             const prov = byId.get(r.proveedor_id);
-            if (!prov) return r; // sin match → dejar como vino
+            if (!prov) {
+                // Sin match (prov borrado, race, etc.). Safe fallback mismo
+                // patrón que el query error: primer token del string del RPC.
+                return { ...r, proveedor_nombre: safeFirstToken(r.proveedor_nombre) };
+            }
             return {
                 ...r,
                 proveedor_nombre: displayName(prov),
             };
         });
-    } catch {
-        return results;
+    } catch (err) {
+        Sentry.captureException(err, {
+            tags: { subsystem: 'pii-nombre-publico', phase: 'enrich' },
+        });
+        return results.map(r => ({ ...r, proveedor_nombre: safeFirstToken(r.proveedor_nombre) }));
     }
 }

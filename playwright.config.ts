@@ -313,6 +313,20 @@ export default defineConfig({
             testMatch: /specs[\\/]share-mobile[\\/].*\.spec\.ts$/,
         },
         {
+            // Sprint pii-nombre-publico (2026-11-17) — guardia P8 sobre las
+            // 4 superficies públicas que renderizan el nombre del proveedor.
+            // Falla loud si el apellido legal se filtra al HTML público, o
+            // si un proveedor con nombre aparece como "Proveedor" fallback.
+            // Desktop Chrome + storageState vacío (visitante anónimo, caso
+            // real de user que llega del buscador). Cero deps de setup.
+            name: 'pii-nombre-publico',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: { cookies: [], origins: [] },
+            },
+            testMatch: /specs[\\/]pii-nombre-publico[\\/].*\.spec\.ts$/,
+        },
+        {
             // Sprint bloque-i I-1 (2026-09-17) — spec canario del CI.
             // Cero dependencies (no setup, no auth, no navegación). El spec
             // solo throwea con `expect(false).toBe(true)`. El workflow
