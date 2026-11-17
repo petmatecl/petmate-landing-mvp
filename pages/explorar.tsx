@@ -20,6 +20,7 @@ import SidebarFiltros from "../components/Explore/SidebarFiltros";
 import ServiceCard, { ServiceResult } from "../components/Explore/ServiceCard";
 import ServicePlaceholderCard from "../components/Explore/ServicePlaceholderCard";
 import { mapRpcToServiceResult } from "../lib/serviceMapper";
+import { enrichServiceResultsWithDisplayName } from "../lib/enrichProveedorNombre";
 import { logSupabaseError } from "../lib/logSupabaseError";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 import { COMUNAS_CHILE } from "../lib/comunas";
@@ -398,7 +399,15 @@ export default function ExplorarPage() {
                     if (currentMascota === 'gato') return s.acepta_gatos !== false;
                     return true;
                 });
-                setServices(filteredByMascota);
+                // Sprint pii-nombre-publico (2026-11-17): enrich con
+                // displayName() desde proveedores_publicos (campos
+                // separados nombre_publico/nombre/apellido_p). El RPC
+                // emite `proveedor_nombre` como string pre-armado que
+                // expone apellido legal para los 17/22 proveedores sin
+                // nombre_publico. Fase 2 PII-VIEW-TIGHT ajusta el RPC
+                // post-launch.
+                const enriched = await enrichServiceResultsWithDisplayName(filteredByMascota, supabase);
+                setServices(enriched);
 
                 // Sugerir comunas alternativas si no hay resultados con la
                 // comuna actual. Reuso el slug ya seleccionado (la

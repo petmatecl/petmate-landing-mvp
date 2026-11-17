@@ -3,6 +3,7 @@
 
 import { ServiceResult } from '../components/Explore/ServiceCard';
 import { roundCoordsForPublic } from './coordsPrivacy';
+import { displayName as displayNameOf } from './displayName';
 
 /** Slug → human-readable name (mirror of STATIC_CATEGORIES in explorar.tsx) */
 const CAT_NAMES: Record<string, string> = {
@@ -93,7 +94,29 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        proveedor_nombre: item.proveedor_nombre ?? `${item.nombre ?? ''} ${item.apellido_p ?? ''}`.trim(),
+        // Sprint pii-nombre-publico (2026-11-17): el RPC `buscar_servicios`
+        // emite `proveedor_nombre` como un string pre-armado via
+        // `COALESCE(p.nombre_publico, p.nombre || ' ' || p.apellido_p)` —
+        // NO expone `nombre`/`apellido_p` por separado. Entonces el mapper
+        // NO puede diferenciar nombre_publico ("Peluquería Luna") de
+        // nombre+apellido legal ("Renata Gacitúa") solo por el string.
+        //
+        // El caller DEBE enriquecer el resultado con
+        // `enrichServiceResultsWithDisplayName` (lib/enrichProveedorNombre.ts)
+        // que hace fetch complementario a `proveedores_publicos` con los
+        // 3 campos separados y aplica `displayName()` server-side-correcto.
+        //
+        // Mientras ese enrich no corra, dejamos `proveedor_nombre` como
+        // string crudo del RPC — es el mejor esfuerzo sin PII cuando el
+        // proveedor tiene nombre_publico (mayoría de los 5/22), y expone
+        // apellido para los 17/22 sin nombre_publico (bug conocido hasta
+        // enrich). Fase 2 post-launch (sprint PII-VIEW-TIGHT) ajusta el
+        // RPC para emitir los 3 campos separados.
+        proveedor_nombre: item.proveedor_nombre ?? displayNameOf({
+            nombre_publico: item.nombre_publico,
+            nombre: item.nombre,
+            apellido_p: item.apellido_p,
+        }),
         proveedor_foto: toPublicUrl(item.proveedor_foto ?? item.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor_comuna ?? item.comuna ?? '',
         destacado: item.destacado ?? false,
@@ -161,7 +184,14 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria?.icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        proveedor_nombre: `${item.proveedor?.nombre ?? ''} ${item.proveedor?.apellido_p ?? ''}`.trim(),
+        // Sprint pii-nombre-publico (2026-11-17): aplicar helper displayName
+        // sobre los campos del join (incluye nombre_publico si el caller lo
+        // seleccionó en el query).
+        proveedor_nombre: displayNameOf({
+            nombre_publico: item.proveedor?.nombre_publico,
+            nombre: item.proveedor?.nombre,
+            apellido_p: item.proveedor?.apellido_p,
+        }),
         proveedor_foto: toPublicUrl(item.proveedor?.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor?.comuna ?? '',
         destacado: item.destacado ?? false,

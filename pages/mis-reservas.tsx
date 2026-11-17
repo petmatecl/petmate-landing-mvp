@@ -24,6 +24,7 @@ import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntua
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../lib/formatDireccion';
 import { estadoDerivado } from '../lib/estadoDerivado';
+import { displayName as displayNameOf } from '../lib/displayName';
 import { puedeCancelarPorVentana } from '../lib/puedeCancelarPorVentana';
 import { getProxyImageUrl } from '../lib/utils';
 import type { AgendamientoConRelaciones, EstadoAgendamiento } from '../lib/types/agendamiento';
@@ -126,7 +127,7 @@ export default function MisSolicitudesPage() {
         // por mostrar_* ya aplicado a nivel BD en la vista).
         const provMap = await fetchProveedoresPublicosByIds(
             (data || []).map((a: any) => a.proveedor_id),
-            'id,nombre,apellido_p,foto_perfil,telefono,whatsapp,mostrar_telefono,mostrar_whatsapp',
+            'id,nombre_publico,nombre,apellido_p,foto_perfil,telefono,whatsapp,mostrar_telefono,mostrar_whatsapp',
         );
         const hydrated = (data || []).map((a: any) => ({
             ...a,
@@ -817,9 +818,7 @@ function SolicitudCard({
         }
     })();
 
-    const proveedorNombre = proveedor
-        ? `${proveedor.nombre || ''} ${proveedor.apellido_p || ''}`.trim() || 'Proveedor'
-        : 'Proveedor';
+    const proveedorNombre = displayNameOf(proveedor);
 
     // Datos de contacto del proveedor — solo se muestran si confirmada AND
     // el proveedor opto por exponerlos publicamente. Mismo gating que la

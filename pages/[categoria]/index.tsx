@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
+import { enrichServiceResultsWithDisplayName } from '../../lib/enrichProveedorNombre';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
 import { MapPinIcon } from '@heroicons/react/24/outline';
@@ -200,10 +201,17 @@ export const getStaticProps: GetStaticProps = async ({ params }) => {
     // futuros fields nuevos como el `tiene_agenda_activa` del PR1) por
     // el mapper canónico `mapRpcToServiceResult`. Badge "Reserva online"
     // ahora consistente en /[categoria]/, /[categoria]/[comuna] y /explorar.
+    // Sprint pii-nombre-publico (2026-11-17) — enrich con displayName()
+    // desde proveedores_publicos (campos separados). El RPC emite
+    // `proveedor_nombre` pre-armado "nombre apellido_p" para proveedores
+    // sin nombre_publico. SSG regenera cada 3600s → este fetch extra
+    // ocurre solo en rebuild.
+    const mappedServices = (services || []).map(mapRpcToServiceResult);
+    const enrichedServices = await enrichServiceResultsWithDisplayName(mappedServices, supabase);
     return {
         props: {
             categoria: catData,
-            services: (services || []).map(mapRpcToServiceResult),
+            services: enrichedServices,
         },
         revalidate: 3600, // Revalidar cada hora
     };
