@@ -27,26 +27,34 @@
 // 404, o render genérico vacío. La assertion positiva garantiza que el
 // método mide el sistema correcto.
 //
-// Datos de prueba (prod, verificados 2026-11-17 via supabase-prod-ro):
-//   - Proveedor `89fffc6a-21c3-44b8-93a0-3a754fff9eb6` (Damián Morel,
-//     cat veterinario, nombre_publico NULL, 4 servicios activos).
-//   - Servicio `7134e58a-8067-468b-b1d9-633f7bbc6ef8` (del anterior).
-// Si estos registros desaparecen o cambian de estado, el spec rompe
-// loud — hay que actualizar los UUIDs + nombres o marcar skip con
-// justificación en el commit.
+// Iter 6 (2026-11-17): UUIDs resueltos DINÁMICAMENTE en beforeAll vía la
+// REST API de Supabase (anon). Antes estaban hardcodeados a prod
+// (`Damián Morel`), pero el preview Vercel del PR apunta a Supabase
+// STAGING por defecto — los UUIDs de prod no existen en staging →
+// getServerSideProps devuelve notFound → spec fallaba falsamente. El
+// beforeAll consulta `proveedores_publicos` filtrando por
+// `nombre_publico IS NULL + apellido_p NOT NULL + nombre NOT NULL`
+// y toma el primer proveedor + servicio activo. Si el entorno no tiene
+// ningún proveedor así, los tests se skipean con mensaje explícito.
 // ---------------------------------------------------------------------------
 import { test, expect, type Page } from '@playwright/test';
 
-const PROVEEDOR_UUID = '89fffc6a-21c3-44b8-93a0-3a754fff9eb6';
-const SERVICIO_UUID = '7134e58a-8067-468b-b1d9-633f7bbc6ef8';
-const NOMBRE_PILA = 'Damián';
-const APELLIDO_LEGAL = 'Morel';
-const INICIAL_APELLIDO = 'M.';
+interface SmokeTargets {
+    proveedorUuid: string;
+    servicioUuid: string;
+    nombrePila: string;
+    apellidoLegal: string;
+    inicialApellido: string;
+    categoriaSlug: string;
+}
 
-// Otro proveedor conocido sin nombre_publico (chequeo de amplitud: no
-// es sesgo a un solo perfil). Solo verificamos que su apellido NO aparece
-// en el catálogo público (no necesitamos su UUID individual).
-const APELLIDO_LEGAL_2 = 'Velasquez';
+let targets: SmokeTargets | null = null;
+
+// APELLIDO_LEGAL_2 opcional — chequeo de amplitud: segundo proveedor
+// sin nombre_publico, solo verifica que su apellido NO aparece en
+// catálogo (no necesita UUID individual). Si el entorno tiene solo 1
+// proveedor sin nombre_publico, salteamos el chequeo de amplitud.
+let apellidoLegal2: string | null = null;
 
 function withBypass(pathname: string): string {
     const bypass = process.env.PLAYWRIGHT_BYPASS ?? '';
@@ -77,87 +85,157 @@ async function getFullHtml(page: Page, url: string): Promise<string> {
 
 test.describe('pii-nombre-publico — superficies públicas', () => {
 
+    test.beforeAll(async ({ request }) => {
+        // Resolver dinámicamente: proveedor sin nombre_publico + 1 servicio
+        // activo. Funciona contra cualquier entorno (prod / staging / dev).
+        const supaUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.E2E_SUPABASE_URL;
+        const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.E2E_SUPABASE_ANON_KEY;
+        if (!supaUrl || !anonKey) {
+            test.skip(true, '[pii-nombre-publico] Sin NEXT_PUBLIC_SUPABASE_URL o ANON_KEY, se skipea el spec.');
+            return;
+        }
+        const headers = { apikey: anonKey, Authorization: `Bearer ${anonKey}` };
+
+        // Buscar 2 proveedores (uno principal + uno amplitud) sin
+        // nombre_publico, con nombre + apellido_p ≥ 3 chars (apellido
+        // trivial-free), estado=aprobado, orden por created_at desc para
+        // tomar los más recientes = probable más estables.
+        const provResp = await request.get(
+            `${supaUrl}/rest/v1/proveedores_publicos` +
+            `?select=id,nombre,apellido_p,nombre_publico` +
+            `&nombre_publico=is.null` +
+            `&apellido_p=not.is.null` +
+            `&nombre=not.is.null` +
+            `&order=created_at.desc&limit=5`,
+            { headers },
+        );
+        if (!provResp.ok()) {
+            test.skip(true, `[pii-nombre-publico] fetch proveedores_publicos fail (${provResp.status()}) — skip spec.`);
+            return;
+        }
+        const provs = (await provResp.json()) as Array<{ id: string; nombre: string; apellido_p: string }>;
+        const valid = provs.filter(p => (p.apellido_p || '').trim().length >= 3 && (p.nombre || '').trim().length >= 2);
+        if (valid.length === 0) {
+            test.skip(true, '[pii-nombre-publico] No hay proveedores con nombre+apellido sin nombre_publico en este entorno — skip.');
+            return;
+        }
+
+        // Para cada proveedor candidato, buscar 1 servicio activo y
+        // elegir el primero que matchee.
+        for (const p of valid) {
+            const svcResp = await request.get(
+                `${supaUrl}/rest/v1/servicios_publicados` +
+                `?select=id,categoria_id,categorias_servicio(slug)` +
+                `&proveedor_id=eq.${p.id}&activo=eq.true&limit=1`,
+                { headers },
+            );
+            if (!svcResp.ok()) continue;
+            const svcs = (await svcResp.json()) as Array<{ id: string; categorias_servicio?: { slug: string } }>;
+            if (svcs.length === 0) continue;
+            const svc = svcs[0];
+            const nombrePila = p.nombre.trim().split(/\s+/)[0];
+            targets = {
+                proveedorUuid: p.id,
+                servicioUuid: svc.id,
+                nombrePila,
+                apellidoLegal: p.apellido_p.trim(),
+                inicialApellido: p.apellido_p.trim().charAt(0).toUpperCase() + '.',
+                categoriaSlug: svc.categorias_servicio?.slug ?? 'cuidado',
+            };
+            break;
+        }
+
+        if (!targets) {
+            test.skip(true, '[pii-nombre-publico] Ningún proveedor sin nombre_publico tiene servicio activo — skip.');
+            return;
+        }
+
+        // Amplitud: segundo apellido conocido (del segundo candidato).
+        const secondary = valid.find(p => p.id !== targets!.proveedorUuid);
+        apellidoLegal2 = secondary?.apellido_p.trim() ?? null;
+
+        // Log del target elegido — queda en el log del CI para auditar
+        // sobre qué proveedor se verificó. Cero log del nombre completo
+        // en producción del spec (solo durante ejecución del CI).
+        // eslint-disable-next-line no-console
+        console.log(`[pii-nombre-publico] target: ${targets.nombrePila} ${targets.inicialApellido} ` +
+            `(prov=${targets.proveedorUuid.slice(0, 8)}… svc=${targets.servicioUuid.slice(0, 8)}… cat=${targets.categoriaSlug})` +
+            (apellidoLegal2 ? ` + amplitud "${apellidoLegal2.charAt(0)}…"` : ''));
+    });
+
     test('[PII-01] /servicio/[id] — ficha oculta apellido legal y muestra "Nombre I."', async ({ page }) => {
-        const html = await getFullHtml(page, `/servicio/${SERVICIO_UUID}`);
+        if (!targets) test.skip(true, 'targets no resueltos');
+        const t = targets!;
+        const html = await getFullHtml(page, `/servicio/${t.servicioUuid}`);
 
-        // Negativa: el apellido legal del proveedor NO debe aparecer en el
-        // HTML renderizado — ni en <title>, ni en meta description, ni en
-        // og:*, ni en ld+json provider.name, ni en botón "Reservar con X",
-        // ni en aria-labels de chat/WhatsApp.
         expect(
             html,
-            `Apellido legal "${APELLIDO_LEGAL}" visible en /servicio/${SERVICIO_UUID} (title/meta/og/ld+json/aria).`,
-        ).not.toContain(APELLIDO_LEGAL);
+            `Apellido legal "${t.apellidoLegal}" visible en /servicio/${t.servicioUuid} (title/meta/og/ld+json/aria).`,
+        ).not.toContain(t.apellidoLegal);
 
-        // Positiva: el fix debería emitir "Damián M." (o "Damián" si no
-        // encuentra apellido). Debe aparecer al menos una vez.
         expect(
             html,
-            `No se encontró ni "${NOMBRE_PILA} ${INICIAL_APELLIDO}" ni "${NOMBRE_PILA}" en /servicio/${SERVICIO_UUID}. ` +
-            `El fix puede estar rinderando fallback genérico "Proveedor".`,
-        ).toMatch(new RegExp(`${NOMBRE_PILA}(\\s+${INICIAL_APELLIDO}|\\s|\\b)`));
+            `No se encontró "${t.nombrePila}" en /servicio/${t.servicioUuid}. El fix puede estar rinderando fallback genérico "Proveedor".`,
+        ).toContain(t.nombrePila);
     });
 
     test('[PII-02] /proveedor/[id] — perfil oculta apellido legal y muestra "Nombre I."', async ({ page }) => {
-        const html = await getFullHtml(page, `/proveedor/${PROVEEDOR_UUID}`);
+        if (!targets) test.skip(true, 'targets no resueltos');
+        const t = targets!;
+        const html = await getFullHtml(page, `/proveedor/${t.proveedorUuid}`);
 
         expect(
             html,
-            `Apellido legal "${APELLIDO_LEGAL}" visible en /proveedor/${PROVEEDOR_UUID} (title/meta/h1/alt).`,
-        ).not.toContain(APELLIDO_LEGAL);
+            `Apellido legal "${t.apellidoLegal}" visible en /proveedor/${t.proveedorUuid} (title/meta/h1/alt).`,
+        ).not.toContain(t.apellidoLegal);
 
         expect(
             html,
-            `No se encontró "${NOMBRE_PILA}" en /proveedor/${PROVEEDOR_UUID}. Posible fallback "Proveedor".`,
-        ).toContain(NOMBRE_PILA);
+            `No se encontró "${t.nombrePila}" en /proveedor/${t.proveedorUuid}. Posible fallback "Proveedor".`,
+        ).toContain(t.nombrePila);
     });
 
     test('[PII-03] /explorar — cards del catálogo no exponen apellido legal', async ({ page }) => {
-        // Filtro por categoría donde está el proveedor conocido (veterinario).
-        const html = await getFullHtml(page, `/explorar?categoria=veterinario`);
+        if (!targets) test.skip(true, 'targets no resueltos');
+        const t = targets!;
+        const html = await getFullHtml(page, `/explorar?categoria=${t.categoriaSlug}`);
 
         expect(
             html,
-            `Apellido legal "${APELLIDO_LEGAL}" visible en card de /explorar — enrich no corrió o falló.`,
-        ).not.toContain(APELLIDO_LEGAL);
+            `Apellido legal "${t.apellidoLegal}" visible en card de /explorar?categoria=${t.categoriaSlug} — enrich no corrió o falló.`,
+        ).not.toContain(t.apellidoLegal);
 
-        // Chequeo adicional: otro apellido conocido, amplitud P8.
+        if (apellidoLegal2) {
+            expect(
+                html,
+                `Apellido legal "${apellidoLegal2}" visible en /explorar — bug sistémico.`,
+            ).not.toContain(apellidoLegal2);
+        }
+
         expect(
             html,
-            `Apellido legal "${APELLIDO_LEGAL_2}" visible en /explorar — bug sistémico.`,
-        ).not.toContain(APELLIDO_LEGAL_2);
-
-        // Positiva: con el filtro 'veterinario' debe haber al menos 1 card
-        // del proveedor conocido → su "Damián" o nombre_publico aparece.
-        // Si aparece el texto "Proveedor" en MÚLTIPLES cards sería síntoma
-        // de fallback genérico — difícil medir sin romper el placeholder
-        // natural ("Publica tu servicio"). Verificamos que NOMBRE_PILA
-        // aparece al menos una vez en el HTML del catálogo.
-        expect(
-            html,
-            `No se encontró "${NOMBRE_PILA}" en /explorar?categoria=veterinario — el proveedor smoke no aparece o se renderiza como "Proveedor".`,
-        ).toContain(NOMBRE_PILA);
+            `No se encontró "${t.nombrePila}" en /explorar?categoria=${t.categoriaSlug} — el proveedor no aparece o se renderiza como "Proveedor".`,
+        ).toContain(t.nombrePila);
     });
 
     test('[PII-04] / (home) — cards de franjas no exponen apellido legal', async ({ page }) => {
+        if (!targets) test.skip(true, 'targets no resueltos');
+        const t = targets!;
         const html = await getFullHtml(page, `/`);
 
         expect(
             html,
-            `Apellido legal "${APELLIDO_LEGAL}" visible en cards del home (franjas) — join + mapJoin no aplicó displayName.`,
-        ).not.toContain(APELLIDO_LEGAL);
+            `Apellido legal "${t.apellidoLegal}" visible en cards del home (franjas) — join + mapJoin no aplicó displayName.`,
+        ).not.toContain(t.apellidoLegal);
 
-        expect(
-            html,
-            `Apellido legal "${APELLIDO_LEGAL_2}" visible en cards del home — bug sistémico.`,
-        ).not.toContain(APELLIDO_LEGAL_2);
-
-        // Positiva: el home puede no tener a Damián en franjas según
-        // scoring, entonces esta assertion es más laxa — solo verifica
-        // que NO quedan TODAS las cards con fallback "Proveedor" visible.
-        // Difícil de capturar sin false positives (hay copy legítimo
-        // "Publica tu servicio como proveedor" en la hero). Fail loud
-        // solo sobre la negativa; la verificación positiva del home
-        // queda cubierta por PII-03 de /explorar (misma fuente de cards).
+        if (apellidoLegal2) {
+            expect(
+                html,
+                `Apellido legal "${apellidoLegal2}" visible en cards del home — bug sistémico.`,
+            ).not.toContain(apellidoLegal2);
+        }
+        // Positiva: el home puede no tener al proveedor en franjas según
+        // scoring. La verificación positiva del home queda cubierta por
+        // PII-03 de /explorar (misma fuente de cards).
     });
 });
