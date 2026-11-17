@@ -946,8 +946,19 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         const visitasTotalProveedor = (rawServices || [])
             .reduce((acc: number, s: any) => acc + (s.visitas_total ?? 0), 0);
 
+        // Sprint PII-SSR-STRIP (2026-11-18) — resolver displayName server-side
+        // y strip del `nombre` + `apellido_p` crudos antes de serializar
+        // a `__NEXT_DATA__`. Ver pages/servicio/[id].tsx para el patrón
+        // canónico y la justificación. `auth_user_id` se mantiene (opción A).
+        const proveedorSanitizado = {
+            ...proveedor,
+            nombre_publico: displayNameOf(proveedor),
+            nombre: null,
+            apellido_p: null,
+        };
+
         return {
-            props: { proveedor, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas, visitasTotalProveedor }
+            props: { proveedor: proveedorSanitizado, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas, visitasTotalProveedor }
         };
 
     } catch (e) {

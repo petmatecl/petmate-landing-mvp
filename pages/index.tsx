@@ -807,6 +807,13 @@ export async function getStaticProps() {
         ...s,
         proveedor: provMap.get(s.proveedor_id) ?? null,
       }));
+      // Sprint PII-SSR-STRIP (2026-11-18): `mapJoinToServiceResult`
+      // descarta `nombre`/`apellido_p` crudos del join — ServiceResult
+      // solo persiste `proveedor_nombre` (string) resuelto por displayName.
+      // El `merged` intermedio con PII cruda vive solo en memoria del
+      // server; nunca llega a props. Si futuros spreads del mapper
+      // propaguen el raw, el spec P8 superficies-publicas.spec.ts rompe
+      // loud antes del merge (verifica apellido real en __NEXT_DATA__).
       const mapped = merged.map(mapJoinToServiceResult);
       featuredServices = [
         ...mapped.filter(s => s.fotos && s.fotos.length > 0),

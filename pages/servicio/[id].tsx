@@ -5,6 +5,7 @@ import { mapRpcToServiceResult } from '../../lib/serviceMapper';
 import { enrichServiceResultsWithDisplayName } from '../../lib/enrichProveedorNombre';
 import { logSupabaseError } from '../../lib/logSupabaseError';
 import { fetchProveedoresPublicosByIds } from '../../lib/supabase/queries/proveedoresPublicos';
+import { displayName } from '../../lib/displayName';
 import { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServiceDetailView from '../../components/Servicio/ServiceDetailView';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
@@ -97,9 +98,26 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             console.info(`[servicio/${id}] proveedor no aprobado → 404`);
             return { notFound: true };
         }
+        // Sprint PII-SSR-STRIP (2026-11-18) — resolver displayName server-side
+        // y strip del `nombre` + `apellido_p` crudos antes de serializar
+        // a `__NEXT_DATA__`. El `nombre_publico` final queda con el string
+        // resuelto por `displayName()` ("Nombre I." o nombre_publico original
+        // si existía). Consumers que llaman `displayName(proveedor)` en
+        // cliente siguen obteniendo el mismo resultado porque leen
+        // `nombre_publico` como primera rama del helper.
+        // `auth_user_id` se MANTIENE (decisión PO 2026-11-18 opción A):
+        // ownership check, Contactar (crear conversación), PreguntasSection
+        // y useTrackVisit lo consumen client-side.
+        const nombrePublicoResuelto = displayName(proveedorHidratado);
+        const proveedorSanitizado = {
+            ...proveedorHidratado,
+            nombre_publico: nombrePublicoResuelto,
+            nombre: null,
+            apellido_p: null,
+        };
         // Preservar el shape original: service.proveedores (key plural como
         // estaba en el embed) — el render usa props.service.proveedores.X.
-        (service as any).proveedores = proveedorHidratado;
+        (service as any).proveedores = proveedorSanitizado;
 
         // Fetch Reviews de este servicio (para el hero + Zona C).
         const { data: reviews, error: reviewsError } = await supabase
