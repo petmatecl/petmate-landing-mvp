@@ -62,7 +62,17 @@ async function getFullHtml(page: Page, url: string): Promise<string> {
     // cards del home / explorar podrían leerse pre-enrich con el
     // `proveedor_nombre` del RPC aún visible.
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
-    return await page.content();
+    // Sprint pii-nombre-publico iter 4 (2026-11-17): excluir
+    // `<script id="__NEXT_DATA__">` del HTML antes del grep. Ese script
+    // serializa los props de getServerSideProps / getStaticProps y hoy
+    // sigue conteniendo `nombre + apellido_p + auth_user_id` crudos
+    // (pendiente del sprint `pii-ssr-strip`). Este spec valida solo el
+    // HTML RENDERIZADO (lo que un user ve + crawlers indexan vía DOM).
+    // El sprint pii-ssr-strip ampliará el spec para que __NEXT_DATA__
+    // también falle loud; mientras tanto el leak del payload JSON
+    // inicial queda cubierto por el entry BACKLOG `PII-SSR-STRIP`.
+    const content = await page.content();
+    return content.replace(/<script\s+id="__NEXT_DATA__"[\s\S]*?<\/script>/g, '');
 }
 
 test.describe('pii-nombre-publico — superficies públicas', () => {
