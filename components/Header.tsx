@@ -9,6 +9,7 @@ import NotificationBell from "./Shared/NotificationBell";
 import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
 import { ChevronDown, LogOut } from "lucide-react";
+import { useUnreadMessagesCount } from "../lib/hooks/useUnreadMessagesCount";
 
 export default function Header() {
 
@@ -61,6 +62,26 @@ export default function Header() {
   // REPORTE_UX_WALKTHROUGH_1.md UX-6 ("AS Admin" mostraba a Aldo con
   // apariencia de que "Admin" era el nombre).
   const isAdmin = Array.isArray(profile?.roles) && profile.roles.includes('admin');
+
+  // Sprint NAV-MENSAJES (2026-11-18) — entrada única "Mensajes" al tope
+  // del dropdown + mobile menu. Reglas:
+  //   - Tutor o proveedor: siempre se muestra (acceso natural al chat
+  //     desde cualquier página, previo a esto el único acceso era via
+  //     bell/email).
+  //   - Admin puro (sin tutor ni proveedor): se muestra SOLO si tiene
+  //     mensajes no leídos reales. Pedido PO 2026-11-17: "Admin sin
+  //     cambios, salvo que ya tenga mensajes".
+  //   - Sin sesión: cero query, cero subscribe (hook retorna count=0).
+  //
+  // El hook se invoca una sola vez en Header (único mount en _app.tsx);
+  // desktop dropdown y mobile menu consumen el mismo count — cero
+  // duplicación de Realtime channel. Ver lib/hooks/useUnreadMessagesCount.ts.
+  const { count: unreadMessagesCount } = useUnreadMessagesCount(user?.id);
+  const showMessages = hasSeekerProfile || isProveedor || unreadMessagesCount > 0;
+  const messagesNav = showMessages
+    ? [{ href: '/mensajes', label: 'Mensajes' }]
+    : [];
+
   const providerNav = isProveedor
     ? [{ href: '/proveedor', label: 'Panel de proveedor' }]
     : [];
@@ -74,7 +95,7 @@ export default function Header() {
   const adminNav = isAdmin
     ? [{ href: '/admin', label: 'Panel de administración' }]
     : [];
-  const personalNav = [...providerNav, ...tutorNav, ...adminNav];
+  const personalNav = [...messagesNav, ...providerNav, ...tutorNav, ...adminNav];
   const personalActive = personalNav.some(item => isRouteActive(item.href));
 
   // Sprint E-3 UX-6 — rol activo derivado del pathname. Prioridad:
@@ -258,6 +279,39 @@ export default function Header() {
                     aria-label="Menu personal"
                     className="absolute right-0 top-full mt-2 w-56 rounded-xl border border-slate-200 bg-white p-1 shadow-lg z-50"
                   >
+                    {/* Sprint NAV-MENSAJES — entrada única al tope. Badge
+                        a la derecha con count de no leídos; con 0 cero
+                        badge visible. Separador si hay otra sección
+                        personal (provider/tutor/admin) debajo. */}
+                    {messagesNav.map(item => {
+                      const active = isRouteActive(item.href);
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          onClick={() => setAvatarOpen(false)}
+                          className={`flex items-center justify-between w-full rounded-lg px-3 py-2 text-sm transition-colors ${
+                            active
+                              ? 'bg-accent-600 text-white font-semibold'
+                              : 'text-slate-700 hover:bg-slate-50'
+                          }`}
+                          data-testid="nav-mensajes-entry"
+                        >
+                          <span>{item.label}</span>
+                          {unreadMessagesCount > 0 && (
+                            <span
+                              className="bg-danger-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full min-w-[20px] h-5 px-1"
+                              data-testid="nav-mensajes-badge"
+                            >
+                              {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                            </span>
+                          )}
+                        </Link>
+                      );
+                    })}
+                    {messagesNav.length > 0 && (providerNav.length > 0 || tutorNav.length > 0 || adminNav.length > 0) && (
+                      <div className="my-1 border-t border-slate-100" />
+                    )}
                     {providerNav.map(item => {
                       const active = isRouteActive(item.href);
                       return (
@@ -459,10 +513,40 @@ export default function Header() {
                 </Link>
 
                 {/* Personal — mismo orden que el dropdown desktop.
-                    Panel de proveedor primero, separador si aplica, luego
-                    tutor nav. Sin roles personales -> nada aca (solo se ve
-                    el separador previo con Cerrar sesion). */}
+                    Mensajes primero (sprint NAV-MENSAJES), separador si
+                    hay otras secciones, luego proveedor, tutor y admin.
+                    Sin roles personales -> nada aca (solo se ve el
+                    separador previo con Cerrar sesion). */}
                 {personalNav.length > 0 && <div className="my-2 border-t border-slate-100" />}
+                {messagesNav.map(item => {
+                  const active = isRouteActive(item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className={`inline-flex items-center justify-between rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                        active
+                          ? 'bg-accent-600 text-white font-semibold'
+                          : 'text-slate-500 font-normal hover:text-accent-600'
+                      }`}
+                      data-testid="nav-mensajes-entry-mobile"
+                    >
+                      <span>{item.label}</span>
+                      {unreadMessagesCount > 0 && (
+                        <span
+                          className="bg-danger-500 text-white text-[10px] font-semibold flex items-center justify-center rounded-full min-w-[20px] h-5 px-1 ml-2"
+                          data-testid="nav-mensajes-badge-mobile"
+                        >
+                          {unreadMessagesCount > 9 ? '9+' : unreadMessagesCount}
+                        </span>
+                      )}
+                    </Link>
+                  );
+                })}
+                {messagesNav.length > 0 && (providerNav.length > 0 || tutorNav.length > 0 || adminNav.length > 0) && (
+                  <div className="my-2 border-t border-slate-100" />
+                )}
                 {providerNav.map(item => {
                   const active = isRouteActive(item.href);
                   return (

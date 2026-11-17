@@ -327,6 +327,20 @@ export default defineConfig({
             testMatch: /specs[\\/]pii-nombre-publico[\\/].*\.spec\.ts$/,
         },
         {
+            // Sprint NAV-MENSAJES (2026-11-18) — spec P8 del acceso a
+            // /mensajes desde el desplegable del header (desktop + mobile).
+            // storageState overrideado por test.use dentro del spec: T1
+            // anónimo, T2 tutor, T3-T5 proveedor. Depende de ambos setups
+            // para que las 2 storage states existan cuando los tests corran.
+            name: 'nav-mensajes',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'e2e/.auth/proveedor.json',
+            },
+            dependencies: ['setup', 'setup-tutor'],
+            testMatch: /specs[\\/]nav-mensajes[\\/].*\.spec\.ts$/,
+        },
+        {
             // Sprint bloque-i I-1 (2026-09-17) — spec canario del CI.
             // Cero dependencies (no setup, no auth, no navegación). El spec
             // solo throwea con `expect(false).toBe(true)`. El workflow
