@@ -99,7 +99,7 @@ test.describe('NAV-MENSAJES — proveedor logueado (cuenta Aldo = rol dual)', ()
             test.skip(true, '[nav-mensajes T5] Sin E2E_STAGING_PROVEEDOR_AUTH_ID — skip.');
             return;
         }
-        const admin = getSupabaseAdmin();
+        const admin = await getSupabaseAdmin();
 
         // Buscar una conv donde el proveedor sea participante (sitter_id o
         // client_id). Si no hay ninguna, crear una efímera.
