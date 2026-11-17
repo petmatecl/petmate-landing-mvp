@@ -13,6 +13,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { displayName as displayNameOf } from '../../lib/displayName';
 import { ShieldCheck, CheckCircle, Star, Briefcase } from 'lucide-react';
 import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 
@@ -48,7 +49,7 @@ export default function ProveedorResumenCard({
     globalTotalEvaluaciones,
     globalRatingUnavailable = false,
 }: ProveedorResumenCardProps) {
-    const nombreVisible = proveedor.nombre_publico || `${proveedor.nombre || ''} ${proveedor.apellido_p || ''}`.trim() || 'Proveedor';
+    const nombreVisible = displayNameOf(proveedor);
     const bioTrunc = proveedor.bio ? truncarBio(proveedor.bio, 150) : null;
     const aniosExp = proveedor.anios_experiencia && parseInt(proveedor.anios_experiencia) > 0
         ? parseInt(proveedor.anios_experiencia)

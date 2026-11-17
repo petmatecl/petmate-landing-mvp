@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabaseClient';
 import { ShieldCheck, Star, Briefcase, Award, Globe, Instagram, Clock, Camera, ChevronLeft, User, MapPin, Cake, BadgeCheck, Sparkles, X, Eye, Facebook, Youtube, Languages, Calendar, CheckCircle, Circle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { getComunaCoords } from '../../lib/comunas';
+import { displayName as displayNameOf } from '../../lib/displayName';
 
 // LocationMap usa Leaflet — debe cargar dinamico sin SSR para no romper
 // getServerSideProps. Loader minimo en gris siguiendo el resto de la ficha.
@@ -119,7 +120,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     const esPersonaNatural = !proveedor.tipo_entidad || proveedor.tipo_entidad === 'persona_natural';
     const tieneInfoPersonal = esPersonaNatural && (edad || proveedor.genero || proveedor.ocupacion || proveedor.anios_experiencia);
     const tieneGaleria = proveedor.galeria && proveedor.galeria.length > 0;
-    const displayName = proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`;
+    const displayName = displayNameOf(proveedor);
     const title = `${displayName} — ${proveedor.comuna} | Pawnecta`;
     const desc = `Conoce a ${displayName}, proveedor de servicios para mascotas en ${proveedor.comuna}. Revisa sus servicios, tarifas y evaluaciones en Pawnecta.`;
 
@@ -308,7 +309,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.foto_perfil ? (
                                 <Image
                                     src={proveedor.foto_perfil}
-                                    alt={proveedor.nombre}
+                                    alt={displayName}
                                     width={112}
                                     height={112}
                                     sizes="112px"
@@ -318,7 +319,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 />
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center bg-accent-50 text-accent-700 font-semibold text-4xl">
-                                    {proveedor.nombre.charAt(0)}
+                                    {displayName.charAt(0)}
                                 </div>
                             )}
                         </div>
@@ -917,7 +918,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                     categoria_slug: cat.slug,
                     categoria_icono: cat.icono,
                     proveedor_id: proveedor.id,
-                    proveedor_nombre: proveedor.nombre_publico || `${proveedor.nombre} ${proveedor.apellido_p}`,
+                    proveedor_nombre: displayNameOf(proveedor),
                     proveedor_foto: proveedor.foto_perfil,
                     proveedor_comuna: proveedor.comuna,
                     destacado: !!rs.destacado,

@@ -18,27 +18,24 @@ interface ReviewFormProps {
 //   'María'                    → 'María'
 //   ''                         → 'Usuario'
 // Fallback a proveedor cuando el user es solo proveedor (sin fila en
-// usuarios_buscadores). Preferimos `nombre_publico` si el proveedor lo tiene
-// seteado (mismo display que usa la ficha publica del proveedor); si no,
-// componemos con nombre + apellido_p.
+// usuarios_buscadores). Sprint pii-nombre-publico (2026-11-17): lógica
+// unificada con `lib/displayName.ts` (mismo formato "Nombre I." que usa
+// resolveSenderName y el resto de superficie pública).
+import { displayName as displayNameOf } from '../../lib/displayName';
 function formatearNombrePublico(
     buscador: { nombre: string | null } | null,
     proveedor: { nombre: string | null; apellido_p: string | null; nombre_publico: string | null } | null
 ): string {
-    const format = (full: string): string => {
-        const tokens = full.trim().split(/\s+/).filter(Boolean);
-        if (tokens.length === 0) return 'Usuario';
-        if (tokens.length === 1) return tokens[0];
-        return `${tokens[0]} ${tokens[1][0].toUpperCase()}.`;
-    };
-
-    if (buscador?.nombre && buscador.nombre.trim()) return format(buscador.nombre);
-    if (proveedor?.nombre_publico && proveedor.nombre_publico.trim()) return proveedor.nombre_publico;
-    if (proveedor?.nombre && proveedor.apellido_p) {
-        return `${proveedor.nombre.trim()} ${proveedor.apellido_p.trim()[0].toUpperCase()}.`;
+    // Precedencia 1: usuarios_buscadores — su campo `nombre` concatena
+    // nombres+apellidos como texto libre. Aplicamos el helper para
+    // formatear "Nombre I.".
+    if (buscador?.nombre && buscador.nombre.trim()) {
+        return displayNameOf({ nombre: buscador.nombre, apellido_p: null });
     }
-    if (proveedor?.nombre && proveedor.nombre.trim()) return proveedor.nombre.trim();
-    return 'Usuario';
+    // Precedencia 2: proveedor — displayName elige nombre_publico si existe,
+    // compone "Nombre I." si no. Fallback 'Proveedor'.
+    const resolved = displayNameOf(proveedor);
+    return resolved === 'Proveedor' ? 'Usuario' : resolved;
 }
 
 export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, onSuccess }: ReviewFormProps) {

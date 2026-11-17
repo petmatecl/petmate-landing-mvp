@@ -3,6 +3,7 @@
 
 import { ServiceResult } from '../components/Explore/ServiceCard';
 import { roundCoordsForPublic } from './coordsPrivacy';
+import { displayName as displayNameOf } from './displayName';
 
 /** Slug → human-readable name (mirror of STATIC_CATEGORIES in explorar.tsx) */
 const CAT_NAMES: Record<string, string> = {
@@ -93,7 +94,17 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        proveedor_nombre: item.proveedor_nombre ?? `${item.nombre ?? ''} ${item.apellido_p ?? ''}`.trim(),
+        // Sprint pii-nombre-publico (2026-11-17): nunca emitir nombre legal
+        // en el string público que llega a <ServiceCard>. El RPC
+        // `buscar_servicios` sigue devolviendo nombre/apellido_p hasta que
+        // la Fase 2 (sprint PII-VIEW-TIGHT post-launch) ajuste la vista
+        // `proveedores_publicos` — mientras tanto el mapper aplica el
+        // helper `displayName()` sobre los campos crudos del RPC.
+        proveedor_nombre: displayNameOf({
+            nombre_publico: item.nombre_publico,
+            nombre: item.nombre,
+            apellido_p: item.apellido_p,
+        }),
         proveedor_foto: toPublicUrl(item.proveedor_foto ?? item.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor_comuna ?? item.comuna ?? '',
         destacado: item.destacado ?? false,
@@ -161,7 +172,14 @@ export function mapJoinToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria?.icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        proveedor_nombre: `${item.proveedor?.nombre ?? ''} ${item.proveedor?.apellido_p ?? ''}`.trim(),
+        // Sprint pii-nombre-publico (2026-11-17): aplicar helper displayName
+        // sobre los campos del join (incluye nombre_publico si el caller lo
+        // seleccionó en el query).
+        proveedor_nombre: displayNameOf({
+            nombre_publico: item.proveedor?.nombre_publico,
+            nombre: item.proveedor?.nombre,
+            apellido_p: item.proveedor?.apellido_p,
+        }),
         proveedor_foto: toPublicUrl(item.proveedor?.foto_perfil, 'avatars') ?? '',
         proveedor_comuna: item.proveedor?.comuna ?? '',
         destacado: item.destacado ?? false,

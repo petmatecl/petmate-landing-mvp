@@ -801,7 +801,7 @@ export async function getStaticProps() {
       // tras el sprint RLS junio 2026).
       const provMap = await fetchProveedoresPublicosByIds(
         data.map(s => s.proveedor_id),
-        'id,nombre,apellido_p,foto_perfil,comuna,perfil_completo,es_ejemplo',
+        'id,nombre_publico,nombre,apellido_p,foto_perfil,comuna,perfil_completo,es_ejemplo',
       );
       const merged = data.map(s => ({
         ...s,
