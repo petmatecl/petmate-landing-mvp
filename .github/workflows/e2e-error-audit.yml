@@ -223,13 +223,22 @@ jobs:
       # simultáneo → cascada de latencia que causa el timeout de setup
       # visto en run 1 de PR #21 (waitForURL 60s exceeded en ambos setups).
       - name: Warmup preview endpoints (cold start amortization pre-setup)
+        # Sprint hf-fill-timeout (2026-11-13): agregado check "Pawnecta" en
+        # el body como señal de diagnóstico (warning-only, no bloqueante).
+        # Ver nota en visual-update-snapshots.yml.
         run: |
           BASE="${{ steps.preview.outputs.url }}"
           BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
           echo "=== Warmup preview endpoints (rapido) ==="
           for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
+            TMP=$(mktemp)
+            STATUS=$(curl -s -o "$TMP" -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            if grep -q "Pawnecta" "$TMP" 2>/dev/null; then
+              echo "  ${path} → HTTP ${STATUS} (+app)"
+            else
+              echo "  ${path} → HTTP ${STATUS} (sin app)"
+            fi
+            rm -f "$TMP"
             sleep 0.5
           done
           echo "=== Warmup done (rapido) ==="
@@ -419,20 +428,34 @@ jobs:
       #   - /mis-reservas (query agendamientos, ruta que causó el s3/s7 stall)
       # 3 hits cada uno con 500ms de gap para no saturar cold pool.
       - name: Warmup preview endpoints (cold start amortization)
+        # Sprint hf-fill-timeout (2026-11-13): agregado check "Pawnecta" en
+        # el body como señal de diagnóstico (warning-only, no bloqueante).
+        # Ver nota en visual-update-snapshots.yml.
         run: |
-          URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
           BASE="${{ steps.preview.outputs.url }}"
           BYPASS="?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
           echo "=== Warmup preview endpoints ==="
           for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} → HTTP ${STATUS}"
+            TMP=$(mktemp)
+            STATUS=$(curl -s -o "$TMP" -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            if grep -q "Pawnecta" "$TMP" 2>/dev/null; then
+              echo "  ${path} → HTTP ${STATUS} (+app)"
+            else
+              echo "  ${path} → HTTP ${STATUS} (sin app)"
+            fi
+            rm -f "$TMP"
             sleep 0.5
           done
           # Segundo pass para asegurar que el pool warm queda estable.
           for path in "/" "/explorar" "/proveedor" "/mis-reservas"; do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
-            echo "  ${path} (2nd) → HTTP ${STATUS}"
+            TMP=$(mktemp)
+            STATUS=$(curl -s -o "$TMP" -w "%{http_code}" -L "${BASE}${path}${BYPASS}" || echo "000")
+            if grep -q "Pawnecta" "$TMP" 2>/dev/null; then
+              echo "  ${path} (2nd) → HTTP ${STATUS} (+app)"
+            else
+              echo "  ${path} (2nd) → HTTP ${STATUS} (sin app)"
+            fi
+            rm -f "$TMP"
             sleep 0.5
           done
           echo "=== Warmup done ==="
