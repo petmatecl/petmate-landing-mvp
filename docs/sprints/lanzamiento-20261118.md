@@ -1,15 +1,31 @@
 # Checklist de lanzamiento — miércoles 2026-11-18 (POSTERGADO)
 
-> **ACTUALIZACIÓN PO 2026-11-17 post-deploy #116 (SHA 152f3c4)**: lanzamiento **postergado** por decisión del PO.
-> - **Nueva fecha propuesta**: miércoles **2026-11-25** (a confirmar por PO).
-> - **Freeze pre-launch propuesto**: martes **2026-11-24 16:00 CLT** (a confirmar por PO).
+> **ACTUALIZACIÓN PO 2026-11-17 post-deploy #116 (SHA 152f3c4) — CONFIRMADA 2026-11-17 tarde**: lanzamiento **postergado**.
+> - **Nueva fecha confirmada**: miércoles **2026-11-25**.
+> - **Freeze pre-launch confirmado**: martes **2026-11-24 16:00 CLT**.
+> - **Ventana real desde hoy martes 17 hasta freeze**: **4 días hábiles completos** (mié 18, jue 19, vie 20, lun 23) + fin de semana (sáb 21, dom 22) + medio día martes 24 hasta 16:00 CLT.
 > - **Motivación de la postergación**: ganar ventana para aterrizar `PII-SSR-STRIP + PII-VIEW-TIGHT` (deadline legal 30-11-2026 Ley 21.719) + `NAV-MENSAJES` + `SOLICITUDES-BADGE` + enmiendas de email (`RESEND-FROM-DISPLAYNAME` ya efectivo en prod post #116 vía env var `EMAIL_FROM`, `RESERVA-MAIL-NOMBRE` saludo nombre completo→pila) + ampliar smokes prod sobre superficies no cubiertas el 17-11.
-> - **Fechas originales (referencia histórica)**: lanzamiento 2026-11-18, respaldo 2026-11-25, freeze 2026-11-17 16:00 CLT. Freeze del 17-11 se respetó (merges `fc0616c` #114 + `2d2a658` #115 + `152f3c4` #116 aterrizaron antes del límite propuesto). El código de prod a 2026-11-17 18:36 UTC (SHA `152f3c4`) es **lanzable**; la postergación es para ampliar alcance, no para fix de bloqueantes.
+> - **Fechas originales (referencia histórica)**: lanzamiento 2026-11-18, respaldo 2026-11-25, freeze 2026-11-17 16:00 CLT. Freeze del 17-11 se respetó (merges `fc0616c` #114 + `2d2a658` #115 + `152f3c4` #116 aterrizaron antes del límite). El código de prod a 2026-11-17 18:36 UTC (SHA `152f3c4`) es **lanzable**; la postergación es para ampliar alcance, no para fix de bloqueantes.
 > - **Estado post-#116**: logout cruzado entre perfiles validado por PO en prod (cerrar sesión en perfil A + botón "Cerrar sesión" en perfil B → expulsa al login); `EMAIL_FROM='Pawnecta <hola@pawnecta.com>'` validado empíricamente (correo "Tu reserva está confirmada" llegó con remitente "Pawnecta").
+>
+> ### Plan día a día hacia el 25-11 (confirmado PO 2026-11-17)
+>
+> Un PR a la vez en CI. Nada fuera de esta lista aterriza antes del 25.
+>
+> | Día | Fecha | Entregable | Estado |
+> |---|---|---|---|
+> | Mié | 2026-11-18 | **NAV-MENSAJES** (hook `useUnreadMessagesCount` filter `client_id OR sitter_id` + entrada única al tope del dropdown + badge inline + spec P8 con rol dual + borrado `UnreadBadge` huérfano) | EN CURSO · PR #118 |
+> | Jue | 2026-11-19 | **PII-SSR-STRIP** (strip `nombre`/`apellido_p`/`apellido_m`/`auth_user_id` en gSSP/gSP de 5 páginas + spec P8 ampliada: `__NEXT_DATA__` también falla loud) | pendiente |
+> | Vie | 2026-11-20 | **SOLICITUDES-BADGE (a)** · contador en pestaña Solicitudes del dashboard proveedor + preparación SQL **PII-VIEW-TIGHT** en staging | pendiente |
+> | Sáb | 2026-11-21 | **PII-VIEW-TIGHT en prod** (PO ejecuta): RPC COALESCE + vista `display_name` sin nombre/apellidos. Grep callers autenticados ANTES. Bloques con verificación previa, transacción, verificación posterior y rollback. **Backfill `conversations.proveedor_auth_id`** en misma sesión SQL (del diagnóstico nav-mensajes). | pendiente |
+> | Dom | 2026-11-22 | **SOLICITUDES-BADGE (b)** · aviso en la campana (migration `ref_tipos` + INSERT en `notifications`). **Corte**: si domingo noche no está verde + smoke de reserva completo → queda post-lanzamiento. | pendiente |
+> | Lun | 2026-11-23 | Solo correcciones. En la tarde: smoke completo en prod del PO. | pendiente |
+> | Mar | 2026-11-24 | **Freeze 16:00 CLT**. | pendiente |
+> | Mié | 2026-11-25 | **Lanzamiento**. | pendiente |
 
-**Lanzamiento (original)**: miércoles 2026-11-18. **[POSTERGADO a 2026-11-25]**
-**Respaldo (original)**: miércoles 2026-11-25.
-**Freeze pre-launch (original)**: martes 2026-11-17 16:00 CLT. **[Respetado; nuevo freeze 2026-11-24 16:00 CLT a confirmar]**
+**Lanzamiento**: miércoles **2026-11-25** (confirmado PO 2026-11-17).
+**Respaldo**: queda libre; se evalúa en la semana si se necesita (post-launch inmediato).
+**Freeze pre-launch**: martes **2026-11-24 16:00 CLT** (confirmado PO 2026-11-17).
 **Ejecución**: PO con asistencia del auditor por fase (evidencia P5 pegada acá en el mismo commit que cierra cada fase).
 
 **Regla**: cada ítem se marca `[x]` + bloque `**Ejecución <timestamp CLT>**:` con outputs/SHAs pegados. Sin evidencia la fase no está cerrada (CLAUDE.md P2).
