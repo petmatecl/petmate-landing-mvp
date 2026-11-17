@@ -2,6 +2,7 @@ import { GetServerSideProps } from 'next';
 import { useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
+import { enrichServiceResultsWithDisplayName } from '../../lib/enrichProveedorNombre';
 import { logSupabaseError } from '../../lib/logSupabaseError';
 import { fetchProveedoresPublicosByIds } from '../../lib/supabase/queries/proveedoresPublicos';
 import { ServiceResult } from '../../components/Explore/ServiceCard';
@@ -145,10 +146,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             });
             logSupabaseError('ssr:servicio-id:similares_rpc', similarErr, { categoriaSlug, comuna });
 
-            otrosServicios = (similarRaw || [])
+            const otrosMapped = (similarRaw || [])
                 .filter((s: any) => s.proveedor_id !== proveedorId && s.id !== id)
                 .slice(0, 3)
                 .map(mapRpcToServiceResult);
+            // Sprint pii-nombre-publico (2026-11-17) — enrich con
+            // displayName() sobre nombre_publico/nombre/apellido_p
+            // separados (el RPC emite `proveedor_nombre` pre-armado).
+            otrosServicios = await enrichServiceResultsWithDisplayName(otrosMapped, supabase);
         }
 
         return {

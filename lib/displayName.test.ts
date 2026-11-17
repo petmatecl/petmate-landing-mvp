@@ -72,5 +72,49 @@ test('capitalización de inicial del apellido', () => {
     assert.equal(displayName({ nombre: 'Juan', apellido_p: 'ÁLVAREZ' }), 'Juan Á.');
 });
 
+// Sprint pii-nombre-publico (2026-11-17) — tests de guardia P8 del PO:
+// "Proveedor" solo puede aparecer si NO hay ningún nombre. Con nombre
+// presente, siempre "Nombre I." o solo "Nombre" si no hay apellido.
+
+test('P8 guardia — proveedor con nombre seteado NUNCA devuelve "Proveedor"', () => {
+    // Caso real: 17 proveedores aprobados en prod con nombre="Renata"
+    // apellido_p="Gacitúa" nombre_publico=NULL. Antes del fix del
+    // mapper, el helper recibía input = {} y retornaba "Proveedor" —
+    // el PO detectó el síntoma como NO-GO en el preview de #115.
+    const casos = [
+        { nombre: 'Renata', apellido_p: 'Gacitúa' },
+        { nombre: 'Damián', apellido_p: 'Morel' },
+        { nombre: 'Aranza', apellido_p: 'Velasquez' },
+        { nombre: 'Eduardo', apellido_p: null },
+        { nombre: 'Eduardo', apellido_p: '' },
+        { nombre: 'Juan Pérez' },   // apellido embutido
+        { nombre_publico: 'Peluquería Luna' },
+    ];
+    for (const c of casos) {
+        const out = displayName(c);
+        assert.notEqual(out, 'Proveedor', `displayName(${JSON.stringify(c)}) devolvió "Proveedor" cuando había input`);
+    }
+});
+
+test('P8 guardia — proveedor con nombre NUNCA expone apellido completo', () => {
+    // Un apellido real >1 char nunca debe aparecer entero en el output.
+    const casos = [
+        { nombre: 'Damián', apellido_p: 'Morel' },
+        { nombre: 'Aranza', apellido_p: 'Velasquez' },
+        { nombre: 'Renata', apellido_p: 'Gacitúa' },
+        { nombre: 'Juan Pérez', apellido_p: null },
+    ];
+    for (const c of casos) {
+        const out = displayName(c);
+        const apellidoEmbutido = c.apellido_p ?? c.nombre?.split(/\s+/)[1] ?? null;
+        if (apellidoEmbutido && apellidoEmbutido.length > 1) {
+            assert.ok(
+                !out.includes(apellidoEmbutido),
+                `displayName(${JSON.stringify(c)}) = "${out}" contiene el apellido completo "${apellidoEmbutido}"`
+            );
+        }
+    }
+});
+
 console.log(`\n${pass} passed · ${fail} failed`);
 if (fail > 0) process.exit(1);

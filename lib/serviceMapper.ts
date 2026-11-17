@@ -94,13 +94,25 @@ export function mapRpcToServiceResult(item: any): ServiceResult {
         categoria_slug: slug,
         categoria_icono: item.categoria_icono ?? '',
         proveedor_id: item.proveedor_id ?? '',
-        // Sprint pii-nombre-publico (2026-11-17): nunca emitir nombre legal
-        // en el string público que llega a <ServiceCard>. El RPC
-        // `buscar_servicios` sigue devolviendo nombre/apellido_p hasta que
-        // la Fase 2 (sprint PII-VIEW-TIGHT post-launch) ajuste la vista
-        // `proveedores_publicos` — mientras tanto el mapper aplica el
-        // helper `displayName()` sobre los campos crudos del RPC.
-        proveedor_nombre: displayNameOf({
+        // Sprint pii-nombre-publico (2026-11-17): el RPC `buscar_servicios`
+        // emite `proveedor_nombre` como un string pre-armado via
+        // `COALESCE(p.nombre_publico, p.nombre || ' ' || p.apellido_p)` —
+        // NO expone `nombre`/`apellido_p` por separado. Entonces el mapper
+        // NO puede diferenciar nombre_publico ("Peluquería Luna") de
+        // nombre+apellido legal ("Renata Gacitúa") solo por el string.
+        //
+        // El caller DEBE enriquecer el resultado con
+        // `enrichServiceResultsWithDisplayName` (lib/enrichProveedorNombre.ts)
+        // que hace fetch complementario a `proveedores_publicos` con los
+        // 3 campos separados y aplica `displayName()` server-side-correcto.
+        //
+        // Mientras ese enrich no corra, dejamos `proveedor_nombre` como
+        // string crudo del RPC — es el mejor esfuerzo sin PII cuando el
+        // proveedor tiene nombre_publico (mayoría de los 5/22), y expone
+        // apellido para los 17/22 sin nombre_publico (bug conocido hasta
+        // enrich). Fase 2 post-launch (sprint PII-VIEW-TIGHT) ajusta el
+        // RPC para emitir los 3 campos separados.
+        proveedor_nombre: item.proveedor_nombre ?? displayNameOf({
             nombre_publico: item.nombre_publico,
             nombre: item.nombre,
             apellido_p: item.apellido_p,

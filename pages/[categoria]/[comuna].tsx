@@ -5,6 +5,7 @@ import Button from '../../components/UI/Button';
 import { GetStaticProps, GetStaticPaths } from 'next';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
+import { enrichServiceResultsWithDisplayName } from '../../lib/enrichProveedorNombre';
 import { logSupabaseError } from '../../lib/logSupabaseError';
 import ServiceCard, { ServiceResult } from '../../components/Explore/ServiceCard';
 import ServicePlaceholderCard from '../../components/Explore/ServicePlaceholderCard';
@@ -300,7 +301,9 @@ export const getStaticProps: import('next').GetStaticProps = async ({ params }) 
             // "Reserva online" invisible en esta SEO landing page pese a
             // aparecer en /explorar. Cross-page inconsistency crítica —
             // fix: consumir `mapRpcToServiceResult` canónico.
-            services = (data || []).map(mapRpcToServiceResult);
+            // Sprint pii-nombre-publico (2026-11-17) — enrich con displayName().
+            const mapped = (data || []).map(mapRpcToServiceResult);
+            services = await enrichServiceResultsWithDisplayName(mapped, supabase);
         }
 
         return {
