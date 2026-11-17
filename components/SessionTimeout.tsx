@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/router";
 import * as Sentry from "@sentry/nextjs";
 import { supabase } from "../lib/supabaseClient";
+import { signOutRobusto } from "../lib/signOutRobusto";
 import { isAuthTransitRoute } from "../lib/authTransitRoutes";
 
 /**
@@ -91,10 +92,16 @@ export default function SessionTimeout() {
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
                     console.log("Cerrando sesión por inactividad...");
-                    await supabase.auth.signOut().catch((err) => {
-                        console.error("Error al cerrar sesión (timeout):", err);
-                    });
-                    // Limpiar almacenamiento local
+                    // Sprint hf-logout-403 (2026-11-17) — scope='local': la
+                    // inactividad de UNA tab NO debe revocar sesiones del
+                    // user en otros dispositivos. El botón manual "Cerrar
+                    // sesión" sigue siendo global; acá solo cerramos la
+                    // sesión de esta pestaña/dispositivo. Helper garantiza
+                    // cleanup del localStorage aunque el server devuelva
+                    // 403 (sesión zombi por logout global previo en otra
+                    // tab/dispositivo del mismo user).
+                    await signOutRobusto('local');
+                    // Limpiar marker de inactividad propio del guard
                     localStorage.removeItem(STORAGE_KEY);
                     window.location.href = "/security-logout";
                 } else {

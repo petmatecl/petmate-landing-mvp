@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
+import { signOutRobusto } from '../../lib/signOutRobusto';
 import { getProxyImageUrl } from '../../lib/utils';
 import ImageLightbox from '../ImageLightbox';
 import ModalAlert from '../ModalAlert';
@@ -132,7 +133,11 @@ export default function ClientLayout({ children, userId, title = "Panel Usuario 
     };
 
     const handleLogout = async () => {
-        await supabase.auth.signOut();
+        // Sprint hf-logout-403 (2026-11-17) — scope=global (intención manual
+        // del user al cerrar sesión desde el layout); helper garantiza
+        // cleanup del localStorage `sb-*-auth-token` aun si el server
+        // devuelve 403 session_not_found (sesión zombi).
+        await signOutRobusto('global');
         router.push("/login");
     };
 
