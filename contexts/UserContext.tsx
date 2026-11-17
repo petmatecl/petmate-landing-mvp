@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { runReadQuery } from '../lib/supabaseReadQuery';
+import { signOutRobusto, type SignOutScope } from '../lib/signOutRobusto';
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 
@@ -102,8 +103,8 @@ interface UserContextType {
     activateProviderMode: () => void;
     switchRole: (role: Role) => void;
     refreshProfile: () => Promise<void>;
-    logout: () => Promise<void>;
-    softReset: () => Promise<void>;
+    logout: (opts?: { scope?: SignOutScope }) => Promise<void>;
+    softReset: (opts?: { scope?: SignOutScope }) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -933,7 +934,15 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
     // Lo usa el caller cuando ya tiene un destino propio (ej. safety redirect
     // en /proveedor que va a /login con redirect=...). Logout completo seguia
     // con window.location.href = '/' y comia el destino del caller.
-    const softReset = async () => {
+    //
+    // Sprint hf-logout-403 (2026-11-17): accepta `scope` opcional. El botón
+    // manual mantiene 'global' por default (semántica histórica: cerrar en
+    // todos los dispositivos). SessionTimeout por inactividad llama con
+    // 'local' para que la inactividad de UNA tab no cierre sesiones de
+    // otros dispositivos del user. El helper `signOutRobusto` garantiza
+    // cleanup del localStorage `sb-*-auth-token` aun si el server devuelve
+    // 403 session_not_found (sesión zombi por logout global previo).
+    const softReset = async (opts?: { scope?: SignOutScope }) => {
         // Prende bandera ANTES del signOut para que el handler de SIGNED_OUT
         // lo lea como voluntario y no dispare el redirect a /login?reason=expired.
         isVoluntaryLogoutRef.current = true;
@@ -967,11 +976,13 @@ export function UserContextProvider({ children }: { children: React.ReactNode })
         window.localStorage.removeItem('pm_auth_role_pending');
         window.localStorage.removeItem('pawnecta_pending_role');
 
-        await supabase.auth.signOut();
+        // Sprint hf-logout-403 (2026-11-17) — signOut con scope + cleanup
+        // garantizado del storage local aunque el server devuelva 403.
+        await signOutRobusto(opts?.scope ?? 'global');
     };
 
-    const logout = async () => {
-        await softReset();
+    const logout = async (opts?: { scope?: SignOutScope }) => {
+        await softReset(opts);
         // Redirect con window.location para forzar recarga completa
         window.location.href = '/';
     };
