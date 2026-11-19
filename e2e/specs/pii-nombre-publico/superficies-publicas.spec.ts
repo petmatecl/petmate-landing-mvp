@@ -70,17 +70,19 @@ async function getFullHtml(page: Page, url: string): Promise<string> {
     // cards del home / explorar podrían leerse pre-enrich con el
     // `proveedor_nombre` del RPC aún visible.
     await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
-    // Sprint pii-nombre-publico iter 4 (2026-11-17): excluir
-    // `<script id="__NEXT_DATA__">` del HTML antes del grep. Ese script
-    // serializa los props de getServerSideProps / getStaticProps y hoy
-    // sigue conteniendo `nombre + apellido_p + auth_user_id` crudos
-    // (pendiente del sprint `pii-ssr-strip`). Este spec valida solo el
-    // HTML RENDERIZADO (lo que un user ve + crawlers indexan vía DOM).
-    // El sprint pii-ssr-strip ampliará el spec para que __NEXT_DATA__
-    // también falle loud; mientras tanto el leak del payload JSON
-    // inicial queda cubierto por el entry BACKLOG `PII-SSR-STRIP`.
-    const content = await page.content();
-    return content.replace(/<script\s+id="__NEXT_DATA__"[\s\S]*?<\/script>/g, '');
+    // Sprint PII-SSR-STRIP (2026-11-18): el spec AHORA valida el HTML
+    // COMPLETO, incluyendo `<script id="__NEXT_DATA__">`. Antes (iter 4
+    // de pii-nombre-publico) excluíamos ese script porque el payload
+    // SSR serializado seguía con `nombre`/`apellido_p` crudos — deuda
+    // consolidada en este sprint. Si el apellido reaparece en el
+    // payload JSON inicial (reintroducción de un spread crudo en gSSP/
+    // gSP), el test falla loud. Único trade-off: falso positivo si el
+    // apellido aparece orgánicamente en el texto público (reseña, bio,
+    // título de servicio). El beforeAll acota el target con filtros
+    // suficientemente estrictos (apellido ≥ 3 chars, proveedor sin
+    // nombre_publico) para hacer el falso positivo improbable; en ese
+    // raro caso el fix es cambiar el candidato del beforeAll.
+    return await page.content();
 }
 
 test.describe('pii-nombre-publico — superficies públicas', () => {
