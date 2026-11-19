@@ -202,7 +202,7 @@ export default defineConfig({
             // el filename se ruteani a chromium-tutor (surface tutor: /favoritos,
             // /usuario). Lote 1 (`lote-1-proveedor-dashboard.spec.ts`) sigue
             // acá porque tiene "proveedor" en el filename.
-            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble|chat-open-error|incidente-usuario-fix|share-mobile|nav-mensajes)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
+            testIgnore: /specs[\\/](f2-3|f2-recordatorios-cron|producto-2|conviene|visual|visits-doble|chat-open-error|incidente-usuario-fix|share-mobile|nav-mensajes|pii-chat-nombre)[\\/]|specs[\\/]error-audit[\\/]c5-.*\.spec\.ts$|specs[\\/]tipo-b[\\/].*tutor.*\.spec\.ts$/,
         },
         {
             name: 'chromium-tutor',
@@ -339,6 +339,21 @@ export default defineConfig({
             },
             dependencies: ['setup', 'setup-tutor'],
             testMatch: /specs[\\/]nav-mensajes[\\/].*\.spec\.ts$/,
+        },
+        {
+            // Sprint pii-chat-nombre (2026-11-19) — guardia P8 sobre las
+            // superficies AUTENTICADAS que mostraban apellido completo:
+            // /mensajes (chat lista + header) y /favoritos tab Proveedores.
+            // storageState tutor (Camila) overrideado adentro del spec vía
+            // test.use. Depende del setup-tutor para que el storage exista
+            // cuando corran los tests.
+            name: 'pii-chat-nombre',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: 'e2e/.auth/tutor.json',
+            },
+            dependencies: ['setup-tutor'],
+            testMatch: /specs[\\/]pii-chat-nombre[\\/].*\.spec\.ts$/,
         },
         {
             // Sprint bloque-i I-1 (2026-09-17) — spec canario del CI.
