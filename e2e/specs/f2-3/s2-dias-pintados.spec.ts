@@ -18,17 +18,29 @@ import {
 import { borrarServicioResiliente } from '../../fixtures/servicio-efimero';
 import { abrirModalReservaEstadia, locatorDiaPicker } from '../../fixtures/panel-tutor';
 
-function ymdEnFuturo(dias: number): string {
-    const d = new Date();
-    d.setDate(d.getDate() + dias);
+function ymd(d: Date): string {
     return d.toISOString().slice(0, 10);
+}
+
+// Sprint f2-fix-drift (2026-11-19) — fechas del blackout ancladas al PRÓXIMO
+// mes (día 10 desde, día 12 hasta). Garantiza que ambos días caen en un único
+// mes visible del picker, sin cruzar límite de mes, sin importar el día actual.
+// El bug anterior usaba offsets +10/+12 desde hoy: cerca de fin de mes (ej.
+// hoy 19-Nov), hasta caía en el mes siguiente y el locator `.rdp-day` matcheaba
+// un día "outside" del siguiente mes, siempre disabled → fail.
+function fechasBlackoutProximoMes(): { desde: string; hasta: string } {
+    const hoy = new Date();
+    const mesSig = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 1);
+    const desde = new Date(mesSig.getFullYear(), mesSig.getMonth(), 10);
+    const hasta = new Date(mesSig.getFullYear(), mesSig.getMonth(), 12);
+    return { desde: ymd(desde), hasta: ymd(hasta) };
 }
 
 test.describe.serial('S2 — Días pintados: blackout + semi-abierto check-out libre', () => {
     let servicio: ServicioCuidadoListo;
-    // Rango del blackout: 10 y 11 días desde hoy bloqueados; día 12 libre (check-out).
-    const blackoutDesde = ymdEnFuturo(10);
-    const blackoutHasta = ymdEnFuturo(12);   // check-out (día 12 = LIBRE)
+    // Rango del blackout en el próximo mes: día 10 bloqueado + día 11 bloqueado;
+    // día 12 libre (check-out, semi-abierto [10, 12)).
+    const { desde: blackoutDesde, hasta: blackoutHasta } = fechasBlackoutProximoMes();
 
     test.beforeAll(async () => {
         const supabase = await getSupabaseAsProveedor();
@@ -58,18 +70,14 @@ test.describe.serial('S2 — Días pintados: blackout + semi-abierto check-out l
         await abrirModalReservaEstadia(page, servicio.id);
         await expect(page.locator('.rdp')).toBeVisible();
 
-        // Extraer números de día para blackoutDesde, blackoutHasta.
+        // Extraer números de día. Las fechas están en el próximo mes por diseño
+        // (ver fechasBlackoutProximoMes arriba); navegamos siempre al próximo mes.
         const desdeDay = parseInt(blackoutDesde.split('-')[2], 10);
         const hastaDay = parseInt(blackoutHasta.split('-')[2], 10);
-        const desdeMonth = parseInt(blackoutDesde.split('-')[1], 10);
-        const hoyMonth = new Date().getMonth() + 1;
 
-        // Si el blackout está en el mes siguiente, navegar al picker.
-        if (desdeMonth !== hoyMonth) {
-            const nextBtn = page.getByRole('button', { name: /Go to the Next Month|next month|Ir al mes siguiente|Mes siguiente/i }).first();
-            if (await nextBtn.isVisible().catch(() => false)) {
-                await nextBtn.click();
-            }
+        const nextBtn = page.getByRole('button', { name: /Go to the Next Month|next month|Ir al mes siguiente|Mes siguiente/i }).first();
+        if (await nextBtn.isVisible().catch(() => false)) {
+            await nextBtn.click();
         }
 
         // El día `desdeDay` (dentro del blackout) debe estar disabled.
