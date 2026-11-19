@@ -524,6 +524,33 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
             })
           }}
         />
+        {/* Sprint seo-schema-org (2026-11-19) — Organization para knowledge
+            panel + brand entity recognition en Google. Sin sameAs hasta que
+            haya redes sociales activas (linked data con URL rota penaliza). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Pawnecta",
+              "url": "https://www.pawnecta.com",
+              "logo": "https://www.pawnecta.com/pawnecta_logo_final-trans.png",
+              "description": "Marketplace de servicios para mascotas en Chile. Conecta tutores con paseadores, cuidadores, veterinarios, peluqueros y más.",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "hola@pawnecta.com",
+                "contactType": "customer support",
+                "areaServed": "CL",
+                "availableLanguage": ["es"]
+              },
+              "areaServed": {
+                "@type": "Country",
+                "name": "Chile"
+              }
+            })
+          }}
+        />
       </Head>
 
       {/* ═══════════════════════════════════════════

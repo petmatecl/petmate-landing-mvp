@@ -3,7 +3,13 @@ export interface BlogPost {
     slug: string;
     title: string;
     excerpt: string;
+    /** Sprint blog-img-fix (2026-11-19): vacío por default. Si vacío, se
+     *  renderiza placeholder gris con `coverIcon` Lucide. Regla CLAUDE.md:
+     *  cero imágenes IA ni fotos stock de personas/mascotas. */
     coverImage: string;
+    /** Nombre del ícono Lucide React para el placeholder gris cuando
+     *  coverImage es vacío. Ejemplos: "Sun", "Cat", "Heart", "Footprints". */
+    coverIcon?: string;
     date: string;
     author: string;
     readTime: string; // "5 min"
@@ -19,7 +25,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "cuidados-mascotas-verano-altas-temperaturas",
         title: "Cuidados Esenciales para tu Mascota durante el Verano",
         excerpt: "Las altas temperaturas pueden ser peligrosas. Aprende cómo mantener a tu perro o gato fresco, hidratado y seguro durante la ola de calor.",
-        coverImage: "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "Sun",
         date: "2025-12-05",
         author: "Equipo Pawnecta",
         readTime: "4 min lectura",
@@ -103,7 +110,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "golpe-de-calor-mascotas-sintomas",
         title: "Golpe de Calor: Cómo detectarlo y prevenirlo a tiempo",
         excerpt: "El golpe de calor es una emergencia veterinaria común en verano. Conoce las señales de alerta y cómo reaccionar para salvar la vida de tu peludo.",
-        coverImage: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "ThermometerSun",
         date: "2025-12-12",
         author: "Dra. Valentina (Vet Pawnecta)",
         readTime: "6 min lectura",
@@ -198,7 +206,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "mitos-verdades-gato-indoor-100-por-ciento",
         title: "Mitos y Verdades: Por qué tu gato debe ser 100% Indoor",
         excerpt: "Un análisis profundo sobre por qué mantener a tu gato dentro de casa es la decisión más ética y responsable. Datos científicos, impacto ecológico y consejos de enriquecimiento.",
-        coverImage: "https://images.unsplash.com/photo-1513245543132-31f507417b26?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "Cat",
         date: "2025-12-18",
         author: "Equipo Pawnecta",
         readTime: "8 min lectura",
@@ -339,7 +348,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "importancia-registro-nacional-mascotas-chile",
         title: "Registro Nacional de Mascotas: ¿Por qué es fundamental inscribir a tu peludo?",
         excerpt: "Cumplir con la Ley Cholito no es solo un trámite legal, es un acto de amor. Aprende paso a paso cómo inscribir a tu mascota y por qué es clave para su seguridad.",
-        coverImage: "/blog/pet-registration-cover.png",
+        coverImage: "",
+        coverIcon: "ClipboardList",
         date: "2025-12-24",
         author: "Equipo Pawnecta",
         readTime: "5 min lectura",
@@ -406,7 +416,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "beneficios-físicos-emocionales-tener-mascota",
         title: "Más que Compañía: Los Impactantes Beneficios de Tener una Mascota",
         excerpt: "Tener un perro o gato no solo alegra tus días, también mejora tu salud física y mental. Descubre qué dice la ciencia sobre el poder sanador de las mascotas.",
-        coverImage: "/blog/importance-of-pets-cover.png",
+        coverImage: "",
+        coverIcon: "Heart",
         date: "2025-12-30",
         author: "Equipo Pawnecta",
         readTime: "6 min lectura",
@@ -473,7 +484,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "importancia-no-cambiar-ambiente-mascotas-viaje",
         title: "¿Viajas? Por qué tu mascota prefiere quedarse en casa (y la ciencia lo respalda)",
         excerpt: "Cambiar de ambiente genera estrés en perros y gatos. Descubre por qué mantener su rutina y entorno es la opción más saludable según veterinarios.",
-        coverImage: "/blog/pet-home-comfort-cover.png",
+        coverImage: "",
+        coverIcon: "Home",
         date: "2026-01-03",
         author: "Equipo Pawnecta",
         readTime: "7 min lectura",
@@ -568,7 +580,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "ventajas-desventajas-hotel-mascotas-vs-sitter",
         title: "Hoteles para Mascotas: Lo Bueno, Lo Malo y Lo que Debes Saber",
         excerpt: "¿Pensando en dejar a tu peludo en un hotel? Analizamos sus ventajas de seguridad vs. el riesgo de estrés y contagios. Toma la mejor decisión para tu viaje.",
-        coverImage: "/blog/pet-hotel-pros-cons.png",
+        coverImage: "",
+        coverIcon: "Hotel",
         date: "2026-01-06",
         author: "Equipo Pawnecta",
         readTime: "6 min lectura",
@@ -644,6 +657,355 @@ const RAW_POSTS: BlogPost[] = [
                     </li>
                 </ul>
             </div>
+        `
+    },
+    {
+        id: "8",
+        slug: "como-elegir-paseador-perros-santiago",
+        title: "Cómo elegir un paseador de perros en Santiago: guía 2026",
+        excerpt: "Qué mirar antes de contratar un paseador de perros en Santiago: experiencia, precios por comuna, preguntas clave y señales de alerta. Guía práctica 2026.",
+        coverImage: "",
+        coverIcon: "Footprints",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "6 min lectura",
+        tags: ["Paseos", "Guía", "Santiago", "Perros"],
+        categoriaRelacionada: "paseos",
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Tu perro necesita salir todos los días, pero entre el trabajo, los traslados y las reuniones, no siempre puedes acompañarlo el tiempo que él necesita. Ahí es donde entra un paseador. Bien elegido, es un alivio para ti y un gran momento del día para tu perro. Mal elegido, es una preocupación constante.
+            </p>
+            <p class="mb-8 text-base leading-relaxed text-slate-600">
+                En esta guía te contamos qué mirar antes de contratar, qué preguntas hacer, cuánto cuesta un paseo en Santiago y qué señales conviene tomar en cuenta.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">¿Qué hace un buen paseador?</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Un paseador no es solo alguien que lleva perros a la plaza. Un buen paseador:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Tiene <strong>experiencia real</strong> con perros, no solo cariño. La diferencia se nota cuando aparece un perro con el que el tuyo no se lleva bien, cuando un dueño llama por un cambio de hora, o cuando hay que manejar a tres perros a la vez de forma segura.</li>
+                <li>Conoce <strong>primeros auxilios básicos</strong> para mascotas: qué hacer si un perro se asfixia con un juguete, cómo reaccionar ante un golpe de calor en verano, cómo reconocer una emergencia.</li>
+                <li><strong>Cuida la cantidad de perros por grupo.</strong> Un paseo con más de cinco perros por una persona suele ser difícil de controlar bien. Lo ideal son tres o cuatro, con perros compatibles entre sí.</li>
+                <li>Entrega <strong>reportes al final del paseo</strong>: una foto, un mensaje corto, kilómetros recorridos. No es necesario que sea algo largo; es la forma de que tú veas cómo le fue.</li>
+                <li>Es <strong>puntual y comunicativo</strong>. Si llega tarde, avisa. Si no puede un día, avisa con tiempo.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Preguntas clave antes de contratar</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Antes de la primera salida, conviene conversar sobre lo siguiente:
+            </p>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>¿Cuánta experiencia tienes con perros? Pide ejemplos concretos, no títulos.</li>
+                <li>¿Cuántos perros paseas a la vez? Grupos de hasta 4 son más seguros.</li>
+                <li>¿Tienes alguna formación en comportamiento canino o primeros auxilios? No es excluyente, pero suma.</li>
+                <li>¿Qué ruta hacen y por cuánto tiempo? Un paseo de verdad dura al menos 45 minutos a 1 hora.</li>
+                <li>¿Qué pasa si mi perro no se lleva bien con otro del grupo? La respuesta te dice si pensó el escenario.</li>
+                <li>¿Puedes darme referencias de otros tutores? Hablar con alguien que ya lo contrató vale mucho.</li>
+                <li>¿Qué haces si mi perro se enferma o se lesiona durante el paseo? Debe tener un plan claro.</li>
+                <li>¿Trabajas con contrato o alguna constancia escrita? Da tranquilidad a ambas partes.</li>
+            </ol>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Precios de referencia en Santiago</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los valores varían según la comuna, la duración del paseo y si es individual o grupal. Como referencia general para 2026:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Paseo grupal, 1 hora:</strong> entre $6.000 y $10.000.</li>
+                <li><strong>Paseo individual, 1 hora:</strong> entre $10.000 y $15.000.</li>
+                <li><strong>Planes mensuales</strong> (varios paseos a la semana): entre $80.000 y $180.000, según frecuencia.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En comunas como <strong>Las Condes, Vitacura y Providencia</strong>, los valores tienden a estar en el rango alto. En <strong>Ñuñoa, La Reina o San Miguel</strong> suelen estar en el medio. No es regla fija y depende mucho de cada paseador: lo que importa es que el precio esté claro antes de empezar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Señales de alerta</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Hay cosas que no deberías dejar pasar:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>No quiere dar referencias o cambia el tema cuando se las pides.</li>
+                <li>No puede explicar bien su ruta o parece improvisar.</li>
+                <li>Pide pago por adelantado de todo el mes antes de la primera prueba.</li>
+                <li>Camina con más de cinco perros solo, especialmente si no son de talla similar.</li>
+                <li>No te responde los mensajes con regularidad.</li>
+                <li>Se ofende con preguntas básicas. Un buen profesional entiende que confiarle a tu perro es una decisión importante.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Lo que hacemos nosotros en Pawnecta</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En Pawnecta puedes buscar paseadores por comuna, ver su experiencia, lo que ofrecen y agendar directamente. Cada proveedor arma su propio perfil con su información, y tú contactas al que te haga más sentido. No cobramos por buscar ni por conectar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Elegir paseador es parecido a elegir un pediatra: no es la decisión más urgente, pero una vez que das con la persona correcta, es un alivio enorme. Tómate el tiempo de preguntar, compara al menos dos opciones y confía en tu instinto. Tu perro te lo va a agradecer con la cola.
+            </p>
+        `
+    },
+    {
+        id: "9",
+        slug: "como-publicar-en-pawnecta-guia-proveedores",
+        title: "Cómo publicar en Pawnecta: guía para ofrecer tus servicios",
+        excerpt: "Guía paso a paso para publicar tus servicios para mascotas en Pawnecta: campos obligatorios, consejos de fotos, cómo escribir una descripción que convenza y cómo activar la reserva en línea.",
+        coverImage: "",
+        coverIcon: "ClipboardList",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "7 min lectura",
+        tags: ["Guía", "Proveedores", "Publicar"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Si trabajas con mascotas (paseador, peluquero canino, veterinario, cuidador, adiestrador, fotógrafo) y quieres que más tutores te conozcan, publicar en Pawnecta es gratis y toma unos 10 minutos la primera vez. Esta guía te acompaña paso a paso: qué necesitas antes de empezar, cómo armar un perfil que efectivamente te traiga clientes, qué fotos funcionan y cómo escribir una descripción que convenza.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">1. Regístrate como proveedor</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Entra a pawnecta.com, aprieta "Soy proveedor" y crea tu cuenta con tu correo. Recibes un código de confirmación, lo escribes y listo. No pedimos datos de tarjeta, no cobramos por inscribirte y no hay un comité que te apruebe: puedes publicar tu primer servicio al tiro.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">2. Completa tu perfil antes de publicar servicios</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Antes de crear tu primer servicio, dedícale 10 minutos al perfil. Es la "cara" que ve el tutor cuando le interese contratarte.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que conviene llenar:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Nombre público:</strong> cómo quieres que te vean los tutores. Puede ser tu nombre o el de tu negocio.</li>
+                <li><strong>Foto de perfil:</strong> una foto tuya (o del logo si trabajas como marca) con buena luz. Nada de selfies borrosos.</li>
+                <li><strong>Biografía corta:</strong> dos o tres frases. Cuántos años llevas trabajando con mascotas, qué te motivó a dedicarte a esto, qué te diferencia.</li>
+                <li><strong>Formación y certificaciones:</strong> cursos, diplomas, formación en primeros auxilios. Suma mucho a la confianza.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">3. Lo mínimo para publicar tu primer servicio</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Pawnecta te pide lo justo para que tu servicio aparezca en el catálogo. Son los bloques obligatorios:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Categoría.</strong> Eliges una de las diez disponibles: adiestramiento, cuidado y hospedaje, etología, fotografía, guardería, paseos, peluquería, retratos, traslado o veterinario.</li>
+                <li><strong>Título.</strong> Máximo 80 caracteres. Que diga qué ofreces de forma clara: "Paseos grupales por el Parque Araucano" funciona mejor que "Paseador amante de los perros".</li>
+                <li><strong>Descripción.</strong> Mínimo 100 caracteres, máximo 1000. Más adelante te damos la estructura para escribirla bien.</li>
+                <li><strong>Precio.</strong> Ingresas el precio desde (obligatorio) y, si varía, el precio hasta (opcional). Luego eliges la unidad: por noche, por hora, por sesión, por paseo, por mes, por visita o por obra.</li>
+                <li><strong>Mascotas aceptadas.</strong> Al menos una: perros, gatos u otras. Si marcas perros, también eliges los tamaños que aceptas (pequeño, mediano o grande).</li>
+                <li><strong>Comunas de cobertura.</strong> Al menos una. Marcas todas las comunas donde puedes atender. El tutor filtra servicios por su comuna y tu servicio aparece si coincide.</li>
+                <li><strong>Disponibilidad.</strong> Marcas qué días trabajas y en qué horario. Al menos un día debe estar activo.</li>
+                <li><strong>Fotos.</strong> Mínimo una.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Con eso tu servicio queda publicado y aparece en el catálogo de inmediato.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">4. Cómo escribir una descripción que convenza</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Una buena descripción tiene esta estructura:
+            </p>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Frase de apertura clara:</strong> qué ofreces en una línea.</li>
+                <li><strong>Qué incluye el servicio:</strong> los detalles concretos.</li>
+                <li><strong>Tu experiencia o enfoque:</strong> por qué el tutor debería elegirte a ti.</li>
+                <li><strong>Algo humano:</strong> una frase personal, no un copy comercial. Eso diferencia.</li>
+                <li><strong>Cómo coordinamos:</strong> horarios, zonas, forma de contacto.</li>
+            </ol>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Evita frases vacías como "amo a los animales" o "el mejor servicio de Santiago". Todo el mundo las usa y no dicen nada. Mejor: "Paseo grupos pequeños de hasta 4 perros por el Parque Araucano, con reporte fotográfico al final de cada salida. Llevo 3 años paseando perros y antes trabajé en una veterinaria."
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">5. Las fotos importan más que todo</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que mejor funciona:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Fotos tuyas en acción, con mascotas reales de tus clientes (pide permiso antes). Transmiten confianza y realismo.</li>
+                <li>Fotos del lugar de trabajo: si cuidas mascotas en tu casa, muestra el espacio. Si paseas, muestra la ruta.</li>
+                <li>Fotos con buena iluminación, de día, idealmente en exterior.</li>
+                <li>Fotos horizontales cuando puedas: se ven mejor en las tarjetas del catálogo.</li>
+            </ul>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que no conviene:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Fotos descargadas de internet o bancos de imágenes.</li>
+                <li>Fotos generadas con inteligencia artificial.</li>
+                <li>Selfies borrosos o con poca luz.</li>
+                <li>Fotos con muchos elementos o distracciones en el fondo.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si estás partiendo y no tienes material, parte con dos o tres fotos reales, aunque sean sencillas. Tres fotos auténticas valen más que diez de stock.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">6. Campos opcionales que vale la pena llenar</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Después de lo mínimo, Pawnecta te deja agregar detalles que no son obligatorios pero sí útiles:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Inclusiones:</strong> marca con chips lo que incluye tu servicio (paseos diarios, comida, reporte con fotos, etc.).</li>
+                <li><strong>Política de cancelación:</strong> una nota breve con tus reglas de cancelación.</li>
+                <li><strong>Campos específicos de tu categoría:</strong> si eres veterinario, puedes agregar años de experiencia, especialidades y si atiendes emergencias. Si eres paseador, la cantidad máxima de perros por paseo. Cada categoría tiene los suyos.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Estos campos no son obligatorios, pero un perfil completo recibe más contactos que uno a medias.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">7. Activa la reserva en línea si tu servicio lo permite</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si tu servicio tiene horarios definidos (paseos, peluquería, sesiones), puedes activar reserva por slots: defines los días y horarios en que puedes atender, y los tutores reservan directo sin esperar respuesta.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si ofreces hospedaje o cuidado por noches, puedes activar reserva por estadías: defines capacidad, noches mínimas y máximas, y los tutores reservan por rango de fechas.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En los dos casos, los servicios con reserva en línea aparecen con un badge "Reserva online" en el catálogo. Suelen recibir más contactos porque el tutor sabe que no tiene que esperar para confirmar.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si por ahora prefieres coordinar todo por chat, tampoco hay problema: mantienes la disponibilidad simple y el tutor te contacta antes de reservar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">8. Verifica tu identidad (opcional)</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Puedes publicar y recibir reservas sin verificar tu identidad. Pero si lo haces, obtienes un badge "Identidad verificada" verde en tu ficha y tus servicios aparecen destacados.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Para verificar, desde el panel aprietas "Verificar identidad" y subes tu RUT y fotos de tu carnet (frente y dorso). El equipo de Pawnecta lo revisa y te aprueba (o te dice qué corregir). Es opcional, pero recomendado.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">9. Responde rápido los mensajes</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                El chat de Pawnecta avisa por correo cuando alguien te escribe. Mientras más rápido respondas, mejor. Un tutor que recibe respuesta en una hora es mucho más probable que contrate que uno que espera un día.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">10. Pide que te dejen reseña</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Después de un servicio bien hecho, pídele al tutor que deje una reseña en Pawnecta. Son la mejor forma de conseguir nuevos clientes. Un perfil con 5 reseñas recibe muchos más contactos que uno sin ninguna, incluso si tus otros datos son iguales.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">11. Mantén tu perfil vivo</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Actualiza tus fotos cada cierto tiempo.</li>
+                <li>Si cambias de comuna, horarios o precios, refléjalo.</li>
+                <li>Si tomas vacaciones o tienes semanas sin disponibilidad, usa los bloqueos de calendario para marcar los días que no estás.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Publicar en Pawnecta no es llenar un formulario y esperar. Es armar un perfil claro, poner fotos reales, describir tu servicio como se lo contarías a un amigo y responder con cariño cuando alguien te escribe. Hazlo bien desde el principio y vas a notar la diferencia.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Y si tienes dudas o se te atasca algo, escríbenos a hola@pawnecta.com.
+            </p>
+        `
+    },
+    {
+        id: "10",
+        slug: "que-buscar-guarderia-cuidado-mascota-santiago",
+        title: "Qué buscar en una guardería o cuidado para tu mascota en Santiago",
+        excerpt: "Guía para elegir guardería diurna, hospedaje nocturno o cuidado a domicilio para tu mascota en Santiago. Qué mirar, qué preguntar y señales de alerta.",
+        coverImage: "",
+        coverIcon: "Hotel",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "8 min lectura",
+        tags: ["Cuidado", "Hospedaje", "Guía", "Santiago"],
+        categoriaRelacionada: "hospedaje",
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Llega el momento. Tienes un viaje, un fin de semana fuera, o simplemente una semana con demasiadas horas fuera de la casa, y necesitas dejar a tu perro o a tu gato en manos de alguien más. La duda es la misma para todos: ¿cómo saber si el lugar y la persona son los correctos?
+            </p>
+            <p class="mb-8 text-base leading-relaxed text-slate-600">
+                Esta guía te explica las diferencias entre guardería y hospedaje, qué mirar antes de contratar, qué preguntas hacer y qué señales de alerta no deberías pasar por alto.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Guardería, hospedaje, cuidador a domicilio: cuál necesitas</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Son tres cosas distintas, y conviene tenerlo claro antes de buscar.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Guardería diurna.</strong> Tu mascota pasa el día ahí (por ejemplo de 9 a 18 horas) y vuelve a tu casa a dormir. Sirve si trabajas fuera y no quieres que tu perro pase el día solo.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Hospedaje o pensión.</strong> Tu mascota se queda a dormir ahí, una o varias noches. Sirve para viajes, fines de semana fuera, emergencias. Puede ser en la casa del cuidador o en un recinto habilitado.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Cuidado a domicilio.</strong> El cuidador va a tu casa o se queda en ella. Tu mascota mantiene su ambiente, sus olores, su rutina. Suele ser menos estresante para gatos y perros ansiosos, y es la única opción razonable para mascotas que no toleran salir de casa.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Pawnecta tiene las tres modalidades en la categoría "Cuidado y hospedaje". Cuando busques, pregunta explícitamente cuál ofrece la persona.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Qué mirar antes de contratar</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Espacio donde duerme y pasa el día.</strong> Pide fotos reales del lugar. Si es una casa, debe tener zona cubierta y zona exterior segura. Si es un recinto, debe estar limpio, con separación entre perros que no se conocen, y sin olores fuertes.</li>
+                <li><strong>Cantidad de mascotas al mismo tiempo.</strong> Un cuidador que atiende 15 perros en una casa no les está dando atención real. Como referencia: entre 3 y 6 mascotas por cuidador es manejable; más de 8 es riesgoso.</li>
+                <li><strong>Experiencia y formación.</strong> Años trabajando con mascotas, formación en primeros auxilios, haber trabajado en veterinaria. Pregunta y pide ejemplos concretos.</li>
+                <li><strong>Protocolo de emergencias.</strong> ¿Qué hacen si tu mascota se enferma? ¿A qué veterinaria la llevarían? ¿Cómo y cuándo te avisan? Un buen cuidador tiene la respuesta clara, no improvisada.</li>
+                <li><strong>Comunicación durante la estadía.</strong> ¿Mandan fotos o videos? ¿Con qué frecuencia? Para muchos tutores, saber cómo está su mascota cada día es parte importante del servicio.</li>
+                <li><strong>Vacunas y desparasitación al día.</strong> El cuidador debería pedirte el carnet de vacunas de tu mascota, y debería garantizarte que todas las otras mascotas en el lugar también están al día. Si no pregunta nada, es señal de alerta.</li>
+                <li><strong>Visita previa.</strong> Cualquier cuidador serio acepta que lleves a tu mascota a conocer el lugar antes de la estadía. Si te niegan la visita previa, piénsalo dos veces.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Preguntas clave antes de dejarla</h3>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>¿Cuántas mascotas hay al mismo tiempo durante mi estadía?</li>
+                <li>¿Dónde duerme exactamente? ¿Puedo ver una foto del lugar?</li>
+                <li>¿Cómo manejan a mascotas que no se conocen entre sí?</li>
+                <li>¿Qué hacen si mi mascota no quiere comer o se estresa?</li>
+                <li>¿Qué pasa si se enferma? ¿A qué veterinaria la llevan?</li>
+                <li>¿Cuántas veces al día la sacan al patio o al parque?</li>
+                <li>¿Me pueden mandar fotos o reportes durante la estadía?</li>
+                <li>¿Tienes referencias de otros tutores que pueda contactar?</li>
+                <li>¿Qué tengo que llevar yo (comida, cama, juguetes, medicamentos)?</li>
+                <li>¿Qué pasa si vuelvo antes o después de lo acordado?</li>
+            </ol>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Precios de referencia en Santiago</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los valores varían según la modalidad, la comuna y los servicios incluidos. Como referencia general para 2026:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Guardería diurna, día completo:</strong> entre $12.000 y $25.000.</li>
+                <li><strong>Hospedaje nocturno en casa del cuidador:</strong> entre $15.000 y $35.000 por noche.</li>
+                <li><strong>Cuidado en tu casa:</strong> entre $20.000 y $45.000 por día o noche, dependiendo si el cuidador se queda a dormir o solo pasa a atender.</li>
+                <li><strong>Estadías largas (más de 7 noches):</strong> suele haber descuentos entre 10% y 20%.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En comunas como <strong>Las Condes, Vitacura, Lo Barnechea y Providencia</strong> los valores tienden a estar en el rango alto. En <strong>Ñuñoa, La Reina o Maipú</strong>, en el medio. Lo importante no es pagar lo más barato, sino tener claro qué incluye el precio: paseos diarios, comida, medicación, reportes con fotos.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Señales de alerta</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>No quiere mostrar el lugar ni acepta una visita previa.</li>
+                <li>No te pide el carnet de vacunas ni información de la mascota.</li>
+                <li>Atiende demasiadas mascotas para el espacio que tiene.</li>
+                <li>Es evasivo con la cantidad de perros u otras mascotas que hay.</li>
+                <li>No tiene plan claro de emergencia veterinaria.</li>
+                <li>No responde los mensajes con regularidad antes de la estadía (es señal de cómo va a responder durante).</li>
+                <li>Pide todo el pago por adelantado antes de que tu mascota siquiera llegue.</li>
+                <li>No tiene referencias o se molesta cuando las pides.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Algunas consideraciones para gatos</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los gatos no son perros chicos: lo que les pasa bien es distinto.
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Mejor en casa que en guardería.</strong> La mayoría de los gatos se estresan mucho cambiando de territorio. Si puedes, prefiere un cuidador que visite tu casa a diario o que se quede en ella.</li>
+                <li><strong>Cambios de comida y rutina mínimos.</strong> El cuidador debe usar la misma comida, el mismo horario y los mismos lugares.</li>
+                <li><strong>Caja de arena y agua fresca sí o sí.</strong> Visitas de al menos una vez al día si el gato queda solo, idealmente dos.</li>
+                <li><strong>Cuidado con gatos de solo exterior o indoor estricto.</strong> Si tu gato sale o no sale, el cuidador tiene que mantener esa misma lógica. Un gato indoor que accidentalmente queda afuera puede perderse en minutos.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Cómo encontrarlo en Pawnecta</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En Pawnecta puedes buscar en la categoría "Cuidado y hospedaje", filtrar por tu comuna y ver los cuidadores disponibles. Cada uno tiene su perfil con fotos, descripción, precios y mascotas que acepta. Puedes contactarlo directamente por el chat o, si tiene reserva en línea activada, reservar directo por los días que necesitas.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Dejar a tu mascota con alguien más es una decisión emocional, no solo práctica. Tómate el tiempo de visitar el lugar, preguntar lo que necesites preguntar sin vergüenza, y confía en tu instinto. Si algo no te hace sentido, busca otra opción. Hay cuidadores buenísimos en Santiago; solo hay que encontrar el correcto para tu mascota.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Y si tienes dudas, escríbenos a hola@pawnecta.com.
+            </p>
         `
     }
 ];
