@@ -3,7 +3,13 @@ export interface BlogPost {
     slug: string;
     title: string;
     excerpt: string;
+    /** Sprint blog-img-fix (2026-11-19): vacío por default. Si vacío, se
+     *  renderiza placeholder gris con `coverIcon` Lucide. Regla CLAUDE.md:
+     *  cero imágenes IA ni fotos stock de personas/mascotas. */
     coverImage: string;
+    /** Nombre del ícono Lucide React para el placeholder gris cuando
+     *  coverImage es vacío. Ejemplos: "Sun", "Cat", "Heart", "Footprints". */
+    coverIcon?: string;
     date: string;
     author: string;
     readTime: string; // "5 min"
@@ -19,7 +25,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "cuidados-mascotas-verano-altas-temperaturas",
         title: "Cuidados Esenciales para tu Mascota durante el Verano",
         excerpt: "Las altas temperaturas pueden ser peligrosas. Aprende cómo mantener a tu perro o gato fresco, hidratado y seguro durante la ola de calor.",
-        coverImage: "https://images.unsplash.com/photo-1519052537078-e6302a4968d4?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "Sun",
         date: "2025-12-05",
         author: "Equipo Pawnecta",
         readTime: "4 min lectura",
@@ -103,7 +110,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "golpe-de-calor-mascotas-sintomas",
         title: "Golpe de Calor: Cómo detectarlo y prevenirlo a tiempo",
         excerpt: "El golpe de calor es una emergencia veterinaria común en verano. Conoce las señales de alerta y cómo reaccionar para salvar la vida de tu peludo.",
-        coverImage: "https://images.unsplash.com/photo-1561037404-61cd46aa615b?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "ThermometerSun",
         date: "2025-12-12",
         author: "Dra. Valentina (Vet Pawnecta)",
         readTime: "6 min lectura",
@@ -198,7 +206,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "mitos-verdades-gato-indoor-100-por-ciento",
         title: "Mitos y Verdades: Por qué tu gato debe ser 100% Indoor",
         excerpt: "Un análisis profundo sobre por qué mantener a tu gato dentro de casa es la decisión más ética y responsable. Datos científicos, impacto ecológico y consejos de enriquecimiento.",
-        coverImage: "https://images.unsplash.com/photo-1513245543132-31f507417b26?q=80&w=1000&auto=format&fit=crop",
+        coverImage: "",
+        coverIcon: "Cat",
         date: "2025-12-18",
         author: "Equipo Pawnecta",
         readTime: "8 min lectura",
@@ -339,7 +348,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "importancia-registro-nacional-mascotas-chile",
         title: "Registro Nacional de Mascotas: ¿Por qué es fundamental inscribir a tu peludo?",
         excerpt: "Cumplir con la Ley Cholito no es solo un trámite legal, es un acto de amor. Aprende paso a paso cómo inscribir a tu mascota y por qué es clave para su seguridad.",
-        coverImage: "/blog/pet-registration-cover.png",
+        coverImage: "",
+        coverIcon: "ClipboardList",
         date: "2025-12-24",
         author: "Equipo Pawnecta",
         readTime: "5 min lectura",
@@ -406,7 +416,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "beneficios-físicos-emocionales-tener-mascota",
         title: "Más que Compañía: Los Impactantes Beneficios de Tener una Mascota",
         excerpt: "Tener un perro o gato no solo alegra tus días, también mejora tu salud física y mental. Descubre qué dice la ciencia sobre el poder sanador de las mascotas.",
-        coverImage: "/blog/importance-of-pets-cover.png",
+        coverImage: "",
+        coverIcon: "Heart",
         date: "2025-12-30",
         author: "Equipo Pawnecta",
         readTime: "6 min lectura",
@@ -473,7 +484,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "importancia-no-cambiar-ambiente-mascotas-viaje",
         title: "¿Viajas? Por qué tu mascota prefiere quedarse en casa (y la ciencia lo respalda)",
         excerpt: "Cambiar de ambiente genera estrés en perros y gatos. Descubre por qué mantener su rutina y entorno es la opción más saludable según veterinarios.",
-        coverImage: "/blog/pet-home-comfort-cover.png",
+        coverImage: "",
+        coverIcon: "Home",
         date: "2026-01-03",
         author: "Equipo Pawnecta",
         readTime: "7 min lectura",
@@ -568,7 +580,8 @@ const RAW_POSTS: BlogPost[] = [
         slug: "ventajas-desventajas-hotel-mascotas-vs-sitter",
         title: "Hoteles para Mascotas: Lo Bueno, Lo Malo y Lo que Debes Saber",
         excerpt: "¿Pensando en dejar a tu peludo en un hotel? Analizamos sus ventajas de seguridad vs. el riesgo de estrés y contagios. Toma la mejor decisión para tu viaje.",
-        coverImage: "/blog/pet-hotel-pros-cons.png",
+        coverImage: "",
+        coverIcon: "Hotel",
         date: "2026-01-06",
         author: "Equipo Pawnecta",
         readTime: "6 min lectura",
@@ -644,6 +657,90 @@ const RAW_POSTS: BlogPost[] = [
                     </li>
                 </ul>
             </div>
+        `
+    },
+    {
+        id: "8",
+        slug: "como-elegir-paseador-perros-santiago",
+        title: "Cómo elegir un paseador de perros en Santiago: guía 2026",
+        excerpt: "Qué mirar antes de contratar un paseador de perros en Santiago: experiencia, precios por comuna, preguntas clave y señales de alerta. Guía práctica 2026.",
+        coverImage: "",
+        coverIcon: "Footprints",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "6 min lectura",
+        tags: ["Paseos", "Guía", "Santiago", "Perros"],
+        categoriaRelacionada: "paseos",
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Tu perro necesita salir todos los días, pero entre el trabajo, los traslados y las reuniones, no siempre puedes acompañarlo el tiempo que él necesita. Ahí es donde entra un paseador. Bien elegido, es un alivio para ti y un gran momento del día para tu perro. Mal elegido, es una preocupación constante.
+            </p>
+            <p class="mb-8 text-base leading-relaxed text-slate-600">
+                En esta guía te contamos qué mirar antes de contratar, qué preguntas hacer, cuánto cuesta un paseo en Santiago y qué señales conviene tomar en cuenta.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">¿Qué hace un buen paseador?</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Un paseador no es solo alguien que lleva perros a la plaza. Un buen paseador:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Tiene <strong>experiencia real</strong> con perros, no solo cariño. La diferencia se nota cuando aparece un perro con el que el tuyo no se lleva bien, cuando un dueño llama por un cambio de hora, o cuando hay que manejar a tres perros a la vez de forma segura.</li>
+                <li>Conoce <strong>primeros auxilios básicos</strong> para mascotas: qué hacer si un perro se asfixia con un juguete, cómo reaccionar ante un golpe de calor en verano, cómo reconocer una emergencia.</li>
+                <li><strong>Cuida la cantidad de perros por grupo.</strong> Un paseo con más de cinco perros por una persona suele ser difícil de controlar bien. Lo ideal son tres o cuatro, con perros compatibles entre sí.</li>
+                <li>Entrega <strong>reportes al final del paseo</strong>: una foto, un mensaje corto, kilómetros recorridos. No es necesario que sea algo largo; es la forma de que tú veas cómo le fue.</li>
+                <li>Es <strong>puntual y comunicativo</strong>. Si llega tarde, avisa. Si no puede un día, avisa con tiempo.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Preguntas clave antes de contratar</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Antes de la primera salida, conviene conversar sobre lo siguiente:
+            </p>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>¿Cuánta experiencia tienes con perros? Pide ejemplos concretos, no títulos.</li>
+                <li>¿Cuántos perros paseas a la vez? Grupos de hasta 4 son más seguros.</li>
+                <li>¿Tienes alguna formación en comportamiento canino o primeros auxilios? No es excluyente, pero suma.</li>
+                <li>¿Qué ruta hacen y por cuánto tiempo? Un paseo de verdad dura al menos 45 minutos a 1 hora.</li>
+                <li>¿Qué pasa si mi perro no se lleva bien con otro del grupo? La respuesta te dice si pensó el escenario.</li>
+                <li>¿Puedes darme referencias de otros tutores? Hablar con alguien que ya lo contrató vale mucho.</li>
+                <li>¿Qué haces si mi perro se enferma o se lesiona durante el paseo? Debe tener un plan claro.</li>
+                <li>¿Trabajas con contrato o alguna constancia escrita? Da tranquilidad a ambas partes.</li>
+            </ol>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Precios de referencia en Santiago</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los valores varían según la comuna, la duración del paseo y si es individual o grupal. Como referencia general para 2026:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Paseo grupal, 1 hora:</strong> entre $6.000 y $10.000.</li>
+                <li><strong>Paseo individual, 1 hora:</strong> entre $10.000 y $15.000.</li>
+                <li><strong>Planes mensuales</strong> (varios paseos a la semana): entre $80.000 y $180.000, según frecuencia.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En comunas como <strong>Las Condes, Vitacura y Providencia</strong>, los valores tienden a estar en el rango alto. En <strong>Ñuñoa, La Reina o San Miguel</strong> suelen estar en el medio. No es regla fija y depende mucho de cada paseador: lo que importa es que el precio esté claro antes de empezar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Señales de alerta</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Hay cosas que no deberías dejar pasar:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>No quiere dar referencias o cambia el tema cuando se las pides.</li>
+                <li>No puede explicar bien su ruta o parece improvisar.</li>
+                <li>Pide pago por adelantado de todo el mes antes de la primera prueba.</li>
+                <li>Camina con más de cinco perros solo, especialmente si no son de talla similar.</li>
+                <li>No te responde los mensajes con regularidad.</li>
+                <li>Se ofende con preguntas básicas. Un buen profesional entiende que confiarle a tu perro es una decisión importante.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Lo que hacemos nosotros en Pawnecta</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En Pawnecta puedes buscar paseadores por comuna, ver su experiencia, lo que ofrecen y agendar directamente. Cada proveedor arma su propio perfil con su información, y tú contactas al que te haga más sentido. No cobramos por buscar ni por conectar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Elegir paseador es parecido a elegir un pediatra: no es la decisión más urgente, pero una vez que das con la persona correcta, es un alivio enorme. Tómate el tiempo de preguntar, compara al menos dos opciones y confía en tu instinto. Tu perro te lo va a agradecer con la cola.
+            </p>
         `
     }
 ];
