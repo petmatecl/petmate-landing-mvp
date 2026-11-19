@@ -352,7 +352,10 @@ export default defineConfig({
                 ...devices['Desktop Chrome'],
                 storageState: 'e2e/.auth/tutor.json',
             },
-            dependencies: ['setup-tutor'],
+            // Ambos setups para que `proveedor.json` y `tutor.json` existan
+            // cuando el spec hace `test.use({ storageState: proveedor.json })`
+            // en el describe "proveedor view" (AUTH-PII-03).
+            dependencies: ['setup', 'setup-tutor'],
             testMatch: /specs[\\/]pii-chat-nombre[\\/].*\.spec\.ts$/,
         },
         {
