@@ -73,7 +73,18 @@ async function getFullHtml(page: Page, url: string): Promise<string> {
     return await page.content();
 }
 
-test.describe('pii-chat-nombre — superficies autenticadas', () => {
+// `.serial` en el outer: el beforeAll crea conv1/conv2/favorito en BD
+// compartida (staging) y cada worker Playwright levanta su propio proceso
+// Node con sus propias variables module-level (`targets`) + ejecuta su propio
+// beforeAll/afterAll. Sin .serial, con `fullyParallel: true` + `workers: 2`,
+// workers distintos atropellan los registros del otro (DELETE + INSERT en
+// paralelo sobre el mismo (user_id, entidad_id)) → race observable en PR
+// #120 iter 3: AUTH-PII-02 falló porque el afterAll del worker que corrió
+// AUTH-PII-03 borró el favorito que el worker de AUTH-PII-02 necesitaba.
+// Regla: en specs con beforeAll que escribe a BD compartida, describe outer
+// SIEMPRE `.serial` (ver CLAUDE.md § "Describes con beforeAll sobre BD
+// compartida van serial").
+test.describe.serial('pii-chat-nombre — superficies autenticadas', () => {
 
     test.beforeAll(async () => {
         const admin = await getSupabaseAdmin();
