@@ -742,6 +742,158 @@ const RAW_POSTS: BlogPost[] = [
                 Elegir paseador es parecido a elegir un pediatra: no es la decisión más urgente, pero una vez que das con la persona correcta, es un alivio enorme. Tómate el tiempo de preguntar, compara al menos dos opciones y confía en tu instinto. Tu perro te lo va a agradecer con la cola.
             </p>
         `
+    },
+    {
+        id: "9",
+        slug: "como-publicar-en-pawnecta-guia-proveedores",
+        title: "Cómo publicar en Pawnecta: guía para ofrecer tus servicios",
+        excerpt: "Guía paso a paso para publicar tus servicios para mascotas en Pawnecta: campos obligatorios, consejos de fotos, cómo escribir una descripción que convenza y cómo activar la reserva en línea.",
+        coverImage: "",
+        coverIcon: "ClipboardList",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "7 min lectura",
+        tags: ["Guía", "Proveedores", "Publicar"],
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Si trabajas con mascotas (paseador, peluquero canino, veterinario, cuidador, adiestrador, fotógrafo) y quieres que más tutores te conozcan, publicar en Pawnecta es gratis y toma unos 10 minutos la primera vez. Esta guía te acompaña paso a paso: qué necesitas antes de empezar, cómo armar un perfil que efectivamente te traiga clientes, qué fotos funcionan y cómo escribir una descripción que convenza.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">1. Regístrate como proveedor</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Entra a pawnecta.com, aprieta "Soy proveedor" y crea tu cuenta con tu correo. Recibes un código de confirmación, lo escribes y listo. No pedimos datos de tarjeta, no cobramos por inscribirte y no hay un comité que te apruebe: puedes publicar tu primer servicio al tiro.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">2. Completa tu perfil antes de publicar servicios</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Antes de crear tu primer servicio, dedícale 10 minutos al perfil. Es la "cara" que ve el tutor cuando le interese contratarte.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que conviene llenar:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Nombre público:</strong> cómo quieres que te vean los tutores. Puede ser tu nombre o el de tu negocio.</li>
+                <li><strong>Foto de perfil:</strong> una foto tuya (o del logo si trabajas como marca) con buena luz. Nada de selfies borrosos.</li>
+                <li><strong>Biografía corta:</strong> dos o tres frases. Cuántos años llevas trabajando con mascotas, qué te motivó a dedicarte a esto, qué te diferencia.</li>
+                <li><strong>Formación y certificaciones:</strong> cursos, diplomas, formación en primeros auxilios. Suma mucho a la confianza.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">3. Lo mínimo para publicar tu primer servicio</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Pawnecta te pide lo justo para que tu servicio aparezca en el catálogo. Son los bloques obligatorios:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Categoría.</strong> Eliges una de las diez disponibles: adiestramiento, cuidado y hospedaje, etología, fotografía, guardería, paseos, peluquería, retratos, traslado o veterinario.</li>
+                <li><strong>Título.</strong> Máximo 80 caracteres. Que diga qué ofreces de forma clara: "Paseos grupales por el Parque Araucano" funciona mejor que "Paseador amante de los perros".</li>
+                <li><strong>Descripción.</strong> Mínimo 100 caracteres, máximo 1000. Más adelante te damos la estructura para escribirla bien.</li>
+                <li><strong>Precio.</strong> Ingresas el precio desde (obligatorio) y, si varía, el precio hasta (opcional). Luego eliges la unidad: por noche, por hora, por sesión, por paseo, por mes, por visita o por obra.</li>
+                <li><strong>Mascotas aceptadas.</strong> Al menos una: perros, gatos u otras. Si marcas perros, también eliges los tamaños que aceptas (pequeño, mediano o grande).</li>
+                <li><strong>Comunas de cobertura.</strong> Al menos una. Marcas todas las comunas donde puedes atender. El tutor filtra servicios por su comuna y tu servicio aparece si coincide.</li>
+                <li><strong>Disponibilidad.</strong> Marcas qué días trabajas y en qué horario. Al menos un día debe estar activo.</li>
+                <li><strong>Fotos.</strong> Mínimo una.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Con eso tu servicio queda publicado y aparece en el catálogo de inmediato.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">4. Cómo escribir una descripción que convenza</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Una buena descripción tiene esta estructura:
+            </p>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Frase de apertura clara:</strong> qué ofreces en una línea.</li>
+                <li><strong>Qué incluye el servicio:</strong> los detalles concretos.</li>
+                <li><strong>Tu experiencia o enfoque:</strong> por qué el tutor debería elegirte a ti.</li>
+                <li><strong>Algo humano:</strong> una frase personal, no un copy comercial. Eso diferencia.</li>
+                <li><strong>Cómo coordinamos:</strong> horarios, zonas, forma de contacto.</li>
+            </ol>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Evita frases vacías como "amo a los animales" o "el mejor servicio de Santiago". Todo el mundo las usa y no dicen nada. Mejor: "Paseo grupos pequeños de hasta 4 perros por el Parque Araucano, con reporte fotográfico al final de cada salida. Llevo 3 años paseando perros y antes trabajé en una veterinaria."
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">5. Las fotos importan más que todo</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que mejor funciona:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Fotos tuyas en acción, con mascotas reales de tus clientes (pide permiso antes). Transmiten confianza y realismo.</li>
+                <li>Fotos del lugar de trabajo: si cuidas mascotas en tu casa, muestra el espacio. Si paseas, muestra la ruta.</li>
+                <li>Fotos con buena iluminación, de día, idealmente en exterior.</li>
+                <li>Fotos horizontales cuando puedas: se ven mejor en las tarjetas del catálogo.</li>
+            </ul>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Lo que no conviene:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Fotos descargadas de internet o bancos de imágenes.</li>
+                <li>Fotos generadas con inteligencia artificial.</li>
+                <li>Selfies borrosos o con poca luz.</li>
+                <li>Fotos con muchos elementos o distracciones en el fondo.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si estás partiendo y no tienes material, parte con dos o tres fotos reales, aunque sean sencillas. Tres fotos auténticas valen más que diez de stock.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">6. Campos opcionales que vale la pena llenar</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Después de lo mínimo, Pawnecta te deja agregar detalles que no son obligatorios pero sí útiles:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Inclusiones:</strong> marca con chips lo que incluye tu servicio (paseos diarios, comida, reporte con fotos, etc.).</li>
+                <li><strong>Política de cancelación:</strong> una nota breve con tus reglas de cancelación.</li>
+                <li><strong>Campos específicos de tu categoría:</strong> si eres veterinario, puedes agregar años de experiencia, especialidades y si atiendes emergencias. Si eres paseador, la cantidad máxima de perros por paseo. Cada categoría tiene los suyos.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Estos campos no son obligatorios, pero un perfil completo recibe más contactos que uno a medias.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">7. Activa la reserva en línea si tu servicio lo permite</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si tu servicio tiene horarios definidos (paseos, peluquería, sesiones), puedes activar reserva por slots: defines los días y horarios en que puedes atender, y los tutores reservan directo sin esperar respuesta.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si ofreces hospedaje o cuidado por noches, puedes activar reserva por estadías: defines capacidad, noches mínimas y máximas, y los tutores reservan por rango de fechas.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En los dos casos, los servicios con reserva en línea aparecen con un badge "Reserva online" en el catálogo. Suelen recibir más contactos porque el tutor sabe que no tiene que esperar para confirmar.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Si por ahora prefieres coordinar todo por chat, tampoco hay problema: mantienes la disponibilidad simple y el tutor te contacta antes de reservar.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">8. Verifica tu identidad (opcional)</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Puedes publicar y recibir reservas sin verificar tu identidad. Pero si lo haces, obtienes un badge "Identidad verificada" verde en tu ficha y tus servicios aparecen destacados.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Para verificar, desde el panel aprietas "Verificar identidad" y subes tu RUT y fotos de tu carnet (frente y dorso). El equipo de Pawnecta lo revisa y te aprueba (o te dice qué corregir). Es opcional, pero recomendado.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">9. Responde rápido los mensajes</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                El chat de Pawnecta avisa por correo cuando alguien te escribe. Mientras más rápido respondas, mejor. Un tutor que recibe respuesta en una hora es mucho más probable que contrate que uno que espera un día.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">10. Pide que te dejen reseña</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Después de un servicio bien hecho, pídele al tutor que deje una reseña en Pawnecta. Son la mejor forma de conseguir nuevos clientes. Un perfil con 5 reseñas recibe muchos más contactos que uno sin ninguna, incluso si tus otros datos son iguales.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">11. Mantén tu perfil vivo</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>Actualiza tus fotos cada cierto tiempo.</li>
+                <li>Si cambias de comuna, horarios o precios, refléjalo.</li>
+                <li>Si tomas vacaciones o tienes semanas sin disponibilidad, usa los bloqueos de calendario para marcar los días que no estás.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Publicar en Pawnecta no es llenar un formulario y esperar. Es armar un perfil claro, poner fotos reales, describir tu servicio como se lo contarías a un amigo y responder con cariño cuando alguien te escribe. Hazlo bien desde el principio y vas a notar la diferencia.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Y si tienes dudas o se te atasca algo, escríbenos a hola@pawnecta.com.
+            </p>
+        `
     }
 ];
 
