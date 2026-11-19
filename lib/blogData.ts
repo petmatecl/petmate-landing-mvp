@@ -894,6 +894,119 @@ const RAW_POSTS: BlogPost[] = [
                 Y si tienes dudas o se te atasca algo, escríbenos a hola@pawnecta.com.
             </p>
         `
+    },
+    {
+        id: "10",
+        slug: "que-buscar-guarderia-cuidado-mascota-santiago",
+        title: "Qué buscar en una guardería o cuidado para tu mascota en Santiago",
+        excerpt: "Guía para elegir guardería diurna, hospedaje nocturno o cuidado a domicilio para tu mascota en Santiago. Qué mirar, qué preguntar y señales de alerta.",
+        coverImage: "",
+        coverIcon: "Hotel",
+        date: "2026-11-19",
+        author: "Equipo Pawnecta",
+        readTime: "8 min lectura",
+        tags: ["Cuidado", "Hospedaje", "Guía", "Santiago"],
+        categoriaRelacionada: "hospedaje",
+        content: `
+            <p class="lead text-lg text-slate-600 mb-8 leading-relaxed">
+                Llega el momento. Tienes un viaje, un fin de semana fuera, o simplemente una semana con demasiadas horas fuera de la casa, y necesitas dejar a tu perro o a tu gato en manos de alguien más. La duda es la misma para todos: ¿cómo saber si el lugar y la persona son los correctos?
+            </p>
+            <p class="mb-8 text-base leading-relaxed text-slate-600">
+                Esta guía te explica las diferencias entre guardería y hospedaje, qué mirar antes de contratar, qué preguntas hacer y qué señales de alerta no deberías pasar por alto.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Guardería, hospedaje, cuidador a domicilio: cuál necesitas</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Son tres cosas distintas, y conviene tenerlo claro antes de buscar.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Guardería diurna.</strong> Tu mascota pasa el día ahí (por ejemplo de 9 a 18 horas) y vuelve a tu casa a dormir. Sirve si trabajas fuera y no quieres que tu perro pase el día solo.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Hospedaje o pensión.</strong> Tu mascota se queda a dormir ahí, una o varias noches. Sirve para viajes, fines de semana fuera, emergencias. Puede ser en la casa del cuidador o en un recinto habilitado.
+            </p>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                <strong>Cuidado a domicilio.</strong> El cuidador va a tu casa o se queda en ella. Tu mascota mantiene su ambiente, sus olores, su rutina. Suele ser menos estresante para gatos y perros ansiosos, y es la única opción razonable para mascotas que no toleran salir de casa.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Pawnecta tiene las tres modalidades en la categoría "Cuidado y hospedaje". Cuando busques, pregunta explícitamente cuál ofrece la persona.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Qué mirar antes de contratar</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Espacio donde duerme y pasa el día.</strong> Pide fotos reales del lugar. Si es una casa, debe tener zona cubierta y zona exterior segura. Si es un recinto, debe estar limpio, con separación entre perros que no se conocen, y sin olores fuertes.</li>
+                <li><strong>Cantidad de mascotas al mismo tiempo.</strong> Un cuidador que atiende 15 perros en una casa no les está dando atención real. Como referencia: entre 3 y 6 mascotas por cuidador es manejable; más de 8 es riesgoso.</li>
+                <li><strong>Experiencia y formación.</strong> Años trabajando con mascotas, formación en primeros auxilios, haber trabajado en veterinaria. Pregunta y pide ejemplos concretos.</li>
+                <li><strong>Protocolo de emergencias.</strong> ¿Qué hacen si tu mascota se enferma? ¿A qué veterinaria la llevarían? ¿Cómo y cuándo te avisan? Un buen cuidador tiene la respuesta clara, no improvisada.</li>
+                <li><strong>Comunicación durante la estadía.</strong> ¿Mandan fotos o videos? ¿Con qué frecuencia? Para muchos tutores, saber cómo está su mascota cada día es parte importante del servicio.</li>
+                <li><strong>Vacunas y desparasitación al día.</strong> El cuidador debería pedirte el carnet de vacunas de tu mascota, y debería garantizarte que todas las otras mascotas en el lugar también están al día. Si no pregunta nada, es señal de alerta.</li>
+                <li><strong>Visita previa.</strong> Cualquier cuidador serio acepta que lleves a tu mascota a conocer el lugar antes de la estadía. Si te niegan la visita previa, piénsalo dos veces.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Preguntas clave antes de dejarla</h3>
+            <ol class="list-decimal list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>¿Cuántas mascotas hay al mismo tiempo durante mi estadía?</li>
+                <li>¿Dónde duerme exactamente? ¿Puedo ver una foto del lugar?</li>
+                <li>¿Cómo manejan a mascotas que no se conocen entre sí?</li>
+                <li>¿Qué hacen si mi mascota no quiere comer o se estresa?</li>
+                <li>¿Qué pasa si se enferma? ¿A qué veterinaria la llevan?</li>
+                <li>¿Cuántas veces al día la sacan al patio o al parque?</li>
+                <li>¿Me pueden mandar fotos o reportes durante la estadía?</li>
+                <li>¿Tienes referencias de otros tutores que pueda contactar?</li>
+                <li>¿Qué tengo que llevar yo (comida, cama, juguetes, medicamentos)?</li>
+                <li>¿Qué pasa si vuelvo antes o después de lo acordado?</li>
+            </ol>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Precios de referencia en Santiago</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los valores varían según la modalidad, la comuna y los servicios incluidos. Como referencia general para 2026:
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Guardería diurna, día completo:</strong> entre $12.000 y $25.000.</li>
+                <li><strong>Hospedaje nocturno en casa del cuidador:</strong> entre $15.000 y $35.000 por noche.</li>
+                <li><strong>Cuidado en tu casa:</strong> entre $20.000 y $45.000 por día o noche, dependiendo si el cuidador se queda a dormir o solo pasa a atender.</li>
+                <li><strong>Estadías largas (más de 7 noches):</strong> suele haber descuentos entre 10% y 20%.</li>
+            </ul>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En comunas como <strong>Las Condes, Vitacura, Lo Barnechea y Providencia</strong> los valores tienden a estar en el rango alto. En <strong>Ñuñoa, La Reina o Maipú</strong>, en el medio. Lo importante no es pagar lo más barato, sino tener claro qué incluye el precio: paseos diarios, comida, medicación, reportes con fotos.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Señales de alerta</h3>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li>No quiere mostrar el lugar ni acepta una visita previa.</li>
+                <li>No te pide el carnet de vacunas ni información de la mascota.</li>
+                <li>Atiende demasiadas mascotas para el espacio que tiene.</li>
+                <li>Es evasivo con la cantidad de perros u otras mascotas que hay.</li>
+                <li>No tiene plan claro de emergencia veterinaria.</li>
+                <li>No responde los mensajes con regularidad antes de la estadía (es señal de cómo va a responder durante).</li>
+                <li>Pide todo el pago por adelantado antes de que tu mascota siquiera llegue.</li>
+                <li>No tiene referencias o se molesta cuando las pides.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Algunas consideraciones para gatos</h3>
+            <p class="mb-4 text-base leading-relaxed text-slate-600">
+                Los gatos no son perros chicos: lo que les pasa bien es distinto.
+            </p>
+            <ul class="list-disc list-inside mb-6 text-base leading-relaxed text-slate-600 space-y-2">
+                <li><strong>Mejor en casa que en guardería.</strong> La mayoría de los gatos se estresan mucho cambiando de territorio. Si puedes, prefiere un cuidador que visite tu casa a diario o que se quede en ella.</li>
+                <li><strong>Cambios de comida y rutina mínimos.</strong> El cuidador debe usar la misma comida, el mismo horario y los mismos lugares.</li>
+                <li><strong>Caja de arena y agua fresca sí o sí.</strong> Visitas de al menos una vez al día si el gato queda solo, idealmente dos.</li>
+                <li><strong>Cuidado con gatos de solo exterior o indoor estricto.</strong> Si tu gato sale o no sale, el cuidador tiene que mantener esa misma lógica. Un gato indoor que accidentalmente queda afuera puede perderse en minutos.</li>
+            </ul>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Cómo encontrarlo en Pawnecta</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                En Pawnecta puedes buscar en la categoría "Cuidado y hospedaje", filtrar por tu comuna y ver los cuidadores disponibles. Cada uno tiene su perfil con fotos, descripción, precios y mascotas que acepta. Puedes contactarlo directamente por el chat o, si tiene reserva en línea activada, reservar directo por los días que necesitas.
+            </p>
+
+            <h3 class="text-xl font-bold text-slate-800 mt-8 mb-4">Para cerrar</h3>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Dejar a tu mascota con alguien más es una decisión emocional, no solo práctica. Tómate el tiempo de visitar el lugar, preguntar lo que necesites preguntar sin vergüenza, y confía en tu instinto. Si algo no te hace sentido, busca otra opción. Hay cuidadores buenísimos en Santiago; solo hay que encontrar el correcto para tu mascota.
+            </p>
+            <p class="mb-6 text-base leading-relaxed text-slate-600">
+                Y si tienes dudas, escríbenos a hola@pawnecta.com.
+            </p>
+        `
     }
 ];
 
