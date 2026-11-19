@@ -205,7 +205,10 @@ test.describe('pii-chat-nombre — superficies autenticadas', () => {
     test('[AUTH-PII-02] /favoritos tab Proveedores — card oculta apellido legal y muestra nombre resuelto', async ({ page }) => {
         if (!targets) test.skip(true, 'targets no resueltos');
         const t = targets!;
-        const html = await getFullHtml(page, `/favoritos?tab=proveedores`);
+        // pages/favoritos.tsx:39 lee `router.query.tipo === 'proveedor'`
+        // (key `tipo`, valor singular). La UI tiene 2 tabs: Servicios /
+        // Proveedores, pero el query param es `tipo=proveedor`.
+        const html = await getFullHtml(page, `/favoritos?tipo=proveedor`);
 
         expect(
             html,
