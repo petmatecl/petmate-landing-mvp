@@ -1899,8 +1899,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 </div>
                             </section>
 
+                            {/* Sprint form-sidebar hr (2026-11-20) — separador
+                                visual entre secciones pedido por PO en smoke #137. */}
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
+
                             {/* ── SECCIÓN 2: Precio y disponibilidad ── */}
-                            <section id="form-section-precio" className="border-t border-slate-100 py-6 scroll-mt-4">
+                            <section id="form-section-precio" className="scroll-mt-4">
                                 <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2017,6 +2021,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
                             </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── SECCIÓN: Agenda (agrupa toggle maestro + F1 + F2) ──
                                 Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20) —
@@ -2663,8 +2669,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             )}
                             </section>
 
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
+
                             {/* ── SECCIÓN 3: Mascotas ── */}
-                            <section id="form-section-mascotas" className="border-t border-slate-100 py-6 scroll-mt-4">
+                            <section id="form-section-mascotas" className="py-6 scroll-mt-4">
                                 <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
                                 <div role="group" aria-label="Mascotas aceptadas" className="flex flex-wrap gap-2 mb-3">
                                     {[
@@ -2702,8 +2710,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 )}
                             </section>
 
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
+
                             {/* ── COMUNAS DE COBERTURA ── */}
-                            <section id="form-section-comunas" className="pt-2 scroll-mt-4">
+                            <section id="form-section-comunas" className="scroll-mt-4">
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
                                     <MapPin size={14} className="text-slate-400" />
                                     Comunas donde prestas el servicio <span className="text-red-500">*</span>
@@ -2773,6 +2783,8 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
                             </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── CAMPOS ESPECÍFICOS POR CATEGORÍA ── */}
                             <section id="form-section-campos-categoria" className="scroll-mt-4">
@@ -2914,8 +2926,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             )}
                             </section>
 
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
+
                             {/* Fotos */}
-                            <section id="form-section-fotos" className="border-t border-slate-100 pt-6 mt-6 scroll-mt-4">
+                            <section id="form-section-fotos" className="pt-2 scroll-mt-4">
                                 <div className="flex items-center justify-between mb-1">
                                     <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
                                         Fotos del servicio <span className="text-danger-500 normal-case">*</span>
