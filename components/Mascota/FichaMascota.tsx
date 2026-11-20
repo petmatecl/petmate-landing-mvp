@@ -131,7 +131,7 @@ export default function FichaMascota({ mascota, showHeader = true }: Props) {
 
             {Array.isArray(mascota.fotos_galeria) && mascota.fotos_galeria.length > 0 && (
                 <div className="mt-3">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-400 font-medium mb-1.5">Galería</p>
+                    <p className="text-[10px] uppercase tracking-widest text-slate-500 font-medium mb-1.5">Galería</p>
                     <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
                         {mascota.fotos_galeria.map((url: string, i: number) => (
                             /* eslint-disable-next-line @next/next/no-img-element */

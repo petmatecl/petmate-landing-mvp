@@ -116,7 +116,7 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                             onClick={onClose}
                             disabled={isSubmitting}
                             aria-label="Cerrar"
-                            className="text-slate-400 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="text-slate-500 hover:text-slate-600 transition-colors p-2 rounded-full hover:bg-slate-200 disabled:opacity-40 disabled:cursor-not-allowed"
                         >
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                         </button>
@@ -185,10 +185,10 @@ export default function ReviewModal({ isOpen, onClose, servicioId, proveedorId, 
                                     disabled={isSubmitting}
                                 ></textarea>
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className={comentario.length > 0 && comentario.length < 20 ? 'text-warning-600' : 'text-slate-400'}>
+                                    <span className={comentario.length > 0 && comentario.length < 20 ? 'text-warning-600' : 'text-slate-500'}>
                                         Mínimo 20 caracteres
                                     </span>
-                                    <span className={comentario.length > 500 ? 'text-danger-500' : 'text-slate-400'}>
+                                    <span className={comentario.length > 500 ? 'text-danger-500' : 'text-slate-500'}>
                                         {comentario.length}/500
                                     </span>
                                 </div>

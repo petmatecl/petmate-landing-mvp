@@ -449,7 +449,7 @@ function MascotaCard({ mascota, onView, onEdit, onDelete }: {
                     <button
                         onClick={(e) => { e.stopPropagation(); onDelete(); }}
                         aria-label="Eliminar ficha"
-                        className="inline-flex items-center justify-center text-sm text-slate-400 hover:text-danger-600 hover:bg-danger-50 rounded-xl w-9 h-9 transition-colors"
+                        className="inline-flex items-center justify-center text-sm text-slate-500 hover:text-danger-600 hover:bg-danger-50 rounded-xl w-9 h-9 transition-colors"
                     >
                         <Trash2 size={14} />
                     </button>
@@ -489,7 +489,7 @@ function MascotaViewModal({ mascota, onClose, onEdit }: {
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                        className="text-slate-500 hover:text-slate-600 transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -499,7 +499,7 @@ function MascotaViewModal({ mascota, onClose, onEdit }: {
                     {/* Hint: transparencia con el tutor. Esta es LITERALMENTE la
                         misma vista que ve el proveedor al recibir la solicitud. */}
                     <div className="text-xs text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 flex items-start gap-2">
-                        <Eye size={14} className="text-slate-400 shrink-0 mt-0.5" />
+                        <Eye size={14} className="text-slate-500 shrink-0 mt-0.5" />
                         <span>Esta es la ficha que ve el proveedor cuando solicitas un servicio.</span>
                     </div>
 
@@ -754,7 +754,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                         onClick={handleCancel}
                         disabled={submitting}
                         aria-label="Cerrar"
-                        className="text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                        className="text-slate-500 hover:text-slate-600 transition-colors disabled:opacity-50"
                     >
                         <X size={20} />
                     </button>
@@ -809,7 +809,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 /* Sin foto: el slot punteado ES el boton (mismo patron que
                                     el slot "+" de galeria). Click en cualquier parte abre
                                     el file picker. */
-                                <label className="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-400 hover:text-accent-600 shrink-0">
+                                <label className="w-24 h-24 rounded-xl border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-500 hover:text-accent-600 shrink-0">
                                     {uploadingPrincipal ? <Loader2 size={24} className="animate-spin" /> : <Camera size={24} />}
                                     <input
                                         type="file"
@@ -850,7 +850,7 @@ function MascotaFormModal({ userId, mascota, onClose, onSaved }: {
                                 </div>
                             ))}
                             {galeria.length < MAX_GALERIA_MASCOTA && (
-                                <label className="aspect-square rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-400 hover:text-accent-600">
+                                <label className="aspect-square rounded-lg border border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-accent-400 flex items-center justify-center cursor-pointer transition-colors text-slate-500 hover:text-accent-600">
                                     {uploadingGaleria ? <Loader2 size={18} className="animate-spin" /> : <ImagePlus size={18} />}
                                     <input
                                         type="file"

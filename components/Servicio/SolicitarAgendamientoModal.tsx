@@ -1389,7 +1389,7 @@ export default function SolicitarAgendamientoModal({
                         onClick={handleClose}
                         disabled={submitting}
                         aria-label="Cerrar"
-                        className="shrink-0 text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-50"
+                        className="shrink-0 text-slate-500 hover:text-slate-600 transition-colors disabled:opacity-50"
                     >
                         <X size={20} />
                     </button>
@@ -1439,7 +1439,7 @@ export default function SolicitarAgendamientoModal({
 
                             {pickerEstLoading && pickerEstDiasMap.size === 0 ? (
                                 <div className="h-64 bg-slate-100 rounded-xl animate-pulse flex items-center justify-center">
-                                    <Loader2 size={20} className="text-slate-400 animate-spin" />
+                                    <Loader2 size={20} className="text-slate-500 animate-spin" />
                                 </div>
                             ) : pickerEstError ? (
                                 <div role="alert" aria-live="polite" className="p-3 bg-danger-50 border border-danger-100 rounded-lg text-sm text-danger-700">
@@ -1598,14 +1598,14 @@ export default function SolicitarAgendamientoModal({
                                                         ? 'bg-accent-600 text-white border-accent-600'
                                                         : count > 0
                                                             ? 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                                                            : 'bg-slate-50 text-slate-400 border-slate-100'
+                                                            : 'bg-slate-50 text-slate-500 border-slate-100'
                                                 }`}
                                             >
-                                                <span className={`text-[10px] uppercase tracking-wider ${isSel ? 'text-white/80' : 'text-slate-400'}`}>
+                                                <span className={`text-[10px] uppercase tracking-wider ${isSel ? 'text-white/80' : 'text-slate-500'}`}>
                                                     {nombreDiaCorto(fecha)}
                                                 </span>
                                                 <span className="text-base font-semibold">{diaNumero(fecha)}</span>
-                                                <span className={`text-[10px] mt-0.5 ${isSel ? 'text-white/80' : count > 0 ? 'text-accent-700' : 'text-slate-400'}`}>
+                                                <span className={`text-[10px] mt-0.5 ${isSel ? 'text-white/80' : count > 0 ? 'text-accent-700' : 'text-slate-500'}`}>
                                                     {count > 0 ? `${count} libre${count === 1 ? '' : 's'}` : '—'}
                                                 </span>
                                             </button>
@@ -1850,7 +1850,7 @@ export default function SolicitarAgendamientoModal({
 
                             <div>
                                 <label htmlFor="agend-direccion-info" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                    Información adicional <span className="text-slate-400 font-normal text-xs">(opcional)</span>
+                                    Información adicional <span className="text-slate-500 font-normal text-xs">(opcional)</span>
                                 </label>
                                 <input
                                     id="agend-direccion-info"
@@ -1873,7 +1873,7 @@ export default function SolicitarAgendamientoModal({
                         "Agregar una mascota". Ficha vs texto son mutuamente exclusivos. */}
                     <div>
                         <label htmlFor="agend-mascota" className="block text-sm font-medium text-slate-700 mb-1.5 flex items-center gap-1.5">
-                            <PawPrint size={14} className="text-slate-400" />
+                            <PawPrint size={14} className="text-slate-500" />
                             ¿Para cuál de tus mascotas? (opcional)
                         </label>
                         {misMascotas.length > 0 ? (
@@ -1908,7 +1908,7 @@ export default function SolicitarAgendamientoModal({
                                                         className="w-7 h-7 rounded-lg object-cover shrink-0"
                                                     />
                                                 ) : (
-                                                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                                                    <span className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${selected ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-500'}`}>
                                                         <PawPrint size={14} />
                                                     </span>
                                                 )}

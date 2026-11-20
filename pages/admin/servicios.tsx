@@ -198,7 +198,7 @@ function GestionServicios() {
             <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-400 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
+                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
@@ -206,7 +206,7 @@ function GestionServicios() {
                                 <Briefcase className="text-indigo-400" />
                                 Gestión de Servicios
                             </h1>
-                            <p className="text-sm text-slate-400">Moderación de catálogo publicado</p>
+                            <p className="text-sm text-slate-500">Moderación de catálogo publicado</p>
                         </div>
                     </div>
                 </div>
@@ -223,10 +223,10 @@ function GestionServicios() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-slate-700 mb-1">{statsData.activosCount}</p>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicios Activos (Públicos)</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Servicios Activos (Públicos)</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
-                            <p className="text-xs font-semibold text-slate-400">De un total de {servicios.length} borradores e inactivos.</p>
+                            <p className="text-xs font-semibold text-slate-500">De un total de {servicios.length} borradores e inactivos.</p>
                         </div>
                     </div>
 
@@ -237,16 +237,16 @@ function GestionServicios() {
                         </div>
                         <div>
                             <p className="text-3xl font-bold text-amber-600 mb-2 truncate max-w-[200px] sm:max-w-[250px]">{statsData.mvpServicio || '-'}</p>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Servicio Más Visto</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Servicio Más Visto</p>
                         </div>
                         <div className="mt-4 pt-4 border-t border-slate-100 w-full">
-                            <p className="text-xs font-semibold text-slate-600 flex items-center gap-1"><Eye size={12} className="text-slate-400" /> Acumulando <strong className="text-slate-700">{statsData.mvpViews}</strong> visualizaciones perfil.</p>
+                            <p className="text-xs font-semibold text-slate-600 flex items-center gap-1"><Eye size={12} className="text-slate-500" /> Acumulando <strong className="text-slate-700">{statsData.mvpViews}</strong> visualizaciones perfil.</p>
                         </div>
                     </div>
 
                     {/* Tarjeta 3: Gráfico CSS Categorias */}
                     <div className="bg-slate-900 rounded-3xl p-6 border border-slate-800 shadow-lg text-white">
-                        <p className="text-xs font-medium text-slate-400 flex items-center gap-2 uppercase tracking-widest mb-4">
+                        <p className="text-xs font-medium text-slate-500 flex items-center gap-2 uppercase tracking-widest mb-4">
                             <BarChart3 size={14} className="text-indigo-400" /> Distribución Top 5
                         </p>
 
@@ -301,7 +301,7 @@ function GestionServicios() {
                                 ))}
                             </select>
                             <div className="relative flex-1 sm:w-64">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Buscar título o proveedor..."
@@ -318,7 +318,7 @@ function GestionServicios() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
-                            <thead className="text-xs uppercase bg-slate-50 text-slate-400 font-medium tracking-widest">
+                            <thead className="text-xs uppercase bg-slate-50 text-slate-500 font-medium tracking-widest">
                                 <tr>
                                     <th className="px-6 py-4">Servicio</th>
                                     <th className="px-6 py-4">Proveedor</th>
@@ -332,7 +332,7 @@ function GestionServicios() {
                             <tbody className="divide-y divide-slate-100">
                                 {loading && (
                                     <tr>
-                                        <td colSpan={7} className="py-12 text-center text-slate-400">
+                                        <td colSpan={7} className="py-12 text-center text-slate-500">
                                             <div className="flex justify-center mb-2"><div className="w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin"></div></div>
                                             Cargando servicios en la plataforma...
                                         </td>
@@ -352,7 +352,7 @@ function GestionServicios() {
                                     <tr key={s.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-6 py-4 max-w-[250px]">
                                             <p className="font-semibold text-slate-900 truncate" title={s.titulo}>{s.titulo}</p>
-                                            <p className="text-xs text-slate-400 flex items-center gap-1 mt-0.5"><Clock size={10} /> {new Date(s.created_at).toLocaleDateString()}</p>
+                                            <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5"><Clock size={10} /> {new Date(s.created_at).toLocaleDateString()}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <p className="font-semibold text-slate-700">{s.proveedor_nombre} {s.proveedor_apellido}</p>
@@ -367,14 +367,14 @@ function GestionServicios() {
                                             <p className="font-semibold text-accent-600">${s.precio_desde.toLocaleString('es-CL')}</p>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <p className="text-slate-600 font-medium flex items-center gap-1.5"><Eye size={12} className="text-slate-400" /> {s.vistas}</p>
+                                            <p className="text-slate-600 font-medium flex items-center gap-1.5"><Eye size={12} className="text-slate-500" /> {s.vistas}</p>
                                         </td>
                                         <td className="px-6 py-4">
                                             <EstadoBadge activo={s.activo} />
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="flex justify-end gap-2 items-center">
-                                                <button onClick={() => setModalData(s)} className="p-1.5 text-slate-400 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors tooltip tooltip-left" title="Inspeccionar Contenido">
+                                                <button onClick={() => setModalData(s)} className="p-1.5 text-slate-500 hover:bg-indigo-50 hover:text-indigo-600 rounded-lg transition-colors tooltip tooltip-left" title="Inspeccionar Contenido">
                                                     <Eye size={18} />
                                                 </button>
 
@@ -429,7 +429,7 @@ function GestionServicios() {
                                 <h3 id="admin-servicios-detalle-title" className="text-2xl font-semibold text-slate-900 tracking-tight leading-tight">{modalData.titulo}</h3>
                                 <p className="text-sm text-slate-500 mt-1">Proveedor: <span className="font-semibold text-slate-700">{modalData.proveedor_nombre} {modalData.proveedor_apellido}</span></p>
                             </div>
-                            <button onClick={() => setModalData(null)} aria-label="Cerrar" className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
+                            <button onClick={() => setModalData(null)} aria-label="Cerrar" className="p-2 bg-white rounded-full text-slate-500 hover:text-slate-900 shadow-sm border border-slate-200 transition-colors shrink-0">
                                 <XCircle size={24} />
                             </button>
                         </div>
@@ -437,24 +437,24 @@ function GestionServicios() {
                         {/* Cuerpo Scrolls */}
                         <div className="p-6 overflow-y-auto w-full space-y-6">
                             <div>
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">Descripción Pública</p>
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">Descripción Pública</p>
                                 <p className="text-slate-700 text-sm whitespace-pre-wrap leading-relaxed">{modalData.descripcion}</p>
                             </div>
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Tarifa Base</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-1">Tarifa Base</p>
                                     <p className="text-2xl font-bold text-accent-700 tracking-tight">${modalData.precio_desde.toLocaleString('es-CL')}</p>
                                 </div>
                                 <div className="bg-slate-50 p-4 border border-slate-100 rounded-2xl">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-1">Métricas</p>
-                                    <p className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-400">vistas orgánicas</span></p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-1">Métricas</p>
+                                    <p className="text-2xl font-bold text-slate-900 tracking-tight flex items-center gap-2"><Eye size={20} className="text-indigo-400" /> {modalData.vistas} <span className="text-sm font-medium text-slate-500">vistas orgánicas</span></p>
                                 </div>
                             </div>
 
                             {modalData.tiempo_duracion && (
                                 <div>
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">Duración y Frecuencia</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">Duración y Frecuencia</p>
                                     <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 inline-block">
                                         <p className="text-sm font-medium text-slate-700 italic">{modalData.tiempo_duracion}</p>
                                     </div>
@@ -472,7 +472,7 @@ function GestionServicios() {
                         {/* Footer acciones modal */}
                         <div className="p-4 bg-slate-50 border-t border-slate-100 rounded-b-3xl">
                             <div className="flex justify-between items-center px-2">
-                                <p className="text-xs text-slate-400">ID Interno: {modalData.id.split('-')[0]}...</p>
+                                <p className="text-xs text-slate-500">ID Interno: {modalData.id.split('-')[0]}...</p>
                                 <button onClick={() => setModalData(null)} className="px-6 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium rounded-lg text-sm transition-colors">
                                     Cerrar Ficha
                                 </button>

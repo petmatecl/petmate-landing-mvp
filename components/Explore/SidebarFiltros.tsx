@@ -232,11 +232,11 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 2. Búsqueda ── */}
             <div className="mb-5">
-                <label htmlFor="sidebar-search" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-search" className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
                     Buscar
                 </label>
                 <div className="relative">
-                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                     <input
                         id="sidebar-search"
                         name="q"
@@ -247,14 +247,14 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         placeholder="Servicio o nombre del proveedor..."
                         className="w-full h-10 pl-9 pr-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm
                                    focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white
-                                   placeholder:text-slate-400 transition-colors"
+                                   placeholder:text-slate-500 transition-colors"
                     />
                 </div>
             </div>
 
             {/* ── 3. Categoría (single-select) ── */}
             <div className="mb-5 border-t border-slate-100 pt-5" role="radiogroup" aria-label="Categoría">
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">
                     Categoría
                 </label>
 
@@ -273,7 +273,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }`}>
                         {filters.categoria === null && <div className="w-2 h-2 rounded-full bg-accent-700" />}
                     </div>
-                    <Grid2x2 size={14} className={filters.categoria === null ? 'text-accent-600' : 'text-slate-400'} />
+                    <Grid2x2 size={14} className={filters.categoria === null ? 'text-accent-600' : 'text-slate-500'} />
                     <span>Todas las categorías</span>
                 </button>
 
@@ -308,7 +308,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                         }`}>
                                         {checked && <div className="w-2 h-2 rounded-full bg-accent-700" />}
                                     </div>
-                                    <CatIcon size={14} className={checked ? 'text-accent-600' : 'text-slate-400'} />
+                                    <CatIcon size={14} className={checked ? 'text-accent-600' : 'text-slate-500'} />
                                     <span className="text-left flex-1 truncate">{cat.nombre}</span>
                                 </button>
 
@@ -349,7 +349,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 son category-specific (CAMPOS_POR_CATEGORIA[slug]). Sin
                 categoria, copy guia para descubrir la feature. */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">
                     Incluye
                 </label>
                 {categoriaSlug && opcionesInclusiones.length > 0 ? (
@@ -373,7 +373,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         })}
                     </div>
                 ) : (
-                    <p className="text-xs text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-500 leading-relaxed">
                         Elige una categoría para filtrar por qué incluye el servicio.
                     </p>
                 )}
@@ -385,7 +385,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                 puramente UI, no persiste en URL — se deriva de la
                 comuna actual al hidratar via getZonaFromComuna. */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label htmlFor="sidebar-zona" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-zona" className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
                     Zona
                 </label>
                 <select
@@ -400,11 +400,11 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                     ))}
                 </select>
 
-                <label htmlFor="sidebar-comuna" className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-2">
+                <label htmlFor="sidebar-comuna" className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-2">
                     Comuna
                 </label>
                 <div className="relative" ref={comunaRef}>
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 z-10 pointer-events-none">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 z-10 pointer-events-none">
                         <svg width="15" height="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2"
                                 d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
@@ -471,7 +471,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder={zona ? `Comuna en zona ${ZONAS_RM.find(z => z.slug === zona)?.label.toLowerCase()}` : '¿En qué comuna?'}
                         autoComplete="off"
-                        className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
+                        className="w-full pl-9 pr-10 py-2.5 text-sm border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-500 transition-colors"
                     />
                     {comunaOpen && comunasFiltradas.length > 0 && (
                         <ul id="sidebar-comuna-listbox" role="listbox" aria-label="Sugerencias de comuna" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto">
@@ -495,7 +495,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 5. Tipo de mascota ── */}
             <div className="mb-5 border-t border-slate-100 pt-5">
-                <label className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
+                <label className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">
                     Tipo de mascota
                 </label>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -514,7 +514,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                                 : 'bg-slate-50 text-slate-600 border-slate-200 hover:border-accent-300 hover:bg-white'
                                 }`}
                         >
-                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-accent-600' : 'text-slate-400'} />
+                            <opt.Icon size={14} className={filters.mascota === opt.id ? 'text-accent-600' : 'text-slate-500'} />
                             <span>{opt.label}</span>
                         </button>
                     ))}
@@ -545,7 +545,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
 
             {/* ── 6. Precio ── */}
             <div className="border-t border-slate-100 pt-5">
-                <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest mb-3">
+                <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest mb-3">
                     Precio (CLP)
                 </span>
                 <div className="flex items-center gap-2">
@@ -563,10 +563,10 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder="Mín"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
-                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-600
+                                   placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-600
                                    focus:border-accent-600 focus:bg-white transition-colors"
                     />
-                    <span className="text-slate-400 text-sm font-medium select-none shrink-0">a</span>
+                    <span className="text-slate-500 text-sm font-medium select-none shrink-0">a</span>
                     <input
                         id="sidebar-precio-max"
                         name="precio-max"
@@ -581,7 +581,7 @@ export default function SidebarFiltros({ filters, categories, onFilterChange, on
                         }}
                         placeholder="Máx"
                         className="w-full h-10 px-3 border border-slate-200 rounded-xl text-sm text-slate-900 bg-slate-50
-                                   placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-accent-600
+                                   placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-accent-600
                                    focus:border-accent-600 focus:bg-white transition-colors"
                     />
                 </div>

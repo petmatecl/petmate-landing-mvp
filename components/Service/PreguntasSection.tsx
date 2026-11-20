@@ -116,7 +116,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                 <MessageCircle size={22} className="text-accent-600" />
                 Preguntas al proveedor
             </h3>
-            <p className="text-sm text-slate-400 mb-6">Las preguntas y respuestas son públicas y ayudan a otros tutores.</p>
+            <p className="text-sm text-slate-500 mb-6">Las preguntas y respuestas son públicas y ayudan a otros tutores.</p>
 
             {/* Ask form */}
             {!isProveedor && (
@@ -153,7 +153,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
             {error ? (
                 <EstadoError titulo={error} onRetry={fetchPreguntas} />
             ) : preguntas.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-4">
+                <p className="text-sm text-slate-500 text-center py-4">
                     {isProveedor ? 'Aún no te han hecho preguntas.' : 'Sé el primero en preguntar.'}
                 </p>
             ) : (
@@ -170,7 +170,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                 <span className="text-xs font-semibold text-accent-600 bg-accent-50 px-1.5 py-0.5 rounded shrink-0 mt-0.5">P</span>
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-700">{q.pregunta}</p>
-                                    <p className="text-[11px] text-slate-400 mt-1">
+                                    <p className="text-[11px] text-slate-500 mt-1">
                                         {formatDistanceToNow(new Date(q.created_at), { addSuffix: true, locale: es })}
                                     </p>
                                 </div>
@@ -181,7 +181,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                     <span className="text-xs font-semibold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 mt-0.5">R</span>
                                     <div>
                                         <p className="text-sm text-slate-600">{q.respuesta}</p>
-                                        <p className="text-[11px] text-slate-400 mt-1">
+                                        <p className="text-[11px] text-slate-500 mt-1">
                                             {formatDistanceToNow(new Date(q.respuesta_at), { addSuffix: true, locale: es })}
                                         </p>
                                     </div>
@@ -201,7 +201,7 @@ export default function PreguntasSection({ servicioId, proveedorId, proveedorAut
                                                 {replying ? <Loader2 size={12} className="animate-spin" /> : 'Responder'}
                                             </button>
                                             <button onClick={() => { setReplyId(null); setReplyText(''); }}
-                                                className="text-xs text-slate-400 px-2">Cancelar</button>
+                                                className="text-xs text-slate-500 px-2">Cancelar</button>
                                         </div>
                                     ) : (
                                         <button onClick={() => setReplyId(q.id)}

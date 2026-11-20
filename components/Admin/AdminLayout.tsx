@@ -80,7 +80,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         className="text-xl font-bold text-accent-700 tracking-tight flex items-center gap-2"
                     >
                         <PawPrint size={24} /> PAWNECTA{' '}
-                        <span className="text-slate-400 font-normal text-xs">Admin</span>
+                        <span className="text-slate-500 font-normal text-xs">Admin</span>
                     </Link>
                 </div>
 
@@ -109,7 +109,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
                     <Link
                         href="/"
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
                     >
                         <ArrowLeft size={20} /> Volver al Sitio
                     </Link>

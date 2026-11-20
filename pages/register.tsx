@@ -313,7 +313,7 @@ export default function RegisterWizard() {
 
   const getTotalSteps = () => rol === 'proveedor' ? 4 : 3;
 
-  const inputClass = "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors";
+  const inputClass = "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors";
 
   return (
     <>
@@ -505,7 +505,7 @@ export default function RegisterWizard() {
                       <button
                         type="button"
                         onClick={() => setShowPassword(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors"
                         aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
                       >
                         {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -541,7 +541,7 @@ export default function RegisterWizard() {
                       <button
                         type="button"
                         onClick={() => setShowPasswordConfirm(v => !v)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600 transition-colors"
                         aria-label={showPasswordConfirm ? "Ocultar contraseña" : "Mostrar contraseña"}
                       >
                         {showPasswordConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -645,7 +645,7 @@ export default function RegisterWizard() {
                     maxLength={500}
                     rows={4}
                     placeholder="Ej: Tengo 5 años cuidando perros y gatos de raza..."
-                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors resize-none"
                   />
                   <div className="flex justify-between items-center mt-1">
                     <p className="text-xs text-slate-500">Opcional. Si describes tu experiencia (mínimo 50 caracteres), recibirás más consultas.</p>

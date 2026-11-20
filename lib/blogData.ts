@@ -90,14 +90,14 @@ const RAW_POSTS: BlogPost[] = [
             </div>
 
             <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
-                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.aspca.org/pet-care/general-pet-care/hot-weather-safety-tips" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">ASPCA - Hot Weather Safety Tips</a>
                     </li>
                     <li class="flex items-center gap-2">
-                         <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                         <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.akc.org/expert-advice/health/summer-safety-tips-for-dogs/" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">American Kennel Club (AKC) - Summer Safety</a>
                     </li>
                 </ul>
@@ -185,14 +185,14 @@ const RAW_POSTS: BlogPost[] = [
             </p>
 
             <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                  <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
-                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.avma.org/resources-tools/pet-owners/petcare/warm-weather-pet-safety" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">AVMA - Warm Weather Pet Safety</a>
                     </li>
                     <li class="flex items-center gap-2">
-                         <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                         <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.humanesociety.org/resources/keep-pets-safe-heat" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">The Humane Society - Keep Pets Safe</a>
                     </li>
                 </ul>
@@ -224,8 +224,8 @@ const RAW_POSTS: BlogPost[] = [
             <div class="bg-accent-50 rounded-xl p-6 border border-accent-100 mb-8">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="bg-white p-5 rounded-lg shadow-sm border border-accent-50">
-                        <span class="block text-xs text-slate-400 uppercase tracking-widest font-bold mb-2">Gato Outdoor (Con acceso libre)</span>
-                        <span class="text-3xl font-extrabold text-slate-400">2 a 5 años</span>
+                        <span class="block text-xs text-slate-500 uppercase tracking-widest font-bold mb-2">Gato Outdoor (Con acceso libre)</span>
+                        <span class="text-3xl font-extrabold text-slate-500">2 a 5 años</span>
                         <p class="text-sm text-slate-500 mt-2">Expuesto a atropellos, venenos y depredadores.</p>
                     </div>
                     <div class="bg-white p-5 rounded-lg shadow-sm border border-accent-200 ring-2 ring-accent-50">
@@ -322,7 +322,7 @@ const RAW_POSTS: BlogPost[] = [
             </ul>
 
             <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
                         <svg class="w-3 h-3 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
@@ -460,14 +460,14 @@ const RAW_POSTS: BlogPost[] = [
             </p>
 
             <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
-                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.cdc.gov/healthypets/health-benefits/index.html" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">CDC - Health Benefits of Owning a Pet</a>
                     </li>
                      <li class="flex items-center gap-2">
-                        <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                        <svg class="w-3 h-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
                         <a href="https://www.mentalhealth.org.uk/explore-mental-health/a-z-topics/pets-and-mental-health" target="_blank" rel="nofollow noopener" class="hover:text-accent-600 hover:underline">Mental Health Foundation - Pets and Mental Health</a>
                     </li>
                 </ul>
@@ -555,7 +555,7 @@ const RAW_POSTS: BlogPost[] = [
             </p>
 
             <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes Consultadas</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
                         <svg class="w-3 h-3 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
@@ -642,7 +642,7 @@ const RAW_POSTS: BlogPost[] = [
             </p>
 
              <div class="mt-12 pt-8 border-t border-slate-300">
-                <h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">Fuentes y Referencias</h4>
                 <ul class="text-xs text-slate-500 space-y-2">
                     <li class="flex items-center gap-2">
                         <svg class="w-3 h-3 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>

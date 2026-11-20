@@ -213,7 +213,7 @@ export default function FeedbackWidget() {
                         <button
                             onClick={closeAndReset}
                             aria-label="Cerrar feedback"
-                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center -mr-2 text-slate-400 hover:text-slate-600"
+                            className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center -mr-2 text-slate-500 hover:text-slate-600"
                         >
                             <X size={16} />
                         </button>
@@ -281,10 +281,10 @@ export default function FeedbackWidget() {
                                     placeholder={categoria ? CATEGORIA_PLACEHOLDERS[categoria] : 'Cuéntanos qué piensas...'}
                                     rows={4}
                                     maxLength={2000}
-                                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none placeholder:text-slate-400"
+                                    className="w-full px-3 py-2 border border-slate-200 rounded-xl bg-slate-50 text-sm focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none resize-none placeholder:text-slate-500"
                                 />
                                 <div className="flex justify-end mt-1">
-                                    <span className={`text-[10px] ${mensaje.length > 2000 || (mensaje.length > 0 && mensaje.length < 10) ? 'text-danger-500' : 'text-slate-400'}`}>
+                                    <span className={`text-[10px] ${mensaje.length > 2000 || (mensaje.length > 0 && mensaje.length < 10) ? 'text-danger-500' : 'text-slate-500'}`}>
                                         {mensaje.length}/2000 (mín 10)
                                     </span>
                                 </div>

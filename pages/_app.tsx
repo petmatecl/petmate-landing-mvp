@@ -88,7 +88,7 @@ export default function MyApp({ Component, pageProps }: AppProps) {
                 description:  'text-xs opacity-90 mt-1',
                 actionButton: 'font-semibold text-xs px-3 py-1.5 rounded-lg',
                 cancelButton: 'text-xs px-3 py-1.5 rounded-lg border',
-                closeButton:  '!left-auto !right-2 text-slate-400 hover:text-slate-600',
+                closeButton:  '!left-auto !right-2 text-slate-500 hover:text-slate-600',
                 success: 'bg-success-50 border-success-100 text-success-900',
                 info:    'bg-info-50 border-info-100 text-info-900',
                 warning: 'bg-warning-50 border-warning-100 text-warning-900',
