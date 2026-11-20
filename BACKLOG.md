@@ -1054,11 +1054,11 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
 
 - **[CERRADO — sprint f2-ci-fix 2026-09-09, señal visible aplicada]** **Servicios existentes con `descripcion` < 100 caracteres — guard con señal visible siempre** — política PO 2026-09-09: se mantiene el mínimo de 100 chars (no se permite guardar otros campos sin extenderla), pero el guard debe dar señal visible en TODO caso, no solo toast (que dura ~4s y se pierde si el proveedor no mira arriba). Contexto: FIX 3 de panel-prov-fixes (`ab82c86`, 2026-08-27) agregó el guard `if (descripcion.trim().length < 100) return toast.error(...)` en `handleSubmit` de `ServiceFormModal.tsx:625` — solo toast. Durante el diagnóstico del sprint f2-ci-fix, la sesión MCP tras Guardar con desc 55 chars + wait 18s no mostró señal alguna: toast expirado, ni inline error, ni focus, ni scroll. Un proveedor que toca Guardar sin recibir señal es una pantalla muda. **Fix aplicado en `ServiceFormModal.tsx`**: extender el guard al patrón F2-2B-B ya probado — nuevo state `descripcionError` + inline error persistente bajo el textarea (border danger + aria-invalid + role=alert) + scrollIntoView + focus del textarea + toast (los 4 canales). Limpieza del error inline al primer typeo. Cerrado por `<SHA-lote-5-tipo-b-tbd>` (ver commit `fix(editor)` del PR ci-f2-specs). Test de regresión: `e2e/specs/f2-2b/s7-guard-descripcion-corta.spec.ts` (2 tests: guard cierra fail-close con inline+focus+cero-PATCH; typeo limpia inline). Impacto en prod: cero regresión — el único caso conocido (servicio "Cuidado tu mascota" del propio Aldo, inactivo) sigue funcionando igual, pero ahora ve el error inline si intenta editar sin extender descripción.
 
-## Herramientas admin pre-launch o primeras semanas post-launch
+## Herramientas admin — pre-campañas y post-campañas
 
-Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario final — habilitan al PO para operar la plataforma con más visibilidad y acción manual durante lanzamiento + estabilización.
+Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario final — habilitan al PO para operar la plataforma con más visibilidad y acción manual durante la ventana pre-campañas (mientras se avanza hacia meta 100 proveedores) + post-activación de campañas.
 
-### ADMIN-PROVEEDORES-FECHA-REGISTRO — alta pre-launch si cabe · prioridad alta
+### ADMIN-PROVEEDORES-FECHA-REGISTRO — pre-campañas · prioridad alta
 
 **Qué**: agregar columna "Registrado" al listado del panel `/admin/proveedores` con la fecha en que el proveedor se registró, formato DD-MM-YYYY, ordenable.
 
@@ -1068,13 +1068,13 @@ Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario fi
 
 **Estimación**: 15-30 min. **Dependencia**: ninguna.
 
-**Impacto**: herramienta operacional del PO para ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
+**Impacto**: herramienta operacional del PO para monitorear la meta de 100 proveedores desde ya + ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
 
-**Prioridad**: alta pre-launch si cabe en ventana (viernes 20-11 PM o sábado AM). Si no, primera semana post-launch. No bloqueante del 25-11.
+**Prioridad**: alta pre-campañas. Entra en cualquier ventana calma (deuda chica). Habilita tracking directo visual del progreso hacia los 100 proveedores.
 
 ---
 
-### ADMIN-PROVEEDORES-RECORDATORIO-MANUAL — prioridad media · 1-2 semanas post-launch
+### ADMIN-PROVEEDORES-RECORDATORIO-MANUAL — post-primeras-campañas · prioridad media
 
 **Qué**: por cada fila del panel `/admin/proveedores`, botón que dispara un correo recordatorio al proveedor con contenido según su estado actual. 4 estados a cubrir:
 
@@ -1104,7 +1104,61 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 **Estimación**: 3-5h (endpoint + UI del botón + 4 templates + logging + rate limit + spec e2e). Con migración si aplica: +30 min.
 
-**Prioridad**: media. Cabe dentro de la primera o segunda semana post-launch. No bloqueante del 25-11.
+**Prioridad**: media. Cabe post-primeras-campañas como complemento del journey automático. No es bloqueante de activar campañas — las campañas pueden salir sin este canal manual, pero este canal acelera recuperación de proveedores que se quedan en un estado y no avanzan.
+
+---
+
+### TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta
+
+**Qué**: dashboard o query recurrente que el PO revisa 1 vez por semana con el estado de la meta de 100 proveedores activos (criterio para activar campañas pagadas).
+
+**Métricas incluidas**:
+
+- Total proveedores activos = `estado='aprobado' AND al menos 1 servicio_publicado activo`.
+- Distribución por categoría (paseos, cuidado, veterinario, peluquería, etc.) — detectar saturación o desbalance.
+- Distribución por comuna — detectar cobertura geográfica.
+- Última fecha de registro (timestamp del más reciente).
+- Tendencia semanal (nuevos proveedores últimos 7 días vs 7 anteriores).
+
+**Opción A (simple)**: SQL guardada en `docs/ops/query-tracking-100.sql` + el PO la ejecuta manual en Supabase Studio semanalmente. Toma 30 segundos.
+
+**Opción B (dashboard)**: página `/admin/metricas-proveedores` en el panel admin que renderice los números en tiempo real. Agrega UI + componente.
+
+**Recomendación del auditor**: arrancar con Opción A (30 min redactar + revisar query + guardarla) + migrar a Opción B si el PO siente fricción de ir a Studio cada semana.
+
+**Trabajo técnico Opción A**:
+- Query SQL con 5 CTEs (una por métrica).
+- Archivo `docs/ops/query-tracking-100.sql` con la query comentada.
+- Nota en `docs/sprints/pre-campanas.md` que apunta a la query + ritmo semanal.
+
+**Trabajo técnico Opción B**:
+- Página nueva `pages/admin/metricas-proveedores.tsx` con 5 componentes de métrica (card + gráfico simple).
+- Endpoint `GET /api/admin/metricas-proveedores` que ejecuta la query SQL (service role) y retorna JSON.
+- `is_admin()` gate en el endpoint.
+
+**Estimación**: Opción A: 30 min. Opción B: 2-3h.
+
+**Prioridad**: alta pre-campañas. Define el criterio empírico del PO para "cuándo activar campañas".
+
+---
+
+### OBSERVABILIDAD-ALERTAS — post-campañas · prioridad baja
+
+**Qué**: sistema de alertas reales para el PO con monitoreo activo cuando las campañas pagadas estén activas y el tráfico justifique el esfuerzo.
+
+**Componentes**:
+
+- **(a) Sentry alertas por email o WhatsApp**: reglas tipo `is:new AND user.count > 2` → notifica al PO con cooldown 30 min. Twilio integración opcional para WhatsApp.
+- **(b) Uptime check externo**: Uptime Robot (plan free 50 monitors) o equivalente → alerta inmediata al PO si `www.pawnecta.com` responde >5xx o timeout por >2 min.
+- **(c) Monitor volumen de errores de Supabase**: query programada contra `logs` o `pg_stat_statements` con umbral → notifica si errores por hora pasan N (umbral a definir con data real).
+- **(d) Alerta Resend bounces > X por día**: cron diario que hit Resend API + alerta si bounce rate >5%.
+- **(e) Notificaciones diarias con resumen de métricas**: digest al PO cada mañana con: usuarios nuevos 24h, reservas nuevas, incidentes Sentry, errores server, bounces.
+
+**Postergado explícitamente**: hasta que campañas pagadas estén activas y el tráfico justifique inversión de tiempo. En operación orgánica actual, volumen bajo + el PO monitorea manual + los incidentes se escalan caso por caso (ver A3 de `docs/planes/decisiones-po-pendientes-20261120.md` — "auditor queries playbook durante incidentes: NO autorizado permanente, case-by-case").
+
+**Estimación**: 4-6h (Sentry alert rules + Uptime Robot setup + cron bounce check + script daily digest + templates WhatsApp si Twilio).
+
+**Prioridad**: baja. Entra cuando volumen de campañas lo justifique.
 
 ---
 
