@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
-import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
+import { BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
 import RoleGuard from '../components/Shared/RoleGuard';
 import { useScrollToTopOnTabChange } from '../lib/hooks/useScrollToTopOnTabChange';
+import AdminSidebar from '../components/Admin/AdminSidebar';
 
 const AdminMetrics = dynamic(() => import('../components/Admin/AdminMetrics'), { ssr: false });
 const ProveedorApprovalList = dynamic(() => import('../components/Admin/ProveedorApprovalList'), { ssr: false });
@@ -53,8 +55,26 @@ export default function AdminDashboard() {
 }
 
 function AdminDashboardInner() {
+    const router = useRouter();
+
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
+
+    // Sprint admin-sidebar-ref Opción III (2026-11-20) — leer `?tab=X` de
+    // la URL para activar la tab correspondiente al aterrizar con query
+    // param. Los links del AdminSidebar en sub-rutas apuntan a
+    // /admin?tab=conversion, etc.
+    useEffect(() => {
+        if (!router.isReady) return;
+        const q = router.query.tab;
+        const tab = Array.isArray(q) ? q[0] : q;
+        if (!tab) return;
+        const valid = ['dashboard', 'conversion', 'aprobaciones', 'moderacion', 'proveedores', 'feedback'];
+        if (valid.includes(tab) && tab !== activeTab) {
+            setActiveTab(tab);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query.tab]);
     // Sprint d-ui-paneles SCROLL-TAB (2026-09-15) — scroll al top al cambiar
     // de tab; sin esto el contenido del tab nuevo arranca en el offset del
     // anterior, obligando al user a scrollear manual arriba.
@@ -167,78 +187,18 @@ function AdminDashboardInner() {
             </Head>
 
             <div className="flex" style={{ paddingTop: headerH }}>
-                {/* ── SIDEBAR: navegación sticky izquierda ── */}
-                <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-white border-r border-slate-200" style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}>
-                    <div className="p-5 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                            <ShieldCheck className="w-7 h-7 text-accent-700" />
-                            <div>
-                                <h2 className="text-sm font-semibold text-slate-900 leading-tight">Admin</h2>
-                                <p className="text-[11px] text-slate-500">Pawnecta</p>
-                            </div>
-                        </div>
-                    </div>
-                    <nav role="tablist" aria-label="Secciones de administración" aria-orientation="vertical" className="flex-1 p-3 space-y-1">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    role="tab"
-                                    aria-selected={isActive}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                                        ? 'bg-accent-50 text-accent-700 font-semibold'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                        }`}
-                                >
-                                    <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-500'} />
-                                    <span className="flex-1 text-left">{tab.label}</span>
-                                    {typeof tab.badge === 'number' && tab.badge > 0 && (
-                                        <span
-                                            aria-label={`${tab.badge} pendientes`}
-                                            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-semibold bg-accent-600 text-white"
-                                        >
-                                            {tab.badge > 99 ? '99+' : tab.badge}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </nav>
-                </aside>
-
-                {/* ── MOBILE: tabs horizontales ── */}
-                <div role="tablist" aria-label="Secciones de administración" className="lg:hidden fixed left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar" style={{ top: headerH }}>
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                role="tab"
-                                aria-selected={isActive}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-accent-600 text-white font-semibold'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <Icon size={14} />
-                                {tab.label}
-                                {typeof tab.badge === 'number' && tab.badge > 0 && (
-                                    <span
-                                        aria-label={`${tab.badge} pendientes`}
-                                        className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${isActive ? 'bg-white text-accent-700' : 'bg-accent-600 text-white'}`}
-                                    >
-                                        {tab.badge > 99 ? '99+' : tab.badge}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
+                {/* Sprint admin-sidebar-ref Opción III — sidebar unificado
+                    compartido con AdminLayout.tsx para que las 6 superficies
+                    admin (/admin + 5 sub-rutas) muestren la misma navegación.
+                    Modo SPA: pasamos onTabClick → tabs son <button> con
+                    setActiveTab. activeTab resalta la tab correcta. */}
+                <AdminSidebar
+                    tabs={tabs}
+                    activeTab={activeTab}
+                    onTabClick={setActiveTab}
+                    activeSubRoute={null}
+                    headerH={headerH}
+                />
 
                 {/* ── CONTENIDO PRINCIPAL ── */}
                 <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-12 lg:mt-0">

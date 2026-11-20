@@ -1,11 +1,11 @@
 ﻿import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import AdminLayout from '../../components/Admin/AdminLayout';
 import { useModalDialog } from '../../lib/useModalDialog';
 import {
-    ArrowLeft, Search, CheckCircle2, XCircle, Clock, AlertTriangle,
+    Search, CheckCircle2, XCircle, Clock, AlertTriangle,
     Eye, ShieldCheck, User as UserIcon, Briefcase, Star, MapPin
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -277,27 +277,21 @@ function GestionProveedores() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans">
+        <div className="w-full">
             <Head><title>Gestión de Proveedores | Admin</title></Head>
 
-            <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                <ShieldCheck className="text-accent-600" />
-                                Gestión de Proveedores
-                            </h1>
-                            <p className="text-sm text-slate-500">Panel administrativo de perfiles</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {/* Sprint admin-sidebar-ref Opción III — removido <header> negro
+                + back button; AdminLayout provee el sidebar unificado con
+                navegación persistente. */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-900">
+                    <ShieldCheck className="text-accent-600" />
+                    Gestión de Proveedores
+                </h1>
+                <p className="mt-1 text-sm text-slate-600">Panel administrativo de perfiles</p>
+            </div>
 
-            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
                 {/* Controles y Filtros */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 mb-6">
                     <div className="flex flex-col lg:flex-row gap-4 justify-between">
@@ -696,7 +690,9 @@ function GestionProveedores() {
 export default function GestionProveedoresPage() {
     return (
         <RoleGuard requiredRole="admin">
-            <GestionProveedores />
+            <AdminLayout>
+                <GestionProveedores />
+            </AdminLayout>
         </RoleGuard>
     );
 }

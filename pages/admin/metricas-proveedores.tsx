@@ -10,13 +10,13 @@
 // ----------------------------------------------------------------------------
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import AdminLayout from '../../components/Admin/AdminLayout';
 import {
-    ArrowLeft, Target, TrendingUp, TrendingDown, Minus, MapPin, Tag, Clock, Loader2, AlertTriangle,
+    Target, TrendingUp, TrendingDown, Minus, MapPin, Tag, Clock, Loader2, AlertTriangle,
 } from 'lucide-react';
 
 type MetricasResponse = {
@@ -65,7 +65,7 @@ function MetricasPanel() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+            <div className="min-h-[60vh] flex items-center justify-center">
                 <div className="text-center">
                     <Loader2 className="w-10 h-10 animate-spin text-slate-500 mx-auto" aria-hidden="true" />
                     <p className="mt-3 text-slate-600">Cargando métricas...</p>
@@ -76,14 +76,12 @@ function MetricasPanel() {
 
     if (error || !data) {
         return (
-            <div className="min-h-screen bg-slate-50 p-8">
-                <div className="max-w-xl mx-auto bg-white border border-rose-200 rounded-lg p-6">
-                    <div className="flex items-start gap-3">
-                        <AlertTriangle className="w-6 h-6 text-rose-500 flex-shrink-0" aria-hidden="true" />
-                        <div>
-                            <h2 className="font-semibold text-rose-900">No se pudieron cargar las métricas</h2>
-                            <p className="mt-1 text-sm text-rose-700">{error || 'Respuesta vacía'}</p>
-                        </div>
+            <div className="max-w-xl mx-auto bg-white border border-rose-200 rounded-lg p-6 mt-8">
+                <div className="flex items-start gap-3">
+                    <AlertTriangle className="w-6 h-6 text-rose-500 flex-shrink-0" aria-hidden="true" />
+                    <div>
+                        <h2 className="font-semibold text-rose-900">No se pudieron cargar las métricas</h2>
+                        <p className="mt-1 text-sm text-rose-700">{error || 'Respuesta vacía'}</p>
                     </div>
                 </div>
             </div>
@@ -100,21 +98,16 @@ function MetricasPanel() {
     const maxCom = Math.max(...data.por_comuna.map((c) => c.n), 1);
 
     return (
-        <div className="min-h-screen bg-slate-50 py-8">
-            <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-                {/* Header */}
-                <div className="mb-6 flex items-center justify-between">
-                    <div>
-                        <Link href="/admin" className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700">
-                            <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                            Volver al panel
-                        </Link>
-                        <h1 className="mt-2 text-2xl font-bold text-slate-900">Métricas de proveedores</h1>
-                        <p className="mt-1 text-sm text-slate-600">
-                            Avance hacia la meta de 100 proveedores activos para activar campañas pagadas.
-                        </p>
-                    </div>
-                </div>
+        <div className="w-full pb-20 max-w-5xl mx-auto">
+            {/* Sprint admin-sidebar-ref Opción III — removido back button;
+                AdminLayout provee el sidebar con navegación persistente a
+                Dashboard y las otras sub-rutas desde cualquier sub-página. */}
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold text-slate-900">Métricas de proveedores</h1>
+                <p className="mt-1 text-sm text-slate-600">
+                    Avance hacia la meta de 100 proveedores activos para activar campañas pagadas.
+                </p>
+            </div>
 
                 {/* Card meta 100 */}
                 <div className="bg-white border border-slate-200 rounded-lg p-6 mb-6">
@@ -253,10 +246,9 @@ function MetricasPanel() {
                     <p className="text-xs text-slate-500 mt-4">Top 15. Solo cuenta proveedores con comuna declarada.</p>
                 </div>
 
-                <p className="text-xs text-slate-400">
-                    Datos en tiempo real. La página se recarga en cada visita; no cachea en el browser.
-                </p>
-            </div>
+            <p className="text-xs text-slate-400">
+                Datos en tiempo real. La página se recarga en cada visita; no cachea en el browser.
+            </p>
         </div>
     );
 }
@@ -268,7 +260,9 @@ export default function MetricasProveedoresPage() {
                 <title>Métricas de proveedores | Admin Pawnecta</title>
                 <meta name="robots" content="noindex, nofollow" />
             </Head>
-            <MetricasPanel />
+            <AdminLayout>
+                <MetricasPanel />
+            </AdminLayout>
         </RoleGuard>
     );
 }
