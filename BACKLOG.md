@@ -1556,6 +1556,23 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 **No bloqueante**: el equipo puede seguir con PRs sin esto, con el costo operativo de los flakes. Pero sí incómodo.
 
+**Calibración "P11 infra inequívoca"** (acuerdo PO 2026-11-20 PM, documentado en el ítem porque el patrón de concurrency staging es recurrente):
+
+- **Infra inequívoca** = evidencia **directa en los logs del run** con mensaje concreto:
+  - `ECONNRESET` / `ETIMEDOUT` de red.
+  - Supabase `525 SSL handshake failed` o `502/503/504` wall-to-wall.
+  - Container no arrancó (`setup-node failed`, `playwright install failed`).
+  - Runner timeout en etapa de setup antes de ejecutar jobs.
+  - 503 del servicio de staging con mensaje visible.
+- **NO cuenta como infra inequívoca** (son "plausible-infra" que requieren escalar al PO):
+  - `conclusion: cancelled` sin jobs ejecutados **sin verificar en logs el motivo del cancel**. Puede ser concurrency, cancel manual, error de workflow syntax, push de commit nuevo.
+  - Fail en test no tocado por el PR sin diagnóstico previo con artifacts.
+  - Timeout sin stack trace que apunte a infra.
+  - Patrón que "podría ser" infra pero no tiene prueba directa en el log.
+- **Caso de calibración negativa (aprendizaje auditor 2026-11-20 PM)**: rerun del e2e del PR #127 `blog-img-unsplash` justificado como "concurrency staging canceló". La inferencia era plausible por el contexto (otros runs del mismo workflow corriendo), pero el auditor NO abrió los logs del run cancelado para verificar que el canceller era el concurrency group — podría haber sido cancel manual / workflow syntax / push de commit nuevo. Correctamente debía haberse escalado al PO. Regla operativa reforzada: antes de clasificar un fail como "infra inequívoca", el auditor abre el log del run y cita textual el mensaje que lo confirma. Sin cita, es "plausible" → escalar.
+
+**Resultado del ítem (al implementarlo)** debería incluir ejemplos reales recientes del repo etiquetados como "infra inequívoca" vs "plausible" vs "producto / spec", para que la regla P11 se aplique sin ambigüedad.
+
 ## Deuda técnica / pulido
 
 - **[abierto — PRIORIDAD BAJA, sprint pan-1 PR-3b 2026-09-11] `email-confirmado.tsx` con `getSession()` en fallback defensivo** — [pages/email-confirmado.tsx:141-148](pages/email-confirmado.tsx#L141-L148). Semántica distinta al bug del bell (no es race del mount productivo — es fallback para detectar sesión previa de OTRA tab cuando la URL viene limpia). No amerita fix inmediato porque (a) el path se dispara solo cuando URL NO trajo token (rama 3 del effect), (b) el fallback termina en `setHasSomethingToProcess(!!data?.session)` que si retorna false por race, la landing muestra el path guest correcto (URL limpia = user probablemente ya está logueado o vino sin sesión previa). Consideración: reemplazar por `useUser()` del contexto sería más limpio y elimina la última superficie del patrón `getSession + useEffect[]` del proyecto. Sprint chico (~30 min) — combinable con cualquier PR que toque `email-confirmado.tsx`.
