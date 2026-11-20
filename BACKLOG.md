@@ -1111,6 +1111,34 @@ Ampliar Pawnecta de marketplace de servicios de personas a directorio que tambi�
 
 Esta descripción la escribió el PO con mi apoyo 2026-11-20. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch.
 
+---
+
+**DIRECTORIO-LUGARES-PETFRIENDLY** — abierto · prioridad media · fecha objetivo sin fecha (post-launch V1)
+
+Agregar a Pawnecta un directorio de lugares amigables con mascotas en Santiago y Chile. Categorías internas:
+
+- Cafeterías petfriendly.
+- Restaurantes petfriendly.
+
+Estructura abierta a sumar después: hoteles petfriendly, parques, playas, tiendas en general que admitan mascotas, oficinas y coworks petfriendly.
+
+**Diferencia clave con EXPANSION-DIRECTORIO-NEGOCIOS**: un lugar petfriendly no es "proveedor" (no ofrece servicios ni productos para mascotas). Es un lugar que las acepta. El modelo mental, el flow, la ficha y la monetización son distintos, por eso va como iniciativa separada.
+
+**Datos a modelar por lugar**: razón social, categoría (cafetería, restaurante), dirección, horario, zona (comuna), fotos del lugar, política petfriendly (perros chicos sí/grandes sí/terraza sí/interior sí/correa obligatoria/tamaños aceptados), medios de pago, teléfono, Instagram, sitio web, promedio de precios, rating de usuarios.
+
+**Quién publica**: Pawnecta puede sembrar la base con lugares conocidos, y después los dueños del local reclaman su ficha para editarla. Alternativa: solo lugares que se registren activamente. Decisión pendiente.
+
+**Posibles reseñas**: los tutores dejan reseña del lugar en términos de "qué tan bien recibieron a mi mascota". Distinta a la reseña de un servicio tomado. Decisión pendiente.
+
+**Valor para Pawnecta**: expande el uso del sitio de "cuando necesito un paseador" a "cuando salgo con mi mascota a cualquier cosa". Aumenta visitas recurrentes, SEO local fuerte, posibilidad de mapas y guías.
+
+**Riesgos y preguntas abiertas**:
+- ¿Verificación? Si un local dice "petfriendly" pero los tutores reportan que no, cómo manejamos.
+- ¿Monetización? Hoy no hay. Posibilidad futura: los locales pagan por aparecer destacados.
+- ¿Competencia? Hay apps y mapas colaborativos de esto en Chile y fuera. Tener claro qué nos diferenciaría.
+
+Esta descripción la escribió el PO con mi apoyo 2026-11-20. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch.
+
 ## Proyectos estructurales
 
 ### Categorías por modalidad (presencial / remoto / mixto)
