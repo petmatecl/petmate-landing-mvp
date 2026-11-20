@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint } from 'lucide-react';
+import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -56,6 +56,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             }`}
                     >
                         <Bell size={20} /> Notificaciones
+                    </Link>
+
+                    {/* Sprint TRACKING-META-100-PROVEEDORES Opción B (2026-11-20) */}
+                    <Link
+                        href="/admin/metricas-proveedores"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/metricas-proveedores')
+                            ? 'bg-accent-50 text-accent-700 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                    >
+                        <Target size={20} /> Métricas
                     </Link>
 
                     <Link
