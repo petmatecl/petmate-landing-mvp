@@ -101,7 +101,7 @@ export default function MobileActionSheet({
                         type="button"
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="ml-auto min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-400 hover:text-slate-600 transition-colors -mr-2"
+                        className="ml-auto min-w-[44px] min-h-[44px] flex items-center justify-center text-slate-500 hover:text-slate-600 transition-colors -mr-2"
                     >
                         <X size={22} />
                     </button>

@@ -283,7 +283,7 @@ function GestionProveedores() {
             <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-400 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
+                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
@@ -291,7 +291,7 @@ function GestionProveedores() {
                                 <ShieldCheck className="text-accent-600" />
                                 Gestión de Proveedores
                             </h1>
-                            <p className="text-sm text-slate-400">Panel administrativo de perfiles</p>
+                            <p className="text-sm text-slate-500">Panel administrativo de perfiles</p>
                         </div>
                     </div>
                 </div>
@@ -318,7 +318,7 @@ function GestionProveedores() {
                         {/* Search & Sort */}
                         <div className="flex gap-3">
                             <div className="relative flex-1 sm:w-64">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Buscar nombre o RUT..."
@@ -345,7 +345,7 @@ function GestionProveedores() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left text-sm text-slate-600">
-                            <thead className="text-xs uppercase bg-slate-50 text-slate-400 font-medium tracking-widest">
+                            <thead className="text-xs uppercase bg-slate-50 text-slate-500 font-medium tracking-widest">
                                 <tr>
                                     <th className="px-6 py-4">Proveedor</th>
                                     <th className="px-6 py-4">Ubicación</th>
@@ -357,7 +357,7 @@ function GestionProveedores() {
                             <tbody className="divide-y divide-slate-100">
                                 {loading && (
                                     <tr>
-                                        <td colSpan={5} className="py-12 text-center text-slate-400">
+                                        <td colSpan={5} className="py-12 text-center text-slate-500">
                                             <div className="flex justify-center mb-2"><div className="w-6 h-6 border-2 border-accent-600 border-t-transparent rounded-full animate-spin"></div></div>
                                             Cargando datos...
                                         </td>
@@ -376,7 +376,7 @@ function GestionProveedores() {
                                     <tr key={prov.id} className="hover:bg-slate-50/50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0 overflow-hidden text-slate-400">
+                                                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center shrink-0 overflow-hidden text-slate-500">
                                                     {prov.foto_perfil ? <img src={prov.foto_perfil} alt="" className="w-full h-full object-cover" /> : <UserIcon size={20} />}
                                                 </div>
                                                 <div>
@@ -429,7 +429,7 @@ function GestionProveedores() {
                                                 )}
                                                 {prov.estado === 'aprobado' && (
                                                     <>
-                                                        <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
+                                                        <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
                                                         <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-warning-100 text-warning-700 hover:bg-warning-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
                                                     </>
                                                 )}
@@ -438,7 +438,7 @@ function GestionProveedores() {
                                                     (por eso success), mientras el badge queda en warning (pausa reversible). */}
                                                 {prov.estado === 'suspendido' && (
                                                     <>
-                                                        <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
+                                                        <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
                                                         <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors">Reactivar</button>
                                                     </>
                                                 )}
@@ -585,12 +585,12 @@ function GestionProveedores() {
                         >
                             <div className="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50">
                                 <h3 id="admin-proveedores-detalle-title" className="text-xl font-semibold text-slate-900 tracking-tight flex items-center gap-2">
-                                    <UserIcon className="text-slate-400" /> Ficha del Proveedor
+                                    <UserIcon className="text-slate-500" /> Ficha del Proveedor
                                 </h3>
                                 <button
                                     onClick={closeModal}
                                     aria-label="Cerrar ficha"
-                                    className="p-2 bg-white rounded-full text-slate-400 hover:text-slate-900 hover:bg-slate-200 transition-colors"
+                                    className="p-2 bg-white rounded-full text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition-colors"
                                 >
                                     <XCircle size={24} aria-hidden="true" />
                                 </button>
@@ -610,20 +610,20 @@ function GestionProveedores() {
 
                                     <div className="space-y-4 text-sm">
                                         <div>
-                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">RUT Oficial</p>
+                                            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest mb-1">RUT Oficial</p>
                                             <p className="font-semibold text-slate-700">{modalConfig.prov.rut || 'No proporcionado'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Contacto Público</p>
+                                            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest mb-1">Contacto Público</p>
                                             <p className="text-slate-700">{modalConfig.prov.email_publico || 'Sin email'}</p>
                                             <p className="text-slate-700">{modalConfig.prov.telefono || 'Sin tfno'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Ubicación</p>
+                                            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest mb-1">Ubicación</p>
                                             <p className="font-semibold text-slate-700 flex items-center gap-1"><MapPin size={14} /> {modalConfig.prov.comuna || 'No informada'}</p>
                                         </div>
                                         <div>
-                                            <p className="text-slate-400 font-medium uppercase text-[10px] tracking-widest mb-1">Registro</p>
+                                            <p className="text-slate-500 font-medium uppercase text-[10px] tracking-widest mb-1">Registro</p>
                                             <p className="text-slate-700">{new Date(modalConfig.prov.created_at).toLocaleString()}</p>
                                         </div>
                                     </div>
@@ -640,7 +640,7 @@ function GestionProveedores() {
                                 <div className="md:w-2/3 flex flex-col gap-6">
                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                         <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Briefcase size={18} className="text-indigo-500" /> Servicios Publicados ({provServicios.length})</h4>
-                                        {detailsLoading ? <p className="text-slate-400 text-sm animate-pulse">Cargando servicios...</p> : (
+                                        {detailsLoading ? <p className="text-slate-500 text-sm animate-pulse">Cargando servicios...</p> : (
                                             <div className="grid gap-3">
                                                 {provServicios.length === 0 ? <p className="text-sm text-slate-500">No hay servicios asociados a este proveedor.</p> :
                                                     provServicios.map(s => (
@@ -661,7 +661,7 @@ function GestionProveedores() {
 
                                     <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
                                         <h4 className="font-semibold text-slate-900 border-b border-slate-100 pb-2 mb-4 flex items-center gap-2"><Star size={18} className="text-amber-500" /> Evaluaciones Recibidas ({provEvaluaciones.length})</h4>
-                                        {detailsLoading ? <p className="text-slate-400 text-sm animate-pulse">Cargando valoraciones...</p> : (
+                                        {detailsLoading ? <p className="text-slate-500 text-sm animate-pulse">Cargando valoraciones...</p> : (
                                             <div className="grid gap-3">
                                                 {provEvaluaciones.length === 0 ? <p className="text-sm text-slate-500">Aún no tiene valoraciones.</p> :
                                                     provEvaluaciones.map(e => (
@@ -670,7 +670,7 @@ function GestionProveedores() {
                                                                 <div className="flex text-amber-400">
                                                                     {[1, 2, 3, 4, 5].map(i => <Star key={i} size={12} className={i <= e.rating ? "fill-current" : "text-slate-200"} />)}
                                                                 </div>
-                                                                <span className="text-[10px] font-medium text-slate-400 uppercase tracking-widest">{e.estado}</span>
+                                                                <span className="text-[10px] font-medium text-slate-500 uppercase tracking-widest">{e.estado}</span>
                                                             </div>
                                                             <p className="text-sm text-slate-600 italic">&quot;{e.comentario}&quot;</p>
                                                         </div>

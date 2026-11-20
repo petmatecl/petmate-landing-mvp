@@ -216,7 +216,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                     onFocus={() => { if (results.length > 0) setIsOpen(true); }}
                 />
                 {/* Search Icon */}
-                <span className="absolute left-3 top-2.5 text-slate-400">
+                <span className="absolute left-3 top-2.5 text-slate-500">
                     {loading ? (
                         <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -275,7 +275,7 @@ export default function AddressAutocomplete({ onSelect, initialValue = "", place
                             </span>
                         </button>
                     ))}
-                    <div className="bg-slate-50 px-2 py-1 text-[10px] text-slate-400 text-right">
+                    <div className="bg-slate-50 px-2 py-1 text-[10px] text-slate-500 text-right">
                         Powered by OpenStreetMap
                     </div>
                 </div>,

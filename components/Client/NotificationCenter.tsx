@@ -149,7 +149,7 @@ export default function NotificationCenter({ userId }: Props) {
 
                         <div className="max-h-[300px] overflow-y-auto">
                             {loading ? (
-                                <div className="p-4 text-center text-xs text-slate-400">Cargando...</div>
+                                <div className="p-4 text-center text-xs text-slate-500">Cargando...</div>
                             ) : notifications.length > 0 ? (
                                 <ul>
                                     {notifications.map(notif => (
@@ -163,13 +163,13 @@ export default function NotificationCenter({ userId }: Props) {
                                                 <p className={`text-xs ${!notif.read ? 'font-semibold text-slate-900' : 'text-slate-600'}`}>
                                                     {notif.message}
                                                 </p>
-                                                <span className="text-[10px] text-slate-400 block mt-1">
+                                                <span className="text-[10px] text-slate-500 block mt-1">
                                                     {new Date(notif.created_at).toLocaleDateString()}
                                                 </span>
                                             </div>
                                             <button
                                                 onClick={(e) => deleteNotification(notif.id, e)}
-                                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-rose-500 transition-all"
+                                                className="opacity-0 group-hover:opacity-100 p-1 text-slate-500 hover:text-rose-500 transition-all"
                                             >
                                                 <Trash2 size={12} />
                                             </button>

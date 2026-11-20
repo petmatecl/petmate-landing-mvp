@@ -127,7 +127,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-lg font-semibold text-slate-700">Resumen general</h2>
-                    <p className="text-xs text-slate-400 mt-0.5">Datos en tiempo real de la plataforma.</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Datos en tiempo real de la plataforma.</p>
                 </div>
                 <button
                     onClick={() => fetchMetrics(true)}
@@ -160,7 +160,7 @@ export default function AdminMetrics({ setActiveTab }: AdminMetricsProps) {
                             } ${isClickable ? 'cursor-pointer hover:shadow-sm' : 'cursor-default'}`}
                         >
                             <div className="flex items-center justify-between mb-3">
-                                <Icon size={18} className={card.urgent ? 'text-warning-500' : 'text-slate-400'} />
+                                <Icon size={18} className={card.urgent ? 'text-warning-500' : 'text-slate-500'} />
                                 {card.urgent && (
                                     <span className="text-[10px] font-semibold text-warning-600 bg-warning-50 px-2 py-0.5 rounded-full">
                                         Requiere acción

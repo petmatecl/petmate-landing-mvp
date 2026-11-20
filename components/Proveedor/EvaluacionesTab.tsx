@@ -72,7 +72,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                             <span className="text-sm font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-md truncate max-w-[200px]">{ev.servicio?.titulo}</span>
                                         </div>
                                         <p className="text-slate-600 text-sm leading-relaxed mb-3">&quot;{ev.comentario}&quot;</p>
-                                        <span className="text-xs font-semibold text-slate-400">{formatDistanceToNow(new Date(ev.created_at), { addSuffix: true, locale: es })}</span>
+                                        <span className="text-xs font-semibold text-slate-500">{formatDistanceToNow(new Date(ev.created_at), { addSuffix: true, locale: es })}</span>
 
                                         {/* Respuesta existente */}
                                         {ev.respuesta_proveedor && (
@@ -96,7 +96,7 @@ export default function EvaluacionesTab({ evaluaciones, proveedorId }: Props) {
                                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 outline-none"
                                                         />
                                                         <div className="flex items-center justify-between mt-2">
-                                                            <span className="text-xs text-slate-400">{(replyTexts[ev.id] || '').length}/300</span>
+                                                            <span className="text-xs text-slate-500">{(replyTexts[ev.id] || '').length}/300</span>
                                                             <div className="flex gap-2">
                                                                 <button onClick={() => setOpenReply(null)} className="text-sm text-slate-500 hover:text-slate-700 px-3 py-1.5 rounded-lg transition-colors">Cancelar</button>
                                                                 <button

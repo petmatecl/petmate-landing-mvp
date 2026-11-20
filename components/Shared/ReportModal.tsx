@@ -70,7 +70,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
                        pero el X no estaba gateado — inconsistencia. */
                     onClick={handleClose}
                     disabled={loading}
-                    className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    className="absolute top-2 right-2 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-500 hover:text-slate-600 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                     aria-label="Cerrar"
                 >
                     <X size={20} />
@@ -113,7 +113,7 @@ export default function ReportModal({ isOpen, onClose, tipo, referenciaId }: Pro
 
                             <div>
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                                    Describe el problema <span className="font-normal text-slate-400">(opcional)</span>
+                                    Describe el problema <span className="font-normal text-slate-500">(opcional)</span>
                                 </label>
                                 <textarea
                                     value={detalle}

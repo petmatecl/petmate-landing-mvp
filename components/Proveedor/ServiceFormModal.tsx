@@ -1660,7 +1660,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             </div>
             <div className="p-4">
                 <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">
-                    {titulo || <span className="text-slate-400 font-normal">Título del servicio</span>}
+                    {titulo || <span className="text-slate-500 font-normal">Título del servicio</span>}
                 </h3>
                 {descripcion && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2">{descripcion}</p>
@@ -1673,7 +1673,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             </span>
                         ))}
                         {comunasCobertura.length > 3 && (
-                            <span className="text-[10px] text-slate-400">+{comunasCobertura.length - 3} más</span>
+                            <span className="text-[10px] text-slate-500">+{comunasCobertura.length - 3} más</span>
                         )}
                     </div>
                 )}
@@ -1682,14 +1682,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         {precioDesde ? (
                             <span className="text-accent-700 font-semibold text-sm">
                                 ${Number(precioDesde).toLocaleString('es-CL')}
-                                <span className="text-slate-400 font-normal text-xs ml-1">{unidadPrecio}</span>
+                                <span className="text-slate-500 font-normal text-xs ml-1">{unidadPrecio}</span>
                             </span>
                         ) : (
                             <span className="text-slate-300 text-xs">Precio por definir</span>
                         )}
                     </div>
                     <div className="flex items-center gap-1 text-amber-400">
-                        <span className="text-slate-400 text-xs">Sin reseñas aún</span>
+                        <span className="text-slate-500 text-xs">Sin reseñas aún</span>
                     </div>
                 </div>
             </div>
@@ -1713,7 +1713,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <button
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -1750,7 +1750,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 1: Información básica ── */}
                             <section id="form-section-info-basica" className="pb-6 scroll-mt-4">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Información básica</p>
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Información básica</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="md:col-span-1">
@@ -1821,7 +1821,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 maxLength={80}
                                                 required
                                                 placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                             <div className="text-right text-xs text-slate-500 mt-1">{titulo.length}/80</div>
                                         </div>
@@ -1838,7 +1838,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             Decisión PO 2026-08-27: NO agregar borde ámbar en blur —
                                             3 señales alcanzan, la 4ta molesta. */}
                                         <label htmlFor="servicio-descripcion" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                            Descripción <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">· mínimo 100 caracteres</span>
+                                            Descripción <span className="text-red-500">*</span> <span className="text-slate-500 font-normal">· mínimo 100 caracteres</span>
                                         </label>
                                         <textarea
                                             id="servicio-descripcion"
@@ -1857,7 +1857,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
                                             aria-invalid={!!descripcionError}
                                             aria-describedby={descripcionError ? 'servicio-descripcion-error' : undefined}
-                                            className={`w-full px-3 py-2.5 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white placeholder:text-slate-400 transition-colors resize-none ${
+                                            className={`w-full px-3 py-2.5 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white placeholder:text-slate-500 transition-colors resize-none ${
                                                 descripcionError
                                                     ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
                                                     : 'border-slate-200 focus:ring-accent-600 focus:border-accent-600'
@@ -1905,7 +1905,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 2: Precio y disponibilidad ── */}
                             <section id="form-section-precio" className="scroll-mt-4">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
@@ -1920,7 +1920,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioDesde(raw ? Number(raw) : ''); }}
                                                 required
                                                 placeholder="15.000"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -1934,7 +1934,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 value={precioHasta ? Number(precioHasta).toLocaleString('es-CL') : ''}
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioHasta(raw ? Number(raw) : ''); }}
                                                 placeholder="Opcional"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -1985,7 +1985,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             className={`w-20 shrink-0 text-xs font-semibold py-1.5 rounded-lg border text-center transition-colors ${
                                                                 dayData.activo
                                                                     ? 'bg-accent-50 border-accent-600 text-accent-800'
-                                                                    : 'border-slate-200 text-slate-400'
+                                                                    : 'border-slate-200 text-slate-500'
                                                             }`}
                                                         >
                                                             {dia.slice(0, 3)}
@@ -2000,7 +2000,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                     value={dayData.desde}
                                                                     onChange={e => updateDay('desde', e.target.value)}
                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600" />
-                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                <span className="text-slate-500 text-xs">a</span>
                                                                 <label htmlFor={`hora-hasta-${dia}`} className="sr-only">{dia}: hora de fin</label>
                                                                 <input
                                                                     id={`hora-hasta-${dia}`}
@@ -2039,7 +2039,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     Va PRIMERO porque es el gate del que depende la
                                     seccion de agenda real (F1) que sigue abajo. */}
                                 <div className="border-t border-slate-100 py-6">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Reservas</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Reservas</p>
                                 {/* Sprint agenda-categorias (2026-09-11) — decisión PO
                                     2026-09-09 punto 2: ocultar el toggle "Habilitar
                                     reservas" cuando la categoría no admite F1 (bloque
@@ -2102,7 +2102,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 en state y en BD — undo natural al reactivar. */}
                             {admiteAgenda && agendamientoHabilitado && (
                                 <div className="border-t border-slate-100 py-6">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <div className="relative shrink-0 mt-0.5">
                                             <input
@@ -2207,7 +2207,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 Importar mi horario actual
                                                             </button>
                                                         )}
-                                                        <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                        <span className="text-xs text-slate-500">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
@@ -2219,7 +2219,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         return (
                                                             <div key={dia.iso} className="flex flex-wrap items-start gap-2 py-2 border-b border-slate-100 last:border-b-0">
                                                                 <div className="w-16 shrink-0 pt-1.5">
-                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-400'}`}>{dia.corto}</span>
+                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-500'}`}>{dia.corto}</span>
                                                                 </div>
                                                                 <div className="flex-1 min-w-0 space-y-1.5">
                                                                     {franjasDia.length === 0 ? (
@@ -2233,7 +2233,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                     onChange={e => updateFranja(i, 'hora_desde', e.target.value)}
                                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
                                                                                 />
-                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <span className="text-slate-500 text-xs">a</span>
                                                                                 <input
                                                                                     type="time"
                                                                                     value={f.hora_hasta}
@@ -2243,7 +2243,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={() => removeFranja(i)}
-                                                                                    className="text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                                    className="text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                                     aria-label="Eliminar franja"
                                                                                     title="Eliminar franja"
                                                                                 >
@@ -2274,7 +2274,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre franjas horarias"
                                                         title="Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado abajo."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2345,7 +2345,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                     onChange={ev => updateExcepcion(i, 'hora_desde', ev.target.value || null)}
                                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
                                                                                 />
-                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <span className="text-slate-500 text-xs">a</span>
                                                                                 <input
                                                                                     type="time"
                                                                                     value={e.hora_hasta ?? ''}
@@ -2357,7 +2357,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => removeExcepcion(i)}
-                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            className="ml-auto text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                             aria-label="Eliminar excepción"
                                                                             title="Eliminar excepción"
                                                                         >
@@ -2383,7 +2383,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre excepciones"
                                                         title="Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2404,7 +2404,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 admite F1 y solo cuidado admite F2). */}
                             {admiteEstadia && agendamientoHabilitado && (
                                 <div className="border-t border-slate-100 py-6">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda por rango de noches</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Agenda por rango de noches</p>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <div className="relative shrink-0 mt-0.5">
                                             <input
@@ -2628,7 +2628,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => removeBlackout(i)}
-                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            className="ml-auto text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                             aria-label="Eliminar bloqueo"
                                                                             title="Eliminar bloqueo"
                                                                         >
@@ -2657,7 +2657,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre bloqueos F2"
                                                         title="Estas fechas quedan bloqueadas para nuevas reservas. Las estadías ya confirmadas en esas fechas se mantienen — te sugerimos coordinar con el tutor por chat."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2673,7 +2673,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
                             <section id="form-section-mascotas" className="py-6 scroll-mt-4">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
                                 <div role="group" aria-label="Mascotas aceptadas" className="flex flex-wrap gap-2 mb-3">
                                     {[
                                         { label: 'Perros', checked: perros, set: setPerros },
@@ -2715,10 +2715,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* ── COMUNAS DE COBERTURA ── */}
                             <section id="form-section-comunas" className="scroll-mt-4">
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-slate-400" />
+                                    <MapPin size={14} className="text-slate-500" />
                                     Comunas donde prestas el servicio <span className="text-red-500">*</span>
                                 </label>
-                                <p className="text-xs text-slate-400 mb-2">
+                                <p className="text-xs text-slate-500 mb-2">
                                     Selecciona todas las comunas donde ofreces este servicio. Los clientes podrán encontrarte al filtrar por su zona.
                                 </p>
 
@@ -2745,7 +2745,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         className="flex items-center gap-2 w-full h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 cursor-text"
                                         onClick={() => setComunaDropdownOpen(true)}
                                     >
-                                        <Search size={14} className="text-slate-400 shrink-0" />
+                                        <Search size={14} className="text-slate-500 shrink-0" />
                                         <label htmlFor="comuna-search" className="sr-only">Buscar comuna</label>
                                         <input
                                             id="comuna-search"
@@ -2756,14 +2756,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             onChange={e => { setComunaSearch(e.target.value); setComunaDropdownOpen(true); }}
                                             onFocus={() => setComunaDropdownOpen(true)}
                                             placeholder="Buscar y agregar comunas..."
-                                            className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                                            className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
                                         />
                                     </div>
 
                                     {comunaDropdownOpen && (
                                         <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                                             {comunasFiltradas.length === 0 ? (
-                                                <p className="text-xs text-slate-400 p-3 text-center">Sin resultados</p>
+                                                <p className="text-xs text-slate-500 p-3 text-center">Sin resultados</p>
                                             ) : (
                                                 comunasFiltradas.map(c => (
                                                     <button
@@ -2882,9 +2882,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 placeholder={campo.placeholder}
                                                                 rows={3}
                                                                 maxLength={300}
-                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors resize-none"
                                                             />
-                                                            <p className="text-xs text-slate-400 mt-1 text-right">{valor.length} / 300</p>
+                                                            <p className="text-xs text-slate-500 mt-1 text-right">{valor.length} / 300</p>
                                                         </div>
                                                     );
                                                 })() : campo.tipo === 'number' ? (
@@ -2900,7 +2900,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
                                                                 placeholder={campo.placeholder}
                                                                 min={0}
-                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                                             />
                                                         </div>
                                                     </div>
@@ -2915,7 +2915,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
-                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                                         />
                                                     </div>
                                                 )}
@@ -2931,10 +2931,10 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             {/* Fotos */}
                             <section id="form-section-fotos" className="pt-2 scroll-mt-4">
                                 <div className="flex items-center justify-between mb-1">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
                                         Fotos del servicio <span className="text-danger-500 normal-case">*</span>
                                     </p>
-                                    <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
+                                    <span className="text-xs text-slate-500 font-medium">{fotos.length}/8</span>
                                 </div>
                                 <p className="text-xs text-slate-500 mb-3">
                                     Al menos 1 foto. Los servicios con fotos reciben muchas más consultas.
@@ -2992,15 +2992,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         ].join(" ")}
                                         >
                                             {uploadingFotos ? (
-                                                <Loader2 size={24} className="text-slate-400 animate-spin" />
+                                                <Loader2 size={24} className="text-slate-500 animate-spin" />
                                             ) : (
                                                 <>
-                                                    <Upload size={fotos.length === 0 ? 32 : 22} className="text-slate-400 mb-2" />
+                                                    <Upload size={fotos.length === 0 ? 32 : 22} className="text-slate-500 mb-2" />
                                                     <span className="text-xs text-slate-500 font-semibold text-center px-2">
                                                         {fotos.length === 0 ? "Haz click para subir fotos" : "Agregar"}
                                                     </span>
                                                     {fotos.length === 0 && (
-                                                        <span className="text-[11px] text-slate-400 mt-1">
+                                                        <span className="text-[11px] text-slate-500 mt-1">
                                                             JPG, PNG, WebP — max 5MB c/u
                                                         </span>
                                                     )}
@@ -3012,7 +3012,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
 
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     <span className="font-semibold text-accent-600">La primera foto es la portada</span>
                                     {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
                                 </p>
@@ -3023,7 +3023,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         <div className="hidden lg:flex flex-col w-72 shrink-0 p-6 bg-slate-50/50">
                             <p className="text-sm text-slate-500 font-medium mb-4">Vista previa</p>
                             <PreviewCard />
-                            <p className="text-xs text-slate-400 mt-3 text-center">Así verán tu servicio los clientes</p>
+                            <p className="text-xs text-slate-500 mt-3 text-center">Así verán tu servicio los clientes</p>
                         </div>
 
                         {/* PREVIEW PANEL — mobile collapsible */}

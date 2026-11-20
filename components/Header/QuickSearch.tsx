@@ -36,7 +36,7 @@ export default function QuickSearch() {
                 <form onSubmit={handleSubmit} className="relative w-full">
                     <label htmlFor="header-search" className="sr-only">Buscar servicios o proveedores</label>
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search size={16} className="text-slate-400" />
+                        <Search size={16} className="text-slate-500" />
                     </div>
                     <input
                         id="header-search"
@@ -70,7 +70,7 @@ export default function QuickSearch() {
                     <form onSubmit={handleSubmit} className="relative w-full flex">
                         <label htmlFor="header-search-mobile" className="sr-only">Buscar servicios o proveedores</label>
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search size={16} className="text-slate-400" />
+                            <Search size={16} className="text-slate-500" />
                         </div>
                         <input
                             id="header-search-mobile"

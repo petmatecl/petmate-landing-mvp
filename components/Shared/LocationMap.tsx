@@ -106,7 +106,7 @@ export default function LocationMap({ lat, lng, approximate = true, radius = 100
                 ninguno de los 2 créditos. Actualizado a "© CARTO" desde
                 "© CartoDB" para alinear con formato oficial CARTO 2026
                 (CartoDB era el nombre histórico). */}
-            <div className="text-[10px] text-slate-400 text-right bg-slate-50 px-2 py-1 border-t">
+            <div className="text-[10px] text-slate-500 text-right bg-slate-50 px-2 py-1 border-t">
                 © OpenStreetMap contributors, © CARTO
             </div>
         </div>
