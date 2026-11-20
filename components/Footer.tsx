@@ -43,7 +43,7 @@ export function Footer() {
               privacidad — vive solo en /terminos y /privacidad como dato
               del responsable legal. "Interactive SpA" (nombre legal) se
               mantiene porque no expone direccion ni info personal. */}
-          <p className="text-xs text-slate-400 leading-relaxed">
+          <p className="text-xs text-slate-500 leading-relaxed">
             Interactive SpA
           </p>
         </div>
@@ -56,7 +56,7 @@ export function Footer() {
             retratos, traslado, veterinario. Cuidado absorbió el concepto de
             "hospedaje" (nombre display: "Cuidado y Hospedaje"). */}
         <div>
-          <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Servicios</h4>
+          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/explorar?categoria=cuidado" className="hover:text-accent-600 transition-colors">Cuidado y Hospedaje</Link></li>
             <li><Link href="/explorar?categoria=guarderia" className="hover:text-accent-600 transition-colors">Guardería diurna</Link></li>
@@ -72,7 +72,7 @@ export function Footer() {
 
         {/* Pawnecta + Contacto fusionado */}
         <div>
-          <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Pawnecta</h4>
+          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Pawnecta</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/quienes-somos" className="hover:text-accent-600 transition-colors">Quiénes somos</Link></li>
             <li><Link href="/faq" className="hover:text-accent-600 transition-colors">Preguntas frecuentes</Link></li>
@@ -90,7 +90,7 @@ export function Footer() {
           <details className="group">
             <summary className="cursor-pointer list-none flex items-center justify-between [&::-webkit-details-marker]:hidden text-xs font-medium text-slate-500 uppercase tracking-widest hover:text-accent-600 transition-colors">
               <span>Explorar por categoría y comuna</span>
-              <ChevronDown size={20} className="text-slate-400 transition-transform group-open:rotate-180" />
+              <ChevronDown size={20} className="text-slate-500 transition-transform group-open:rotate-180" />
             </summary>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mt-8">
 
@@ -179,7 +179,7 @@ export function Footer() {
       {/* BANDA INFERIOR — copyright + legal + social en una fila */}
       <div className="border-t border-slate-200 py-5">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-slate-400">© 2026 Pawnecta. Todos los derechos reservados.</p>
+          <p className="text-sm text-slate-500">© 2026 Pawnecta. Todos los derechos reservados.</p>
           <div className="flex items-center gap-4 text-sm text-slate-500">
             <Link href="/terminos" className="hover:text-accent-600 transition-colors">Términos y Condiciones</Link>
             <span className="text-slate-300">·</span>
@@ -199,7 +199,7 @@ export function Footer() {
                 href={href}
                 aria-label={name}
                 target="_blank"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-400 hover:bg-accent-50 hover:text-accent-600 hover:border-accent-600 transition-all"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-accent-50 hover:text-accent-600 hover:border-accent-600 transition-all"
               >
                 <Icon size={18} aria-hidden="true" />
               </Link>

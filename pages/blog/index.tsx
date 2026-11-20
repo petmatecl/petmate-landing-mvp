@@ -57,7 +57,7 @@ export default function BlogIndex() {
                                         ) : (() => {
                                             const Icon = post.coverIcon && COVER_ICONS[post.coverIcon] ? COVER_ICONS[post.coverIcon] : FileText;
                                             return (
-                                                <div className="w-full h-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-400">
+                                                <div className="w-full h-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
                                                     <Icon size={80} aria-hidden="true" />
                                                 </div>
                                             );
@@ -73,7 +73,7 @@ export default function BlogIndex() {
 
                                     {/* Content */}
                                     <div className="p-6 flex flex-col flex-grow">
-                                        <div className="flex items-center gap-4 text-xs text-slate-400 mb-3 font-medium">
+                                        <div className="flex items-center gap-4 text-xs text-slate-500 mb-3 font-medium">
                                             <div className="flex items-center gap-1">
                                                 <Calendar size={14} />
                                                 <span>{post.date}</span>

@@ -85,7 +85,7 @@ export default function PushNotifications() {
             <button
                 onClick={() => setShowPrompt(false)}
                 aria-label="Cerrar"
-                className="absolute top-1 right-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100"
+                className="absolute top-1 right-1 inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-slate-500 hover:text-slate-600 rounded-full hover:bg-slate-100"
             >
                 <X size={16} />
             </button>

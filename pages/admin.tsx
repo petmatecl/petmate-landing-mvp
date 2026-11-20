@@ -174,7 +174,7 @@ function AdminDashboardInner() {
                             <ShieldCheck className="w-7 h-7 text-accent-700" />
                             <div>
                                 <h2 className="text-sm font-semibold text-slate-900 leading-tight">Admin</h2>
-                                <p className="text-[11px] text-slate-400">Pawnecta</p>
+                                <p className="text-[11px] text-slate-500">Pawnecta</p>
                             </div>
                         </div>
                     </div>
@@ -193,7 +193,7 @@ function AdminDashboardInner() {
                                         : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                                         }`}
                                 >
-                                    <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-400'} />
+                                    <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-500'} />
                                     <span className="flex-1 text-left">{tab.label}</span>
                                     {typeof tab.badge === 'number' && tab.badge > 0 && (
                                         <span

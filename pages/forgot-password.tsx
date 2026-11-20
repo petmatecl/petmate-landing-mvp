@@ -87,7 +87,7 @@ export default function ForgotPasswordPage() {
                   Correo
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                     <Mail size={18} />
                   </span>
                   <input

@@ -201,7 +201,7 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                                     // eslint-disable-next-line @next/next/no-img-element
                                     <img src={prov.foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-2xl uppercase">{initialLetter}</div>
+                                    <div className="w-full h-full flex items-center justify-center text-slate-500 font-semibold text-2xl uppercase">{initialLetter}</div>
                                 )}
                             </div>
                             <div className="min-w-0 flex-1">
@@ -241,13 +241,13 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <div>
-                                <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Correo</div>
+                                <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Correo</div>
                                 {prov.email_auth ? (
                                     <a href={`mailto:${prov.email_auth}`} className="text-sm text-accent-700 hover:underline font-medium break-all">
                                         {prov.email_auth}
                                     </a>
                                 ) : (
-                                    <span className="text-sm text-slate-400 italic">Sin correo en auth.users</span>
+                                    <span className="text-sm text-slate-500 italic">Sin correo en auth.users</span>
                                 )}
                                 {prov.email_publico && prov.email_publico !== prov.email_auth && (
                                     <div className="text-xs text-slate-500 mt-1 break-all">Público: {prov.email_publico}</div>
@@ -255,7 +255,7 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                             </div>
                             {(prov.telefono || prov.whatsapp) && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Teléfono / WhatsApp</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Teléfono / WhatsApp</div>
                                     <div className="text-sm text-slate-800 font-medium">{prov.telefono || prov.whatsapp}</div>
                                 </div>
                             )}
@@ -270,37 +270,37 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {prov.rut && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">RUT persona</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">RUT persona</div>
                                     <span className="text-sm font-mono bg-slate-100 px-2 py-1 rounded inline-block">{prov.rut}</span>
                                 </div>
                             )}
                             {prov.comuna && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Comuna base</div>
-                                    <div className="text-sm text-slate-800 flex items-center gap-1.5"><MapPin size={13} className="text-slate-400" /> {prov.comuna}</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Comuna base</div>
+                                    <div className="text-sm text-slate-800 flex items-center gap-1.5"><MapPin size={13} className="text-slate-500" /> {prov.comuna}</div>
                                 </div>
                             )}
                             {prov.tipo_entidad === 'empresa' && prov.razon_social && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Razón social</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Razón social</div>
                                     <div className="text-sm text-slate-800">{prov.razon_social}</div>
                                 </div>
                             )}
                             {prov.tipo_entidad === 'empresa' && prov.rut_empresa && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">RUT empresa</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">RUT empresa</div>
                                     <span className="text-sm font-mono bg-slate-100 px-2 py-1 rounded inline-block">{prov.rut_empresa}</span>
                                 </div>
                             )}
                             {prov.tipo_entidad === 'empresa' && prov.nombre_fantasia && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Nombre fantasía</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Nombre fantasía</div>
                                     <div className="text-sm text-slate-800">{prov.nombre_fantasia}</div>
                                 </div>
                             )}
                             {prov.tipo_entidad === 'empresa' && prov.giro && (
                                 <div>
-                                    <div className="text-[11px] text-slate-400 uppercase tracking-wider mb-0.5">Giro</div>
+                                    <div className="text-[11px] text-slate-500 uppercase tracking-wider mb-0.5">Giro</div>
                                     <div className="text-sm text-slate-800">{prov.giro}</div>
                                 </div>
                             )}
@@ -325,7 +325,7 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                             <FileImage size={12} /> Carnet de identidad
                         </h3>
                         {carnetLoading ? (
-                            <div className="bg-slate-50 rounded-lg p-4 text-center text-slate-400 text-sm flex items-center justify-center gap-2">
+                            <div className="bg-slate-50 rounded-lg p-4 text-center text-slate-500 text-sm flex items-center justify-center gap-2">
                                 <Loader2 size={14} className="animate-spin" /> Cargando URL firmada...
                             </div>
                         ) : (signedCarnetUrl || signedCarnetDorsoUrl) ? (
@@ -353,7 +353,7 @@ export default function ProveedorDetailDrawer({ prov, onClose }: ProveedorDetail
                             <Package size={12} /> Servicios publicados
                         </h3>
                         {serviciosLoading ? (
-                            <div className="text-xs text-slate-400 italic p-2">Cargando servicios...</div>
+                            <div className="text-xs text-slate-500 italic p-2">Cargando servicios...</div>
                         ) : servicios.length === 0 ? (
                             <div className="text-sm text-slate-500 italic p-3 bg-slate-50 rounded-lg border border-slate-100">
                                 Sin servicios publicados aún.

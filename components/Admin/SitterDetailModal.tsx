@@ -67,7 +67,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                 {/* Header */}
                 <div className="p-4 border-b border-slate-300 flex justify-between items-center bg-slate-50">
                     <h3 id={titleId} className="font-semibold text-lg text-slate-900">Detalle del Proveedor</h3>
-                    <button onClick={onClose} aria-label="Cerrar" className="text-slate-400 hover:text-slate-600 p-1">
+                    <button onClick={onClose} aria-label="Cerrar" className="text-slate-500 hover:text-slate-600 p-1">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
@@ -114,7 +114,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                                         />
                                     ) : (
                                         <div className="w-full h-full bg-slate-200 flex items-center justify-center text-3xl">
-                                            <User size={48} className="text-slate-400" />
+                                            <User size={48} className="text-slate-500" />
                                         </div>
                                     )}
                                 </div>
@@ -133,36 +133,36 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300 space-y-3 text-sm">
                                 {sitter.rut && (
                                     <div>
-                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">RUT</span>
+                                        <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">RUT</span>
                                         <span className="text-slate-700 font-medium">{sitter.rut}</span>
                                     </div>
                                 )}
                                 {sitter.telefono && (
                                     <div>
-                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Teléfono</span>
+                                        <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">Teléfono</span>
                                         <span className="text-slate-700 font-medium">{sitter.telefono}</span>
                                     </div>
                                 )}
                                 {(sitter.comuna || sitter.region) && (
                                     <div>
-                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Ubicación</span>
+                                        <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">Ubicación</span>
                                         <span className="text-slate-700 font-medium">{sitter.comuna}{sitter.region ? `, ${sitter.region}` : ''}</span>
                                     </div>
                                 )}
                                 {sitter.anios_experiencia !== undefined && sitter.anios_experiencia > 0 && (
                                     <div>
-                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Experiencia</span>
+                                        <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">Experiencia</span>
                                         <span className="text-slate-700 font-medium">{sitter.anios_experiencia} años</span>
                                     </div>
                                 )}
                                 {sitter.certificaciones && (
                                     <div>
-                                        <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Certificaciones</span>
+                                        <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">Certificaciones</span>
                                         <span className="text-slate-700 font-medium">{sitter.certificaciones}</span>
                                     </div>
                                 )}
                                 <div>
-                                    <span className="block text-xs font-medium text-slate-400 uppercase tracking-widest">Identidad</span>
+                                    <span className="block text-xs font-medium text-slate-500 uppercase tracking-widest">Identidad</span>
                                     {/* P8 — par binario verificado/no verificado con tokens semanticos:
                                         success = verificado (positivo), slate = sin verificar (neutro, "sin color
                                         de estado activo" — no es danger porque no verificado no es error, es
@@ -176,7 +176,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Social Media */}
                             {sitter.redes_sociales && Object.values(sitter.redes_sociales).some(v => v) && (
                                 <div className="bg-slate-50 rounded-xl p-4 border-2 border-slate-300">
-                                    <span className="block text-xs font-bold text-slate-400 uppercase mb-2">Redes Sociales</span>
+                                    <span className="block text-xs font-bold text-slate-500 uppercase mb-2">Redes Sociales</span>
                                     <div className="flex flex-col gap-2">
                                         {sitter.redes_sociales.instagram && (
                                             <a href={`https://instagram.com/${sitter.redes_sociales.instagram.replace('@', '')}`} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:text-pink-700 flex items-center gap-2 text-sm font-medium">
@@ -229,7 +229,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
 
                             {/* Bio */}
                             <div>
-                                <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Descripción / Bio</h4>
+                                <h4 className="font-medium text-slate-500 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Descripción / Bio</h4>
                                 <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-wrap">
                                     {sitter.bio || "Sin descripción."}
                                 </p>
@@ -238,7 +238,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Sitio web */}
                             {sitter.sitio_web && (
                                 <div>
-                                    <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
+                                    <h4 className="font-medium text-slate-500 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">Sitio Web</h4>
                                     <a href={sitter.sitio_web.startsWith('http') ? sitter.sitio_web : `https://${sitter.sitio_web}`}
                                         target="_blank" rel="noopener noreferrer"
                                         className="text-accent-700 hover:underline text-sm"
@@ -251,7 +251,7 @@ export default function SitterDetailModal({ sitter, open, onClose, onApprove, on
                             {/* Gallery */}
                             {sitter.galeria && sitter.galeria.length > 0 && (
                                 <div>
-                                    <h4 className="font-medium text-slate-400 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">
+                                    <h4 className="font-medium text-slate-500 text-xs uppercase tracking-widest border-b border-slate-300 pb-2 mb-3">
                                         Galería ({sitter.galeria.length})
                                     </h4>
                                     <div className="grid grid-cols-4 gap-2">
