@@ -17,11 +17,13 @@ Categorías nuevas (reemplazan las antiguas BLOQUEANTE / DESEABLE / POST-LAUNCH)
 
 | Categoría | Total |
 |---|---:|
-| ACTIVAS hoy (ventana pre-campañas) | 4 (1 abierta · 3 cerradas) |
+| ACTIVAS hoy (ventana pre-campañas) | **4 (4 cerradas, 0 abiertas)** ✅ |
 | BLOQUEANTE para activar campañas | 10 |
 | DESEABLE continuo | 19 |
 | POST-CAMPAÑAS | 20 |
 | **Total** | 53 |
+
+**Resultado del día 2026-11-20**: las 4 decisiones ACTIVAS cerradas. Quedan 10 BLOQUEANTE-campañas + 19 DESEABLE continuo + 20 POST-CAMPAÑAS para revisión cuando el PO tenga tiempo (fin de semana o próxima semana).
 
 ---
 
@@ -70,13 +72,23 @@ Huérfanos (servicio_id → inexistente):  0
 
 **Ítem derivado**: OBSERVABILIDAD-ALERTAS agregado al BACKLOG (post-campañas, prioridad baja) para cuando volumen justifique monitoreo automático.
 
-### 🟡 A4 — ABIERTA — Imágenes del blog, excepción para ilustraciones vectoriales free-use
+### ✅ A4 — CERRADA 2026-11-20 AM — Imágenes del blog, criterio actualizado del PO
 
-**Pregunta**: hoy el blog usa placeholder gris + ícono Lucide en todas las entradas (fix BLOG-IMG-REMOVAL aterrizado). La regla CLAUDE.md permite ilustraciones vectoriales propias, capturas reales de la plataforma, o fotos de proveedores y tutores con autorización. **No** permite imágenes de bancos gratuitos como Unsplash para personas/mascotas, pero la regla no cubre ilustraciones/iconografía libre (freepik, undraw, etc.). ¿Querés abrir una excepción explícita para ilustraciones vectoriales free-use de bancos gratuitos, o mantener solo las creadas específicamente para el proyecto?
+**Decisión del PO (2026-11-20 09:45 CLT)**:
 
-**Recomendación**: permitir ilustraciones vectoriales free-use (con licencia que lo permita) en el blog, siempre que: (a) no sean fotos de personas ni mascotas; (b) no contengan rostros humanos ni animales fotorrealistas; (c) estilo coherente con la marca (líneas limpias, paleta compatible). Documentar la excepción como enmienda a la regla en CLAUDE.md para que no se re-abra.
+- **Permitido**: fotos reales de bancos gratuitos (Unsplash, Pexels, Pixabay), capturas reales de la plataforma, fotos propias con autorización escrita.
+- **Prohibido**: imágenes generadas con IA, fotos con marcas de agua, logos visibles, personas con cara frontal reconocible, perros o gatos con rasgos artificiales.
+- El PO entregó las 10 URLs Unsplash curadas manualmente.
 
-**Por qué activa**: el blog es una superficie SEO importante para la conversión orgánica de proveedores (antes de las campañas). Los placeholders grises visuales son fríos; ilustraciones compatibles levantan la percepción del producto. Decisión de 10 min, impacto visible desde la primera actualización de blog.
+**Trabajo aterrizado** (sprint `blog-img-unsplash`, PR #127):
+
+- 9 imágenes Unsplash descargadas con w=1600 + optimización sharp JPEG q82 (mozjpeg progressive, 90-412KB).
+- 1 captura de pantalla de `pawnecta.com/explorar` deslogueado 1600x900 (118KB) para la entrada "Cómo publicar en Pawnecta".
+- `lib/blogData.ts` actualizado: 10 coverImage con path real, 10 coverIcon removidos.
+- CLAUDE.md regla actualizada al criterio nuevo del PO (reemplaza al criterio restrictivo previo "solo ilustraciones vectoriales propias del diseño o capturas reales").
+- `scripts/download-blog-images.js` incluido como script one-shot replicable.
+
+**Estado**: PR #127 abierto + CI corriendo. Mergeo autónomo cuando verde.
 
 ---
 
@@ -256,12 +268,12 @@ Las bloqueantes originales B1 y B2 del doc 2026-11-20 AM quedan **canceladas** p
 
 ---
 
-## Checklist resumido para el PO
+## Checklist resumido para el PO — todas CERRADAS ✅
 
 - [x] **A1** · Query FK `agendamientos_servicio_id_fkey` → CERRADA: RESTRICT ✅, 0 huérfanos.
 - [x] **A2** · Disponibilidad PO horarios → CERRADA: regla operativa establecida (avanza sin pausar, teléfono para crítico).
 - [x] **A3** · Auditor queries playbook durante incidentes → CERRADA: NO autorizado permanente, case-by-case. Derivada: OBSERVABILIDAD-ALERTAS al BACKLOG.
-- [ ] **A4** · Imágenes del blog, excepción ilustraciones vectoriales free-use → recomendado **permitir con restricciones**.
+- [x] **A4** · Imágenes del blog → CERRADA: bancos gratuitos permitidos (Unsplash/Pexels/Pixabay) + capturas plataforma + fotos propias. Trabajo aterrizado en PR #127 BLOG-IMG-UNSPLASH.
 
 Revisar pre-primera-campaña (C1-C10):
 
