@@ -621,7 +621,10 @@ export default function ExplorarPage() {
                                 onClick={() => setMobileFiltersOpen(false)}
                                 className="w-full bg-accent-600 text-white font-medium tracking-wide py-3 rounded-xl hover:bg-accent-700 transition-colors"
                             >
-                                Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
+                                {/* Sprint fix-explorar-ux (2026-11-19) — si hubo
+                                    error de carga, "Ver 0 resultados" es
+                                    engañoso; mostrar "Cerrar" en su lugar. */}
+                                {fetchError ? 'Cerrar' : `Ver ${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}
                             </button>
                         </div>
                     </div>
@@ -852,7 +855,12 @@ export default function ExplorarPage() {
                                     <ExplorarPrelaunch />
                                 );
                             })()
-                        ) : (
+                        ) : fetchError ? null : (
+                            // Sprint fix-explorar-ux (2026-11-19) — fetchError
+                            // ya muestra su propio bloque de error arriba
+                            // (L758); no renderizar también la barra "0
+                            // resultados" + grid vacío. Antes aparecían ambos
+                            // estados excluyentes al mismo tiempo.
                             <>
                                 {/* Barra: conteo + orden + toggle vista */}
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
