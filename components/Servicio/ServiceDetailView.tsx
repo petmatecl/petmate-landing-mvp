@@ -1552,8 +1552,18 @@ export default function ServiceDetailView({
                                 propio estado de error si el fetch client fallaba.
                                 Ahora siempre montada — ReviewList decide: (a) null
                                 si sin reviews sin error (comportamiento previo),
-                                (b) EstadoError banner si el fetch falla. */}
-                            <div>
+                                (b) EstadoError banner si el fetch falla.
+
+                                Sprint perf-prelaunch (2026-11-20): wrapper con
+                                min-h fijo para evitar CLS. Loading muestra 3
+                                skeleton cards (~384px); null state de ReviewList
+                                deja 0px. El jump de 384→0 al terminar el fetch
+                                si el servicio tiene 0 reviews contribuye al CLS
+                                mobile ficha 0.187 (dato auditoría 2026-11-17).
+                                min-h-[180px] reserva espacio suficiente para
+                                "0 reviews" o para el primer skeleton sin que el
+                                layout salte. */}
+                            <div className="min-h-[180px]">
                                 <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
                             </div>
 

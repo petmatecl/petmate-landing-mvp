@@ -14,6 +14,11 @@ export default function ProveedorManagementList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [estadoFilter, setEstadoFilter] = useState<string>('todos');
 
+    // Sprint admin-fecha-reg (2026-11-20) — sort toggle por fecha de registro.
+    // null = sin sort explícito (orden default del RPC); 'desc' = más recientes
+    // primero (default al hacer primer click); 'asc' = más antiguos primero.
+    const [fechaSort, setFechaSort] = useState<null | 'asc' | 'desc'>(null);
+
     // Acciones completas
     const [actionId, setActionId] = useState<string | null>(null);
     const [suspendModalOpen, setSuspendModalOpen] = useState(false);
@@ -130,7 +135,7 @@ export default function ProveedorManagementList() {
     };
 
     // Aplicar filtros localmente
-    const filteredProveedores = proveedores.filter(prov => {
+    const filteredProveedoresBase = proveedores.filter(prov => {
         let matchesSearch = true;
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
@@ -151,6 +156,21 @@ export default function ProveedorManagementList() {
 
         return matchesSearch && matchesStatus;
     });
+
+    // Sprint admin-fecha-reg (2026-11-20) — orden por created_at cuando fechaSort
+    // está activo. null = orden natural del RPC (admin_listar_proveedores devuelve
+    // ya ordenado por conversión descendente). Proveedores sin created_at caen al
+    // final en ambos modos (defensive — hoy 100% pobladas).
+    const filteredProveedores = fechaSort
+        ? [...filteredProveedoresBase].sort((a, b) => {
+            const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+            if (!aTime && !bTime) return 0;
+            if (!aTime) return 1;
+            if (!bTime) return -1;
+            return fechaSort === 'desc' ? bTime - aTime : aTime - bTime;
+        })
+        : filteredProveedoresBase;
 
     if (loading) {
         return (
@@ -196,6 +216,21 @@ export default function ProveedorManagementList() {
                                 <th className="px-6 py-4">Proveedor</th>
                                 <th className="px-6 py-4">Contacto</th>
                                 <th className="px-6 py-4 text-center">Servicios</th>
+                                {/* Sprint admin-fecha-reg (2026-11-20): columna
+                                    Registrado con sort toggle. Dato viene del
+                                    RPC admin_listar_proveedores (created_at). */}
+                                <th className="px-6 py-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFechaSort(prev => prev === 'desc' ? 'asc' : prev === 'asc' ? null : 'desc')}
+                                        className="flex items-center gap-1 uppercase font-medium tracking-widest text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                                        aria-label={`Ordenar por fecha de registro: ${fechaSort === 'desc' ? 'más recientes primero (click para orden ascendente)' : fechaSort === 'asc' ? 'más antiguos primero (click para quitar sort)' : 'sin orden (click para orden descendente)'}`}
+                                    >
+                                        Registrado
+                                        {fechaSort === 'desc' && <span aria-hidden="true">↓</span>}
+                                        {fechaSort === 'asc' && <span aria-hidden="true">↑</span>}
+                                    </button>
+                                </th>
                                 <th className="px-6 py-4">Estado</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
@@ -203,7 +238,7 @@ export default function ProveedorManagementList() {
                         <tbody className="divide-y divide-slate-100">
                             {filteredProveedores.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                                         No se encontraron proveedores que coincidan con los filtros.
                                     </td>
                                 </tr>
@@ -324,6 +359,18 @@ export default function ProveedorManagementList() {
                                                 <span className="font-bold text-slate-700 text-lg leading-none">{prov.n_servicios_activos ?? 0}</span>
                                                 <span className="text-[10px] uppercase font-medium text-slate-500 tracking-widest">Activos {prov.n_servicios && prov.n_servicios !== prov.n_servicios_activos ? `/ ${prov.n_servicios} total` : ''}</span>
                                             </div>
+                                        </td>
+                                        {/* Sprint admin-fecha-reg (2026-11-20) — fecha de registro
+                                            del proveedor. Formato DD-MM-YYYY (chileno). Dato
+                                            viene del RPC como timestamptz. */}
+                                        <td className="px-6 py-4">
+                                            {prov.created_at ? (
+                                                <span className="text-slate-600 text-sm">
+                                                    {format(new Date(prov.created_at), 'dd-MM-yyyy', { locale: es })}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400 italic text-xs">—</span>
+                                            )}
                                         </td>
                                         {/* T3 — misma triada de T2 (proveedores.tsx) con tokens semanticos:
                                             success = aprobado, warning = suspendido (pausa reversible, no danger),
