@@ -49,21 +49,22 @@ export function Footer() {
         </div>
 
         {/* Servicios */}
-        {/* Sweep #2 M11 (2026-08-07, UX-7 walkthrough #1): agregadas Etología
-            (producto-1 PR2) y Retratos (sprint anterior). Temática PO —
-            servicios inexplotados llegando al footer para maximizar
-            visibilidad y demanda de las categorías nuevas. */}
+        {/* Sprint fix-footer-links (2026-11-20): removidos `hospedaje` + `etologia`
+            porque no existen como slugs activos en `categorias_servicio` (prod).
+            Verificado via MCP supabase-prod-ro — 9 categorías activas:
+            adiestramiento, cuidado, fotografia, guarderia, paseos, peluqueria,
+            retratos, traslado, veterinario. Cuidado absorbió el concepto de
+            "hospedaje" (nombre display: "Cuidado y Hospedaje"). */}
         <div>
           <h4 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Servicios</h4>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
-            <li><Link href="/explorar?categoria=hospedaje" className="hover:text-accent-600 transition-colors">Hospedaje</Link></li>
-            <li><Link href="/explorar?categoria=cuidado" className="hover:text-accent-600 transition-colors">Cuidado en casa del tutor</Link></li>
+            <li><Link href="/explorar?categoria=cuidado" className="hover:text-accent-600 transition-colors">Cuidado y Hospedaje</Link></li>
             <li><Link href="/explorar?categoria=guarderia" className="hover:text-accent-600 transition-colors">Guardería diurna</Link></li>
             <li><Link href="/explorar?categoria=paseos" className="hover:text-accent-600 transition-colors">Paseador de perros</Link></li>
             <li><Link href="/explorar?categoria=peluqueria" className="hover:text-accent-600 transition-colors">Peluquería</Link></li>
             <li><Link href="/explorar?categoria=adiestramiento" className="hover:text-accent-600 transition-colors">Adiestramiento</Link></li>
-            <li><Link href="/explorar?categoria=etologia" className="hover:text-accent-600 transition-colors">Etología y conducta</Link></li>
             <li><Link href="/explorar?categoria=veterinario" className="hover:text-accent-600 transition-colors">Veterinario a domicilio</Link></li>
+            <li><Link href="/explorar?categoria=fotografia" className="hover:text-accent-600 transition-colors">Fotografía de mascotas</Link></li>
             <li><Link href="/explorar?categoria=retratos" className="hover:text-accent-600 transition-colors">Retratos de mascotas</Link></li>
             <li><Link href="/explorar?categoria=traslado" className="hover:text-accent-600 transition-colors">Traslado</Link></li>
           </ul>
@@ -93,27 +94,32 @@ export function Footer() {
             </summary>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 mt-8">
 
-              {/* Hospedaje */}
+              {/* Cuidado y Hospedaje — sprint fix-footer-links (2026-11-20):
+                  reemplazó el bloque `hospedaje` (slug obsoleto, categoría
+                  fusionada en `cuidado`). */}
               <div>
-                <Link href="/explorar?categoria=hospedaje" className="text-sm font-semibold text-accent-700 hover:text-accent-600 mb-4 block">Hospedaje</Link>
+                <Link href="/explorar?categoria=cuidado" className="text-sm font-semibold text-accent-700 hover:text-accent-600 mb-4 block">Cuidado y Hospedaje</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
-                  <li><Link href="/explorar?categoria=hospedaje&comuna=Providencia" className="hover:text-accent-600 transition-colors">Providencia</Link></li>
-                  <li><Link href="/explorar?categoria=hospedaje&comuna=Las Condes" className="hover:text-accent-600 transition-colors">Las Condes</Link></li>
-                  <li><Link href="/explorar?categoria=hospedaje&comuna=Ñuñoa" className="hover:text-accent-600 transition-colors">Ñuñoa</Link></li>
-                  <li><Link href="/explorar?categoria=hospedaje&comuna=Vitacura" className="hover:text-accent-600 transition-colors">Vitacura</Link></li>
-                  <li><Link href="/explorar?categoria=hospedaje&comuna=Santiago" className="hover:text-accent-600 transition-colors">Santiago Centro</Link></li>
+                  <li><Link href="/explorar?categoria=cuidado&comuna=Providencia" className="hover:text-accent-600 transition-colors">Providencia</Link></li>
+                  <li><Link href="/explorar?categoria=cuidado&comuna=Las Condes" className="hover:text-accent-600 transition-colors">Las Condes</Link></li>
+                  <li><Link href="/explorar?categoria=cuidado&comuna=Ñuñoa" className="hover:text-accent-600 transition-colors">Ñuñoa</Link></li>
+                  <li><Link href="/explorar?categoria=cuidado&comuna=Vitacura" className="hover:text-accent-600 transition-colors">Vitacura</Link></li>
+                  <li><Link href="/explorar?categoria=cuidado&comuna=Santiago" className="hover:text-accent-600 transition-colors">Santiago Centro</Link></li>
                 </ul>
               </div>
 
-              {/* Domicilio */}
+              {/* Guardería — sprint fix-footer-links (2026-11-20): reemplazó
+                  el bloque `domicilio` (slug obsoleto, no existe reemplazo
+                  semántico directo; guarderia es categoría activa con
+                  demanda real). */}
               <div>
-                <Link href="/explorar?categoria=domicilio" className="text-sm font-semibold text-accent-700 hover:text-accent-600 mb-4 block">Visita a domicilio</Link>
+                <Link href="/explorar?categoria=guarderia" className="text-sm font-semibold text-accent-700 hover:text-accent-600 mb-4 block">Guardería Diurna</Link>
                 <ul className="space-y-3 text-[13px] text-slate-500">
-                  <li><Link href="/explorar?categoria=domicilio&comuna=Providencia" className="hover:text-accent-600 transition-colors">Providencia</Link></li>
-                  <li><Link href="/explorar?categoria=domicilio&comuna=Las Condes" className="hover:text-accent-600 transition-colors">Las Condes</Link></li>
-                  <li><Link href="/explorar?categoria=domicilio&comuna=Ñuñoa" className="hover:text-accent-600 transition-colors">Ñuñoa</Link></li>
-                  <li><Link href="/explorar?categoria=domicilio&comuna=La Florida" className="hover:text-accent-600 transition-colors">La Florida</Link></li>
-                  <li><Link href="/explorar?categoria=domicilio&comuna=Maipú" className="hover:text-accent-600 transition-colors">Maipú</Link></li>
+                  <li><Link href="/explorar?categoria=guarderia&comuna=Providencia" className="hover:text-accent-600 transition-colors">Providencia</Link></li>
+                  <li><Link href="/explorar?categoria=guarderia&comuna=Las Condes" className="hover:text-accent-600 transition-colors">Las Condes</Link></li>
+                  <li><Link href="/explorar?categoria=guarderia&comuna=Ñuñoa" className="hover:text-accent-600 transition-colors">Ñuñoa</Link></li>
+                  <li><Link href="/explorar?categoria=guarderia&comuna=La Florida" className="hover:text-accent-600 transition-colors">La Florida</Link></li>
+                  <li><Link href="/explorar?categoria=guarderia&comuna=Maipú" className="hover:text-accent-600 transition-colors">Maipú</Link></li>
                 </ul>
               </div>
 
