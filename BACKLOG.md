@@ -1528,6 +1528,34 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 **Impacto SEO**: cero — el fix del bundle SEO de Auditoría #2 (307→404/410) cubre igual el caso de un ejemplo desactivado que un crawler encontró indexado.
 
+## Infraestructura y CI
+
+### CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA
+
+**Observación del PO 2026-11-20 PM**: en los últimos 4 PRs (#120, #122, #123, #125), el CI falló por tests pre-existentes de specs que el PR NO estaba tocando. 4 veces seguidas no es coincidencia.
+
+**Hipótesis**: (a) flakes acumulados por drift de fixtures que ya nadie cubre, (b) concurrency cross-PR sobre Supabase staging que está peor que antes (el `concurrency: e2e-staging` del PR #15 serializó pero no evitó contamination residual), (c) fallos infra transient (ECONNRESET, SSL handshake, Supabase 525) que cayeron en specs puntuales por mala suerte.
+
+**Alcance del análisis**:
+- Últimos 10 runs CI fallidos del repo (`gh run list --workflow e2e-error-audit.yml --status failure --limit 10`).
+- Agregar por spec: cuántos fallos cada uno, qué assertion específica, qué branch.
+- Identificar los 3-5 specs con tasa de fallo más alta que los PRs no están tocando.
+- Por cada uno, clasificar:
+  - **(a) fixme individual con bug ticket**: si el spec graba comportamiento que ya no existe (deuda del sprint tests-desactual PR #62).
+  - **(b) quarantine del spec**: si es flaky irrecuperable + no gated por producto crítico.
+  - **(c) fix del fixture subyacente**: si el fixture (login, setup BD, timing) está roto y afecta solo a este spec.
+  - **(d) mejora de concurrency cross-PR**: si el mecanismo P15 `concurrency: e2e-staging` no está serializando bien y requiere ajuste estructural.
+
+**Entregable**: `docs/planes/ci-flakes-acumulados.md` con la tabla de 3-5 specs + evidencia (run_ids + assertion) + recomendación por caso + estimación de fix por opción.
+
+**Estimación**: 2-3h análisis + redacción. Zero código — es investigación + plan.
+
+**Prioridad**: ALTA pre-campañas. Al activar campañas el CI debe estar predecible — cada fail ajeno cuesta ~30 min de context switch + rerun + diagnóstico. 4 PRs × 30 min esta semana = 2h perdidas en flakes.
+
+**Relación**: complementa a OBSERVABILIDAD-ALERTAS (post-campañas) y a CI-CONCURRENCY-E2E (ya documentado en `docs/planes/ci-concurrency-e2e.md`, pendiente implementar).
+
+**No bloqueante**: el equipo puede seguir con PRs sin esto, con el costo operativo de los flakes. Pero sí incómodo.
+
 ## Deuda técnica / pulido
 
 - **[abierto — PRIORIDAD BAJA, sprint pan-1 PR-3b 2026-09-11] `email-confirmado.tsx` con `getSession()` en fallback defensivo** — [pages/email-confirmado.tsx:141-148](pages/email-confirmado.tsx#L141-L148). Semántica distinta al bug del bell (no es race del mount productivo — es fallback para detectar sesión previa de OTRA tab cuando la URL viene limpia). No amerita fix inmediato porque (a) el path se dispara solo cuando URL NO trajo token (rama 3 del effect), (b) el fallback termina en `setHasSomethingToProcess(!!data?.session)` que si retorna false por race, la landing muestra el path guest correcto (URL limpia = user probablemente ya está logueado o vino sin sesión previa). Consideración: reemplazar por `useUser()` del contexto sería más limpio y elimina la última superficie del patrón `getSession + useEffect[]` del proyecto. Sprint chico (~30 min) — combinable con cualquier PR que toque `email-confirmado.tsx`.
