@@ -1093,6 +1093,24 @@ Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCate
 6. **Entrenamiento deportivo** — agility, canicross, deportes caninos, presencial.
 7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor.
 
+### Post-launch — iniciativas grandes
+
+**EXPANSION-DIRECTORIO-NEGOCIOS** — abierto · prioridad media · fecha objetivo sin fecha (post-launch con V1 estable)
+
+Ampliar Pawnecta de marketplace de servicios de personas a directorio que también incluya negocios físicos y virtuales del mundo mascota. 3 fases internas:
+
+- **Fase 1 — Veterinarias físicas**. Clínicas veterinarias con local atendido por profesionales. Incluye datos distintos a un veterinario persona: razón social, dirección del local, horario de atención, horario de urgencias si aplica, equipo profesional, servicios ofrecidos, teléfono y correo del local, redes sociales del negocio.
+- **Fase 2 — Tiendas de mascotas físicas**. Locales con dirección física que venden productos para mascotas. Datos: razón social, dirección, horario, categorías de productos (alimento, accesorios, higiene, etc.), medios de pago aceptados, delivery sí/no, zonas de delivery.
+- **Fase 3 — Tiendas de mascotas virtuales**. E-commerce de productos para mascotas. Datos: razón social, URL del sitio, categorías de productos, medios de pago, zonas de envío, tiempo de entrega.
+
+**Impacto en arquitectura**: cambios profundos. Hoy el modelo "proveedor" asume una persona con nombre, apellido, foto. Un negocio tiene razón social, logo, local. Hay que definir si se extiende la tabla `proveedores` con un campo `tipo_entidad`, se crea una tabla `negocios` separada, o se abstrae como "perfil publicable" con dos subtipos. Decisión de arquitectura previa a la implementación.
+
+**Impacto en flows**: nuevo flow de registro específico para negocios (RUT empresa, formulario distinto, validaciones distintas). Ficha pública con layout específico para negocio (mapa del local, horarios, teléfono). Buscador: debe decidir si separa "servicios" de "negocios" en pestañas, o los mezcla con un filtro.
+
+**Impacto en monetización (abierto)**: hoy Pawnecta no cobra por conectar. Con tiendas virtuales aparecen preguntas sobre afiliación o comisión por venta. Decisión de producto previa.
+
+Esta descripción la escribió el PO con mi apoyo 2026-11-20. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch.
+
 ## Proyectos estructurales
 
 ### Categorías por modalidad (presencial / remoto / mixto)
