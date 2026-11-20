@@ -112,7 +112,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                             <p className="text-sm font-semibold text-slate-700 truncate">{cert.titulo}</p>
                             {statusBadge(cert.estado)}
                         </div>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500">
                             {cert.institucion && `${cert.institucion} `}
                             {cert.anio && `(${cert.anio})`}
                         </p>
@@ -126,7 +126,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                                 className="text-xs text-blue-600 hover:underline font-medium">Ver</a>
                         )}
                         {cert.estado !== 'aprobado' && (
-                            <button onClick={() => handleDelete(cert.id)} className="text-slate-400 hover:text-danger-500 transition-colors">
+                            <button onClick={() => handleDelete(cert.id)} className="text-slate-500 hover:text-danger-500 transition-colors">
                                 <Trash2 size={14} />
                             </button>
                         )}
@@ -154,7 +154,7 @@ export default function CertificacionesSection({ proveedorId }: Props) {
                         />
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer border-2 border-dashed border-slate-300 rounded-lg px-4 py-3 hover:border-accent-600 transition-colors">
-                        <Upload size={16} className="text-slate-400" />
+                        <Upload size={16} className="text-slate-500" />
                         <span className="text-sm text-slate-500">{file ? file.name : 'Subir documento (PDF, JPG, PNG)'}</span>
                         <input type="file" className="hidden" accept="image/*,.pdf" onChange={e => setFile(e.target.files?.[0] || null)} />
                     </label>

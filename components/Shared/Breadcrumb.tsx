@@ -17,7 +17,7 @@ export default function Breadcrumb({ items }: BreadcrumbProps) {
                 const isLast = idx === items.length - 1;
                 return (
                     <span key={idx} className="flex items-center gap-1 min-w-0">
-                        {idx > 0 && <ChevronRight size={14} className="text-slate-400 shrink-0" />}
+                        {idx > 0 && <ChevronRight size={14} className="text-slate-500 shrink-0" />}
                         {isLast || !item.href ? (
                             // Ultimo nivel: en mobile (titulos largos como
                             // "Peluqueria canina y felina con corte sanitario...")

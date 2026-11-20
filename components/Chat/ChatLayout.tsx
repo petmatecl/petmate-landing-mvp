@@ -69,7 +69,7 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
                         <MessageThread conversationId={selectedConversationId} userId={userId} />
                     </>
                 ) : (
-                    <div className="flex-1 flex flex-col items-center justify-center text-slate-400 bg-slate-50/30 p-8 text-center">
+                    <div className="flex-1 flex flex-col items-center justify-center text-slate-500 bg-slate-50/30 p-8 text-center">
                         <div className="w-20 h-20 bg-accent-50 rounded-full flex items-center justify-center mb-4 animate-bounce-slow">
                             <MessageSquare size={40} className="text-accent-600" />
                         </div>

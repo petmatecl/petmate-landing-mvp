@@ -75,7 +75,7 @@ export function EstadoErrorCompacto({
     onRetry,
     className = '',
 }: EstadoErrorCompactoProps) {
-    const commonClass = `inline-flex items-center justify-center text-slate-400 font-medium ${className}`;
+    const commonClass = `inline-flex items-center justify-center text-slate-500 font-medium ${className}`;
     if (onRetry) {
         return (
             <button

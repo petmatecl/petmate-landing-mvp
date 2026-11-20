@@ -162,7 +162,7 @@ function AdminNotifications() {
                                         <div className="bg-warning-100 p-2 rounded-lg text-warning-600">
                                             <User size={20} />
                                         </div>
-                                        <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Proveedores Pendientes</p>
+                                        <p className="font-medium text-slate-500 uppercase text-xs tracking-widest">Proveedores Pendientes</p>
                                     </div>
                                     {statsPendientesError ? (
                                         <div className="text-4xl font-bold text-slate-900 tracking-tight">
@@ -184,7 +184,7 @@ function AdminNotifications() {
                                         <div className="bg-accent-100 p-2 rounded-lg text-accent-600">
                                             <Bell size={20} />
                                         </div>
-                                        <p className="font-medium text-slate-400 uppercase text-xs tracking-widest">Contactos esta semana</p>
+                                        <p className="font-medium text-slate-500 uppercase text-xs tracking-widest">Contactos esta semana</p>
                                     </div>
                                     {statsContactosError ? (
                                         <div className="text-4xl font-bold text-slate-900 tracking-tight">
@@ -203,7 +203,7 @@ function AdminNotifications() {
                         {/* Recent Activity Feed */}
                         <div className="bg-white rounded-2xl shadow-sm border-2 border-slate-300 overflow-hidden">
                             <div className="p-6 border-b border-slate-300 flex items-center gap-2">
-                                <Bell className="text-slate-400" size={20} />
+                                <Bell className="text-slate-500" size={20} />
                                 <h3 className="font-semibold text-lg text-slate-900">Últimos Registros</h3>
                             </div>
                             {activityError ? (

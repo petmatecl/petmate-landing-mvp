@@ -296,7 +296,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
     };
 
     if (loading) return (
-        <div className="flex-1 flex items-center justify-center text-slate-400">
+        <div className="flex-1 flex items-center justify-center text-slate-500">
             <div className="flex flex-col items-center gap-2">
                 <span className="w-4 h-4 border-2 border-accent-600 border-t-transparent rounded-full animate-spin"></span>
                 <span>Cargando...</span>
@@ -334,7 +334,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 className="w-10 h-10 rounded-full object-cover border-2 border-slate-300"
                             />
                         ) : (
-                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-400">
+                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-500">
                                 <UserIcon size={20} />
                             </div>
                         )}
@@ -358,7 +358,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                 ● En línea
                             </span>
                         ) : (
-                            <span className="text-[10px] text-slate-400">
+                            <span className="text-[10px] text-slate-500">
                                 Desconectado
                             </span>
                         )}
@@ -405,7 +405,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     return (
                         <div key={msg.id}>
                             {showDate && (
-                                <div className="text-center text-[10px] text-slate-400 my-4 uppercase tracking-widest font-medium">
+                                <div className="text-center text-[10px] text-slate-500 my-4 uppercase tracking-widest font-medium">
                                     {format(new Date(msg.created_at), 'EEEE d MMMM', { locale: es })}
                                 </div>
                             )}
@@ -426,7 +426,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                                         } ${isTemp ? 'opacity-70' : ''}`}
                                 >
                                     <p className="whitespace-pre-wrap leading-relaxed">{msg.content}</p>
-                                    <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? 'text-accent-200' : 'text-slate-400'}`}>
+                                    <div className={`text-[10px] mt-1 text-right flex items-center justify-end gap-1 ${isMe ? 'text-accent-200' : 'text-slate-500'}`}>
                                         {format(new Date(msg.created_at), 'HH:mm')}
                                         {isTemp && <span className="animate-pulse">...</span>}
                                     </div>
@@ -437,7 +437,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 })}
                 <div ref={bottomRef} />
                 {messages.length === 0 && (
-                    <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-2 opacity-50">
+                    <div className="h-full flex flex-col items-center justify-center text-slate-500 space-y-2 opacity-50">
                         <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center">
                             <Send size={24} className="ml-1" />
                         </div>
@@ -453,7 +453,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 reunidos en la familia success para que "online" use una sola familia en todo
                 el chat. */}
             {otherUser && (
-              <div className="px-4 py-1.5 text-xs text-slate-400 bg-white border-t border-slate-100">
+              <div className="px-4 py-1.5 text-xs text-slate-500 bg-white border-t border-slate-100">
                 {onlineUsers.has(otherUser.auth_user_id) ? (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-success-500 inline-block" />

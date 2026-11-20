@@ -132,7 +132,7 @@ export default function ServiceCard({ service }: Props) {
                     </div>
                 ) : (
                     <div className="absolute bottom-3 left-3 z-10 bg-white/90 backdrop-blur-sm shadow-sm px-2.5 py-1 rounded-full flex items-center gap-1 text-slate-500 text-xs font-medium">
-                        <Star size={12} className="text-slate-400" />
+                        <Star size={12} className="text-slate-500" />
                         Sin reseñas
                     </div>
                 )}
@@ -163,7 +163,7 @@ export default function ServiceCard({ service }: Props) {
                                 className="w-full h-full object-cover"
                             />
                         ) : (
-                            <svg className="w-full h-full text-slate-400 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+                            <svg className="w-full h-full text-slate-500 p-1" fill="currentColor" viewBox="0 0 24 24"><path d="M24 20.993V24H0v-2.996A14.977 14.977 0 0112.004 15c4.904 0 9.26 2.354 11.996 5.993zM16.002 8.999a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
                         )}
                     </div>
                     <p title={`${service.proveedor_nombre} • ${service.proveedor_comuna}`} className="text-sm text-slate-500 truncate">

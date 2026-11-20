@@ -207,7 +207,7 @@ export default function OfertaMetrics() {
                     </div>
                     <div className="flex-1">
                         <p className="text-sm text-slate-500 font-medium">Total servicios activos (proveedores reales)</p>
-                        <p className="text-4xl font-bold text-slate-900 mt-1">{stats.totalServiciosActivos} <span className="text-lg text-slate-400 font-normal">/ {UMBRAL_SERVICIOS_MIN} mínimo</span></p>
+                        <p className="text-4xl font-bold text-slate-900 mt-1">{stats.totalServiciosActivos} <span className="text-lg text-slate-500 font-normal">/ {UMBRAL_SERVICIOS_MIN} mínimo</span></p>
                         <div className="w-full h-2 bg-slate-100 rounded-full mt-3 overflow-hidden">
                             <div className={`h-full ${alcanzaTotal ? 'bg-green-500' : 'bg-sky-400'}`} style={{ width: `${Math.min(totalPct, 100)}%` }} />
                         </div>
@@ -234,7 +234,7 @@ export default function OfertaMetrics() {
                     <table className="w-full text-sm">
                         <tbody>
                             {stats.porCategoria.length === 0 && (
-                                <tr><td className="px-5 py-4 text-slate-400">Sin servicios reales publicados</td></tr>
+                                <tr><td className="px-5 py-4 text-slate-500">Sin servicios reales publicados</td></tr>
                             )}
                             {stats.porCategoria.map((row) => (
                                 <tr key={row.slug} className="border-b border-slate-50 last:border-0">
@@ -263,7 +263,7 @@ export default function OfertaMetrics() {
                     <table className="w-full text-sm">
                         <tbody>
                             {stats.porComuna.length === 0 && (
-                                <tr><td className="px-5 py-4 text-slate-400">Sin comunas registradas</td></tr>
+                                <tr><td className="px-5 py-4 text-slate-500">Sin comunas registradas</td></tr>
                             )}
                             {stats.porComuna.slice(0, 12).map((row) => {
                                 const esOriente = COMUNAS_SECTOR_ORIENTE.includes(row.comuna);
