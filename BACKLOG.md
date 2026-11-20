@@ -1162,6 +1162,98 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 ---
 
+### FORM-SERVICIO-SIDEBAR-NAV — pre-campañas · prioridad ALTA
+
+**Contexto**: el PO reporta que el formulario actual de crear/editar servicio ([components/Proveedor/ServiceFormModal.tsx](../../components/Proveedor/ServiceFormModal.tsx), 2876 líneas) se percibe plano, desordenado y extenso. Hoy es scroll largo sin jerarquía visual entre módulos. Rediseño de navegación, no cambio cosmético.
+
+**Objetivo**: rediseñar la navegación del formulario con una barra lateral persistente (sidebar stepper).
+
+**Contenido del sidebar** (10 módulos según `docs/auditorias/formulario-servicio-20261119.md`):
+
+1. Información básica
+2. Precio
+3. Disponibilidad / Agenda (F1/F2)
+4. Mascotas aceptadas
+5. Comunas
+6. Fotos
+7. Inclusiones
+8. Modalidad
+9. Políticas (cancelación, pagos)
+10. Campos dinámicos por categoría
+
+**Indicadores visuales por módulo**:
+- **Vacío**: dot gris (ningún campo obligatorio tocado).
+- **En progreso**: círculo con puntos (algunos campos tocados, falta obligatorios).
+- **Completo**: check verde (obligatorios OK).
+- **Con error**: triángulo rojo (validación fallida).
+
+**Comportamiento**:
+- Click en módulo → smooth scroll a la sección (con scroll-margin para no quedar bajo header).
+- Módulo activo: resaltado con color accent.
+- Barra de progreso general arriba del sidebar (ej. "Perfil 60% completo").
+- Mobile (< 768px): sidebar colapsa a barra superior horizontal o dropdown con mismo indicador de estado.
+
+**Diseño inicial**:
+- Sidebar fijo izquierda, ancho 240-280px.
+- Cada ítem: nombre módulo + ícono de estado.
+
+**Trabajo técnico** (6-10h):
+- Componente `FormSidebarNav` nuevo y reutilizable.
+- Refactor `ServiceFormModal.tsx` para exponer el estado de cada módulo.
+- Lógica de validación por sección (reutilizar las validaciones del submit, solo exponiéndolas por módulo).
+- Scroll-margin + anchors por sección.
+- Responsive dropdown colapsable < 768px.
+- Spec e2e: click en módulo navega, check se marca al completar, error aparece al validar.
+
+**Decisiones pendientes del PO al momento de implementar**:
+- ¿Validación "completo" solo al onBlur o al abandonar la sección?
+- Si el proveedor edita servicio existente, ¿los módulos ya completos salen con check desde el inicio o requieren revisión?
+- ¿La barra de progreso general suma solo módulos obligatorios o todos?
+
+**Dependencia**:
+- Técnica: ninguna.
+- Operativa: **no tocar mientras CHAT-LAZY-CREATE y PII-VIEW-TIGHT estén en vuelo** (evitar conflictos en PRs grandes paralelos).
+
+**Momento sugerido**: después de PII-VIEW-TIGHT (sábado 21-11) + WWW-CANONICAL (domingo 22-11). Ideal lunes 24-11 o martes 25-11.
+
+**Impacto esperado**: +15-25% proveedores que publican su primer servicio (jerarquía visual reduce ansiedad de "formulario infinito"). Complementa hallazgo H1 de `docs/auditorias/funnel-registro-proveedor-20261120.md`.
+
+---
+
+### BADGE-INSIGNIA-COPY — pre-campañas · prioridad media · capturado retroactivamente 2026-11-20
+
+**Observación PO 2026-11-17** (durante smoke pre-launch): el modal de verificación dice "Verifica tu identidad y gana el **badge**" + promete que los verificados "aparecen destacados en las búsquedas".
+
+**Trabajo**:
+1. **Rename "badge" → "insignia"** en todo el copy visible del modal de verificación (anglicismo innecesario; "insignia" es nativo español).
+2. **Verificar empíricamente** si los verificados aparecen destacados en `/explorar` (no solo en el carrusel del home). Hoy el `buscar_servicios` RPC retorna `proveedor_verificado` boolean pero no se sabe si afecta el orden del listado.
+3. **Si NO se priorizan en `/explorar`**: ajustar texto del modal a algo preciso ("tus clientes ven una insignia de verificación en tu ficha" sin prometer ranking).
+
+**Archivos involucrados**: `components/Proveedor/VerificationGateModal.tsx` + posibles otros copy locations (grep "badge" + "aparecen destacados").
+
+**Estimación**: 30 min (grep + rename + verificación empírica + decisión copy final si aplica).
+
+**Capturado retroactivamente 2026-11-20 desde chat PO** — aterrizado en BACKLOG post lectura retroactiva de menciones no formalizadas.
+
+---
+
+### BADGE-NUEVO-PAWNECTA — pre-campañas · prioridad media · capturado retroactivamente 2026-11-20
+
+**Pedido PO 2026-11-19** (durante planificación sprint reseñas verificadas): agregar badge "Nuevo en Pawnecta" a perfiles de proveedor que aún no tienen reseñas. Mejora UX de tutores que llegan a fichas sin reviews + reduce ansiedad del proveedor nuevo sin reviews que teme comparación.
+
+**Trabajo técnico**:
+- Lógica en `ServiceCard.tsx` + `ServiceDetailView.tsx` + `pages/proveedor/[id].tsx`: si proveedor tiene 0 reseñas aprobadas, mostrar badge "Nuevo en Pawnecta" (en vez del score que hoy aparece vacío o como "0 reseñas").
+- Estética: badge similar a "Identidad verificada" pero con color distinto (azul info o accent suave, no verde emerald que ya usa verificado).
+- Texto hover/tooltip: "Este proveedor es nuevo en Pawnecta — su reputación se construye con tu reseña".
+
+**Estimación**: 1-2h. **Cabe** en ventana calma del fin de semana.
+
+**Relación**: complementa el sprint `reseñas-verificadas-postlaunch` (semana 26-30 nov). Este badge es independiente — funciona sin importar el sistema de verificación de reseñas; mejora el edge case "0 reseñas".
+
+**Capturado retroactivamente 2026-11-20 desde chat PO** — mencionado el 2026-11-19 como "mañana viernes AM: badge 'Nuevo en Pawnecta' para perfiles sin reseñas (1-2h, cabe post-#120)" pero no se formalizó como ítem BACKLOG hasta esta pasada.
+
+---
+
 ## Producto (features nuevas)
 
 ### Retratos de Mascotas — CERRADA EN PROD
