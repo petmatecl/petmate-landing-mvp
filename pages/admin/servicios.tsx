@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import AdminLayout from '../../components/Admin/AdminLayout';
 import {
-    ArrowLeft, Search, Briefcase, Eye, EyeOff, CheckCircle2,
+    Search, Briefcase, Eye, EyeOff, CheckCircle2,
     XCircle, Clock, BarChart3, TrendingUp, AlertTriangle, ShieldCheck, Tag
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -192,27 +192,20 @@ function GestionServicios() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 font-sans pb-12">
+        <div className="w-full pb-12">
             <Head><title>Catálogo de Servicios | Admin</title></Head>
 
-            <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                <Briefcase className="text-indigo-400" />
-                                Gestión de Servicios
-                            </h1>
-                            <p className="text-sm text-slate-500">Moderación de catálogo publicado</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {/* Sprint admin-sidebar-ref Opción III — removido <header> negro
+                + back button; AdminLayout provee el sidebar unificado. */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-900">
+                    <Briefcase className="text-indigo-500" />
+                    Gestión de Servicios
+                </h1>
+                <p className="mt-1 text-sm text-slate-600">Moderación de catálogo publicado</p>
+            </div>
 
-            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+            <div className="max-w-7xl mx-auto">
 
                 {/* Grid Superior de Estadisticas Rápidas */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -503,7 +496,9 @@ function GestionServicios() {
 export default function GestionServiciosPage() {
     return (
         <RoleGuard requiredRole="admin">
-            <GestionServicios />
+            <AdminLayout>
+                <GestionServicios />
+            </AdminLayout>
         </RoleGuard>
     );
 }
