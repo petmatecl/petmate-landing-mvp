@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
 import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
 
@@ -53,12 +54,39 @@ export default function AdminDashboard() {
 }
 
 function AdminDashboardInner() {
+    const router = useRouter();
+
     // Pestaña activa ('dashboard', 'aprobaciones', 'moderacion', 'proveedores')
     const [activeTab, setActiveTab] = useState('dashboard');
     // Sprint d-ui-paneles SCROLL-TAB (2026-09-15) — scroll al top al cambiar
     // de tab; sin esto el contenido del tab nuevo arranca en el offset del
     // anterior, obligando al user a scrollear manual arriba.
     useScrollToTopOnTabChange(activeTab);
+
+    // Sprint sidebar-metricas Opción I (2026-11-20) — leer `?tab=X` de la URL
+    // para activar la tab correspondiente al aterrizar con query param. Los
+    // links del sidebar unificado en components/Admin/AdminLayout.tsx apuntan
+    // a /admin?tab=conversion, /admin?tab=moderacion, etc. — sin este sync, el
+    // SPA siempre aterrizaba en 'dashboard' aunque la URL dijera otra cosa.
+    //
+    // router.isReady guard: en el primer render, router.query está vacío (Next
+    // aún no hidrató los search params). Esperar isReady evita que el guard
+    // sobreescriba la tab elegida por el usuario antes de tiempo. Solo
+    // sincroniza cuando el query tab existe y matchea uno de los ids válidos;
+    // sin query queda el default 'dashboard'.
+    useEffect(() => {
+        if (!router.isReady) return;
+        const q = router.query.tab;
+        const tab = Array.isArray(q) ? q[0] : q;
+        if (!tab) return;
+        const valid = ['dashboard', 'conversion', 'aprobaciones', 'moderacion', 'proveedores', 'feedback'];
+        if (valid.includes(tab) && tab !== activeTab) {
+            setActiveTab(tab);
+        }
+        // Cero dependencia de activeTab para evitar loop: solo reaccionamos a
+        // cambios del query param.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [router.isReady, router.query.tab]);
 
     // Sprint badge-f1 (2026-08-18) — auto-aprobación al signup deja el
     // tab Aprobaciones legacy vacío en el flow nuevo. Ocultamos el tab

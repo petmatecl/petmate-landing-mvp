@@ -1254,6 +1254,29 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 ---
 
+### ADMIN-SIDEBAR-REFACTOR-COMPLETO — post-ola-decisiones-PO · prioridad media · capturado 2026-11-20
+
+**Contexto**: sprint sidebar-metricas (Opción I) del 2026-11-20 unificó el sidebar admin entre `/admin` (SPA tabs) y 2 sub-páginas (`/admin/metricas-proveedores`, `/admin/notificaciones`) que usan `components/Admin/AdminLayout.tsx`. Pero 3 sub-páginas restantes (`/admin/evaluaciones`, `/admin/proveedores`, `/admin/servicios`) siguen SIN sidebar — usan solo `RoleGuard` + layout custom inline.
+
+**Trabajo**: migrar las 3 sub-páginas pendientes a usar `AdminLayout`. Patrón espejo de `/admin/notificaciones` y `/admin/metricas-proveedores` tras #138.
+
+- `pages/admin/evaluaciones.tsx` (474 líneas) → envolver en AdminLayout + quitar chrome outer.
+- `pages/admin/proveedores.tsx` (698 líneas) → envolver en AdminLayout + quitar chrome outer.
+- `pages/admin/servicios.tsx` (505 líneas) → envolver en AdminLayout + quitar chrome outer.
+
+**Opcional** (más ambicioso): extraer `<aside>` inline de `pages/admin.tsx:171` a `components/Admin/AdminSidebar.tsx` compartido, que AdminLayout.tsx consume + pages/admin.tsx usa inline. Un solo sidebar en TODO `/admin/*`.
+
+**Pro**: 1 sidebar canónico en TODO el admin, cero deuda de layouts admin inconsistentes.
+**Contra**: refactor grande, toca 3-4 archivos adicionales a los del sprint hoy. Riesgo de regresión en las 3 sub-páginas no tocadas hoy.
+
+**Estimación**: 2-3h.
+
+**Momento sugerido**: post-ola-decisiones-PO del 2026-11-20 (ventana calma de lunes 24-11 o después). No bloquea campañas.
+
+**Capturado 2026-11-20 desde chat PO** como Opción III del diagnóstico sidebar-metricas — PO eligió Opción I ("menor costo, resuelve bug reportado") y pidió que III quedara en BACKLOG para cuando haya ventana.
+
+---
+
 ## Producto (features nuevas)
 
 ### Retratos de Mascotas — CERRADA EN PROD
