@@ -184,7 +184,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
                                     src={getProxyImageUrl(other.foto_perfil) || ''}
-                                    alt={other.nombre}
+                                    alt={other.display_name || 'Participante'}
                                     className="w-12 h-12 rounded-full object-cover border-2 border-slate-300"
                                 />
                             ) : (
@@ -200,7 +200,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                         <div className="flex-1 min-w-0">
                             <div className="flex justify-between items-baseline mb-0.5">
                                 <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-accent-900' : 'text-slate-900'}`}>
-                                    {other?.nombre} {other?.apellido_p}
+                                    {other?.display_name || 'Participante'}
                                 </h4>
                                 <span className="text-[10px] text-slate-400 shrink-0">
                                     {format(date, 'dd MMM', { locale: es })}
