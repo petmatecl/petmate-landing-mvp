@@ -1054,6 +1054,60 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
 
 - **[CERRADO — sprint f2-ci-fix 2026-09-09, señal visible aplicada]** **Servicios existentes con `descripcion` < 100 caracteres — guard con señal visible siempre** — política PO 2026-09-09: se mantiene el mínimo de 100 chars (no se permite guardar otros campos sin extenderla), pero el guard debe dar señal visible en TODO caso, no solo toast (que dura ~4s y se pierde si el proveedor no mira arriba). Contexto: FIX 3 de panel-prov-fixes (`ab82c86`, 2026-08-27) agregó el guard `if (descripcion.trim().length < 100) return toast.error(...)` en `handleSubmit` de `ServiceFormModal.tsx:625` — solo toast. Durante el diagnóstico del sprint f2-ci-fix, la sesión MCP tras Guardar con desc 55 chars + wait 18s no mostró señal alguna: toast expirado, ni inline error, ni focus, ni scroll. Un proveedor que toca Guardar sin recibir señal es una pantalla muda. **Fix aplicado en `ServiceFormModal.tsx`**: extender el guard al patrón F2-2B-B ya probado — nuevo state `descripcionError` + inline error persistente bajo el textarea (border danger + aria-invalid + role=alert) + scrollIntoView + focus del textarea + toast (los 4 canales). Limpieza del error inline al primer typeo. Cerrado por `<SHA-lote-5-tipo-b-tbd>` (ver commit `fix(editor)` del PR ci-f2-specs). Test de regresión: `e2e/specs/f2-2b/s7-guard-descripcion-corta.spec.ts` (2 tests: guard cierra fail-close con inline+focus+cero-PATCH; typeo limpia inline). Impacto en prod: cero regresión — el único caso conocido (servicio "Cuidado tu mascota" del propio Aldo, inactivo) sigue funcionando igual, pero ahora ve el error inline si intenta editar sin extender descripción.
 
+## Herramientas admin pre-launch o primeras semanas post-launch
+
+Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario final — habilitan al PO para operar la plataforma con más visibilidad y acción manual durante lanzamiento + estabilización.
+
+### ADMIN-PROVEEDORES-FECHA-REGISTRO — alta pre-launch si cabe · prioridad alta
+
+**Qué**: agregar columna "Registrado" al listado del panel `/admin/proveedores` con la fecha en que el proveedor se registró, formato DD-MM-YYYY, ordenable.
+
+**Dato fuente**: ya existe en `public.proveedores.created_at` (verificar nombre exacto al implementar). Sin migración, sin backfill.
+
+**Trabajo**: editar `components/Admin/ProveedorManagementList.tsx` (o el que renderice la tabla) para agregar columna + prop en el fetch. Sort toggle ascendente/descendente.
+
+**Estimación**: 15-30 min. **Dependencia**: ninguna.
+
+**Impacto**: herramienta operacional del PO para ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
+
+**Prioridad**: alta pre-launch si cabe en ventana (viernes 20-11 PM o sábado AM). Si no, primera semana post-launch. No bloqueante del 25-11.
+
+---
+
+### ADMIN-PROVEEDORES-RECORDATORIO-MANUAL — prioridad media · 1-2 semanas post-launch
+
+**Qué**: por cada fila del panel `/admin/proveedores`, botón que dispara un correo recordatorio al proveedor con contenido según su estado actual. 4 estados a cubrir:
+
+1. **Registrado sin servicio publicado** → recordatorio para terminar registro y publicar primer servicio.
+2. **Con servicio publicado pero sin foto de perfil o bio** → recordatorio para completar el perfil.
+3. **Con todo completo pero sin agenda activa (F1/F2)** → recordatorio para activar reserva en línea.
+4. **Con agenda activa pero sin reservas recibidas en X días** → recordatorio "seguimos aquí, actualiza tus zonas de cobertura".
+
+El estado se detecta automáticamente al apretar el botón; el PO no elige qué correo mandar. Si no cumple ningún estado (proveedor completo + activo + con reservas recientes), botón deshabilitado con tooltip "Sin recordatorio pendiente".
+
+**Trabajo técnico**:
+- Endpoint `POST /api/admin/proveedores/[id]/recordar` que:
+  - Verifica autorización admin (`is_admin()`).
+  - Clasifica el estado del proveedor según las 4 reglas.
+  - Envía correo via Resend con el template correspondiente.
+  - Loguea en `auditoria_admin` con timestamp + `estado_disparador` + `admin_id`.
+- 4 templates React Email nuevos (`components/Emails/RecordatorioManualX.tsx` donde X = sin-servicio / sin-perfil / sin-agenda / sin-reservas).
+- UI del botón en la fila `ProveedorManagementList.tsx` con loading state + toast de confirmación.
+- Rate limit: máximo 1 recordatorio del mismo tipo por proveedor cada 7 días. Query sobre `auditoria_admin` antes de enviar. Si dentro de ventana, mensaje "último recordatorio enviado hace X días, próximo disponible en Y días".
+
+**Decisión pendiente del PO**: cuerpo de cada uno de los 4 correos. El auditor arma drafts al momento de implementar (no ahora).
+
+**Relación con otros ítems**:
+- **Complementa** la Task 13 (journey activación proveedor) entregada 2026-11-19 en `docs/planes/journey-activacion-proveedor.md` — ese doc cubre recordatorios AUTOMÁTICOS (crons). Este ítem agrega MANUALES disparados por el PO desde admin.
+
+**Dependencia**: la tabla `auditoria_admin` debe existir. Si no existe, +30 min (migration + columnas mínimas: `id`, `admin_id`, `accion`, `target_type`, `target_id`, `metadata jsonb`, `created_at`).
+
+**Estimación**: 3-5h (endpoint + UI del botón + 4 templates + logging + rate limit + spec e2e). Con migración si aplica: +30 min.
+
+**Prioridad**: media. Cabe dentro de la primera o segunda semana post-launch. No bloqueante del 25-11.
+
+---
+
 ## Producto (features nuevas)
 
 ### Retratos de Mascotas — CERRADA EN PROD
