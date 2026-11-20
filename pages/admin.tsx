@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '../lib/supabaseClient';
-import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
+import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp, Target, Star, Bell, ArrowLeft } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
 import RoleGuard from '../components/Shared/RoleGuard';
@@ -234,6 +235,42 @@ function AdminDashboardInner() {
                                 </button>
                             );
                         })}
+
+                        {/* Sprint sidebar-metricas Opción I — commit técnico
+                            enmienda 2 slip #3 (2026-11-20). Espejo exacto de
+                            las 4 entradas del AdminLayout.tsx para
+                            unificación completa: desde /admin se puede
+                            saltar a cualquier sub-ruta con URL propia sin
+                            tipear URL. */}
+                        <div className="h-px bg-slate-200 my-2" aria-hidden="true" />
+                        <Link
+                            href="/admin/metricas-proveedores"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        >
+                            <Target size={18} className="text-slate-500" />
+                            <span className="flex-1 text-left">Métricas detalle</span>
+                        </Link>
+                        <Link
+                            href="/admin/evaluaciones"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        >
+                            <Star size={18} className="text-slate-500" />
+                            <span className="flex-1 text-left">Evaluaciones</span>
+                        </Link>
+                        <Link
+                            href="/admin/notificaciones"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                        >
+                            <Bell size={18} className="text-slate-500" />
+                            <span className="flex-1 text-left">Notificaciones</span>
+                        </Link>
+                        <Link
+                            href="/"
+                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all text-slate-500 hover:bg-slate-50 hover:text-slate-700 mt-4"
+                        >
+                            <ArrowLeft size={18} />
+                            <span className="flex-1 text-left">Volver al Sitio</span>
+                        </Link>
                     </nav>
                 </aside>
 
