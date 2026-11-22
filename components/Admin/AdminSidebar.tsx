@@ -141,7 +141,7 @@ export default function AdminSidebar({
         <>
             {/* ── DESKTOP ── sidebar sticky izquierda */}
             <aside
-                className="hidden lg:flex flex-col w-56 shrink-0 bg-white border-r border-slate-200"
+                className="hidden lg:flex flex-col w-52 shrink-0 bg-white border-r border-slate-200"
                 style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}
             >
                 <div className="p-5 border-b border-slate-100">

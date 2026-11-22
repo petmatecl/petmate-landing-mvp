@@ -77,7 +77,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                     headerH={headerH}
                 />
 
-                <main className="flex-1 p-4 lg:p-8" style={{ paddingTop: `calc(1rem + 56px)` }}>
+                <main className="flex-1 p-4 lg:p-6" style={{ paddingTop: `calc(1rem + 56px)` }}>
                     {/* paddingTop extra = header mobile tabs 56px. Desktop
                         lg: el sidebar sticky ya no necesita este offset — el
                         padding de 2rem lo cubre. */}
