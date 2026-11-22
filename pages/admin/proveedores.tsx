@@ -398,13 +398,13 @@ function GestionProveedores() {
                                         <td className="px-6 py-4">
                                             <EstadoBadge estado={prov.estado} />
                                         </td>
-                                        <td className="px-6 py-4 text-right">
-                                            <div className="flex justify-end gap-2 flex-wrap">
+                                        <td className="px-4 py-4 text-right">
+                                            <div className="flex justify-end gap-1 flex-wrap">
                                                 {/* Toggle placeholder — siempre visible */}
                                                 <button
                                                     onClick={() => togglePlaceholder(prov)}
                                                     title={prov.es_placeholder ? 'Desactivar placeholder (hacer real)' : 'Marcar como placeholder'}
-                                                    className={`px-3 py-1.5 font-semibold rounded-lg text-xs transition-colors ${prov.es_placeholder
+                                                    className={`px-2 py-1.5 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap ${prov.es_placeholder
                                                             ? 'bg-violet-100 text-violet-700 hover:bg-violet-200'
                                                             : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
                                                         }`}
@@ -417,14 +417,14 @@ function GestionProveedores() {
                                                     terminal — pareja canonica del sistema. */}
                                                 {prov.estado === 'pendiente' && (
                                                     <>
-                                                        <button onClick={() => openModal('aprobar', prov)} className="px-3 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors">Aprobar</button>
-                                                        <button onClick={() => openModal('rechazar', prov)} className="px-3 py-1.5 bg-danger-100 text-danger-700 hover:bg-danger-200 font-semibold rounded-lg text-xs transition-colors">Rechazar</button>
+                                                        <button onClick={() => openModal('aprobar', prov)} className="px-2 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap">Aprobar</button>
+                                                        <button onClick={() => openModal('rechazar', prov)} className="px-2 py-1.5 bg-danger-100 text-danger-700 hover:bg-danger-200 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap">Rechazar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'aprobado' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('suspender', prov)} className="px-3 py-1.5 bg-warning-100 text-warning-700 hover:bg-warning-200 font-semibold rounded-lg text-xs transition-colors">Suspender</button>
+                                                        <button onClick={() => openModal('suspender', prov)} className="px-2 py-1.5 bg-warning-100 text-warning-700 hover:bg-warning-200 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap">Suspender</button>
                                                     </>
                                                 )}
                                                 {/* P7 — reactivar (accion positiva) contrapesada por el badge suspendido
@@ -433,11 +433,11 @@ function GestionProveedores() {
                                                 {prov.estado === 'suspendido' && (
                                                     <>
                                                         <button onClick={() => openModal('detalle', prov)} className="p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700 rounded-lg transition-colors tooltip" title="Ver Perfil"><Eye size={18} /></button>
-                                                        <button onClick={() => openModal('reactivar', prov)} className="px-3 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors">Reactivar</button>
+                                                        <button onClick={() => openModal('reactivar', prov)} className="px-2 py-1.5 bg-success-100 text-success-700 hover:bg-success-200 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap">Reactivar</button>
                                                     </>
                                                 )}
                                                 {prov.estado === 'rechazado' && (
-                                                    <button onClick={() => openModal('detalle', prov)} className="px-3 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-lg text-xs transition-colors">Revisar</button>
+                                                    <button onClick={() => openModal('detalle', prov)} className="px-2 py-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 font-semibold rounded-lg text-xs transition-colors whitespace-nowrap">Revisar</button>
                                                 )}
                                             </div>
                                         </td>
