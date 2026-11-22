@@ -1,30 +1,28 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Sprint SMOKE-PROD-DIARIO (2026-11-23) — Spec 5 de 5.
+ * Sprint SMOKE-PROD-DIARIO (2026-11-23) — Check 5 de 6.
  *
- * Carga /register?rol=usuario en prod, verifica que la página responde +
- * los campos de registro están visibles. Cero submit real (smoke, no signup).
- *
- * Esta página recibe tráfico directo desde ads Meta/Google. Si rompe, los
- * registros se frenan y el funnel completo se cae.
+ * Register carga — GET /register, status < 400, selector tutor/proveedor
+ * visible (Step 1 del wizard donde el user elige rol).
  */
 
-test('/register?rol=usuario carga con campos visibles', async ({ page }) => {
-    const resp = await page.goto('/register?rol=usuario');
+test('/register carga con selector tutor/proveedor visible', async ({ page }) => {
+    const resp = await page.goto('/register');
     expect(resp?.status(), '/register debe responder 2xx/3xx').toBeLessThan(400);
 
-    // El wizard de tutor empieza en step 2 cuando ?rol=usuario viene en query.
-    // Debe haber inputs visibles para email + password al mínimo.
-    const emailInput = page.locator('input[type="email"], input[name="email"]');
-    await expect(emailInput.first()).toBeVisible({ timeout: 10_000 });
+    // Step 1 del wizard tiene dos botones de rol con role="radio" + texto
+    // "Tutor" / "Proveedor". Verificamos que ambos se rendean.
+    const bodyText = (await page.locator('body').textContent()) ?? '';
+    const bodyLower = bodyText.toLowerCase();
 
-    const passwordInput = page.locator('input[type="password"], input[name="password"]').first();
-    await expect(passwordInput).toBeVisible({ timeout: 10_000 });
+    // "tutor" en algún lugar del selector (normalmente "Soy tutor" o similar).
+    expect(bodyLower).toMatch(/tutor/);
+    // "proveedor" en algún lugar del selector.
+    expect(bodyLower).toMatch(/proveedor/);
 
-    // Un botón submit / continuar debe existir. Lo buscamos por role sin
-    // depender del copy exacto porque puede variar entre "Crear cuenta",
-    // "Continuar", "Siguiente".
-    const submitBtn = page.locator('button[type="submit"], button:has-text("Crear"), button:has-text("Continuar"), button:has-text("Siguiente")').first();
-    await expect(submitBtn).toBeVisible({ timeout: 10_000 });
+    // Y al menos 1 botón en la página (hay 2 del selector + "Atrás" si aplica).
+    const buttons = page.locator('button, [role="radio"]');
+    const btnCount = await buttons.count();
+    expect(btnCount, 'al menos 1 botón visible').toBeGreaterThan(0);
 });

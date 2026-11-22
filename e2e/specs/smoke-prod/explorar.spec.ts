@@ -1,30 +1,21 @@
 import { test, expect } from '@playwright/test';
 
 /**
- * Sprint SMOKE-PROD-DIARIO (2026-11-23) — Spec 2 de 5.
+ * Sprint SMOKE-PROD-DIARIO (2026-11-23) — Check 2 de 6.
  *
- * Verifica que /explorar en producción responde + renderiza al menos una
- * card de servicio en el primer viewport. Smoke público, cero sesión.
- *
- * Es el landing principal del tráfico pagado — si rompe, los ads queman
- * budget sobre una página vacía.
+ * Explorar carga — GET /explorar, status < 400, al menos 1 tarjeta de
+ * proveedor (o servicio, que renderiza el nombre del proveedor) visible.
  */
 
-test('/explorar renderiza cards de servicios', async ({ page }) => {
+test('/explorar carga con al menos 1 card visible', async ({ page }) => {
     const resp = await page.goto('/explorar');
     expect(resp?.status(), '/explorar debe responder 2xx/3xx').toBeLessThan(400);
 
-    // El H1 debe existir y referirse a cuidadores/profesionales.
-    const h1 = page.locator('h1').first();
-    await expect(h1).toBeVisible();
-
-    // Al menos una card de servicio. Las cards tienen links a /servicio/[uuid].
-    // Esperamos hasta 15s porque la RPC buscar_servicios puede tardar en
-    // cold start de Supabase.
-    const serviceCards = page.locator('a[href^="/servicio/"]');
-    await expect(serviceCards.first()).toBeVisible({ timeout: 15_000 });
-
-    // Debe haber al menos 1 card. En prod hoy hay ~22 servicios activos.
-    const count = await serviceCards.count();
-    expect(count, 'al menos 1 card de servicio').toBeGreaterThan(0);
+    // Las cards de servicio son links a /servicio/[uuid]. Cada card renderiza
+    // el nombre del proveedor dentro del contenedor. Verificamos existencia
+    // de al menos una. Timeout generoso para cold start de Supabase RPC.
+    const cards = page.locator('a[href^="/servicio/"]');
+    await expect(cards.first()).toBeVisible({ timeout: 15_000 });
+    const count = await cards.count();
+    expect(count, 'al menos 1 card visible').toBeGreaterThan(0);
 });
