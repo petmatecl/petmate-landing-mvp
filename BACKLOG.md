@@ -1339,6 +1339,60 @@ Estructura abierta a sumar después: hoteles petfriendly, parques, playas, tiend
 
 Esta descripción la escribió el PO con mi apoyo 2026-11-20. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch.
 
+---
+
+**HOME-SECCION-ARTE-MASCOTAS** — abierto · prioridad media · fecha objetivo sin fecha (post-100 proveedores activos + volumen crítico en categorías artísticas)
+
+Nueva sección en la home de pawnecta.com que muestre trabajos visuales de las categorías artísticas (Fotografía de Mascotas, Retratos de Mascotas). Formato: carrusel horizontal o grilla 2x3 / 3x3 con las mejores fotos y retratos. Cada tarjeta clickeable a la ficha del servicio o del proveedor.
+
+**Objetivo**: diferenciación visual de Pawnecta frente a marketplaces funcionales (Rover, Oliver Pets). Pawnecta no solo tiene paseos y cuidado, también tiene creativos que trabajan con mascotas.
+
+**Ubicación sugerida en la home**: entre "Explorar por categoría" y "Cómo funciona", o como sección destacada antes del footer.
+
+**Prerrequisitos reales**:
+- Al menos 4-6 trabajos entre las 2 categorías para que la sección se vea llena. Sin ese umbral queda vacía y resta en vez de sumar.
+- Hoy (nov 2026): 1 fotógrafo activo + 0 retratistas = 1 trabajo. Insuficiente.
+- Activar la sección recién cuando se llegue al umbral.
+
+**Estimación**: 3-5h (componente nuevo + lazy loading de imágenes + lógica de "solo mostrar si hay N o más trabajos para no mostrar sección vacía").
+
+**Prioridad y timing**: media. Post-100 proveedores activos, cuando haya volumen crítico en categorías artísticas (al menos 5-8 fotógrafos o retratistas activos). Antes de ese umbral queda en espera.
+
+Esta descripción la escribió el PO con mi apoyo 2026-11-22. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch y post-umbral.
+
+---
+
+**PAWNECTA-MERCH-TIENDA** — abierto · prioridad BAJA · fecha objetivo sin fecha (post-500 proveedores activos o comunidad RRSS consolidada)
+
+Tienda de merchandising de Pawnecta: poleras, tazones, llaveros, bolsas, calcetines, stickers, etc. Opcionalmente también productos de terceros (collares, juguetes de marcas aliadas con comisión por venta).
+
+**Modelo técnico sugerido (3 opciones)**:
+- **Opción A — Print-on-demand**: Printful o Printify integrado a una tienda Shopify. Cero stock propio, cero fabricación. Margen 15-25%. El camino con menos fricción de arranque.
+- **Opción B — Proveedor local chileno con stock**: fabricación nacional + cross-posting manual a Instagram Shop. Más margen, más logística, más capital inmovilizado.
+- **Opción C — Afiliación con tiendas existentes de productos para mascotas**: cero producto propio, comisión por venta. El más liviano pero el que menos construye marca.
+
+**Objetivo de marca**: identidad visual más fuerte, comunidad que "viste" Pawnecta, otro ingreso secundario.
+
+**Complejidades a considerar antes de activar**:
+- Logística de envíos en Chile (Correos, Starken, Blue Express).
+- Facturación electrónica (SII, boleta o factura).
+- Devoluciones.
+- Soporte post-venta.
+- Diseño de merchandise (requiere diseñador, no es gratis).
+- Fotos de producto.
+
+**Prerrequisitos reales**:
+- Marca consolidada con comunidad activa (fans y seguidores que quieran comprar).
+- Volumen de tráfico suficiente para justificar inversión en diseño y logística.
+
+**Prioridad y timing**: BAJA. Post-500 proveedores activos o cuando Pawnecta tenga comunidad medible en redes (5.000+ seguidores agregados Instagram + TikTok).
+
+**Estimación**: 2-4 semanas de implementación incluyendo decisiones de proveedor, diseño, catálogo inicial e integración.
+
+**Nota del auditor al PO (noviembre 2026)**: interesante pero prematuro. El merch funciona cuando la marca ya tiene fans. Hoy Pawnecta tiene 12 proveedores activos y cuentas de RRSS recién estrenadas. Priorizar llegar a 100 proveedores + construir audiencia antes de invertir tiempo en merch. Lo anoto para que no se pierda, pero sugiero revisarlo recién cuando lleguemos a los primeros hitos de volumen.
+
+Esta descripción la escribió el PO con mi apoyo 2026-11-22. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch y post-hitos de comunidad.
+
 ## Proyectos estructurales
 
 ### Categorías por modalidad (presencial / remoto / mixto)
