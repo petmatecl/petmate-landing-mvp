@@ -23,10 +23,10 @@ Written for: el PO (Aldo). Doc del workflow [`smoke-prod-diario.yml`](../../.git
 
 ## Schedule
 
-**Estado actual**: `schedule:` **COMENTADO en el YAML**. Solo `workflow_dispatch` (manual) está activo hasta que el PO dé GO explícito post primer smoke manual del PR.
+**Estado actual**: `schedule:` **ACTIVO desde PR smoke-cron-on (2026-11-23)** post GO del PO tras verificar primera alerta de prueba vía `force_alert` manual (run `45078740121` · Telegram response `ok:true` + `message_id:3` recibido en chat privado).
 
-**Al re-habilitar** (descomentar el bloque `schedule:` en el YAML):
 - Cron: `0 12 * * *` UTC → **09:00 CLT invierno / 08:00 CLT verano**.
+- `workflow_dispatch` también disponible para disparos manuales (ver sección "Cómo probar manualmente" abajo).
 
 ---
 
@@ -56,8 +56,10 @@ Workflow recién mergeado → nunca ha disparado → verificar que Telegram lleg
 2. Esperar a que el run termine.
 3. Revisar chat privado con **@PawnectaAlertsBot** — debe aparecer un mensaje tipo:
    ```
-   🚨 SMOKE PROD FALLÓ — 1 check(s): [TEST] Alerta de prueba disparada manual — ningún check falló realmente — <link al run>
+   [TEST] 🚨 SMOKE PROD — Alerta de prueba disparada manual — ningún check falló realmente — <link al run>
    ```
+
+   **Prefix `[TEST]` antes del `🚨`** (ajuste PR smoke-cron-on 2026-11-23) distingue alertas sintéticas (disparo manual con `force_alert`) de alertas reales. Las alertas reales mantienen el `🚨` directo sin prefix y usan copy "SMOKE PROD FALLÓ".
 4. Si **no llega**:
    - Revisar step "Alertar Telegram si hubo fallos" en el run — el log imprime response de Telegram API con el error.
    - Verificar secrets `TELEGRAM_BOT_TOKEN` + `TELEGRAM_CHAT_ID` en Settings → Secrets → Actions. Timestamp "Updated" reciente + sin quotes extra.
