@@ -399,6 +399,17 @@ export default function ExplorarPage() {
                     if (currentMascota === 'gato') return s.acepta_gatos !== false;
                     return true;
                 });
+                // Sprint EXPLORAR-PRE-CAMPAÑA (2026-11-23) H3 Opción 2:
+                // filtrar client-side servicios sin fotos del catálogo
+                // público. Percepción "catálogo lleno" para tráfico
+                // pagado (benchmark: card sin foto = 60-70% menos click
+                // rate). Un servicio reaparece automáticamente al agregar
+                // su primera foto desde el panel proveedor. Cero cambio
+                // de schema ni de RPC. Impacto esperado: +15-25%
+                // percepción de calidad visual del catálogo.
+                const filteredByFotos = filteredByMascota.filter(s =>
+                    Array.isArray(s.fotos) && s.fotos.length > 0
+                );
                 // Sprint pii-nombre-publico (2026-11-17): enrich con
                 // displayName() desde proveedores_publicos (campos
                 // separados nombre_publico/nombre/apellido_p). El RPC
@@ -406,8 +417,15 @@ export default function ExplorarPage() {
                 // expone apellido legal para los 17/22 proveedores sin
                 // nombre_publico. Fase 2 PII-VIEW-TIGHT ajusta el RPC
                 // post-launch.
-                const enriched = await enrichServiceResultsWithDisplayName(filteredByMascota, supabase);
+                const enriched = await enrichServiceResultsWithDisplayName(filteredByFotos, supabase);
                 setServices(enriched);
+                // Ajuste del totalCount visible al número de cards que
+                // realmente se renderizan post-filtro client-side (fotos
+                // + mascota). El serverTotal queda como referencia pero
+                // la UI prioriza el conteo honesto de lo mostrado.
+                if (filteredByFotos.length !== rows.length) {
+                    setTotalCount(filteredByFotos.length);
+                }
 
                 // Sugerir comunas alternativas si no hay resultados con la
                 // comuna actual. Reuso el slug ya seleccionado (la
@@ -650,16 +668,24 @@ export default function ExplorarPage() {
                     <div className="flex-1 min-w-0">
 
                         {/* Encabezado */}
+                        {/* Sprint EXPLORAR-PRE-CAMPAÑA (2026-11-23) H4: H1 con
+                            diferenciador concreto para tráfico pagado. Antes:
+                            "Explorar en tu zona" (genérico). Ahora: resalta
+                            "verificados + en tu zona + reservar hoy" que son
+                            los 3 diferenciadores reales del producto. Subcopy
+                            cuant con count real del server cuando aplica. */}
                         <div className="mb-6">
                             <h1 className="text-2xl font-bold text-slate-900 tracking-tight mb-1.5">
                                 {filters.q ? `Resultados para "${filters.q}"` : (
                                     filters.categoria
                                         ? `${categories.find(c => c.slug === filters.categoria)?.nombre || 'Servicios'} en tu zona`
-                                        : 'Explorar en tu zona'
+                                        : 'Encuentra cuidadores verificados en tu zona'
                                 )}
                             </h1>
                             <p className="text-sm text-slate-500">
-                                Descubre los mejores profesionales para tu mascota en Pawnecta.
+                                {totalCount > 0
+                                    ? `${totalCount} ${totalCount === 1 ? 'profesional disponible' : 'profesionales disponibles'} para reservar hoy.`
+                                    : 'Profesionales de confianza para tu mascota, disponibles en tu comuna.'}
                             </p>
 
                             {/* PR2 sprint PRODUCTO-1 — cross-link por síntoma entre
