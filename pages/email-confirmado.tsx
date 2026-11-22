@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
 import { logSupabaseError } from "../lib/logSupabaseError";
-import { trackEvent } from "../lib/gtag";
+import { trackEvent, markLoginForFirstAction } from "../lib/gtag";
 
 /**
  * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
@@ -191,6 +191,12 @@ export default function EmailConfirmadoPage() {
             trackEvent('email_confirmado', {
                 has_return_url: typeof window !== 'undefined' && !!localStorage.getItem('pawnecta_last_service_url'),
             });
+            // Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23): marca el
+            // instante del login/signup genuino. La primera acción post-login
+            // (contacto/reserva/favorito/exploración) leerá esta clave en
+            // localStorage y disparará `primera_accion_post_login` con
+            // time_since_confirm_min + action_type. Ver lib/gtag.ts.
+            markLoginForFirstAction();
         }
     }, [freshAuthTokenSeen, user]);
 

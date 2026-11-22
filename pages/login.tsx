@@ -7,6 +7,7 @@ import { Mail, Lock, Eye, EyeOff, Loader2 } from "lucide-react";
 import * as Sentry from '@sentry/nextjs';
 import { supabase } from "../lib/supabaseClient";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
+import { markLoginForFirstAction } from "../lib/gtag";
 
 const inputClass =
   "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors";
@@ -124,6 +125,12 @@ export default function LoginPage() {
       // del user (submit del form con credenciales válidas). Cero
       // dependencia de events del SDK. Ver `lib/sessionTimeout.ts`.
       resetInactivityTimer();
+
+      // Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23): marca el
+      // instante del login genuino para que la primera acción posterior
+      // (contacto/reserva/favorito/exploración) dispare
+      // `primera_accion_post_login`. Ver lib/gtag.ts.
+      markLoginForFirstAction();
 
       // Determinar destino según rol
       if (redirect) {

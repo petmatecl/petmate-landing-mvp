@@ -149,3 +149,62 @@ export function trackEvent(
 
     window.gtag('event', nombre, params ?? {});
 }
+
+// ============================================================================
+// Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23) — Helper coordinación
+// cross-pages para primera_accion_post_login.
+//
+// Problema: el evento `primera_accion_post_login` requiere saber cuándo el
+// user acaba de completar login/signup (marker) + disparar en el primer
+// evento de acción posterior (contacto/reserva/favorito/exploracion). Son
+// dos puntos del código en páginas distintas.
+//
+// Diseño: localStorage key `pawnecta_login_ts` con Date.now() seteada en
+// /email-confirmado post-hidratación (o en /login success). Leída + borrada
+// en el primer trackEvent de acción. La clave vive máximo 2 horas — si el
+// user hace su primera acción después, no se considera "post-login" ya.
+// ============================================================================
+
+const LOGIN_TS_KEY = 'pawnecta_login_ts';
+const WINDOW_POST_LOGIN_MS = 2 * 60 * 60 * 1000; // 2 horas
+
+/** Marca el instante de un login/signup genuino. Llamar en /email-confirmado
+ *  post-hidratación o en /login success. Guard try/catch para storage
+ *  bloqueado (private browsing). */
+export function markLoginForFirstAction(): void {
+    try {
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(LOGIN_TS_KEY, String(Date.now()));
+    } catch {
+        /* storage bloqueado — ignorar */
+    }
+}
+
+/** Dispara `primera_accion_post_login` si hay marker reciente (<2h). Borra
+ *  el marker post-fire. Idempotente: si no hay marker, no-op silencioso. */
+export function firePrimeraAccionPostLogin(
+    actionType: 'contacto' | 'reserva' | 'favorito' | 'exploracion',
+): void {
+    try {
+        if (typeof window === 'undefined') return;
+        const raw = window.localStorage.getItem(LOGIN_TS_KEY);
+        if (!raw) return;
+        const ts = parseInt(raw, 10);
+        if (isNaN(ts)) {
+            window.localStorage.removeItem(LOGIN_TS_KEY);
+            return;
+        }
+        const elapsedMs = Date.now() - ts;
+        if (elapsedMs < 0 || elapsedMs > WINDOW_POST_LOGIN_MS) {
+            window.localStorage.removeItem(LOGIN_TS_KEY);
+            return;
+        }
+        window.localStorage.removeItem(LOGIN_TS_KEY);
+        trackEvent('primera_accion_post_login', {
+            action_type: actionType,
+            time_since_confirm_min: Math.round(elapsedMs / 60000),
+        });
+    } catch {
+        /* storage bloqueado — ignorar */
+    }
+}
