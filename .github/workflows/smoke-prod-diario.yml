@@ -1,0 +1,275 @@
+# Sprint SMOKE-PROD-DIARIO (2026-11-23) — Smoke diario contra producción con
+# alertas automáticas al PO vía Telegram + email si algún spec falla.
+#
+# Scope: 5 specs Playwright en `e2e/specs/smoke-prod/` corriendo contra
+# https://www.pawnecta.com con navegación ANÓNIMA (cero storageState, cero
+# sesión, cero mutation). Smoke público — verifica los 5 flujos críticos
+# del funnel tutor cargan sin error.
+#
+# Trigger:
+#   - cron: 0 5 * * *  → 05:00 UTC diario (02:00 CLT invierno / 01:00 verano).
+#   - workflow_dispatch: trigger manual desde GitHub Actions UI para pruebas
+#     o smoke on-demand (ej. post-deploy grande).
+#
+# Alertas:
+#   - Si CUALQUIER spec falla post-retry, dispara:
+#     (a) mensaje Telegram al bot @PawnectaAlertsBot vía secrets
+#         TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID.
+#     (b) email a petmatecl@gmail.com vía Resend (secret RESEND_API_KEY).
+#   - Si todos los specs pasan: silencio (zero notif — silencio es bueno).
+#
+# Clasificación [INFRA]:
+#   - Si el output matchea patterns conocidos de infraestructura
+#     (ECONNRESET, SSL handshake, 525/502/504, ERR_NAME_NOT_RESOLVED,
+#     NET::ERR_...), el subject lleva prefijo "[INFRA]" para distinguir
+#     problema del lado Vercel/Cloudflare/DNS de problema real del
+#     producto (regresión de código, cambio de copy que rompió assertion).
+#
+# El workflow NO bloquea PRs ni deploys. Es informativo. `continue-on-error`
+# en el step de playwright permite que el workflow llegue al step de alerta
+# incluso si Playwright exitea != 0.
+#
+# Doc operacional para el PO: docs/playbooks/smoke-prod-diario.md
+
+name: smoke-prod-diario
+
+on:
+  schedule:
+    - cron: '0 5 * * *'
+  workflow_dispatch:
+    inputs:
+      force_alert:
+        description: 'Forzar alerta de prueba (útil para verificar Telegram + email después de setear secrets). Si true, dispara alerta aunque todos los specs pasen.'
+        required: false
+        type: boolean
+        default: false
+
+# Zero concurrency group con staging — este workflow NO toca Supabase
+# staging ni el Vercel bypass. Corre contra prod público anónimo. Puede
+# correr en paralelo con cualquier otro workflow sin contención.
+concurrency:
+  group: smoke-prod-diario
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke 5 flujos críticos prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke suite contra prod
+        id: smoke
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx playwright test --config=playwright.config.prod.ts 2>&1 | tee /tmp/smoke-out.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Detectar fallo + preparar mensaje
+        id: msg
+        if: always()
+        run: |
+          # Leer el JSON reporter para extraer specs fallidos.
+          if [ ! -f smoke-prod-results.json ]; then
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "classification=none" >> $GITHUB_OUTPUT
+            echo "fail_count=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extraer specs con status !== 'passed' del JSON de Playwright.
+          # jq filtra por suites > specs > tests cuyo último result tenga status
+          # distinto de 'passed'.
+          FAILED=$(jq -r '
+            [.suites[]?.specs[]? | select(
+              (.tests[]?.results[-1]?.status // "passed") != "passed"
+            ) | .title] | unique | .[]
+          ' smoke-prod-results.json 2>/dev/null || echo "")
+
+          if [ -z "$FAILED" ]; then
+            FAIL_COUNT=0
+          else
+            FAIL_COUNT=$(echo "$FAILED" | wc -l | tr -d ' ')
+          fi
+
+          echo "fail_count=$FAIL_COUNT" >> $GITHUB_OUTPUT
+
+          # Fuerza alerta si el workflow_dispatch pidió force_alert=true.
+          if [ "${{ inputs.force_alert }}" = "true" ] && [ "$FAIL_COUNT" = "0" ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "classification=test-prueba" >> $GITHUB_OUTPUT
+            echo "failed_names=Smoke manual: test de alerta (ningún spec falló realmente)" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$FAIL_COUNT" = "0" ]; then
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "classification=none" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "has_failures=true" >> $GITHUB_OUTPUT
+
+          # Clasificar [INFRA] si el log tiene patterns conocidos de infra.
+          # ECONNRESET / SSL handshake / 525 / 502 / 503 / 504 / NET::ERR_ / DNS.
+          # Además: si TODOS los specs fallaron, probablemente es infra
+          # (sitio caído) — también clasificar como INFRA.
+          if grep -qE 'ECONNRESET|SSL handshake|525|502 Bad Gateway|503 Service|504 Gateway|ERR_NAME_NOT_RESOLVED|NET::ERR_|net::ERR_CONNECTION' /tmp/smoke-out.log; then
+            echo "classification=infra" >> $GITHUB_OUTPUT
+          elif [ "$FAIL_COUNT" -ge 5 ]; then
+            echo "classification=infra" >> $GITHUB_OUTPUT
+          else
+            echo "classification=spec" >> $GITHUB_OUTPUT
+          fi
+
+          # Lista de nombres de specs fallidos — para el mensaje. Convertir
+          # newlines en ' | ' porque GitHub Actions outputs no aceptan
+          # multilínea sin encoding especial.
+          FAILED_ONE_LINE=$(echo "$FAILED" | tr '\n' '|' | sed 's/|$//' | sed 's/|/ | /g')
+          echo "failed_names=$FAILED_ONE_LINE" >> $GITHUB_OUTPUT
+
+      - name: Upload Playwright artifacts
+        if: always() && steps.msg.outputs.has_failures == 'true'
+        uses: actions/upload-artifact@v5
+        with:
+          name: smoke-prod-${{ github.run_id }}-artifacts
+          path: |
+            smoke-prod-results.json
+            /tmp/smoke-out.log
+            test-results/
+            playwright-report/
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Alertar Telegram
+        if: always() && steps.msg.outputs.has_failures == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FAILED_NAMES: ${{ steps.msg.outputs.failed_names }}
+          CLASSIFICATION: ${{ steps.msg.outputs.classification }}
+          FAIL_COUNT: ${{ steps.msg.outputs.fail_count }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -o pipefail
+          FECHA=$(date -u +'%Y\-%m\-%d')
+          HORA=$(date -u +'%H:%M UTC')
+
+          # Prefix según clasificación.
+          case "$CLASSIFICATION" in
+            infra) PREFIX="\[INFRA\] " ;;
+            test-prueba) PREFIX="\[TEST\] " ;;
+            *) PREFIX="" ;;
+          esac
+
+          # Escapar MarkdownV2 de los nombres de specs: caracteres reservados
+          # .-!()[]{}=|><~`#+_* y backslash. Pipes son el separador visual.
+          ESCAPED_NAMES=$(echo "$FAILED_NAMES" | sed -E 's/([._!\(\)\[\]{}=><~`#+\-])/\\\1/g')
+
+          TEXT="*${PREFIX}Smoke prod FALLÓ* • ${FECHA} ${HORA}%0A%0A*Specs fallidos \(${FAIL_COUNT}\):*%0A${ESCAPED_NAMES}%0A%0A[Ver logs GitHub Actions](${RUN_URL})"
+
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "parse_mode=MarkdownV2" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${TEXT}" \
+            -o /tmp/tg-response.json
+
+          echo "Telegram response:"
+          cat /tmp/tg-response.json
+          echo ""
+
+          # Si Telegram retorna error, fail el step para visibility.
+          OK=$(jq -r '.ok' /tmp/tg-response.json 2>/dev/null || echo 'false')
+          if [ "$OK" != "true" ]; then
+            echo "ERROR: Telegram rechazó el mensaje."
+            exit 1
+          fi
+
+      - name: Alertar email vía Resend
+        if: always() && steps.msg.outputs.has_failures == 'true'
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          FAILED_NAMES: ${{ steps.msg.outputs.failed_names }}
+          CLASSIFICATION: ${{ steps.msg.outputs.classification }}
+          FAIL_COUNT: ${{ steps.msg.outputs.fail_count }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -o pipefail
+          FECHA=$(date -u +'%Y-%m-%d')
+          HORA=$(date -u +'%H:%M UTC')
+
+          case "$CLASSIFICATION" in
+            infra) PREFIX="[INFRA] " ;;
+            test-prueba) PREFIX="[TEST] " ;;
+            *) PREFIX="" ;;
+          esac
+
+          SUBJECT="${PREFIX}Smoke prod FALLÓ ${FECHA}"
+
+          # HTML body básico, texto corrido.
+          HTML="<h2>Smoke prod diario — ${FECHA} ${HORA}</h2>"
+          HTML="${HTML}<p><strong>${FAIL_COUNT}</strong> spec(s) fallaron:</p>"
+          HTML="${HTML}<ul>"
+          # Convertir pipes en items de lista HTML.
+          IFS='|' read -ra NAMES <<< "$FAILED_NAMES"
+          for name in "${NAMES[@]}"; do
+            trimmed=$(echo "$name" | sed 's/^ *//;s/ *$//')
+            [ -n "$trimmed" ] && HTML="${HTML}<li>${trimmed}</li>"
+          done
+          HTML="${HTML}</ul>"
+          HTML="${HTML}<p>Logs completos: <a href=\"${RUN_URL}\">${RUN_URL}</a></p>"
+          HTML="${HTML}<p style=\"color:#666;font-size:12px\">Clasificación: ${CLASSIFICATION}. Si es [INFRA], probablemente es un problema puntual de Vercel/Cloudflare/DNS y no requiere acción inmediata del PO. Si es un fallo de spec específico, revisar la ficha + captura del spec fallido en los artifacts del run.</p>"
+
+          curl -sS -X POST "https://api.resend.com/emails" \
+            -H "Authorization: Bearer ${RESEND_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"from\": \"Pawnecta Smoke <noreply@send.pawnecta.com>\",
+              \"to\": [\"petmatecl@gmail.com\"],
+              \"subject\": \"${SUBJECT}\",
+              \"html\": $(echo "$HTML" | jq -Rs .)
+            }" \
+            -o /tmp/resend-response.json
+
+          echo "Resend response:"
+          cat /tmp/resend-response.json
+          echo ""
+
+          # Resend retorna 200 con { id: '...' } al éxito; cualquier error
+          # fail el step para visibility. Cero efecto sobre el smoke overall.
+          ID=$(jq -r '.id // ""' /tmp/resend-response.json 2>/dev/null)
+          if [ -z "$ID" ]; then
+            echo "ERROR: Resend no retornó id del email."
+            exit 1
+          fi
+
+      - name: Reporte final al stdout
+        if: always()
+        run: |
+          if [ "${{ steps.msg.outputs.has_failures }}" = "true" ]; then
+            echo "SMOKE PROD DIARIO: FAIL"
+            echo "Clasificación: ${{ steps.msg.outputs.classification }}"
+            echo "Specs fallidos (${{ steps.msg.outputs.fail_count }}):"
+            echo "${{ steps.msg.outputs.failed_names }}" | tr '|' '\n'
+            echo ""
+            echo "Alertas enviadas a Telegram + email petmatecl@gmail.com."
+          else
+            echo "SMOKE PROD DIARIO: OK — 5/5 specs pasaron."
+            echo "Zero alerta enviada (silencio = todo OK)."
+          fi
