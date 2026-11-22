@@ -1495,7 +1495,7 @@ Sistema de publicación de eventos del ecosistema mascota en Chile dentro de Paw
 | Imagen oficial | Afiche PNG de la Municipalidad de Santiago (compartido por el PO en chat 2026-11-22) |
 | Links referencia | instagram.com/munistgo + instagram.com/cppetevents |
 
-**Observación operativa 2026-11-22**: el evento ocurre el 2026-11-28; el sistema realista no estará implementado para esa fecha (post-100 proveedores + sprint 3-5 días). Opción: cuando el sistema esté listo, admin puede ingresar eventos pasados como catálogo histórico de contenido "comunidad Pawnecta". **Alternativa interina para el evento del 28-11**: difusión manual del PO vía Instagram + TikTok con captions preparados por el auditor (ver draft de captions 2026-11-23). No se crea entrada de blog (blog es contenido editorial permanente, no eventos puntuales).
+**Observación operativa 2026-11-22**: el evento ocurre el 2026-11-28; el sistema realista no estará implementado para esa fecha (post-100 proveedores + sprint 3-5 días). Opción: cuando el sistema esté listo, admin puede ingresar eventos pasados como catálogo histórico de contenido "comunidad Pawnecta". **Para el evento del 28-11**: difusión vía cuentas RRSS de Pawnecta queda a cargo del PO (división de responsabilidades aclarada 2026-11-22 noche: sitio web = auditor, cuentas RRSS = PO; el auditor trabaja la pieza del sitio cuando corresponda, el PO trabaja la pieza de redes). No se crea entrada de blog porque el blog es contenido editorial permanente (guías, consejos), no eventos puntuales.
 
 **Prerrequisitos reales**:
 - ≥100 proveedores activos (meta de pre-campañas).
