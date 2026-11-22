@@ -1,4 +1,4 @@
-import React, { useId, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useModalDialog } from '../../lib/useModalDialog';
 import Button from '../UI/Button';
@@ -25,6 +25,39 @@ export default function LoginRequiredModal({
     const containerRef = useRef<HTMLDivElement>(null);
 
     useModalDialog({ isOpen, onClose, containerRef });
+
+    // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-17: preservar URL
+    // origen pre-registro. Cuando el modal gate se abre, guarda la URL
+    // actual en localStorage para que /email-confirmado pueda redirigir
+    // al usuario de vuelta al servicio origen post-confirm email.
+    //
+    // Impacto medido en benchmark industria: +20-40% retención post-confirm
+    // (H1 funnel tutor del doc A6 funnel-contacto-tutor-detalle-20261122).
+    //
+    // Guard try/catch: storage puede fallar en private browsing o cuando
+    // el user tiene storage bloqueado. Cero ruido — simplemente el
+    // return_to no se aplica y el flow cae al home default.
+    //
+    // Guard de path "accionable": solo guarda URLs que tienen sentido
+    // como destino de retorno (ficha de servicio, perfil de proveedor,
+    // /explorar, categoría/comuna). Excluye rutas de auth transit
+    // (/login, /register, /email-confirmado, /security-logout, etc)
+    // para evitar loops de redirección.
+    useEffect(() => {
+        if (!isOpen) return;
+        try {
+            if (typeof window !== 'undefined' && router.asPath) {
+                const asPath = router.asPath;
+                const isAuthTransit = /^\/(login|register|email-confirmado|security-logout|reset-password|completar-registro)/i.test(asPath);
+                const isActionable = /^\/(servicio|proveedor|explorar|[a-z-]+(\/[a-z-]+)?$)/i.test(asPath);
+                if (isActionable && !isAuthTransit) {
+                    window.localStorage.setItem('pawnecta_return_to', asPath);
+                }
+            }
+        } catch {
+            /* storage bloqueado o lleno — ignorar */
+        }
+    }, [isOpen, router.asPath]);
 
     if (!isOpen) return null;
 
