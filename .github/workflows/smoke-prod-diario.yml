@@ -5,12 +5,12 @@
 # https://pawnecta.com con navegación ANÓNIMA (cero storageState, cero
 # sesión, cero mutation). Smoke READ-ONLY.
 #
-# IMPORTANTE — Schedule DESHABILITADO hasta GO PO post primer run manual:
-#   El cron está comentado. Solo workflow_dispatch está habilitado. El primer
-#   run manual lo autoriza el PO después del smoke manual del PR. Cuando dé
-#   GO, descomentar el bloque `schedule:` con el cron `0 12 * * *`.
+# Schedule ACTIVO desde PR smoke-cron-on (2026-11-23) post GO PO tras
+# verificar primera alerta de prueba vía force_alert manual (run
+# 45078740121, Telegram response ok=true + message_id=3 recibido por el PO
+# en su chat privado con @PawnectaAlertsBot).
 #
-# Trigger originalmente diseñado:
+# Trigger:
 #   - cron: 0 12 * * *  → 12:00 UTC diario (09:00 CLT invierno / 08:00 verano).
 #   - workflow_dispatch: trigger manual desde GitHub Actions UI.
 #
@@ -28,10 +28,8 @@
 name: smoke-prod-diario
 
 on:
-  # schedule DESHABILITADO hasta GO PO post primer smoke manual.
-  # Descomentar el bloque siguiente para re-habilitar el cron diario.
-  # schedule:
-  #   - cron: '0 12 * * *'
+  schedule:
+    - cron: '0 12 * * *'
   workflow_dispatch:
     inputs:
       force_alert:
@@ -102,11 +100,17 @@ jobs:
           echo "fail_count=$FAIL_COUNT" >> $GITHUB_OUTPUT
 
           # Fuerza alerta de prueba si force_alert=true + cero specs fallidos.
+          # Setea is_test_alert=true para que el step Telegram ponga prefix
+          # [TEST] antes del 🚨 (micro-ajuste PR smoke-cron-on 2026-11-23:
+          # distingue de un ojo rápido alertas sintéticas vs reales).
           if [ "${{ inputs.force_alert }}" = "true" ] && [ "$FAIL_COUNT" = "0" ]; then
             echo "has_failures=true" >> $GITHUB_OUTPUT
-            echo "failed_names=[TEST] Alerta de prueba disparada manual — ningún check falló realmente" >> $GITHUB_OUTPUT
+            echo "is_test_alert=true" >> $GITHUB_OUTPUT
+            echo "failed_names=Alerta de prueba disparada manual — ningún check falló realmente" >> $GITHUB_OUTPUT
             exit 0
           fi
+
+          echo "is_test_alert=false" >> $GITHUB_OUTPUT
 
           if [ "$FAIL_COUNT" = "0" ]; then
             echo "has_failures=false" >> $GITHUB_OUTPUT
@@ -139,10 +143,19 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           FAILED_NAMES: ${{ steps.msg.outputs.failed_names }}
           FAIL_COUNT: ${{ steps.msg.outputs.fail_count }}
+          IS_TEST_ALERT: ${{ steps.msg.outputs.is_test_alert }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           set -o pipefail
-          TEXT="🚨 SMOKE PROD FALLÓ — ${FAIL_COUNT} check(s): ${FAILED_NAMES} — ${RUN_URL}"
+          # Prefix [TEST] ANTES del 🚨 para alertas sintéticas (force_alert
+          # manual). Alertas reales (checks efectivamente fallidos) mantienen
+          # el 🚨 directo sin prefix — ojo rápido en Telegram distingue test
+          # vs real sin tener que leer el cuerpo.
+          if [ "$IS_TEST_ALERT" = "true" ]; then
+            TEXT="[TEST] 🚨 SMOKE PROD — ${FAILED_NAMES} — ${RUN_URL}"
+          else
+            TEXT="🚨 SMOKE PROD FALLÓ — ${FAIL_COUNT} check(s): ${FAILED_NAMES} — ${RUN_URL}"
+          fi
 
           curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
