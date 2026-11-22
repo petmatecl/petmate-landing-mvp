@@ -1676,6 +1676,30 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 ## Infraestructura y CI
 
+### CI-CONCURRENCY-E2E — sin fecha · prioridad media (no gating pre-campañas)
+
+**Problema**: fail por contención cross-PR sobre Supabase staging BD cuando varios runs simultáneos de `e2e-error-audit` tocan fixtures compartidos (F2-2b editor, F2-3 reservas, chat conversations, favoritos). El `concurrency: group: e2e-staging` + `cancel-in-progress: false` serializa runs del mismo workflow pero no evita que un run B empiece justo cuando el run A completa su cleanup parcial — queda estado residual en staging que rompe assertions del siguiente.
+
+**Evidencia 2026-11-22 ~19:15 CLT (episodio #151 pwd-meter sync main)**:
+- SHA original `82c2114` pwd-meter → run `45072703405` e2e-error-audit **SUCCESS** (12m46s, cola limpia).
+- SHA `1372351` pwd-meter + sync main → run `45076095233` e2e-error-audit **FAILURE** (12m25s) con 3 fails:
+  - `f2-2b/s2-preview-noches.spec.ts:44` — `expect(locator).toBeVisible() failed, element(s) not found`.
+  - `f2-2b/s5-validaciones-blackouts.spec.ts:68` — mismo error.
+  - `f2-2b/s9-legacy-oculto.spec.ts:79` — mismo error.
+- Los 3 specs pasaron **3/3 verdes** en los 3 runs previos (45072703405, 45071787671, 45070816483).
+- PR #151 toca solo `pages/register.tsx` (wizard tutor Step 2) — cero overlap con F2 editor / `ServiceFormModal.tsx`.
+- Durante la ventana 22:00-22:12 corrieron **6+ runs e2e-error-audit cross-PR** simultáneos (smoke-prod×2, cat-cierre, apoyo-item2, estado-cola, explorar-pre, emails-emoji, pwd-meter) — contención documentada.
+
+**Opciones de fix a evaluar** (sprint propio post-primeros 30 días de operación o según frecuencia):
+1. **Concurrency group por workflow con cancel-in-progress true** para el Playwright F2 job específicamente → acepta que PRs recientes obsoletos se cancelan si uno nuevo entra, pero evita contención paralela.
+2. **Seeding idempotente de fixtures por run**: `beforeAll` crea su propio servicio F2-2b único (nombre con `run_id` suffix) → cero overlap de estado entre runs. Esfuerzo medio.
+3. **Staging dedicado per PR**: cada PR levanta su propio proyecto Supabase ephemeral (branching de Supabase) → aislamiento total. Esfuerzo alto, requiere Supabase branching plan.
+4. **Cola FIFO explícita cross-workflow**: lock distribuido via GitHub concurrency más estricto (una sola corrida tocando staging a la vez, sin depender de workflow-level group). Esfuerzo bajo, costo = más lento.
+
+**No gating pre-campañas**: el flake es intermitente, el PO puede rerunear bajo regla operativa cuando aparezca. El fix estructural entra post-lanzamiento cuando haya runs más frecuentes + data de frecuencia real para decidir opción.
+
+**Trigger para arrancar**: >3 episodios registrados de este patrón en una semana, o si el flake bloquea un merge urgente.
+
 ### CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA
 
 **Observación del PO 2026-11-20 PM**: en los últimos 4 PRs (#120, #122, #123, #125), el CI falló por tests pre-existentes de specs que el PR NO estaba tocando. 4 veces seguidas no es coincidencia.
