@@ -93,14 +93,26 @@ function AdminDashboardInner() {
     // HEAD count barato, corre una vez al montar. Sin este badge Aldo declaró
     // explícitamente que va a olvidar revisar el tab. RLS de
     // feedback_submissions ya filtra a admin — cero RPC necesario.
+    //
+    // Sprint ADMIN-FEEDBACK-BADGE-MARK-READ (2026-11-22) — fix bug UX smoke
+    // #140: el badge no se desmarcaba al abrir la tab. Ahora filtra feedbacks
+    // creados DESPUÉS del último lastViewedAt (persistido en localStorage por
+    // admin). Al abrir la tab, se actualiza el marker + se resetea el count
+    // local a 0. Reload futura solo muestra feedbacks post último view.
     const [feedbackNuevosCount, setFeedbackNuevosCount] = useState<number | null>(null);
     useEffect(() => {
         let cancelled = false;
         (async () => {
+            let lastViewedAt = '1970-01-01T00:00:00Z';
+            try {
+                const stored = localStorage.getItem('admin:feedback:lastViewedAt');
+                if (stored) lastViewedAt = stored;
+            } catch { /* storage disabled */ }
             const { count, error } = await supabase
                 .from('feedback_submissions')
                 .select('id', { count: 'exact', head: true })
-                .eq('estado', 'nuevo');
+                .eq('estado', 'nuevo')
+                .gt('created_at', lastViewedAt);
             if (cancelled) return;
             if (error) {
                 console.warn('[admin] fetch feedbackNuevosCount failed:', error);
@@ -111,6 +123,20 @@ function AdminDashboardInner() {
         })();
         return () => { cancelled = true; };
     }, []);
+
+    // Sprint ADMIN-FEEDBACK-BADGE-MARK-READ (2026-11-22) — al abrir la tab
+    // feedback, resetear el badge local a 0 + persistir lastViewedAt. Esto
+    // hace que una recarga futura muestre solo feedbacks creados después de
+    // esta visita (si llegan nuevos, el badge vuelve). Es per-admin via
+    // localStorage, cero cambio de schema.
+    useEffect(() => {
+        if (activeTab === 'feedback' && feedbackNuevosCount !== null && feedbackNuevosCount > 0) {
+            setFeedbackNuevosCount(0);
+            try {
+                localStorage.setItem('admin:feedback:lastViewedAt', new Date().toISOString());
+            } catch { /* storage disabled */ }
+        }
+    }, [activeTab, feedbackNuevosCount]);
 
     // Tab Aprobaciones se oculta cuando el contador de pendientes es 0
     // (auto-aprobación sprint badge-f1). Reaparece automáticamente si
