@@ -1107,7 +1107,7 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 ---
 
-### TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta
+### ~~TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta~~ — **CERRADO 2026-11-23 Opción A** (`docs/ops/query-tracking-100.sql`)
 
 **Qué**: dashboard o query recurrente que el PO revisa 1 vez por semana con el estado de la meta de 100 proveedores activos (criterio para activar campañas pagadas).
 
