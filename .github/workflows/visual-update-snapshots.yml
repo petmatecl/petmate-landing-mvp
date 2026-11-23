@@ -62,11 +62,14 @@ on:
           - 'false'
           - 'true'
 
-# Concurrency compartido con e2e-error-audit para no correr contra staging
-# desde 2 lugares en paralelo (los tests visual navegan páginas cacheadas +
-# leen data via Supabase staging).
+# Concurrency compartido cross-workflow en el grupo `staging-exclusive` —
+# Opción D del análisis docs/analisis/ci-concurrency-e2e-20261123.md
+# aplicada en sprint ci-conc-guard 2026-11-23. Serializa con
+# e2e-error-audit, smoke-auth-templates y cleanup-staging-e2e para que
+# solo 1 workflow toque staging a la vez (los tests visual navegan
+# páginas cacheadas + leen data via Supabase staging).
 concurrency:
-  group: e2e-staging
+  group: staging-exclusive
   cancel-in-progress: false
 
 jobs:
