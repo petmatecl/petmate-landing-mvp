@@ -9,6 +9,7 @@ yarn-error.log*
 out/
 .next.cache/
 *.log
+tsconfig.tsbuildinfo
 
 # Env
 .env*
@@ -41,9 +42,13 @@ push_output.txt
 
 # PWA
 public/sw.js
+public/sw.js.map
 public/workbox-*.js
+public/workbox-*.js.map
 public/worker-*.js
+public/worker-*.js.map
 public/fallback-*.js
+public/fallback-*.js.map
 
 # Staging setup — keep READMEs committed, ignore everything else
 staging-setup/*.sql
