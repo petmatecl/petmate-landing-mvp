@@ -266,6 +266,7 @@ jobs:
           # EXCLUDE_LIST — un dir por línea, motivo como comentario # inline.
           EXCLUDE_LIST=$(cat <<'EOL'
           ci-canario
+          smoke-prod
           EOL
           )
           # Motivos documentados:
@@ -274,6 +275,13 @@ jobs:
           #     .github/workflows/ci-canario.yml semanal. Incluirlo acá
           #     dejaría esta suite siempre roja. Ver header del spec para
           #     detalles.
+          #   smoke-prod — specs del smoke diario contra prod (sprint
+          #     SMOKE-PROD-DIARIO 2026-11-23). Corren bajo
+          #     playwright.config.prod.ts contra pawnecta.com, workflow
+          #     dedicado .github/workflows/smoke-prod-diario.yml. Incluirlos
+          #     en el e2e canónico correría contra staging con URL/anon-key
+          #     hardcoded de prod → confusión + flake. Ver
+          #     docs/sprints/smoke-prod-diario.md.
 
           # (a) Dirs bajo e2e/specs/ vs dirs listados en el workflow.
           DIRS_FOUND=$(find e2e/specs -mindepth 1 -maxdepth 1 -type d | sed 's|^e2e/specs/||' | sort -u)
