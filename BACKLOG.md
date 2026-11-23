@@ -1058,19 +1058,18 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
 
 Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario final — habilitan al PO para operar la plataforma con más visibilidad y acción manual durante la ventana pre-campañas (mientras se avanza hacia meta 100 proveedores) + post-activación de campañas.
 
-### ADMIN-PROVEEDORES-FECHA-REGISTRO — pre-campañas · prioridad alta
+### ~~ADMIN-PROVEEDORES-FECHA-REGISTRO~~ — **CERRADO 2026-11-20 (aterrizado antes de que el ítem se pidiera formalmente)**
 
-**Qué**: agregar columna "Registrado" al listado del panel `/admin/proveedores` con la fecha en que el proveedor se registró, formato DD-MM-YYYY, ordenable.
+**Estado**: implementado en commit [`aad2a78`](../../commit/aad2a78) "admin · columna Registrado en /admin/proveedores con sort toggle".
+**Verificación simétrica P8 11ª (2026-11-23)**: grep sobre `components/Admin/ProveedorManagementList.tsx` → columna "Registrado" presente (líneas 222-233), sort toggle implementado (líneas 160-169 + 367-369), formato `dd-MM-yyyy` activo. Zero reimplementación necesaria.
 
-**Dato fuente**: ya existe en `public.proveedores.created_at` (verificar nombre exacto al implementar). Sin migración, sin backfill.
+Scope original del ítem (archivado para trazabilidad):
 
-**Trabajo**: editar `components/Admin/ProveedorManagementList.tsx` (o el que renderice la tabla) para agregar columna + prop en el fetch. Sort toggle ascendente/descendente.
-
-**Estimación**: 15-30 min. **Dependencia**: ninguna.
-
-**Impacto**: herramienta operacional del PO para monitorear la meta de 100 proveedores desde ya + ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
-
-**Prioridad**: alta pre-campañas. Entra en cualquier ventana calma (deuda chica). Habilita tracking directo visual del progreso hacia los 100 proveedores.
+- Columna "Registrado" al listado del panel `/admin/proveedores` con fecha formato DD-MM-YYYY, ordenable.
+- Dato fuente: `public.proveedores.created_at`. Sin migración, sin backfill.
+- Trabajo: editar `components/Admin/ProveedorManagementList.tsx`.
+- Estimación original: 15-30 min.
+- Impacto: herramienta operacional del PO para monitorear meta de 100 proveedores + antigüedad + patrones + outreach prioritario.
 
 ---
 
