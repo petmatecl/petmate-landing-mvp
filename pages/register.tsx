@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import {
   Search, Briefcase, CheckCircle2, Eye, EyeOff, ArrowLeft, Loader2,
-  Stethoscope, Car, Scissors, GraduationCap, Home, Sun, Footprints, MapPin, Camera
+  Stethoscope, Car, Scissors, GraduationCap, Home, Sun, Footprints, MapPin, Camera, Check, Circle
 } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { validateRut, formatRut } from "../lib/rutValidation";
@@ -513,6 +513,53 @@ export default function RegisterWizard() {
                     </div>
                     {passwordError ? (
                       <p role="alert" aria-live="polite" className="text-xs text-danger-600 mt-1 font-medium">{passwordError}</p>
+                    ) : password ? (
+                      /* Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-4:
+                         meter de fuerza inline mientras el user tipea.
+                         Impacto esperado: +5-10% submit exitoso primera vez
+                         (reduce back-and-forth de "rechazado por débil →
+                         retipea → submit"). Reemplaza el hint estático
+                         'Mínimo 8 caracteres' por un indicador dinámico. */
+                      <div className="mt-2">
+                        {(() => {
+                          const len = password.length;
+                          const hasLetter = /[A-Za-zÁÉÍÓÚáéíóúÑñ]/.test(password);
+                          const hasNumber = /[0-9]/.test(password);
+                          const hasExtra = /[A-Z]/.test(password) || /[^A-Za-z0-9]/.test(password);
+                          const score = len < 8
+                            ? 0
+                            : len >= 10 && hasLetter && hasNumber && hasExtra
+                              ? 2
+                              : hasLetter && hasNumber
+                                ? 1
+                                : 0;
+                          const label = score === 2 ? 'Fuerte' : score === 1 ? 'Medio' : 'Débil';
+                          const barColor = score === 2 ? 'bg-success-500' : score === 1 ? 'bg-accent-500' : 'bg-warning-500';
+                          const textColor = score === 2 ? 'text-success-700' : score === 1 ? 'text-accent-700' : 'text-warning-700';
+                          return (
+                            <>
+                              <div className="flex gap-1 mb-1" aria-hidden="true">
+                                <div className={`flex-1 h-1 rounded ${score >= 0 ? barColor : 'bg-slate-200'}`} />
+                                <div className={`flex-1 h-1 rounded ${score >= 1 ? barColor : 'bg-slate-200'}`} />
+                                <div className={`flex-1 h-1 rounded ${score >= 2 ? barColor : 'bg-slate-200'}`} />
+                              </div>
+                              <p className={`text-xs font-medium ${textColor}`} aria-live="polite">
+                                Seguridad: {label}
+                              </p>
+                              <ul className="text-xs text-slate-500 mt-1 space-y-0.5">
+                                <li className={`flex items-center gap-1 ${len >= 8 ? 'text-success-700 line-through' : ''}`}>
+                                  {len >= 8 ? <Check size={12} aria-hidden="true" /> : <Circle size={10} aria-hidden="true" className="opacity-40" />}
+                                  Al menos 8 caracteres
+                                </li>
+                                <li className={`flex items-center gap-1 ${hasLetter && hasNumber ? 'text-success-700 line-through' : ''}`}>
+                                  {hasLetter && hasNumber ? <Check size={12} aria-hidden="true" /> : <Circle size={10} aria-hidden="true" className="opacity-40" />}
+                                  Mezcla letras y números
+                                </li>
+                              </ul>
+                            </>
+                          );
+                        })()}
+                      </div>
                     ) : (
                       <span className="text-xs text-slate-500 mt-1 block">Mínimo 8 caracteres</span>
                     )}
