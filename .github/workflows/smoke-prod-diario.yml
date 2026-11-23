@@ -1,0 +1,188 @@
+# Sprint SMOKE-PROD-DIARIO (2026-11-23) — Smoke diario contra producción con
+# alerta Telegram si cualquier check falla.
+#
+# Scope: 6 checks Playwright en `e2e/specs/smoke-prod/` corriendo contra
+# https://pawnecta.com con navegación ANÓNIMA (cero storageState, cero
+# sesión, cero mutation). Smoke READ-ONLY.
+#
+# Schedule ACTIVO desde PR smoke-cron-on (2026-11-23) post GO PO tras
+# verificar primera alerta de prueba vía force_alert manual (run
+# 45078740121, Telegram response ok=true + message_id=3 recibido por el PO
+# en su chat privado con @PawnectaAlertsBot).
+#
+# Trigger:
+#   - cron: 0 12 * * *  → 12:00 UTC diario (09:00 CLT invierno / 08:00 verano).
+#   - workflow_dispatch: trigger manual desde GitHub Actions UI.
+#
+# Alerta:
+#   - Si CUALQUIER check falla post-retry, envía 1 mensaje Telegram al bot
+#     @PawnectaAlertsBot vía secrets TELEGRAM_BOT_TOKEN + TELEGRAM_CHAT_ID.
+#   - Si todos pasan: silencio (zero notif — no spam con éxitos diarios).
+#
+# El workflow NO bloquea PRs ni deploys. Es informativo. `continue-on-error`
+# en el step de Playwright permite que el workflow llegue al step de alerta
+# incluso si Playwright exitea != 0.
+#
+# Doc operacional: docs/sprints/smoke-prod-diario.md
+
+name: smoke-prod-diario
+
+on:
+  schedule:
+    - cron: '0 12 * * *'
+  workflow_dispatch:
+    inputs:
+      force_alert:
+        description: 'Forzar alerta de prueba (útil para verificar Telegram después de setear secrets). Si true, dispara alerta aunque todos los checks pasen.'
+        required: false
+        type: boolean
+        default: false
+
+# Grupo propio — este workflow NO toca Supabase staging ni el Vercel bypass.
+# Corre contra prod público anónimo. Puede correr en paralelo con cualquier
+# otro workflow sin contención.
+concurrency:
+  group: smoke-prod-diario
+  cancel-in-progress: false
+
+jobs:
+  smoke:
+    name: Smoke 6 checks críticos prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install deps
+        run: npm install --no-audit --no-fund
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Run smoke suite contra prod
+        id: smoke
+        continue-on-error: true
+        run: |
+          set -o pipefail
+          npx playwright test --config=playwright.config.prod.ts 2>&1 | tee /tmp/smoke-out.log
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Detectar fallos + preparar mensaje
+        id: msg
+        if: always()
+        run: |
+          if [ ! -f smoke-prod-results.json ]; then
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            echo "fail_count=0" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Extraer specs con status !== 'passed' del JSON de Playwright.
+          FAILED=$(jq -r '
+            [.suites[]?.specs[]? | select(
+              (.tests[]?.results[-1]?.status // "passed") != "passed"
+            ) | .title] | unique | .[]
+          ' smoke-prod-results.json 2>/dev/null || echo "")
+
+          if [ -z "$FAILED" ]; then
+            FAIL_COUNT=0
+          else
+            FAIL_COUNT=$(echo "$FAILED" | wc -l | tr -d ' ')
+          fi
+
+          echo "fail_count=$FAIL_COUNT" >> $GITHUB_OUTPUT
+
+          # Fuerza alerta de prueba si force_alert=true + cero specs fallidos.
+          # Setea is_test_alert=true para que el step Telegram ponga prefix
+          # [TEST] antes del 🚨 (micro-ajuste PR smoke-cron-on 2026-11-23:
+          # distingue de un ojo rápido alertas sintéticas vs reales).
+          if [ "${{ inputs.force_alert }}" = "true" ] && [ "$FAIL_COUNT" = "0" ]; then
+            echo "has_failures=true" >> $GITHUB_OUTPUT
+            echo "is_test_alert=true" >> $GITHUB_OUTPUT
+            echo "failed_names=Alerta de prueba disparada manual — ningún check falló realmente" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "is_test_alert=false" >> $GITHUB_OUTPUT
+
+          if [ "$FAIL_COUNT" = "0" ]; then
+            echo "has_failures=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          echo "has_failures=true" >> $GITHUB_OUTPUT
+
+          # Lista de nombres de checks fallidos, separados por ' | '.
+          FAILED_ONE_LINE=$(echo "$FAILED" | tr '\n' '|' | sed 's/|$//' | sed 's/|/ | /g')
+          echo "failed_names=$FAILED_ONE_LINE" >> $GITHUB_OUTPUT
+
+      - name: Upload Playwright artifact (HTML report)
+        if: always()
+        uses: actions/upload-artifact@v5
+        with:
+          name: smoke-prod-${{ github.run_id }}-report
+          path: |
+            smoke-prod-results.json
+            /tmp/smoke-out.log
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 7
+
+      - name: Alertar Telegram si hubo fallos
+        if: always() && steps.msg.outputs.has_failures == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          FAILED_NAMES: ${{ steps.msg.outputs.failed_names }}
+          FAIL_COUNT: ${{ steps.msg.outputs.fail_count }}
+          IS_TEST_ALERT: ${{ steps.msg.outputs.is_test_alert }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -o pipefail
+          # Prefix [TEST] ANTES del 🚨 para alertas sintéticas (force_alert
+          # manual). Alertas reales (checks efectivamente fallidos) mantienen
+          # el 🚨 directo sin prefix — ojo rápido en Telegram distingue test
+          # vs real sin tener que leer el cuerpo.
+          if [ "$IS_TEST_ALERT" = "true" ]; then
+            TEXT="[TEST] 🚨 SMOKE PROD — ${FAILED_NAMES} — ${RUN_URL}"
+          else
+            TEXT="🚨 SMOKE PROD FALLÓ — ${FAIL_COUNT} check(s): ${FAILED_NAMES} — ${RUN_URL}"
+          fi
+
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            -o /tmp/tg-response.json
+
+          echo "Telegram response:"
+          cat /tmp/tg-response.json
+          echo ""
+
+          OK=$(jq -r '.ok' /tmp/tg-response.json 2>/dev/null || echo 'false')
+          if [ "$OK" != "true" ]; then
+            echo "ERROR: Telegram rechazó el mensaje."
+            exit 1
+          fi
+
+      - name: Reporte final al stdout
+        if: always()
+        run: |
+          if [ "${{ steps.msg.outputs.has_failures }}" = "true" ]; then
+            echo "SMOKE PROD DIARIO: FAIL"
+            echo "Checks fallidos (${{ steps.msg.outputs.fail_count }}):"
+            echo "${{ steps.msg.outputs.failed_names }}" | tr '|' '\n'
+            echo ""
+            echo "Alerta enviada a Telegram @PawnectaAlertsBot."
+          else
+            echo "SMOKE PROD DIARIO: OK — 6/6 checks pasaron."
+            echo "Zero alerta enviada (silencio = todo OK)."
+          fi

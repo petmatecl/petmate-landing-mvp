@@ -1,0 +1,110 @@
+# Sprint NOTIFY-TELEGRAM-PO (2026-11-23) — Canal asincrónico auditor → PO vía
+# Telegram @PawnectaAlertsBot. Diseñado para que el auditor emita updates
+# cortos sin obligar al PO a abrir GitHub.
+#
+# Scope:
+#   - Solo workflow_dispatch (nunca push, nunca cron).
+#   - Inputs: message (required) + urgency (choice).
+#   - Mapea urgency → prefix emoji + manda `<prefix> <message>` al bot.
+#   - Cap mensaje a 3500 chars (Telegram tope 4096, margen por prefix/escape).
+#   - Si Telegram falla: exit 1 (señal para el auditor de reintentar o
+#     escalar).
+#
+# Secrets reutilizados del smoke-prod-diario: TELEGRAM_BOT_TOKEN +
+# TELEGRAM_CHAT_ID.
+#
+# Patrón de uso (judgment del auditor, máx 1 notif/hora salvo decision/alert):
+#   - info:     PR mergeado autónomo (1 línea)
+#   - update:   batch 3-5 líneas resumen de varios PRs
+#   - decision: algo requiere decisión PO (ej. respuesta a issue, slip nuevo)
+#   - alert:    incidente real (CI rojo persistente, acceso denegado, prod)
+#
+# Dispatch desde CLI:
+#   gh workflow run notify-telegram-po.yml \
+#     -f message="5 docs-only mergeados..." \
+#     -f urgency=update
+
+name: notify-telegram-po
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Texto del mensaje al PO (≤3500 chars)'
+        required: true
+        type: string
+      urgency:
+        description: 'Nivel de urgencia → mapea a prefix emoji'
+        required: false
+        type: choice
+        default: info
+        options:
+          - info
+          - update
+          - decision
+          - alert
+
+# Grupo propio — el workflow no toca Supabase ni Vercel bypass. Puede correr
+# en paralelo con cualquier otro. Serie 1-a-1 entre invocaciones de este
+# workflow para evitar un burst accidental al bot.
+concurrency:
+  group: notify-telegram-po
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    name: Enviar mensaje a Telegram
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Mapear urgency + validar longitud + enviar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          MESSAGE: ${{ inputs.message }}
+          URGENCY: ${{ inputs.urgency }}
+        run: |
+          set -o pipefail
+
+          # Validación de longitud — cap 3500 chars (margen para prefix +
+          # escape URL del mensaje). Telegram API tope real = 4096.
+          MSG_LEN=${#MESSAGE}
+          if [ "$MSG_LEN" -gt 3500 ]; then
+            echo "ERROR: mensaje de $MSG_LEN chars excede el cap 3500."
+            echo "Dividilo en varios dispatches o resumilo."
+            exit 1
+          fi
+
+          # Mapeo urgency → prefix emoji.
+          case "$URGENCY" in
+            info)     PREFIX="ℹ️" ;;
+            update)   PREFIX="📋" ;;
+            decision) PREFIX="⚠️" ;;
+            alert)    PREFIX="🚨" ;;
+            *)
+              echo "ERROR: urgency='$URGENCY' no reconocido."
+              exit 1
+              ;;
+          esac
+
+          TEXT="${PREFIX} ${MESSAGE}"
+
+          echo "Enviando mensaje (urgency=$URGENCY, ${MSG_LEN} chars)..."
+          curl -sS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "text=${TEXT}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            -o /tmp/tg-response.json
+
+          echo "Telegram response:"
+          cat /tmp/tg-response.json
+          echo ""
+
+          OK=$(jq -r '.ok' /tmp/tg-response.json 2>/dev/null || echo 'false')
+          if [ "$OK" != "true" ]; then
+            echo "ERROR: Telegram rechazó el mensaje."
+            exit 1
+          fi
+
+          MSG_ID=$(jq -r '.result.message_id' /tmp/tg-response.json 2>/dev/null || echo '?')
+          echo "OK: message_id=${MSG_ID}"

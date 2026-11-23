@@ -68,3 +68,4 @@ playwright-report/
 .playwright-mcp/
 walkthrough-*.png
 smoke-*.png
+smoke-prod-results.json

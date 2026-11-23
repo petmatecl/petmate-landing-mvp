@@ -33,8 +33,15 @@ on:
           - 'false'
           - 'true'
 
+# Sprint ci-conc-guard (2026-11-23) — movido al grupo global
+# `staging-exclusive` (Opción D de docs/analisis/ci-concurrency-e2e-
+# 20261123.md). Importante porque el cleanup borra fixtures huérfanas
+# por tag + ventana >24h — si corre en paralelo con un run e2e activo
+# que está creando fixtures nuevos (dentro de la ventana 24h), zero
+# interferencia por la edad, pero si acaso un e2e abre fixtures efímeros
+# antiguos el cleanup podría tocarlos. Serializar lo previene.
 concurrency:
-  group: cleanup-staging-e2e
+  group: staging-exclusive
   cancel-in-progress: false
 
 jobs:
