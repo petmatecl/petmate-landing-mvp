@@ -8,7 +8,7 @@ const CaregiverMap = dynamic(() => import('../components/Explore/CaregiverMap'),
     ssr: false,
     loading: () => (
         <div className="h-[580px] w-full rounded-2xl bg-slate-100 animate-pulse flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+            <p className="text-slate-500 text-sm">Cargando mapa...</p>
         </div>
     ),
 });
@@ -145,7 +145,7 @@ function ExplorarPrelaunch() {
                         placeholder="Tu correo electrónico"
                         value={email}
                         onChange={e => setEmail(e.target.value)}
-                        className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
+                        className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-500 transition-colors"
                     />
                     <select
                         value={cat}
@@ -621,7 +621,10 @@ export default function ExplorarPage() {
                                 onClick={() => setMobileFiltersOpen(false)}
                                 className="w-full bg-accent-600 text-white font-medium tracking-wide py-3 rounded-xl hover:bg-accent-700 transition-colors"
                             >
-                                Ver {totalCount} resultado{totalCount !== 1 ? 's' : ''}
+                                {/* Sprint fix-explorar-ux (2026-11-19) — si hubo
+                                    error de carga, "Ver 0 resultados" es
+                                    engañoso; mostrar "Cerrar" en su lugar. */}
+                                {fetchError ? 'Cerrar' : `Ver ${totalCount} resultado${totalCount !== 1 ? 's' : ''}`}
                             </button>
                         </div>
                     </div>
@@ -852,14 +855,19 @@ export default function ExplorarPage() {
                                     <ExplorarPrelaunch />
                                 );
                             })()
-                        ) : (
+                        ) : fetchError ? null : (
+                            // Sprint fix-explorar-ux (2026-11-19) — fetchError
+                            // ya muestra su propio bloque de error arriba
+                            // (L758); no renderizar también la barra "0
+                            // resultados" + grid vacío. Antes aparecían ambos
+                            // estados excluyentes al mismo tiempo.
                             <>
                                 {/* Barra: conteo + orden + toggle vista */}
                                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
                                     <p className="text-slate-500 font-medium shrink-0">
                                         {totalCount} resultado{totalCount !== 1 ? 's' : ''}
                                         {totalPaginas > 1 && vista === 'lista' && (
-                                            <span className="text-slate-400 font-normal ml-1">
+                                            <span className="text-slate-500 font-normal ml-1">
                                                 — página {pagina} de {totalPaginas}
                                             </span>
                                         )}
@@ -968,7 +976,7 @@ export default function ExplorarPage() {
                                         <div className="hidden sm:flex items-center gap-1.5">
                                             {paginationItems.map((item, idx) =>
                                                 item === "..." ? (
-                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-400 text-sm select-none">…</span>
+                                                    <span key={`ellipsis-${idx}`} className="px-2 py-2 text-slate-500 text-sm select-none">…</span>
                                                 ) : (
                                                     <button
                                                         key={item}

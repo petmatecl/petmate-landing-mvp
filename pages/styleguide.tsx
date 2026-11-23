@@ -54,7 +54,7 @@ export default function StyleGuide() {
 
                 {/* TOC */}
                 <nav className="max-w-6xl mx-auto px-8 mt-10 mb-12">
-                    <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-4">Tabla de contenidos</p>
+                    <p className="text-xs font-medium uppercase tracking-widest text-slate-500 mb-4">Tabla de contenidos</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                         {tocSections.map((s) => (
                             <a key={s.id} href={`#${s.id}`} className="text-sm text-slate-700 hover:text-accent-600 transition-colors">
@@ -131,12 +131,12 @@ export default function StyleGuide() {
 
                             <TypoRow
                                 label="Label uppercase"
-                                tw="text-xs font-medium uppercase tracking-widest text-slate-400"
+                                tw="text-xs font-medium uppercase tracking-widest text-slate-500"
                             >
                                 <div className="flex gap-6">
-                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-400">DESDE</span>
-                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-400">MENÚ PRINCIPAL</span>
-                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-400">BUSCAR</span>
+                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-500">DESDE</span>
+                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-500">MENÚ PRINCIPAL</span>
+                                    <span className="text-xs font-medium uppercase tracking-widest text-slate-500">BUSCAR</span>
                                 </div>
                             </TypoRow>
 
@@ -165,7 +165,7 @@ export default function StyleGuide() {
                             >
                                 <div className="bg-white border border-slate-200 rounded-xl p-2 w-fit">
                                     <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg">
-                                        <Briefcase size={16} className="text-slate-400" /> Mi Perfil
+                                        <Briefcase size={16} className="text-slate-500" /> Mi Perfil
                                     </button>
                                 </div>
                             </TypoRow>
@@ -230,7 +230,7 @@ export default function StyleGuide() {
                             />
                             <PaletaSwatch
                                 hex="#94A3B8"
-                                clase="text-slate-400"
+                                clase="text-slate-500"
                                 uso="Labels uppercase, placeholders de inputs"
                                 sample="Texto Placeholder slate-400"
                             />
@@ -265,13 +265,13 @@ export default function StyleGuide() {
                             >
                                 <div className="bg-white border border-slate-200 rounded-xl p-2 w-fit space-y-1">
                                     <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg w-48">
-                                        <Briefcase size={16} className="text-slate-400" /> Mi Perfil
+                                        <Briefcase size={16} className="text-slate-500" /> Mi Perfil
                                     </button>
                                     <button className="flex items-center gap-2 text-sm font-semibold text-accent-600 bg-accent-50 px-3 py-2 rounded-lg w-48">
                                         <Briefcase size={16} className="text-accent-600" /> Mis Servicios
                                     </button>
                                     <button className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:bg-slate-50 px-3 py-2 rounded-lg w-48">
-                                        <Briefcase size={16} className="text-slate-400" /> Evaluaciones
+                                        <Briefcase size={16} className="text-slate-500" /> Evaluaciones
                                     </button>
                                 </div>
                             </AccentExample>
@@ -320,7 +320,7 @@ export default function StyleGuide() {
                                 si={
                                     <>
                                         <p className="text-sm text-slate-700 mb-2">Ícono decorativo en slate-400 (neutro):</p>
-                                        <MapPin size={20} className="text-slate-400" />
+                                        <MapPin size={20} className="text-slate-500" />
                                     </>
                                 }
                             />
@@ -334,7 +334,7 @@ export default function StyleGuide() {
                                 si={
                                     <>
                                         <p className="text-sm text-slate-700 mb-2">Checkmark en accent-500 (acento suave):</p>
-                                        <Check size={20} className="text-accent-500" />
+                                        <Check size={20} className="text-accent-600" />
                                     </>
                                 }
                             />
@@ -438,13 +438,13 @@ export default function StyleGuide() {
                                 <NoSiPair
                                     no={
                                         <div>
-                                            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">MODALIDAD</p>
+                                            <p className="text-xs font-medium uppercase tracking-widest text-slate-500 mb-1">MODALIDAD</p>
                                             <p className="text-sm text-slate-700 font-semibold">En mi domicilio (Providencia)</p>
                                         </div>
                                     }
                                     si={
                                         <div>
-                                            <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">MODALIDAD</p>
+                                            <p className="text-xs font-medium uppercase tracking-widest text-slate-500 mb-1">MODALIDAD</p>
                                             <p className="text-sm text-slate-700">En mi domicilio (Providencia)</p>
                                         </div>
                                     }
@@ -515,7 +515,7 @@ export default function StyleGuide() {
                                     <button className="bg-accent-600 hover:bg-accent-700 text-white text-base font-medium tracking-wide px-6 py-3 rounded-xl flex items-center gap-2">
                                         <Search size={18} /> Buscar
                                     </button>
-                                    <span className="text-xs text-slate-400">vs.</span>
+                                    <span className="text-xs text-slate-500">vs.</span>
                                     <button className="bg-slate-100 hover:bg-slate-200 text-slate-700 text-sm font-medium px-4 py-2 rounded-lg">
                                         Botón mediano (rounded-lg)
                                     </button>
@@ -555,7 +555,7 @@ export default function StyleGuide() {
 
                             <AntiItem
                                 no="accent-600 en decoración (íconos sin semántica, checkmarks de feature lists)"
-                                si="Usar text-slate-400 (neutro) o text-accent-500 (acento suave)."
+                                si="Usar text-slate-500 (neutro) o text-accent-600 (acento suave)."
                             />
 
                             <AntiItem
@@ -588,7 +588,7 @@ export default function StyleGuide() {
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
 
                             <div className="space-y-2">
-                                <span className="text-xs font-medium uppercase tracking-widest text-slate-400">Default</span>
+                                <span className="text-xs font-medium uppercase tracking-widest text-slate-500">Default</span>
                                 <Card>
                                     <h3 className="text-lg font-semibold text-slate-900">Standard Card</h3>
                                     <p className="text-sm text-slate-700 mt-2">
@@ -598,7 +598,7 @@ export default function StyleGuide() {
                             </div>
 
                             <div className="space-y-2">
-                                <span className="text-xs font-medium uppercase tracking-widest text-slate-400">Hoverable</span>
+                                <span className="text-xs font-medium uppercase tracking-widest text-slate-500">Hoverable</span>
                                 <Card hoverable>
                                     <h3 className="text-lg font-semibold text-slate-900">Hoverable Card</h3>
                                     <p className="text-sm text-slate-700 mt-2">
@@ -608,7 +608,7 @@ export default function StyleGuide() {
                             </div>
 
                             <div className="space-y-2">
-                                <span className="text-xs font-medium uppercase tracking-widest text-slate-400">Padding variants</span>
+                                <span className="text-xs font-medium uppercase tracking-widest text-slate-500">Padding variants</span>
                                 <Card padding="s"><p className="text-sm text-slate-700">Small (p-4)</p></Card>
                                 <Card padding="m"><p className="text-sm text-slate-700">Medium (p-6) — default</p></Card>
                                 <Card padding="l"><p className="text-sm text-slate-700">Large (p-8)</p></Card>
@@ -646,7 +646,7 @@ export default function StyleGuide() {
 
                             <Section variant="dark">
                                 <h2 className="text-2xl font-semibold tracking-tight text-white mb-2">Section variant — dark</h2>
-                                <p className="text-sm text-slate-400 mb-6">Secciones de alto impacto: CTAs grandes o testimoniales.</p>
+                                <p className="text-sm text-slate-500 mb-6">Secciones de alto impacto: CTAs grandes o testimoniales.</p>
                                 <Card>
                                     <h3 className="text-lg font-semibold text-slate-900">Card sobre fondo oscuro</h3>
                                     <p className="text-sm text-slate-700 mt-2">Máximo pop visual.</p>
@@ -670,7 +670,7 @@ function TypoRow({ label, tw, children }: { label: string; tw: string; children:
     return (
         <div className="border-b border-slate-200 pb-6 grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4 items-start">
             <div>
-                <p className="text-xs font-medium uppercase tracking-widest text-slate-400 mb-1">{label}</p>
+                <p className="text-xs font-medium uppercase tracking-widest text-slate-500 mb-1">{label}</p>
                 <code className="text-[11px] text-slate-500 font-mono leading-tight block break-words">{tw}</code>
             </div>
             <div>{children}</div>
@@ -683,7 +683,7 @@ function PaletaSwatch({ hex, clase, uso, sample }: { hex: string; clase: string;
         <div className="bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center justify-between mb-3">
                 <code className="text-xs font-mono text-slate-500">{clase}</code>
-                <code className="text-xs font-mono text-slate-400">{hex}</code>
+                <code className="text-xs font-mono text-slate-500">{hex}</code>
             </div>
             <p className={`text-base ${clase} mb-2`}>{sample}</p>
             <p className="text-xs text-slate-500">{uso}</p>
@@ -725,7 +725,7 @@ function RadiusExample({ tw, size, uso, excepcion = false, children }: { tw: str
         <div className={`bg-white border ${excepcion ? 'border-amber-200' : 'border-slate-200'} rounded-2xl p-6`}>
             <div className="flex items-center justify-between mb-3">
                 <code className="text-xs font-mono text-slate-500">{tw}</code>
-                <code className="text-xs font-mono text-slate-400">{size}</code>
+                <code className="text-xs font-mono text-slate-500">{size}</code>
             </div>
             <div className="mb-4">{children}</div>
             <p className="text-xs text-slate-500">{uso}</p>

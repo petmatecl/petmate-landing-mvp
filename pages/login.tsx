@@ -9,7 +9,7 @@ import { supabase } from "../lib/supabaseClient";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
 
 const inputClass =
-  "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors";
+  "w-full h-12 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors";
 
 // Mapea el redirect path al copy contextual del banner. Mostrar "continuar
 // donde estabas" generico cuando no matchea ningun prefijo conocido.
@@ -232,7 +232,7 @@ export default function LoginPage() {
               {/* Email */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="email" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                  <Mail size={15} className="text-slate-400" />
+                  <Mail size={15} className="text-slate-500" />
                   Correo electrónico
                 </label>
                 <input
@@ -251,7 +251,7 @@ export default function LoginPage() {
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                    <Lock size={15} className="text-slate-400" />
+                    <Lock size={15} className="text-slate-500" />
                     Contraseña
                   </label>
                   <Link href="/forgot-password" className="text-xs text-accent-700 hover:underline">
@@ -270,7 +270,7 @@ export default function LoginPage() {
                   />
                   <button
                     type="button"
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md text-slate-500 hover:text-slate-600 hover:bg-slate-100 transition-colors"
                     aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
                     onClick={() => setShowPass((v) => !v)}
                   >

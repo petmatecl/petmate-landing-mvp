@@ -30,7 +30,7 @@ const LocationPicker = dynamic(() => import('../../components/Shared/LocationPic
     ssr: false,
     loading: () => (
         <div className="h-[280px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+            <p className="text-slate-500 text-sm">Cargando mapa...</p>
         </div>
     ),
 });
@@ -1315,13 +1315,13 @@ export default function ProveedorDashboard() {
                                 <div className="bg-white z-10 text-slate-300 shrink-0">
                                     <Circle size={24} className="bg-white" />
                                 </div>
-                                <span className="text-slate-400 font-medium">Perfil aprobado y activo</span>
+                                <span className="text-slate-500 font-medium">Perfil aprobado y activo</span>
                             </div>
                         </div>
 
                         {/* Mensaje de Plaza */}
                         <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 mb-8 flex items-start gap-3">
-                            <Clock size={20} className="text-slate-400 shrink-0 mt-0.5" />
+                            <Clock size={20} className="text-slate-500 shrink-0 mt-0.5" />
                             <p className="text-slate-600 text-sm leading-relaxed">
                                 Te avisamos por correo apenas tu verificación esté revisada.
                             </p>
@@ -1563,13 +1563,13 @@ export default function ProveedorDashboard() {
                                                 <span className="text-sm font-medium text-slate-700 truncate group-hover:text-slate-900 transition-colors">
                                                     Completitud del perfil <span className="text-accent-700">{score}%</span>
                                                 </span>
-                                                <ChevronDown size={16} className={`text-slate-400 group-hover:text-slate-600 transition-transform shrink-0 ${completitudExpanded ? 'rotate-180' : ''}`} />
+                                                <ChevronDown size={16} className={`text-slate-500 group-hover:text-slate-600 transition-transform shrink-0 ${completitudExpanded ? 'rotate-180' : ''}`} />
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={dismiss}
                                                 aria-label="Ocultar completitud del perfil"
-                                                className="shrink-0 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-md p-1 transition-colors"
+                                                className="shrink-0 text-slate-500 hover:text-slate-600 hover:bg-slate-100 rounded-md p-1 transition-colors"
                                             >
                                                 <X size={14} />
                                             </button>
@@ -1672,7 +1672,7 @@ export default function ProveedorDashboard() {
                                                 </h3>
                                                 <div className="flex items-center gap-4 text-sm text-slate-500 font-medium mb-3">
                                                     <span className="text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md">${servicio.precio_desde?.toLocaleString('es-CL')} / {servicio.unidad_precio}</span>
-                                                    <span className="flex items-center gap-1 text-slate-400"><Eye size={14} /> {servicio.vistas || 0} vistas</span>
+                                                    <span className="flex items-center gap-1 text-slate-500"><Eye size={14} /> {servicio.vistas || 0} vistas</span>
                                                 </div>
 
                                                 {/* Actions */}
@@ -1691,7 +1691,7 @@ export default function ProveedorDashboard() {
                                                     <Link
                                                         href={`/servicio/${servicio.id}`}
                                                         target="_blank"
-                                                        className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-semibold"
+                                                        className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-colors flex items-center gap-1.5 text-sm font-semibold"
                                                     >
                                                         <ExternalLink size={16} /> <span className="hidden sm:inline">Ver</span>
                                                     </Link>
@@ -1783,7 +1783,7 @@ export default function ProveedorDashboard() {
                                         {/* Avatar Section */}
                                         <div className="p-8 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-6 bg-slate-50/50">
                                             <div className="relative">
-                                                <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center text-slate-400">
+                                                <div className="w-24 h-24 rounded-full bg-slate-200 overflow-hidden border-4 border-white shadow-sm flex items-center justify-center text-slate-500">
                                                     {fotoPerfil ? (
                                                         // eslint-disable-next-line @next/next/no-img-element
                                                         <img src={fotoPerfil} alt="Avatar" className="w-full h-full object-cover" />
@@ -1799,7 +1799,7 @@ export default function ProveedorDashboard() {
                                             <div className="text-center sm:text-left">
                                                 <h3 className="font-semibold text-slate-900 text-lg flex items-center justify-center sm:justify-start gap-2">
                                                     {proveedor.nombre} {proveedor.apellido_p}
-                                                    <span className="text-slate-400"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
+                                                    <span className="text-slate-500"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></span>
                                                 </h3>
                                                 <p className="text-slate-500 text-sm mt-1">Proveedor desde {new Date(proveedor.created_at).getFullYear()}</p>
                                             </div>
@@ -1812,7 +1812,7 @@ export default function ProveedorDashboard() {
                                                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Nombre legal</label>
                                                     <div className="bg-slate-100 px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium flex items-center justify-between">
                                                         {proveedor.nombre} {proveedor.apellido_p} {proveedor.apellido_m}
-                                                        <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                                                        <svg className="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
                                                     </div>
                                                     <p className="text-[11px] text-slate-500 mt-1">Datos de registro. No se muestran públicamente.</p>
                                                 </div>
@@ -1840,7 +1840,7 @@ export default function ProveedorDashboard() {
                                                         ? <ShieldCheck size={22} className="text-accent-600" />
                                                         : verificacionEstado === 'rechazado'
                                                             ? <ShieldX size={22} className="text-danger-500" />
-                                                            : <Shield size={22} className="text-slate-400" />
+                                                            : <Shield size={22} className="text-slate-500" />
                                                     }
                                             <div className="flex-1">
                                                 <h3 className="font-semibold text-slate-900 text-sm">Verificación de Identidad</h3>
@@ -1927,7 +1927,7 @@ export default function ProveedorDashboard() {
                                                     <div>
                                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                                             Foto del Carnet de Identidad <span className="text-red-500">*</span>
-                                                            <span className="text-slate-400 font-normal ml-1">(lado con tu foto)</span>
+                                                            <span className="text-slate-500 font-normal ml-1">(lado con tu foto)</span>
                                                         </label>
                                                         <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetPreview ? 'border-accent-600 bg-accent-50' : 'border-slate-300 hover:border-accent-600 hover:bg-accent-50'
                                                             }`}>
@@ -1942,7 +1942,7 @@ export default function ProveedorDashboard() {
                                                                 </div>
                                                             ) : (
                                                                 <>
-                                                                    <Upload size={24} className="text-slate-400" />
+                                                                    <Upload size={24} className="text-slate-500" />
                                                                     <p className="text-sm text-slate-500 font-medium">Arrastra o haz click para subir la foto</p>
                                                                     <p className="text-xs text-slate-500">JPG, PNG o HEIC — Máx. 5 MB</p>
                                                                 </>
@@ -1954,7 +1954,7 @@ export default function ProveedorDashboard() {
                                                     <div>
                                                         <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                                             Dorso del Carnet <span className="text-red-500">*</span>
-                                                            <span className="text-slate-400 font-normal ml-1">(lado trasero)</span>
+                                                            <span className="text-slate-500 font-normal ml-1">(lado trasero)</span>
                                                         </label>
                                                         <label className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl p-6 cursor-pointer transition-colors ${carnetDorsoPreview ? 'border-accent-600 bg-accent-50' : 'border-slate-300 hover:border-accent-600 hover:bg-accent-50'
                                                             }`}>
@@ -1969,7 +1969,7 @@ export default function ProveedorDashboard() {
                                                                 </div>
                                                             ) : (
                                                                 <>
-                                                                    <Upload size={24} className="text-slate-400" />
+                                                                    <Upload size={24} className="text-slate-500" />
                                                                     <p className="text-sm text-slate-500 font-medium">Arrastra o haz click para subir el dorso</p>
                                                                     <p className="text-xs text-slate-500">JPG, PNG o HEIC — Máx. 5 MB</p>
                                                                 </>
@@ -2424,7 +2424,7 @@ export default function ProveedorDashboard() {
                                             <MessageThread userId={proveedor.auth_user_id} conversationId={selectedChatId} />
                                         </>
                                     ) : (
-                                        <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
+                                        <div className="flex-1 flex flex-col items-center justify-center text-slate-500">
                                             <MessageSquare size={48} className="mb-4 text-slate-300" />
                                             <p>Selecciona una conversación para responder</p>
                                         </div>
@@ -2667,14 +2667,14 @@ export default function ProveedorDashboard() {
 
                                                 {/* Fecha preferida (formato segun variante) */}
                                                 <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
-                                                    <Calendar size={15} className="text-slate-400 shrink-0" />
+                                                    <Calendar size={15} className="text-slate-500 shrink-0" />
                                                     <span>{fechaPreferida}</span>
                                                 </div>
 
                                                 {/* Modalidad — Fase 2: solo si el tutor la eligio */}
                                                 {modalidadLabel && (
                                                     <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
-                                                        <MapPin size={15} className="text-slate-400 shrink-0" />
+                                                        <MapPin size={15} className="text-slate-500 shrink-0" />
                                                         <span>{modalidadLabel}</span>
                                                     </div>
                                                 )}
@@ -2684,7 +2684,7 @@ export default function ProveedorDashboard() {
                                                     opcional en italica. */}
                                                 {direccionLinea && (
                                                     <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
-                                                        <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
+                                                        <Home size={15} className="text-slate-500 shrink-0 mt-0.5" />
                                                         <div>
                                                             <span className="whitespace-pre-wrap">{direccionLinea}</span>
                                                             {direccionInfo && <p className="text-xs text-slate-500 italic mt-0.5">{direccionInfo}</p>}
@@ -2704,7 +2704,7 @@ export default function ProveedorDashboard() {
                                                     </div>
                                                 ) : sol.tipo_mascota_texto ? (
                                                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
-                                                        <p className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1 flex items-center gap-1.5">
+                                                        <p className="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-1 flex items-center gap-1.5">
                                                             <PawPrint size={12} /> Mascota
                                                         </p>
                                                         <p className="text-sm text-slate-700 leading-relaxed">{sol.tipo_mascota_texto}</p>
@@ -2714,7 +2714,7 @@ export default function ProveedorDashboard() {
                                                 {/* Mensaje del tutor */}
                                                 {sol.mensaje && (
                                                     <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
-                                                        <p className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1">Mensaje del tutor</p>
+                                                        <p className="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-1">Mensaje del tutor</p>
                                                         <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{sol.mensaje}</p>
                                                     </div>
                                                 )}

@@ -18,6 +18,7 @@
 // ---------------------------------------------------------------------------
 import { SupabaseClient } from '@supabase/supabase-js';
 import { resolverCategoriaIdPorSlug, borrarServicioResiliente } from './servicio-efimero';
+import { invalidateRoleCache, getSupabaseAsProveedor } from './supabase';
 import { timeMark } from './timing';
 
 // Sprint pan-1 PR-1 wrap (2026-09-11) — fix def 5: prefix display-friendly.
@@ -82,50 +83,86 @@ export async function crearServicioCuidadoConF2(
     // campos requeridos por el fetch de disponibilidad-noches (ver
     // pages/api/servicios/[id]/disponibilidad-noches.ts) + los que
     // consumen los emails F2-3-B (check_in_hora, check_out_hora).
-    const { data, error } = await supabase
+    //
+    // Sprint fix-fix-cuidado (2026-11-23) — builder de payload compartido
+    // entre primer intento y retry fresh ante silent-null (AUTH-TOKEN-PERSIST).
+    // Cada intento regenera el titulo con timestamp fresco para no colisionar.
+    const buildPayload = () => ({
+        proveedor_id: opts.proveedorId,
+        categoria_id: categoriaId,
+        titulo: `${E2E_F2_3_TITULO_PREFIX}${Date.now()}`,
+        // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
+        // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
+        // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
+        // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
+        // toast.error silencioso y test que esperaba éxito falla. Copy
+        // en tuteo, honesto sobre su naturaleza de fixture de agenda F2.
+        descripcion:
+            'Servicio efímero F2-3 generado por la suite e2e para probar ' +
+            'el picker de estadías y la ventana de cancelación. Se elimina ' +
+            'automáticamente al terminar cada test — no lo publiques ni ' +
+            'lo contactes, es solo de prueba.',
+        precio_desde: 15000,
+        unidad_precio: 'por noche',
+        acepta_perros: true,
+        acepta_gatos: false,
+        acepta_otras: false,
+        tamanos_aceptados: ['pequeño', 'mediano'],
+        fotos: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400'],
+        comunas_cobertura: ['Providencia'],
+        activo: true,
+        agendamiento_habilitado: true,
+        // F2-1 schema — config del picker.
+        capacidad_estadia: capacidadEstadia,
+        min_noches: minNoches,
+        max_noches: maxNoches,
+        cancelacion_min_horas_antes: cancelacionMinHoras,
+        check_in_hora: opts.checkInHora ?? null,
+        check_out_hora: opts.checkOutHora ?? null,
+        anticipacion_min_dias: 0,   // sin anticipación mínima para tests — evita bloquear "mañana"
+        anticipacion_max_dias_estadia: 366,
+    });
+
+    const firstAttempt = await supabase
         .from('servicios_publicados')
-        .insert({
-            proveedor_id: opts.proveedorId,
-            categoria_id: categoriaId,
-            titulo,
-            // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
-            // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
-            // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
-            // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
-            // toast.error silencioso y test que esperaba éxito falla. Copy
-            // en tuteo, honesto sobre su naturaleza de fixture de agenda F2.
-            descripcion:
-                'Servicio efímero F2-3 generado por la suite e2e para probar ' +
-                'el picker de estadías y la ventana de cancelación. Se elimina ' +
-                'automáticamente al terminar cada test — no lo publiques ni ' +
-                'lo contactes, es solo de prueba.',
-            precio_desde: 15000,
-            unidad_precio: 'por noche',
-            acepta_perros: true,
-            acepta_gatos: false,
-            acepta_otras: false,
-            tamanos_aceptados: ['pequeño', 'mediano'],
-            fotos: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400'],
-            comunas_cobertura: ['Providencia'],
-            activo: true,
-            agendamiento_habilitado: true,
-            // F2-1 schema — config del picker.
-            capacidad_estadia: capacidadEstadia,
-            min_noches: minNoches,
-            max_noches: maxNoches,
-            cancelacion_min_horas_antes: cancelacionMinHoras,
-            check_in_hora: opts.checkInHora ?? null,
-            check_out_hora: opts.checkOutHora ?? null,
-            anticipacion_min_dias: 0,   // sin anticipación mínima para tests — evita bloquear "mañana"
-            anticipacion_max_dias_estadia: 366,
-        })
+        .insert(buildPayload())
         .select('id, titulo')
         .single();
     timeMark('crearServicioCuidadoConF2.INSERT.servicio', t0);
-    if (error || !data) {
-        throw new Error(`[servicio-cuidado-listo] INSERT falló: ${error?.message ?? 'sin data'}`);
+
+    let data: { id: string; titulo: string } | null = firstAttempt.data as any;
+    if (firstAttempt.error) {
+        throw new Error(`[servicio-cuidado-listo] INSERT falló: ${firstAttempt.error.message}`);
     }
-    const servicioId = data.id as string;
+    if (!data) {
+        // Silent-null → retry fresh (ver servicio-efimero.ts para contexto).
+        console.warn(
+            '[servicio-cuidado-listo] INSERT devolvió silent-null ' +
+            '(posible sesión revocada mid-request, patrón AUTH-TOKEN-PERSIST). ' +
+            'Reintentando con cliente fresh...',
+        );
+        invalidateRoleCache('proveedor');
+        const freshSupabase = await getSupabaseAsProveedor();
+        const retryAttempt = await freshSupabase
+            .from('servicios_publicados')
+            .insert(buildPayload())
+            .select('id, titulo')
+            .single();
+        if (retryAttempt.error) {
+            throw new Error(
+                `[servicio-cuidado-listo] INSERT falló en retry: ${retryAttempt.error.message}`,
+            );
+        }
+        if (!retryAttempt.data) {
+            throw new Error(
+                '[servicio-cuidado-listo] INSERT silent-null también en retry fresh — ' +
+                'no es session issue. Verificar RLS policy, triggers o constraints en servicios_publicados.',
+            );
+        }
+        data = retryAttempt.data as any;
+        console.warn(`[servicio-cuidado-listo] INSERT OK en retry fresh (id=${(data as any).id}).`);
+    }
+    const servicioId = (data as { id: string; titulo: string }).id;
 
     // Blackouts opcionales — dominio F2 (fecha_fin NOT NULL, hora_desde
     // NOT NULL check queda como null porque F2 son días completos, matchea
@@ -150,7 +187,7 @@ export async function crearServicioCuidadoConF2(
 
     return {
         id: servicioId,
-        titulo: data.titulo as string,
+        titulo: (data as { id: string; titulo: string }).titulo,
         proveedorId: opts.proveedorId,
         capacidadEstadia,
         minNoches,

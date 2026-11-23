@@ -136,7 +136,7 @@ export default function FeedbackList() {
             <div className="bg-white rounded-2xl p-12 border border-slate-200 text-center shadow-sm">
                 <MessageSquareText className="w-10 h-10 text-slate-300 mx-auto mb-3" />
                 <p className="text-slate-500 font-medium">Aún no hay feedback recibido.</p>
-                <p className="text-xs text-slate-400 mt-1">Cuando alguien envíe algo desde el widget, aparecerá acá.</p>
+                <p className="text-xs text-slate-500 mt-1">Cuando alguien envíe algo desde el widget, aparecerá acá.</p>
             </div>
         );
     }
@@ -153,7 +153,7 @@ export default function FeedbackList() {
                         onChange={e => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent-600 outline-none text-sm"
                     />
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 </div>
                 <select
                     value={filtroEstado}
@@ -206,7 +206,7 @@ export default function FeedbackList() {
                                         <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium uppercase tracking-widest ${ESTADO_STYLE[r.estado]}`}>
                                             {r.estado.replace('_', ' ')}
                                         </span>
-                                        <span className="text-xs text-slate-400 ml-auto">
+                                        <span className="text-xs text-slate-500 ml-auto">
                                             {format(new Date(r.created_at), "d 'de' MMMM, HH:mm", { locale: es })}
                                         </span>
                                     </div>
@@ -236,7 +236,7 @@ export default function FeedbackList() {
                                                 <ExternalLink size={12} className="shrink-0" />
                                                 <span className="truncate">{r.pagina_url}</span>
                                             </a>
-                                            {r.viewport && <span className="text-slate-400">{r.viewport}</span>}
+                                            {r.viewport && <span className="text-slate-500">{r.viewport}</span>}
                                         </div>
                                     )}
                                 </li>
@@ -246,7 +246,7 @@ export default function FeedbackList() {
                 </div>
             )}
 
-            <p className="text-xs text-slate-400 text-center">
+            <p className="text-xs text-slate-500 text-center">
                 {filtrados.length} de {rows.length} envío{rows.length === 1 ? '' : 's'} · Solo lectura.
                 Cambiar el estado de un feedback es acción de gestión y va en otro sprint.
             </p>

@@ -1,9 +1,27 @@
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { GetStaticProps, GetStaticPaths } from "next";
 import { BLOG_POSTS, BlogPost } from "../../lib/blogData";
-import { Calendar, Clock, User, ChevronLeft, Share2, ArrowRight, Sparkles } from "lucide-react";
+import { Calendar, Clock, User, ChevronLeft, Share2, ArrowRight, Sparkles,
+    Sun, ThermometerSun, Cat, ClipboardList, Heart, Home as HomeIcon, Hotel, Footprints, Store, Dog, FileText, Book } from "lucide-react";
+
+// Sprint blog-img-fix (2026-11-19) — placeholder gris con ícono Lucide cuando
+// coverImage es vacío. Regla CLAUDE.md: cero imágenes IA ni fotos stock de
+// personas/mascotas en el blog.
+const COVER_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean | "true" | "false" }>> = {
+    Sun, ThermometerSun, Cat, ClipboardList, Heart, Home: HomeIcon, Hotel, Footprints, Store, Dog, FileText, Book,
+};
+
+function CoverPlaceholder({ iconName, size = 96 }: { iconName?: string; size?: number }) {
+    const Icon = iconName && COVER_ICONS[iconName] ? COVER_ICONS[iconName] : FileText;
+    return (
+        <div className="w-full h-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
+            <Icon size={size} aria-hidden="true" />
+        </div>
+    );
+}
 
 // Mapeo categoría → copy específico del CTA contextual
 const CATEGORIA_CTA_COPY: Record<string, { titulo: string; href: string }> = {
@@ -85,7 +103,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                 {/* OG Tags */}
                 <meta property="og:title" content={post.title} />
                 <meta property="og:description" content={post.excerpt} />
-                <meta property="og:image" content={post.coverImage} />
+                {post.coverImage && <meta property="og:image" content={post.coverImage} />}
                 <meta property="og:type" content="article" />
             </Head>
 
@@ -122,25 +140,29 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                                 <span className="text-slate-900">{post.author}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <Calendar size={16} className="text-slate-400" />
+                                <Calendar size={16} className="text-slate-500" />
                                 <span>{post.date}</span>
                             </div>
                             <div className="flex items-center gap-1.5">
-                                <Clock size={16} className="text-slate-400" />
+                                <Clock size={16} className="text-slate-500" />
                                 <span>{post.readTime}</span>
                             </div>
                         </div>
                     </header>
 
-                    {/* Featured Image */}
+                    {/* Featured Image — sprint blog-img-fix: placeholder gris con ícono Lucide cuando coverImage vacío */}
                     <div className="relative w-full aspect-video rounded-2xl overflow-hidden mb-12 shadow-sm border-2 border-slate-300">
-                        <Image
-                            src={post.coverImage}
-                            alt={post.title}
-                            fill
-                            className="object-cover"
-                            priority
-                        />
+                        {post.coverImage ? (
+                            <Image
+                                src={post.coverImage}
+                                alt={post.title}
+                                fill
+                                className="object-cover"
+                                priority
+                            />
+                        ) : (
+                            <CoverPlaceholder iconName={post.coverIcon} size={128} />
+                        )}
                     </div>
 
                     {/* Content — Deuda UI 2026-08-18 (T6-3): removidas ~14
@@ -187,7 +209,7 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                     })()}
 
                     {/* Share / Footer of Article */}
-                    <div className="mt-16 pt-8 border-t border-slate-300 flex items-center justify-between text-slate-400 text-sm">
+                    <div className="mt-16 pt-8 border-t border-slate-300 flex items-center justify-between text-slate-500 text-sm">
                         <span>Compartir este artículo</span>
                         <div className="flex gap-4">
                             <ShareButton title={post.title} text={post.excerpt} />
@@ -203,14 +225,18 @@ export default function BlogPostPage({ post, relatedPosts }: Props) {
                             {relatedPosts.map((relatedPost) => (
                                 <Link href={`/blog/${relatedPost.slug}`} key={relatedPost.id} className="group">
                                     <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-accent-900/5 transition-all duration-300">
-                                        {/* Image */}
+                                        {/* Image — placeholder gris si coverImage vacío */}
                                         <div className="relative h-48 overflow-hidden">
-                                            <Image
-                                                src={relatedPost.coverImage}
-                                                alt={relatedPost.title}
-                                                fill
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                            />
+                                            {relatedPost.coverImage ? (
+                                                <Image
+                                                    src={relatedPost.coverImage}
+                                                    alt={relatedPost.title}
+                                                    fill
+                                                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                                />
+                                            ) : (
+                                                <CoverPlaceholder iconName={relatedPost.coverIcon} size={56} />
+                                            )}
                                         </div>
 
                                         {/* Content */}

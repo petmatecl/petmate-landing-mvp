@@ -188,7 +188,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                                     className="w-12 h-12 rounded-full object-cover border-2 border-slate-300"
                                 />
                             ) : (
-                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-400">
+                                <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center border-2 border-slate-300 text-slate-500">
                                     <User size={20} />
                                 </div>
                             )}
@@ -202,7 +202,7 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
                                 <h4 className={`text-sm font-semibold truncate ${isActive ? 'text-accent-900' : 'text-slate-900'}`}>
                                     {other?.display_name || 'Participante'}
                                 </h4>
-                                <span className="text-[10px] text-slate-400 shrink-0">
+                                <span className="text-[10px] text-slate-500 shrink-0">
                                     {format(date, 'dd MMM', { locale: es })}
                                 </span>
                             </div>

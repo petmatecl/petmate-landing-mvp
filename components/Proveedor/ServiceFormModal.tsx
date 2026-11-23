@@ -8,6 +8,22 @@ import { COMUNAS_CHILE, filtrarComunasPorTermino } from '../../lib/comunas';
 import { CAMPOS_POR_CATEGORIA } from '../../lib/camposPorCategoria';
 import { getCategoriasCached, type Categoria } from '../../lib/catalogoCategorias';
 import { useUser } from '../../contexts/UserContext';
+import FormSidebarNav, { type FormSection, type ModuloEstado } from './FormSidebarNav';
+
+// Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20). Módulos del formulario,
+// orden visual del sidebar. `obligatorio` controla si cuenta para la barra de
+// progreso (decisión 6 del PO: solo obligatorios). Slugs se usan como id HTML
+// de los `<section>` para el smooth scroll (decisión 2) y para indexar
+// `sectionStates`.
+const FORM_SECTIONS: FormSection[] = [
+    { slug: 'info-basica', label: 'Información básica', obligatorio: true },
+    { slug: 'precio', label: 'Precio y disponibilidad', obligatorio: true },
+    { slug: 'agenda', label: 'Agenda', obligatorio: false },
+    { slug: 'mascotas', label: 'Mascotas aceptadas', obligatorio: true },
+    { slug: 'comunas', label: 'Comunas de cobertura', obligatorio: true },
+    { slug: 'campos-categoria', label: 'Campos por categoría', obligatorio: false },
+    { slug: 'fotos', label: 'Fotos', obligatorio: true },
+];
 import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCategoria } from '../../lib/categoriaTemporal';
 import { nochesEntre } from '../../lib/formatFecha';
 import { useModalDialog } from '../../lib/useModalDialog';
@@ -134,6 +150,18 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     const [fotos, setFotos] = useState<string[]>([]);
     const [uploadingFotos, setUploadingFotos] = useState(false);
     const [showMobilePreview, setShowMobilePreview] = useState(false);
+
+    // Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20).
+    // - activeSection: sección resaltada en el sidebar según scroll.
+    // - mobileNavOpen: dropdown de secciones en viewport < 768px.
+    // - touchedSections: módulos que el usuario abandonó al menos una vez →
+    //   gatillo para marcar 'error' si faltan obligatorios (decisión 4:
+    //   validación onBlur grupal por módulo). Set agregable, nunca se resetea
+    //   durante la vida del modal.
+    const [activeSection, setActiveSection] = useState<string | null>('info-basica');
+    const [mobileNavOpen, setMobileNavOpen] = useState(false);
+    const [touchedSections, setTouchedSections] = useState<Set<string>>(new Set());
+    const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
     // Sprint 1 agendamiento (UI). Toggle por servicio. La columna en BD
     // tiene default false; este state respeta ese default para nuevos.
@@ -1436,6 +1464,175 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
         containerRef: dialogContainerRef,
     });
 
+    // Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20). Helper puro que devuelve
+    // el estado de un módulo según los valores del form + el set de módulos
+    // que el usuario ya abandonó (touchedSections). Reglas:
+    //   - obligatorios completos → 'complete'
+    //   - obligatorios incompletos + sección tocada → 'error' (validación
+    //     grupal post-salida, decisión 4 del PO)
+    //   - obligatorios incompletos + sección no tocada aún:
+    //       - algún campo con valor → 'progress'
+    //       - todos vacíos → 'empty'
+    //   - secciones opcionales (agenda, campos-categoría): nunca 'error', solo
+    //     'progress' si el user tocó algo, 'complete' si parece cerrado, o
+    //     'empty' si no abrió nada.
+    //
+    // Decisión 5 del PO (check verde inicial al editar): la primera vez que
+    // `existingServiceId` llega + fetchService pobla los valores, los módulos
+    // obligatorios que ya tengan sus campos llenos van directo a 'complete'
+    // sin pasar por 'progress' porque el chequeo es sobre VALORES, no sobre
+    // cambios manuales.
+    const getSectionState = useCallback(
+        (slug: string): ModuloEstado => {
+            const touched = touchedSections.has(slug);
+            switch (slug) {
+                case 'info-basica': {
+                    const complete =
+                        !!categoriaId &&
+                        !!titulo.trim() &&
+                        titulo.length <= 80 &&
+                        !!descripcion.trim() &&
+                        descripcion.length <= 1000;
+                    if (complete) return 'complete';
+                    if (touched) return 'error';
+                    const anyFilled = !!categoriaId || !!titulo || !!descripcion;
+                    return anyFilled ? 'progress' : 'empty';
+                }
+                case 'precio': {
+                    const complete = precioDesde !== '' && Number(precioDesde) > 0;
+                    if (complete) return 'complete';
+                    if (touched) return 'error';
+                    const anyFilled = precioDesde !== '' || precioHasta !== '';
+                    return anyFilled ? 'progress' : 'empty';
+                }
+                case 'agenda': {
+                    // Opcional — cerrado si el toggle maestro quedó en false, o si
+                    // habilitado + al menos un sub-sistema configurado.
+                    if (!agendamientoHabilitado) return 'empty';
+                    const f1Config = usaAgendaReal && franjasSemana.length > 0;
+                    const anyToggleOn = usaAgendaReal || !!agendamientoHabilitado;
+                    if (f1Config) return 'complete';
+                    return anyToggleOn ? 'progress' : 'empty';
+                }
+                case 'mascotas': {
+                    const complete = perros || gatos || otras;
+                    if (complete) return 'complete';
+                    if (touched) return 'error';
+                    return 'empty';
+                }
+                case 'comunas': {
+                    const complete = comunasCobertura.length > 0;
+                    if (complete) return 'complete';
+                    if (touched) return 'error';
+                    return 'empty';
+                }
+                case 'campos-categoria': {
+                    // Opcional — sin validación estricta universal (varía por
+                    // categoría). Solo refleja si el user tocó algo.
+                    return 'empty';
+                }
+                case 'fotos': {
+                    const complete = fotos.length > 0;
+                    if (complete) return 'complete';
+                    if (touched) return 'error';
+                    return 'empty';
+                }
+                default:
+                    return 'empty';
+            }
+        },
+        [
+            categoriaId,
+            titulo,
+            descripcion,
+            precioDesde,
+            precioHasta,
+            agendamientoHabilitado,
+            usaAgendaReal,
+            franjasSemana,
+            perros,
+            gatos,
+            otras,
+            comunasCobertura,
+            fotos,
+            touchedSections,
+        ],
+    );
+
+    const sectionStates = useMemo<Record<string, ModuloEstado>>(() => {
+        const map: Record<string, ModuloEstado> = {};
+        for (const s of FORM_SECTIONS) {
+            map[s.slug] = getSectionState(s.slug);
+        }
+        return map;
+    }, [getSectionState]);
+
+    const progressPct = useMemo(() => {
+        const obligatorios = FORM_SECTIONS.filter((s) => s.obligatorio);
+        if (obligatorios.length === 0) return 0;
+        const complete = obligatorios.filter((s) => sectionStates[s.slug] === 'complete').length;
+        return Math.round((complete / obligatorios.length) * 100);
+    }, [sectionStates]);
+
+    // Smooth scroll al click en la navegación + marca la sección actual como
+    // tocada antes de saltar (gatillo de la validación grupal, decisión 4).
+    // CSS `scroll-margin-top: 1rem` en cada <section> evita que el título
+    // quede pegado al borde superior tras el scroll.
+    const handleClickSection = useCallback(
+        (slug: string) => {
+            if (activeSection && activeSection !== slug) {
+                setTouchedSections((prev) => {
+                    if (prev.has(activeSection)) return prev;
+                    const next = new Set(prev);
+                    next.add(activeSection);
+                    return next;
+                });
+            }
+            setActiveSection(slug);
+            setMobileNavOpen(false);
+            // Buscar el elemento por id y hacer scroll. Lo hacemos en el
+            // próximo tick para dar tiempo a cerrar el dropdown mobile.
+            requestAnimationFrame(() => {
+                const el = document.getElementById(`form-section-${slug}`);
+                if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            });
+        },
+        [activeSection],
+    );
+
+    // IntersectionObserver para sincronizar `activeSection` con el scroll
+    // natural del usuario. Observa cada <section> y la que tenga mayor
+    // ratio de visibilidad gana. rootMargin negativo arriba (-10%) reduce la
+    // zona de "activo" al tercio central del viewport del scroll container,
+    // así no cambia el highlight por una sección que apenas entra.
+    useEffect(() => {
+        if (!isOpen || fetching) return;
+        const root = scrollContainerRef.current;
+        if (!root) return;
+        const observer = new IntersectionObserver(
+            (entries) => {
+                const visibles = entries
+                    .filter((e) => e.isIntersecting)
+                    .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+                if (visibles.length > 0) {
+                    const id = (visibles[0].target as HTMLElement).id;
+                    const slug = id.replace(/^form-section-/, '');
+                    setActiveSection(slug);
+                }
+            },
+            {
+                root,
+                rootMargin: '-10% 0px -60% 0px',
+                threshold: [0, 0.25, 0.5, 0.75, 1],
+            },
+        );
+        for (const s of FORM_SECTIONS) {
+            const el = document.getElementById(`form-section-${s.slug}`);
+            if (el) observer.observe(el);
+        }
+        return () => observer.disconnect();
+    }, [isOpen, fetching]);
+
     if (!isOpen) return null;
 
     const coverPreview = fotos[0] || null;
@@ -1463,7 +1660,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
             </div>
             <div className="p-4">
                 <h3 className="font-semibold text-slate-900 text-sm leading-snug mb-1 line-clamp-2">
-                    {titulo || <span className="text-slate-400 font-normal">Título del servicio</span>}
+                    {titulo || <span className="text-slate-500 font-normal">Título del servicio</span>}
                 </h3>
                 {descripcion && (
                     <p className="text-xs text-slate-500 line-clamp-2 mb-2">{descripcion}</p>
@@ -1476,7 +1673,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                             </span>
                         ))}
                         {comunasCobertura.length > 3 && (
-                            <span className="text-[10px] text-slate-400">+{comunasCobertura.length - 3} más</span>
+                            <span className="text-[10px] text-slate-500">+{comunasCobertura.length - 3} más</span>
                         )}
                     </div>
                 )}
@@ -1485,14 +1682,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         {precioDesde ? (
                             <span className="text-accent-700 font-semibold text-sm">
                                 ${Number(precioDesde).toLocaleString('es-CL')}
-                                <span className="text-slate-400 font-normal text-xs ml-1">{unidadPrecio}</span>
+                                <span className="text-slate-500 font-normal text-xs ml-1">{unidadPrecio}</span>
                             </span>
                         ) : (
                             <span className="text-slate-300 text-xs">Precio por definir</span>
                         )}
                     </div>
                     <div className="flex items-center gap-1 text-amber-400">
-                        <span className="text-slate-400 text-xs">Sin reseñas aún</span>
+                        <span className="text-slate-500 text-xs">Sin reseñas aún</span>
                     </div>
                 </div>
             </div>
@@ -1516,7 +1713,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     <button
                         onClick={onClose}
                         aria-label="Cerrar"
-                        className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                        className="p-2 text-slate-500 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
                     >
                         <X size={20} />
                     </button>
@@ -1527,13 +1724,33 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                         <Loader2 className="w-8 h-8 text-accent-600 animate-spin" />
                     </div>
                 ) : (
-                    <div className="flex-1 overflow-y-auto flex flex-col lg:flex-row gap-0 min-h-0">
-                        {/* FORM */}
-                        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-0 lg:border-r lg:border-slate-100">
+                    <div className="flex-1 flex flex-col lg:flex-row gap-0 min-h-0">
+                        {/* Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20) —
+                            sidebar de navegación por módulos. En desktop ocupa
+                            columna izquierda 256px; en mobile se colapsa a
+                            dropdown superior. Ver FormSidebarNav.tsx para
+                            las 6 decisiones del PO y el detalle de estados. */}
+                        <FormSidebarNav
+                            sections={FORM_SECTIONS}
+                            sectionStates={sectionStates}
+                            activeSection={activeSection}
+                            onClickSection={handleClickSection}
+                            progressPct={progressPct}
+                            mobileOpen={mobileNavOpen}
+                            onToggleMobile={() => setMobileNavOpen((v) => !v)}
+                        />
+
+                        {/* FORM — contenedor scrollable; el ref llega al
+                            IntersectionObserver que sincroniza activeSection. */}
+                        <form
+                            ref={scrollContainerRef as React.LegacyRef<HTMLFormElement>}
+                            onSubmit={handleSubmit}
+                            className="flex-1 overflow-y-auto p-6 space-y-0 lg:border-r lg:border-slate-100 [&>section]:scroll-mt-4"
+                        >
 
                             {/* ── SECCIÓN 1: Información básica ── */}
-                            <div className="pb-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Información básica</p>
+                            <section id="form-section-info-basica" className="pb-6 scroll-mt-4">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Información básica</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                         <div className="md:col-span-1">
@@ -1604,7 +1821,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 maxLength={80}
                                                 required
                                                 placeholder="Ej: Hospedaje cariñoso con amplio patio"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                             <div className="text-right text-xs text-slate-500 mt-1">{titulo.length}/80</div>
                                         </div>
@@ -1621,7 +1838,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             Decisión PO 2026-08-27: NO agregar borde ámbar en blur —
                                             3 señales alcanzan, la 4ta molesta. */}
                                         <label htmlFor="servicio-descripcion" className="block text-sm font-medium text-slate-700 mb-1.5">
-                                            Descripción <span className="text-red-500">*</span> <span className="text-slate-400 font-normal">· mínimo 100 caracteres</span>
+                                            Descripción <span className="text-red-500">*</span> <span className="text-slate-500 font-normal">· mínimo 100 caracteres</span>
                                         </label>
                                         <textarea
                                             id="servicio-descripcion"
@@ -1640,7 +1857,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             placeholder="Describe tu servicio, qué incluye, el ambiente que ofreces..."
                                             aria-invalid={!!descripcionError}
                                             aria-describedby={descripcionError ? 'servicio-descripcion-error' : undefined}
-                                            className={`w-full px-3 py-2.5 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white placeholder:text-slate-400 transition-colors resize-none ${
+                                            className={`w-full px-3 py-2.5 border rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:bg-white placeholder:text-slate-500 transition-colors resize-none ${
                                                 descripcionError
                                                     ? 'border-danger-500 focus:ring-danger-500 focus:border-danger-500'
                                                     : 'border-slate-200 focus:ring-accent-600 focus:border-accent-600'
@@ -1680,11 +1897,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </section>
+
+                            {/* Sprint form-sidebar hr (2026-11-20) — separador
+                                visual entre secciones pedido por PO en smoke #137. */}
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── SECCIÓN 2: Precio y disponibilidad ── */}
-                            <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
+                            <section id="form-section-precio" className="scroll-mt-4">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Precio y disponibilidad</p>
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                         <div>
@@ -1699,7 +1920,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioDesde(raw ? Number(raw) : ''); }}
                                                 required
                                                 placeholder="15.000"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -1713,7 +1934,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                 value={precioHasta ? Number(precioHasta).toLocaleString('es-CL') : ''}
                                                 onChange={e => { const raw = e.target.value.replace(/\D/g, ''); setPrecioHasta(raw ? Number(raw) : ''); }}
                                                 placeholder="Opcional"
-                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                className="w-full h-11 px-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                             />
                                         </div>
                                         <div>
@@ -1764,7 +1985,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             className={`w-20 shrink-0 text-xs font-semibold py-1.5 rounded-lg border text-center transition-colors ${
                                                                 dayData.activo
                                                                     ? 'bg-accent-50 border-accent-600 text-accent-800'
-                                                                    : 'border-slate-200 text-slate-400'
+                                                                    : 'border-slate-200 text-slate-500'
                                                             }`}
                                                         >
                                                             {dia.slice(0, 3)}
@@ -1779,7 +2000,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                     value={dayData.desde}
                                                                     onChange={e => updateDay('desde', e.target.value)}
                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600" />
-                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                <span className="text-slate-500 text-xs">a</span>
                                                                 <label htmlFor={`hora-hasta-${dia}`} className="sr-only">{dia}: hora de fin</label>
                                                                 <input
                                                                     id={`hora-hasta-${dia}`}
@@ -1799,17 +2020,26 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
                                     )}
                                 </div>
-                            </div>
+                            </section>
 
-                            {/* ── SECCIÓN: Agendamiento (toggle maestro) ──
-                                Interruptor per-servicio. Cuando esta OFF, el
-                                CTA "Solicitar agendamiento" no aparece en la
-                                ficha publica — el servicio no acepta agenda
-                                de ningun tipo (ni flujo viejo ni agenda real).
-                                Va PRIMERO porque es el gate del que depende la
-                                seccion de agenda real (F1) que sigue abajo. */}
-                            <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Reservas</p>
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
+
+                            {/* ── SECCIÓN: Agenda (agrupa toggle maestro + F1 + F2) ──
+                                Sprint FORM-SERVICIO-SIDEBAR-NAV (2026-11-20) —
+                                los 3 bloques quedan dentro de un único
+                                <section> para que el sidebar nav apunte a
+                                una sola entrada "Agenda". El scroll aterriza
+                                en el toggle maestro arriba. */}
+                            <section id="form-section-agenda" className="scroll-mt-4">
+                                {/* ── Sub-bloque: Agendamiento (toggle maestro) ──
+                                    Interruptor per-servicio. Cuando esta OFF, el
+                                    CTA "Solicitar agendamiento" no aparece en la
+                                    ficha publica — el servicio no acepta agenda
+                                    de ningun tipo (ni flujo viejo ni agenda real).
+                                    Va PRIMERO porque es el gate del que depende la
+                                    seccion de agenda real (F1) que sigue abajo. */}
+                                <div className="border-t border-slate-100 py-6">
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Reservas</p>
                                 {/* Sprint agenda-categorias (2026-09-11) — decisión PO
                                     2026-09-09 punto 2: ocultar el toggle "Habilitar
                                     reservas" cuando la categoría no admite F1 (bloque
@@ -1872,7 +2102,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 en state y en BD — undo natural al reactivar. */}
                             {admiteAgenda && agendamientoHabilitado && (
                                 <div className="border-t border-slate-100 py-6">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Agenda con disponibilidad real</p>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <div className="relative shrink-0 mt-0.5">
                                             <input
@@ -1977,7 +2207,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 Importar mi horario actual
                                                             </button>
                                                         )}
-                                                        <span className="text-xs text-slate-400">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
+                                                        <span className="text-xs text-slate-500">{franjasSemana.length} {franjasSemana.length === 1 ? 'franja' : 'franjas'}</span>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-2">
@@ -1989,7 +2219,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         return (
                                                             <div key={dia.iso} className="flex flex-wrap items-start gap-2 py-2 border-b border-slate-100 last:border-b-0">
                                                                 <div className="w-16 shrink-0 pt-1.5">
-                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-400'}`}>{dia.corto}</span>
+                                                                    <span className={`text-xs font-semibold ${franjasDia.length > 0 ? 'text-slate-700' : 'text-slate-500'}`}>{dia.corto}</span>
                                                                 </div>
                                                                 <div className="flex-1 min-w-0 space-y-1.5">
                                                                     {franjasDia.length === 0 ? (
@@ -2003,7 +2233,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                     onChange={e => updateFranja(i, 'hora_desde', e.target.value)}
                                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-slate-50 text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
                                                                                 />
-                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <span className="text-slate-500 text-xs">a</span>
                                                                                 <input
                                                                                     type="time"
                                                                                     value={f.hora_hasta}
@@ -2013,7 +2243,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                 <button
                                                                                     type="button"
                                                                                     onClick={() => removeFranja(i)}
-                                                                                    className="text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                                    className="text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                                     aria-label="Eliminar franja"
                                                                                     title="Eliminar franja"
                                                                                 >
@@ -2044,7 +2274,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre franjas horarias"
                                                         title="Define las franjas horarias de cada día. La misma semana se repite todas las semanas — las excepciones (vacaciones, días libres puntuales) las agregas por separado abajo."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2115,7 +2345,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                                     onChange={ev => updateExcepcion(i, 'hora_desde', ev.target.value || null)}
                                                                                     className="h-10 px-3 border border-slate-200 rounded-lg bg-white text-slate-900 text-xs focus:outline-none focus:ring-1 focus:ring-accent-600"
                                                                                 />
-                                                                                <span className="text-slate-400 text-xs">a</span>
+                                                                                <span className="text-slate-500 text-xs">a</span>
                                                                                 <input
                                                                                     type="time"
                                                                                     value={e.hora_hasta ?? ''}
@@ -2127,7 +2357,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => removeExcepcion(i)}
-                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            className="ml-auto text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                             aria-label="Eliminar excepción"
                                                                             title="Eliminar excepción"
                                                                         >
@@ -2153,7 +2383,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre excepciones"
                                                         title="Bloqueos puntuales para días o franjas específicas — cuando no cabe en la semana tipo. Solo se muestran las excepciones futuras."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2174,7 +2404,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                 admite F1 y solo cuidado admite F2). */}
                             {admiteEstadia && agendamientoHabilitado && (
                                 <div className="border-t border-slate-100 py-6">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Agenda por rango de noches</p>
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Agenda por rango de noches</p>
                                     <label className="flex items-start gap-3 cursor-pointer">
                                         <div className="relative shrink-0 mt-0.5">
                                             <input
@@ -2398,7 +2628,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                         <button
                                                                             type="button"
                                                                             onClick={() => removeBlackout(i)}
-                                                                            className="ml-auto text-slate-400 hover:text-danger-600 transition-colors p-1"
+                                                                            className="ml-auto text-slate-500 hover:text-danger-600 transition-colors p-1"
                                                                             aria-label="Eliminar bloqueo"
                                                                             title="Eliminar bloqueo"
                                                                         >
@@ -2427,7 +2657,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                         type="button"
                                                         aria-label="Más información sobre bloqueos F2"
                                                         title="Estas fechas quedan bloqueadas para nuevas reservas. Las estadías ya confirmadas en esas fechas se mantienen — te sugerimos coordinar con el tutor por chat."
-                                                        className="inline-flex items-center text-slate-400 hover:text-slate-600 cursor-help"
+                                                        className="inline-flex items-center text-slate-500 hover:text-slate-600 cursor-help"
                                                     >
                                                         <Info size={12} />
                                                     </button>
@@ -2437,10 +2667,13 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
                             )}
+                            </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── SECCIÓN 3: Mascotas ── */}
-                            <div className="border-t border-slate-100 py-6">
-                                <p className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
+                            <section id="form-section-mascotas" className="py-6 scroll-mt-4">
+                                <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Mascotas aceptadas <span className="text-red-500">*</span></p>
                                 <div role="group" aria-label="Mascotas aceptadas" className="flex flex-wrap gap-2 mb-3">
                                     {[
                                         { label: 'Perros', checked: perros, set: setPerros },
@@ -2475,15 +2708,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         ))}
                                     </div>
                                 )}
-                            </div>
+                            </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── COMUNAS DE COBERTURA ── */}
-                            <div>
+                            <section id="form-section-comunas" className="scroll-mt-4">
                                 <label className="block text-sm font-semibold text-slate-700 mb-1.5 flex items-center gap-1.5">
-                                    <MapPin size={14} className="text-slate-400" />
+                                    <MapPin size={14} className="text-slate-500" />
                                     Comunas donde prestas el servicio <span className="text-red-500">*</span>
                                 </label>
-                                <p className="text-xs text-slate-400 mb-2">
+                                <p className="text-xs text-slate-500 mb-2">
                                     Selecciona todas las comunas donde ofreces este servicio. Los clientes podrán encontrarte al filtrar por su zona.
                                 </p>
 
@@ -2510,7 +2745,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         className="flex items-center gap-2 w-full h-10 px-3 border border-slate-200 rounded-xl bg-slate-50 cursor-text"
                                         onClick={() => setComunaDropdownOpen(true)}
                                     >
-                                        <Search size={14} className="text-slate-400 shrink-0" />
+                                        <Search size={14} className="text-slate-500 shrink-0" />
                                         <label htmlFor="comuna-search" className="sr-only">Buscar comuna</label>
                                         <input
                                             id="comuna-search"
@@ -2521,14 +2756,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                             onChange={e => { setComunaSearch(e.target.value); setComunaDropdownOpen(true); }}
                                             onFocus={() => setComunaDropdownOpen(true)}
                                             placeholder="Buscar y agregar comunas..."
-                                            className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none"
+                                            className="flex-1 bg-transparent text-sm text-slate-900 placeholder:text-slate-500 focus:outline-none"
                                         />
                                     </div>
 
                                     {comunaDropdownOpen && (
                                         <div className="absolute z-20 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-48 overflow-y-auto">
                                             {comunasFiltradas.length === 0 ? (
-                                                <p className="text-xs text-slate-400 p-3 text-center">Sin resultados</p>
+                                                <p className="text-xs text-slate-500 p-3 text-center">Sin resultados</p>
                                             ) : (
                                                 comunasFiltradas.map(c => (
                                                     <button
@@ -2547,9 +2782,12 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         </div>
                                     )}
                                 </div>
-                            </div>
+                            </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* ── CAMPOS ESPECÍFICOS POR CATEGORÍA ── */}
+                            <section id="form-section-campos-categoria" className="scroll-mt-4">
                             {camposCategoria.length > 0 && (
                                 <div className="border-t border-slate-100 pt-6 pb-2">
                                     <h3 className="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
@@ -2644,9 +2882,9 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 placeholder={campo.placeholder}
                                                                 rows={3}
                                                                 maxLength={300}
-                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors resize-none"
+                                                                className="w-full px-4 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors resize-none"
                                                             />
-                                                            <p className="text-xs text-slate-400 mt-1 text-right">{valor.length} / 300</p>
+                                                            <p className="text-xs text-slate-500 mt-1 text-right">{valor.length} / 300</p>
                                                         </div>
                                                     );
                                                 })() : campo.tipo === 'number' ? (
@@ -2662,7 +2900,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                                 onChange={e => setDetalle(campo.key, e.target.value ? Number(e.target.value) : '')}
                                                                 placeholder={campo.placeholder}
                                                                 min={0}
-                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                                className="w-32 h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                                             />
                                                         </div>
                                                     </div>
@@ -2677,7 +2915,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                                             value={mergedDetalles[campo.key] ?? ''}
                                                             onChange={e => setDetalle(campo.key, e.target.value)}
                                                             placeholder={campo.placeholder}
-                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-400 transition-colors"
+                                                            className="w-full h-11 px-4 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 focus:bg-white placeholder:text-slate-500 transition-colors"
                                                         />
                                                     </div>
                                                 )}
@@ -2686,14 +2924,17 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     </div>
                                 </div>
                             )}
+                            </section>
+
+                            <hr className="my-10 border-slate-200" aria-hidden="true" />
 
                             {/* Fotos */}
-                            <div className="border-t border-slate-100 pt-6 mt-6">
+                            <section id="form-section-fotos" className="pt-2 scroll-mt-4">
                                 <div className="flex items-center justify-between mb-1">
-                                    <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
                                         Fotos del servicio <span className="text-danger-500 normal-case">*</span>
                                     </p>
-                                    <span className="text-xs text-slate-400 font-medium">{fotos.length}/8</span>
+                                    <span className="text-xs text-slate-500 font-medium">{fotos.length}/8</span>
                                 </div>
                                 <p className="text-xs text-slate-500 mb-3">
                                     Al menos 1 foto. Los servicios con fotos reciben muchas más consultas.
@@ -2751,15 +2992,15 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                         ].join(" ")}
                                         >
                                             {uploadingFotos ? (
-                                                <Loader2 size={24} className="text-slate-400 animate-spin" />
+                                                <Loader2 size={24} className="text-slate-500 animate-spin" />
                                             ) : (
                                                 <>
-                                                    <Upload size={fotos.length === 0 ? 32 : 22} className="text-slate-400 mb-2" />
+                                                    <Upload size={fotos.length === 0 ? 32 : 22} className="text-slate-500 mb-2" />
                                                     <span className="text-xs text-slate-500 font-semibold text-center px-2">
                                                         {fotos.length === 0 ? "Haz click para subir fotos" : "Agregar"}
                                                     </span>
                                                     {fotos.length === 0 && (
-                                                        <span className="text-[11px] text-slate-400 mt-1">
+                                                        <span className="text-[11px] text-slate-500 mt-1">
                                                             JPG, PNG, WebP — max 5MB c/u
                                                         </span>
                                                     )}
@@ -2771,18 +3012,18 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                                     )}
                                 </div>
 
-                                <p className="text-xs text-slate-400 leading-relaxed">
+                                <p className="text-xs text-slate-500 leading-relaxed">
                                     <span className="font-semibold text-accent-600">La primera foto es la portada</span>
                                     {" "}y es la que aparece en el listado. Usa las flechas para reordenar. Puedes subir hasta 8 fotos (JPG, PNG, WebP, max 5MB cada una).
                                 </p>
-                            </div>
+                            </section>
                         </form>
 
                         {/* PREVIEW PANEL — desktop right column */}
                         <div className="hidden lg:flex flex-col w-72 shrink-0 p-6 bg-slate-50/50">
                             <p className="text-sm text-slate-500 font-medium mb-4">Vista previa</p>
                             <PreviewCard />
-                            <p className="text-xs text-slate-400 mt-3 text-center">Así verán tu servicio los clientes</p>
+                            <p className="text-xs text-slate-500 mt-3 text-center">Así verán tu servicio los clientes</p>
                         </div>
 
                         {/* PREVIEW PANEL — mobile collapsible */}

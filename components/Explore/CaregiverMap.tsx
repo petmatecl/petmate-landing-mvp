@@ -116,7 +116,7 @@ function buildPopupHtml(s: MarkerData): string {
         <div class="min-w-[200px]">
             ${imgHtml}
             <div class="p-4">
-                <p class="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">${escapeHtml(s.categoria_nombre)}</p>
+                <p class="text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-0.5">${escapeHtml(s.categoria_nombre)}</p>
                 <h3 class="font-semibold text-slate-900 text-sm leading-tight mb-1 line-clamp-2">${escapeHtml(s.titulo)}</h3>
                 <p class="text-xs text-slate-500 mb-2 truncate">${escapeHtml(s.proveedor_nombre)} · ${escapeHtml(s.proveedor_comuna)}</p>
 
@@ -125,7 +125,7 @@ function buildPopupHtml(s: MarkerData): string {
                         <span class="text-accent-600 mr-1">★</span>
                         ${Number(s.rating_promedio).toFixed(1)}
                     </div>
-                    <span class="text-xs text-slate-400">(${s.total_evaluaciones} reseñas)</span>
+                    <span class="text-xs text-slate-500">(${s.total_evaluaciones} reseñas)</span>
                 </div>
 
                 <div class="flex items-baseline gap-1 mb-3">
@@ -242,13 +242,13 @@ export default function CaregiverMap({ services }: CaregiverMapProps) {
 
     if (!mounted) return (
         <div className="h-[580px] w-full rounded-2xl bg-slate-100 flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+            <p className="text-slate-500 text-sm">Cargando mapa...</p>
         </div>
     );
 
     if (services.length === 0) return (
         <div className="h-[580px] w-full rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Sin resultados para mostrar en el mapa</p>
+            <p className="text-slate-500 text-sm">Sin resultados para mostrar en el mapa</p>
         </div>
     );
 

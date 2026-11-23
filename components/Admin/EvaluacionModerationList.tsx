@@ -182,7 +182,7 @@ export default function EvaluacionModerationList() {
                                     </p>
                                 </div>
 
-                                <p className="text-xs font-semibold text-slate-400 mt-3">
+                                <p className="text-xs font-semibold text-slate-500 mt-3">
                                     Enviada el {format(new Date(ev.created_at), "d 'de' MMMM, yyyy 'a las' HH:mm", { locale: es })}
                                 </p>
                             </div>

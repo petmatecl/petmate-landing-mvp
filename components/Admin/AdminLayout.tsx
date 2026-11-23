@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint } from 'lucide-react';
+import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -23,7 +23,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
             <aside className="bg-white border-b md:border-b-0 md:border-r border-slate-300 w-full md:w-64 flex-shrink-0 md:sticky md:top-24 md:h-[calc(100vh-6rem)] md:overflow-y-auto no-scrollbar">
                 <div className="p-6 border-b border-slate-300 flex items-center justify-between md:block">
                     <Link href="/admin" className="text-xl font-bold text-accent-700 tracking-tight flex items-center gap-2">
-                        <PawPrint size={24} /> PAWNECTA <span className="text-slate-400 font-normal text-xs">Admin</span>
+                        <PawPrint size={24} /> PAWNECTA <span className="text-slate-500 font-normal text-xs">Admin</span>
                     </Link>
                 </div>
 
@@ -58,9 +58,20 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                         <Bell size={20} /> Notificaciones
                     </Link>
 
+                    {/* Sprint TRACKING-META-100-PROVEEDORES Opción B (2026-11-20) */}
+                    <Link
+                        href="/admin/metricas-proveedores"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/metricas-proveedores')
+                            ? 'bg-accent-50 text-accent-700 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                    >
+                        <Target size={20} /> Métricas
+                    </Link>
+
                     <Link
                         href="/"
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-400 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
                     >
                         <ArrowLeft size={20} /> Volver al Sitio
                     </Link>

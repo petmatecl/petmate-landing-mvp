@@ -97,7 +97,7 @@ export default function FAQ() {
 
                     {/* Buscador */}
                     <div className="relative mb-8">
-                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" size={18} />
                         <label htmlFor="faq-search" className="sr-only">Buscar en preguntas frecuentes</label>
                         <input
                             id="faq-search"
@@ -105,7 +105,7 @@ export default function FAQ() {
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Busca una pregunta o palabra clave..."
-                            className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
+                            className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-500 transition-colors"
                         />
                     </div>
 
@@ -145,7 +145,7 @@ export default function FAQ() {
                                     {openIndex === index ? (
                                         <ChevronUp className="text-accent-600 transition-transform" />
                                     ) : (
-                                        <ChevronDown className="text-slate-400 transition-transform" />
+                                        <ChevronDown className="text-slate-500 transition-transform" />
                                     )}
                                 </button>
                                 <div

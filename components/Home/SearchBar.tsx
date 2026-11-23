@@ -111,7 +111,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
         >
             {/* Campo Categoría — custom dropdown */}
             <div ref={catRef} className="relative flex items-center flex-1 px-4 py-3 border-b sm:border-b-0 sm:border-r border-slate-200 gap-3 min-w-0">
-                <LayoutGrid className="w-5 h-5 text-slate-400 shrink-0" />
+                <LayoutGrid className="w-5 h-5 text-slate-500 shrink-0" />
                 <button
                     type="button"
                     onClick={() => { setCatOpen(!catOpen); setShowComunaList(false); }}
@@ -124,7 +124,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     <span className={`truncate whitespace-nowrap ${selectedCatLabel ? 'text-slate-900' : 'text-slate-500 transition-opacity duration-500'}`}>
                         {selectedCatLabel || ROTATING_HINTS[hintIndex]}
                     </span>
-                    <ChevronDown size={16} className={`text-slate-400 transition-transform shrink-0 ml-1 ${catOpen ? 'rotate-180' : ''}`} />
+                    <ChevronDown size={16} className={`text-slate-500 transition-transform shrink-0 ml-1 ${catOpen ? 'rotate-180' : ''}`} />
                 </button>
 
                 {catOpen && (
@@ -157,7 +157,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
 
             {/* Campo Comuna */}
             <div ref={comunaRef} className="relative flex items-center flex-1 px-4 py-3 gap-3 min-w-0">
-                <MapPin className="w-5 h-5 text-slate-400 shrink-0" />
+                <MapPin className="w-5 h-5 text-slate-500 shrink-0" />
                 <label htmlFor="hero-comuna-input" className="sr-only">Comuna</label>
                 <input
                     id="hero-comuna-input"
@@ -173,7 +173,7 @@ export default function SearchBar({ variant = "inline" }: SearchBarProps) {
                     onFocus={() => { setShowComunaList(true); setCatOpen(false); }}
                     placeholder="¿En qué comuna?"
                     autoComplete="off"
-                    className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder:text-slate-400 placeholder:font-normal min-w-0"
+                    className="flex-1 bg-transparent text-slate-900 text-sm font-medium focus:outline-none placeholder:text-slate-500 placeholder:font-normal min-w-0"
                 />
                 {showComunaList && comunasFiltradas.length > 0 && (
                     <ul id="hero-comuna-listbox" role="listbox" aria-label="Sugerencias de comuna" className="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-52 overflow-y-auto py-1">

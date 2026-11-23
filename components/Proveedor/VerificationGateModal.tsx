@@ -98,7 +98,7 @@ export default function VerificationGateModal({
                         <button
                             onClick={onClose}
                             aria-label="Cerrar"
-                            className="text-slate-400 hover:text-slate-600 transition-colors"
+                            className="text-slate-500 hover:text-slate-600 transition-colors"
                         >
                             <X size={20} />
                         </button>

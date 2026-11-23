@@ -347,7 +347,7 @@ export default function MisSolicitudesPage() {
     if (userLoading || !router.isReady || !isAuthenticated) {
         return (
             <div className="min-h-[60vh] flex items-center justify-center">
-                <p className="text-slate-400 text-sm">Cargando...</p>
+                <p className="text-slate-500 text-sm">Cargando...</p>
             </div>
         );
     }
@@ -371,7 +371,7 @@ export default function MisSolicitudesPage() {
 
                 {state.kind === 'loading' && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                        <p className="text-sm text-slate-400">Cargando tus reservas...</p>
+                        <p className="text-sm text-slate-500">Cargando tus reservas...</p>
                     </div>
                 )}
 
@@ -854,7 +854,7 @@ function SolicitudCard({
 
             {/* Fecha preferida (formato segun variante) */}
             <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
-                <Calendar size={15} className="text-slate-400 shrink-0" />
+                <Calendar size={15} className="text-slate-500 shrink-0" />
                 <span>{fechaPreferida}</span>
             </div>
 
@@ -877,7 +877,7 @@ function SolicitudCard({
                             className="w-5 h-5 rounded-full object-cover shrink-0"
                         />
                     ) : (
-                        <PawPrint size={15} className="text-slate-400 shrink-0" />
+                        <PawPrint size={15} className="text-slate-500 shrink-0" />
                     )}
                     <span className="truncate">
                         {solicitud.mascota?.nombre ?? solicitud.tipo_mascota_texto}
@@ -891,7 +891,7 @@ function SolicitudCard({
             {/* Modalidad — Fase 2: solo si el servicio es cuidado */}
             {modalidadLabel && (
                 <div className="flex items-center gap-2 text-sm text-slate-700 mb-3">
-                    <MapPin size={15} className="text-slate-400 shrink-0" />
+                    <MapPin size={15} className="text-slate-500 shrink-0" />
                     <span>{modalidadLabel}</span>
                 </div>
             )}
@@ -900,7 +900,7 @@ function SolicitudCard({
                 estructurado compacto + info adicional opcional en italica. */}
             {direccionLinea && (
                 <div className="flex items-start gap-2 text-sm text-slate-700 mb-3">
-                    <Home size={15} className="text-slate-400 shrink-0 mt-0.5" />
+                    <Home size={15} className="text-slate-500 shrink-0 mt-0.5" />
                     <div>
                         <span className="whitespace-pre-wrap">{direccionLinea}</span>
                         {direccionInfo && <p className="text-xs text-slate-500 italic mt-0.5">{direccionInfo}</p>}
@@ -910,7 +910,7 @@ function SolicitudCard({
 
             {/* Mensaje original del tutor */}
             <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 mb-3">
-                <p className="text-[11px] uppercase tracking-widest text-slate-400 font-medium mb-1">Tu mensaje</p>
+                <p className="text-[11px] uppercase tracking-widest text-slate-500 font-medium mb-1">Tu mensaje</p>
                 {solicitud.mensaje
                     ? <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">{solicitud.mensaje}</p>
                     : <p className="text-sm text-slate-500 italic">Sin mensaje adicional.</p>}
@@ -976,7 +976,7 @@ function SolicitudCard({
 
             {/* Cancelado info — al tutor le mostramos cuando el evento ocurrio */}
             {isCancelada && respondidoAt && (
-                <p className="text-xs text-slate-400 italic mb-3">Cancelaste esta solicitud el {respondidoAt}.</p>
+                <p className="text-xs text-slate-500 italic mb-3">Cancelaste esta solicitud el {respondidoAt}.</p>
             )}
 
             {/* Acciones segun estado */}

@@ -102,7 +102,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
 
     if (checkingConv || hasConversacion === null) {
         return (
-            <div className="flex items-center gap-2 text-sm text-slate-400 py-4">
+            <div className="flex items-center gap-2 text-sm text-slate-500 py-4">
                 <Loader2 size={16} className="animate-spin" />
                 Verificando acceso...
             </div>
@@ -268,7 +268,7 @@ export default function ReviewForm({ servicioId, proveedorId, servicioTitulo, on
                         <label htmlFor="comentario" className="block text-sm font-semibold text-slate-700">
                             Cuéntanos tu experiencia <span className="text-red-500">*</span>
                         </label>
-                        <span className={`text-xs font-semibold ${comentario.length > 500 || (comentario.length > 0 && comentario.length < 20) ? 'text-danger-500' : 'text-slate-400'}`}>
+                        <span className={`text-xs font-semibold ${comentario.length > 500 || (comentario.length > 0 && comentario.length < 20) ? 'text-danger-500' : 'text-slate-500'}`}>
                             {comentario.length}/500
                         </span>
                     </div>

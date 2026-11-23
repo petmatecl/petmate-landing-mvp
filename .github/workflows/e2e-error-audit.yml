@@ -62,37 +62,45 @@ on:
 concurrency:
   # Sprint L1-1 (2026-09-09) — serialización cross-PR contra staging.
   #
-  # Group fijo `e2e-staging` (NO por `github.ref`) → solo 1 run de esta
-  # suite toca el proyecto Supabase staging + el bypass de Vercel a la
-  # vez, sin importar de qué PR viene. Los demás quedan encolados en
-  # `pending` y arrancan al terminar el actual.
+  # Group fijo `staging-exclusive` (NO por `github.ref`) → solo 1 run de
+  # un workflow que toque staging corre a la vez, sin importar de qué
+  # PR viene y sin importar qué workflow sea. Los demás quedan encolados
+  # en `pending` y arrancan al terminar el actual.
+  #
+  # Sprint ci-conc-guard (2026-11-23, Opción D de docs/analisis/
+  # ci-concurrency-e2e-20261123.md) — renombrado de `e2e-staging` →
+  # `staging-exclusive` como work-around Fase 1 cross-workflow. Motivo:
+  # el nombre anterior solo serializaba este workflow + visual-update-
+  # snapshots, dejando smoke-auth-templates y cleanup-staging-e2e con
+  # grupos propios → podían correr en paralelo con la suite Playwright
+  # tocando la misma BD. Opción D agrupa los 4 bajo el mismo
+  # `staging-exclusive` para una cola FIFO estricta cross-workflow.
   #
   # `cancel-in-progress: false` → cancelar el run activo al llegar uno
   # nuevo destrozaría el cleanup de servicios efímeros a mitad y
   # dejaría huérfanos en staging. Preferimos cola con espera al riesgo
   # de aumentar la contención por half-cleanup.
   #
-  # Motivo del cambio: con `${{ github.ref }}` cada PR tenía su cola
-  # independiente y múltiples PRs corrían en paralelo sobre la misma
-  # base de datos → `beforeAll` timeouts en f2-3 por saturación de
-  # Supabase (verificado empíricamente en PR #15 con 4 reruns, subset
-  # de tests fallando cambiaba entre reruns).
+  # Motivo del cambio original: con `${{ github.ref }}` cada PR tenía
+  # su cola independiente y múltiples PRs corrían en paralelo sobre la
+  # misma base de datos → `beforeAll` timeouts en f2-3 por saturación
+  # de Supabase (verificado empíricamente en PR #15 con 4 reruns,
+  # subset de tests fallando cambiaba entre reruns).
   #
-  # Único workflow del repo que toca staging (verificado 2026-09-09):
-  # ci.yml es typecheck+build sin backend, lock-regen es one-shot cero
-  # e2e. Si en algún futuro aparece otro workflow que hitea Supabase
-  # staging, meterlo en este mismo group `e2e-staging` o justificar
-  # por qué no.
+  # Workflows actuales en `staging-exclusive` (verificado 2026-11-23):
+  # e2e-error-audit.yml, visual-update-snapshots.yml,
+  # smoke-auth-templates.yml, cleanup-staging-e2e.yml. Si en el futuro
+  # aparece otro workflow que hitea Supabase staging, meterlo en este
+  # mismo group o justificar por qué no. ci.yml es typecheck+build sin
+  # backend, puede quedar fuera.
   #
   # Trade-off aceptado: en épocas de muchos PRs concurrentes, la suite
-  # espera en cola en vez de correr al instante → posible cola de 10-15
-  # min si 3-4 PRs están abiertos simultáneamente. Preferible a rojo
-  # falso por contención.
+  # espera más en cola. Preferible a rojo falso por contención.
   #
   # Typecheck no queda en este grupo — vive en `.github/workflows/ci.yml`
   # con su propio concurrency por-ref, entonces sigue corriendo en
   # paralelo entre PRs sin bloqueo.
-  group: e2e-staging
+  group: staging-exclusive
   cancel-in-progress: false
 
 jobs:
@@ -266,6 +274,7 @@ jobs:
           # EXCLUDE_LIST — un dir por línea, motivo como comentario # inline.
           EXCLUDE_LIST=$(cat <<'EOL'
           ci-canario
+          smoke-prod
           EOL
           )
           # Motivos documentados:
@@ -274,6 +283,13 @@ jobs:
           #     .github/workflows/ci-canario.yml semanal. Incluirlo acá
           #     dejaría esta suite siempre roja. Ver header del spec para
           #     detalles.
+          #   smoke-prod — specs del smoke diario contra prod (sprint
+          #     SMOKE-PROD-DIARIO 2026-11-23). Corren bajo
+          #     playwright.config.prod.ts contra pawnecta.com, workflow
+          #     dedicado .github/workflows/smoke-prod-diario.yml. Incluirlos
+          #     en el e2e canónico correría contra staging con URL/anon-key
+          #     hardcoded de prod → confusión + flake. Ver
+          #     docs/sprints/smoke-prod-diario.md.
 
           # (a) Dirs bajo e2e/specs/ vs dirs listados en el workflow.
           DIRS_FOUND=$(find e2e/specs -mindepth 1 -maxdepth 1 -type d | sed 's|^e2e/specs/||' | sort -u)
@@ -326,7 +342,7 @@ jobs:
         # rompió la suite F2 y el CI dio verde falso al PR #60.
         run: |
           set -o pipefail
-          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/prelaunch-1/ e2e/specs/producto-1/ e2e/specs/producto-2/ e2e/specs/sentry/ e2e/specs/zonab-1/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ e2e/specs/cue-1-fix/ e2e/specs/share-mobile/ e2e/specs/pii-nombre-publico/ e2e/specs/nav-mensajes/ e2e/specs/pii-chat-nombre/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
+          npx playwright test e2e/specs/error-audit/ e2e/specs/form-post/ e2e/specs/tipo-b/ e2e/specs/launch-l1/ e2e/specs/pan-1/ e2e/specs/conviene/ e2e/specs/prelaunch/ e2e/specs/prelaunch-1/ e2e/specs/producto-1/ e2e/specs/producto-2/ e2e/specs/sentry/ e2e/specs/zonab-1/ e2e/specs/tipo-cd/ e2e/specs/c-higiene/ e2e/specs/d-ui-paneles/ e2e/specs/d-explorar-mapa/ e2e/specs/e-ux/ e2e/specs/d-base-ui/ e2e/specs/e-explorar-ctas/ e2e/specs/e-header-a11y/ e2e/specs/e-mapa/ e2e/specs/e-notif-toasts/ e2e/specs/visual/ e2e/specs/visits-doble/ e2e/specs/link-confirm-email/ e2e/specs/chat-open-error/ e2e/specs/incidente-usuario-fix/ e2e/specs/cue-1-fix/ e2e/specs/share-mobile/ e2e/specs/pii-nombre-publico/ e2e/specs/nav-mensajes/ e2e/specs/pii-chat-nombre/ e2e/specs/fix-footer-links/ --reporter=list 2>&1 | tee /tmp/rapido-stdout.log
 
       - name: Extract AUTH-RETRY marks to artifact
         # Sprint estab-e2e (2026-09-11) — el `authenticate.ts` helper hace

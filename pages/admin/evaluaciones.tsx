@@ -209,7 +209,7 @@ function GestionEvaluaciones() {
             <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
                 <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
                     <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-400 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
+                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
                             <ArrowLeft size={20} />
                         </Link>
                         <div>
@@ -217,7 +217,7 @@ function GestionEvaluaciones() {
                                 <MessageSquareWarning className="text-amber-400" />
                                 Evaluaciones
                             </h1>
-                            <p className="text-sm text-slate-400">Revisión de feedback de usuarios a proveedores</p>
+                            <p className="text-sm text-slate-500">Revisión de feedback de usuarios a proveedores</p>
                         </div>
                     </div>
                 </div>
@@ -235,7 +235,7 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-warning-600 mb-1">{stats.pendientes}</p>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Pendientes de Revisión</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Pendientes de Revisión</p>
                         </div>
                     </div>
 
@@ -247,7 +247,7 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-accent-700 mb-1">{stats.aprobadasMes}</p>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Aprobadas este mes</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Aprobadas este mes</p>
                         </div>
                     </div>
 
@@ -259,7 +259,7 @@ function GestionEvaluaciones() {
                         </div>
                         <div>
                             <p className="text-4xl font-bold text-blue-600 mb-1">{stats.promedioGlobal}</p>
-                            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">Rating Promedio Plataforma</p>
+                            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">Rating Promedio Plataforma</p>
                         </div>
                     </div>
                 </div>
@@ -267,7 +267,7 @@ function GestionEvaluaciones() {
                 {/* Controles y Filtros */}
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
                     <h3 className="text-lg font-semibold text-slate-900 flex items-center gap-2 mb-4">
-                        <Filter size={18} className="text-slate-400" /> Filtros
+                        <Filter size={18} className="text-slate-500" /> Filtros
                     </h3>
                     <div className="flex flex-col lg:flex-row gap-4">
                         {/* Tabs Estado */}
@@ -291,7 +291,7 @@ function GestionEvaluaciones() {
                         {/* Buscador & Stars */}
                         <div className="flex gap-3 flex-1 flex-col sm:flex-row">
                             <div className="relative flex-1">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
                                 <input
                                     type="text"
                                     placeholder="Buscar por proveedor, servicio o comentario..."
@@ -342,7 +342,7 @@ function GestionEvaluaciones() {
                                     <div className="flex items-center gap-3 mb-3">
                                         {renderStars(evaluacion.rating)}
                                         <EstadoBadge estado={evaluacion.estado} />
-                                        <span className="text-xs text-slate-400 font-medium">
+                                        <span className="text-xs text-slate-500 font-medium">
                                             {new Date(evaluacion.created_at).toLocaleDateString()}
                                         </span>
                                     </div>
@@ -353,11 +353,11 @@ function GestionEvaluaciones() {
 
                                     <div className="flex items-center gap-6 text-sm">
                                         <div>
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Proveedor Evaluado</p>
-                                            <p className="font-semibold text-slate-700 flex items-center gap-1.5"><UserIcon size={14} className="text-slate-400" /> {evaluacion.proveedor_nombre} {evaluacion.proveedor_apellido}</p>
+                                            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-0.5">Proveedor Evaluado</p>
+                                            <p className="font-semibold text-slate-700 flex items-center gap-1.5"><UserIcon size={14} className="text-slate-500" /> {evaluacion.proveedor_nombre} {evaluacion.proveedor_apellido}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-medium text-slate-400 uppercase tracking-widest mb-0.5">Servicio</p>
+                                            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-widest mb-0.5">Servicio</p>
                                             <p className="font-semibold text-indigo-600">{evaluacion.servicio_titulo}</p>
                                         </div>
                                     </div>

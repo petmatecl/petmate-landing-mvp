@@ -74,7 +74,7 @@ export default function ServicePlaceholderCard({
                 className="flex flex-col h-full rounded-2xl border border-dashed border-slate-300 bg-white hover:bg-slate-50 hover:border-accent-400 overflow-hidden transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent-500"
             >
                 <div className="flex-1 flex flex-col items-center justify-center text-center p-8 gap-4">
-                    <div className="text-slate-400">
+                    <div className="text-slate-500">
                         <Sparkles size={28} strokeWidth={1.5} aria-hidden="true" />
                     </div>
                     <p className="text-base font-medium text-slate-700 leading-snug max-w-[220px]">
@@ -95,7 +95,7 @@ export default function ServicePlaceholderCard({
             className="flex flex-col h-full rounded-2xl border border-dashed border-slate-200 bg-white overflow-hidden"
         >
             <div className="flex-1 flex flex-col items-center justify-center text-center p-10 gap-5 min-h-[300px]">
-                <div className="text-slate-400">
+                <div className="text-slate-500">
                     <Sparkles size={36} strokeWidth={1.5} aria-hidden="true" />
                 </div>
                 <p className="text-base font-medium text-slate-700 leading-snug max-w-[240px]">

@@ -136,7 +136,7 @@ export default function ResetPasswordPage() {
                                             Nueva contraseña
                                         </label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                                                 <Lock size={18} />
                                             </span>
                                             <input
@@ -147,7 +147,7 @@ export default function ResetPasswordPage() {
                                                 required
                                                 className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:bg-white text-sm text-slate-900"
                                             />
-                                            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                            <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600">
                                                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                                             </button>
                                         </div>
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
                                             Confirmar contraseña
                                         </label>
                                         <div className="relative">
-                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
                                                 <Lock size={18} />
                                             </span>
                                             <input
@@ -170,7 +170,7 @@ export default function ResetPasswordPage() {
                                                 required
                                                 className="w-full h-12 pl-10 pr-10 border border-slate-200 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-accent-600 focus:bg-white text-sm text-slate-900"
                                             />
-                                            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+                                            <button type="button" onClick={() => setShowConfirm(v => !v)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-600">
                                                 {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                                             </button>
                                         </div>

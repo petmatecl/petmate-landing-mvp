@@ -36,7 +36,7 @@ export default function SecurityLogout() {
                     Volver a ingresar
                 </Link>
 
-                <p className="mt-6 text-xs text-slate-400">
+                <p className="mt-6 text-xs text-slate-500">
                     Pawnecta protege tus datos personales.
                 </p>
             </div>

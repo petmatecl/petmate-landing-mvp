@@ -19,7 +19,7 @@ const LocationMap = dynamic(() => import('../../components/Shared/LocationMap'),
     ssr: false,
     loading: () => (
         <div className="h-[300px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+            <p className="text-slate-500 text-sm">Cargando mapa...</p>
         </div>
     ),
 });
@@ -355,9 +355,9 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
                             {proveedor.tipo_entidad === 'empresa' && (
                                 <p className="text-sm text-slate-500 mb-1 flex items-center gap-1.5 justify-center sm:justify-start">
-                                    <Briefcase size={13} className="text-slate-400 shrink-0" />
+                                    <Briefcase size={13} className="text-slate-500 shrink-0" />
                                     <span className="font-medium">{proveedor.nombre_fantasia || proveedor.razon_social}</span>
-                                    {proveedor.giro && <span className="text-slate-400">· {proveedor.giro}</span>}
+                                    {proveedor.giro && <span className="text-slate-500">· {proveedor.giro}</span>}
                                 </p>
                             )}
 
@@ -372,7 +372,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 todos los proveedores reales tienen region
                                 poblada = "Metropolitana"). Ver BACKLOG L117-121. */}
                             <p className="text-slate-500 text-sm mb-4 flex items-center gap-1.5 justify-center sm:justify-start">
-                                <svg className="w-4 h-4 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                <svg className="w-4 h-4 text-slate-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                                 {proveedor.comuna}
                                 {proveedor.region ? `, ${proveedor.region}` : ''}
                             </p>
@@ -380,7 +380,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {/* Stat chips */}
                             <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
                                 <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
-                                    <Clock size={12} className="text-slate-400" />
+                                    <Clock size={12} className="text-slate-500" />
                                     En Pawnecta desde {miembroDesde}
                                 </span>
                                 {globalTotalEvaluaciones > 0 && (
@@ -391,22 +391,22 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                 )}
                                 {servicios.length > 0 && (
                                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
-                                        <Briefcase size={12} className="text-slate-400" />
+                                        <Briefcase size={12} className="text-slate-500" />
                                         {servicios.length} servicio{servicios.length !== 1 ? 's' : ''} activo{servicios.length !== 1 ? 's' : ''}
                                     </span>
                                 )}
                                 {contactosCount > 0 && (
                                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                         {contactosCount} contacto{contactosCount !== 1 ? 's' : ''}
                                     </span>
                                 )}
                                 {(proveedor.visitas_total ?? 0) > 0 && (
                                     <span className="flex items-center gap-1.5 bg-slate-50 border border-slate-200 text-slate-600 text-xs font-medium px-3 py-1.5 rounded-full">
-                                        <Eye size={12} strokeWidth={1.5} className="text-slate-400" />
+                                        <Eye size={12} strokeWidth={1.5} className="text-slate-500" />
                                         {(proveedor.visitas_total ?? 0).toLocaleString('es-CL')} visitas
                                         {(proveedor.visitas_mes ?? 0) > 0 && (
-                                            <span className="text-slate-400"> · {proveedor.visitas_mes} este mes</span>
+                                            <span className="text-slate-500"> · {proveedor.visitas_mes} este mes</span>
                                         )}
                                     </span>
                                 )}
@@ -486,17 +486,17 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {tieneInfoPersonal && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
-                            <User size={16} className="text-slate-400" />
+                            <User size={16} className="text-slate-500" />
                             Quién soy
                         </h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
                             {proveedor.ocupacion && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-accent-50 flex items-center justify-center shrink-0">
-                                        <Briefcase size={16} className="text-slate-400" />
+                                        <Briefcase size={16} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-medium">Profesión</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Profesión</p>
                                         <p className="text-sm text-slate-700">{proveedor.ocupacion}</p>
                                     </div>
                                 </div>
@@ -504,10 +504,10 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {edad && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                        <Cake size={16} className="text-slate-400" />
+                                        <Cake size={16} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-medium">Edad</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Edad</p>
                                         <p className="text-sm text-slate-700">{edad} años</p>
                                     </div>
                                 </div>
@@ -515,10 +515,10 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.genero && generoLabel[proveedor.genero] && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                        <User size={16} className="text-slate-400" />
+                                        <User size={16} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-medium">Género</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Género</p>
                                         <p className="text-sm text-slate-700">{generoLabel[proveedor.genero]}</p>
                                     </div>
                                 </div>
@@ -526,39 +526,39 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             {proveedor.anios_experiencia > 0 && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                        <Award size={16} className="text-slate-400" />
+                                        <Award size={16} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-medium">Experiencia</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Experiencia</p>
                                         <p className="text-sm text-slate-700">{proveedor.anios_experiencia} años</p>
                                     </div>
                                 </div>
                             )}
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                    <Clock size={16} className="text-slate-400" />
+                                    <Clock size={16} className="text-slate-500" />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] text-slate-400 font-medium">En Pawnecta</p>
+                                    <p className="text-[11px] text-slate-500 font-medium">En Pawnecta</p>
                                     <p className="text-sm text-slate-700">Desde {miembroDesde}</p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                    <Briefcase size={16} className="text-slate-400" />
+                                    <Briefcase size={16} className="text-slate-500" />
                                 </div>
                                 <div>
-                                    <p className="text-[11px] text-slate-400 font-medium">Servicios activos</p>
+                                    <p className="text-[11px] text-slate-500 font-medium">Servicios activos</p>
                                     <p className="text-sm text-slate-700">{servicios.length}</p>
                                 </div>
                             </div>
                             {visitasTotalProveedor > 0 && (
                                 <div className="flex items-center gap-3">
                                     <div className="w-9 h-9 rounded-lg bg-slate-50 flex items-center justify-center shrink-0">
-                                        <Eye size={16} className="text-slate-400" />
+                                        <Eye size={16} className="text-slate-500" />
                                     </div>
                                     <div>
-                                        <p className="text-[11px] text-slate-400 font-medium">Visitas a sus servicios</p>
+                                        <p className="text-[11px] text-slate-500 font-medium">Visitas a sus servicios</p>
                                         <p className="text-sm text-slate-700">{visitasTotalProveedor.toLocaleString('es-CL')}</p>
                                     </div>
                                 </div>
@@ -606,7 +606,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                             </div>
                         ) : (
                             <div className="inline-flex items-center gap-1.5 bg-slate-50 text-slate-500 text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200">
-                                <Circle size={13} className="shrink-0 text-slate-400" />
+                                <Circle size={13} className="shrink-0 text-slate-500" />
                                 No declara certificación en primeros auxilios
                             </div>
                         )}
@@ -629,7 +629,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                                         <div className="min-w-0 flex-1">
                                             <p className="text-sm font-semibold text-slate-700 truncate">{cert.titulo}</p>
                                             {(cert.institucion || cert.anio) && (
-                                                <p className="text-xs text-slate-400 mt-0.5">
+                                                <p className="text-xs text-slate-500 mt-0.5">
                                                     {cert.institucion}
                                                     {cert.institucion && cert.anio && ' · '}
                                                     {cert.anio}
@@ -657,7 +657,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {Array.isArray(proveedor.idiomas) && proveedor.idiomas.length > 0 && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <Languages size={17} className="text-slate-400" />
+                            <Languages size={17} className="text-slate-500" />
                             Idiomas
                         </h2>
                         <div className="flex flex-wrap gap-2">
@@ -694,7 +694,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                     return (
                         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                             <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                                <Calendar size={17} className="text-slate-400" />
+                                <Calendar size={17} className="text-slate-500" />
                                 Política de cancelación
                             </h2>
                             <div className="flex items-start gap-3">
@@ -724,7 +724,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {(proveedor.lat != null && proveedor.lng != null) || proveedor.comuna ? (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <MapPin size={17} className="text-slate-400" />
+                            <MapPin size={17} className="text-slate-500" />
                             Ubicación
                         </h2>
                         {(() => {
@@ -750,7 +750,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                 {tieneGaleria && (
                     <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8">
                         <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <Camera size={17} className="text-slate-400" />
+                            <Camera size={17} className="text-slate-500" />
                             Fotos del espacio
                         </h2>
                         {proveedor.galeria.length === 1 ? (
@@ -806,7 +806,7 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-8 text-center">
                             <Star size={32} className="text-slate-200 mx-auto mb-3" />
                             <p className="text-slate-500 font-medium">Este proveedor aún no tiene evaluaciones.</p>
-                            <p className="text-slate-400 text-sm mt-1">¡Sé el primero en contactarlo y dejar una reseña!</p>
+                            <p className="text-slate-500 text-sm mt-1">¡Sé el primero en contactarlo y dejar una reseña!</p>
                         </div>
                     ) : (
                         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 md:p-8 space-y-8">

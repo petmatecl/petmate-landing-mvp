@@ -16,7 +16,7 @@ const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
     ssr: false,
     loading: () => (
         <div className="h-[300px] w-full rounded-xl bg-slate-100 flex items-center justify-center">
-            <p className="text-slate-400 text-sm">Cargando mapa...</p>
+            <p className="text-slate-500 text-sm">Cargando mapa...</p>
         </div>
     ),
 });
@@ -1009,7 +1009,7 @@ export default function ServiceDetailView({
                                     );
                                 })()}
                                 <span className="inline-flex items-center gap-1.5 text-slate-600">
-                                    <MapPin size={14} className="text-slate-400" />
+                                    <MapPin size={14} className="text-slate-500" />
                                     {proveedor.comuna}
                                 </span>
                                 {totalReviews > 0 && (
@@ -1061,7 +1061,7 @@ export default function ServiceDetailView({
                                     )}
                                     {service.tamanos_permitidos?.length > 0 && (
                                         <>
-                                            <span className="text-slate-400 mx-1">·</span>
+                                            <span className="text-slate-500 mx-1">·</span>
                                             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Tallas</span>
                                             {service.tamanos_permitidos.map((talla: string, i: number) => (
                                                 <span key={i} className="inline-flex items-center bg-slate-100 text-slate-700 text-sm font-medium px-3 py-1 rounded-full">
@@ -1552,8 +1552,18 @@ export default function ServiceDetailView({
                                 propio estado de error si el fetch client fallaba.
                                 Ahora siempre montada — ReviewList decide: (a) null
                                 si sin reviews sin error (comportamiento previo),
-                                (b) EstadoError banner si el fetch falla. */}
-                            <div>
+                                (b) EstadoError banner si el fetch falla.
+
+                                Sprint perf-prelaunch (2026-11-20): wrapper con
+                                min-h fijo para evitar CLS. Loading muestra 3
+                                skeleton cards (~384px); null state de ReviewList
+                                deja 0px. El jump de 384→0 al terminar el fetch
+                                si el servicio tiene 0 reviews contribuye al CLS
+                                mobile ficha 0.187 (dato auditoría 2026-11-17).
+                                min-h-[180px] reserva espacio suficiente para
+                                "0 reviews" o para el primer skeleton sin que el
+                                layout salte. */}
+                            <div className="min-h-[180px]">
                                 <ReviewList servicioId={service.id} reviewsOverride={isExample ? reviews : undefined} />
                             </div>
 
@@ -1820,7 +1830,7 @@ export default function ServiceDetailView({
             <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
                     <div className="shrink-0">
-                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider leading-none">Desde</p>
+                        <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider leading-none">Desde</p>
                         <p className="text-lg font-bold text-accent-700 leading-tight">
                             ${service.precio_desde?.toLocaleString('es-CL')}
                             <span className="text-xs font-medium text-slate-500 ml-0.5">/{service.unidad_precio}</span>

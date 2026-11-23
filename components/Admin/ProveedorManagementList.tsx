@@ -14,6 +14,11 @@ export default function ProveedorManagementList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [estadoFilter, setEstadoFilter] = useState<string>('todos');
 
+    // Sprint admin-fecha-reg (2026-11-20) — sort toggle por fecha de registro.
+    // null = sin sort explícito (orden default del RPC); 'desc' = más recientes
+    // primero (default al hacer primer click); 'asc' = más antiguos primero.
+    const [fechaSort, setFechaSort] = useState<null | 'asc' | 'desc'>(null);
+
     // Acciones completas
     const [actionId, setActionId] = useState<string | null>(null);
     const [suspendModalOpen, setSuspendModalOpen] = useState(false);
@@ -130,7 +135,7 @@ export default function ProveedorManagementList() {
     };
 
     // Aplicar filtros localmente
-    const filteredProveedores = proveedores.filter(prov => {
+    const filteredProveedoresBase = proveedores.filter(prov => {
         let matchesSearch = true;
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
@@ -152,6 +157,21 @@ export default function ProveedorManagementList() {
         return matchesSearch && matchesStatus;
     });
 
+    // Sprint admin-fecha-reg (2026-11-20) — orden por created_at cuando fechaSort
+    // está activo. null = orden natural del RPC (admin_listar_proveedores devuelve
+    // ya ordenado por conversión descendente). Proveedores sin created_at caen al
+    // final en ambos modos (defensive — hoy 100% pobladas).
+    const filteredProveedores = fechaSort
+        ? [...filteredProveedoresBase].sort((a, b) => {
+            const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+            const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+            if (!aTime && !bTime) return 0;
+            if (!aTime) return 1;
+            if (!bTime) return -1;
+            return fechaSort === 'desc' ? bTime - aTime : aTime - bTime;
+        })
+        : filteredProveedoresBase;
+
     if (loading) {
         return (
             <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
@@ -172,7 +192,7 @@ export default function ProveedorManagementList() {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-accent-600 outline-none text-sm"
                     />
-                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                 </div>
 
                 <select
@@ -191,11 +211,26 @@ export default function ProveedorManagementList() {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm whitespace-nowrap">
-                        <thead className="bg-slate-50 text-slate-400 uppercase font-medium tracking-widest text-xs">
+                        <thead className="bg-slate-50 text-slate-500 uppercase font-medium tracking-widest text-xs">
                             <tr>
                                 <th className="px-6 py-4">Proveedor</th>
                                 <th className="px-6 py-4">Contacto</th>
                                 <th className="px-6 py-4 text-center">Servicios</th>
+                                {/* Sprint admin-fecha-reg (2026-11-20): columna
+                                    Registrado con sort toggle. Dato viene del
+                                    RPC admin_listar_proveedores (created_at). */}
+                                <th className="px-6 py-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFechaSort(prev => prev === 'desc' ? 'asc' : prev === 'asc' ? null : 'desc')}
+                                        className="flex items-center gap-1 uppercase font-medium tracking-widest text-xs text-slate-400 hover:text-slate-600 transition-colors"
+                                        aria-label={`Ordenar por fecha de registro: ${fechaSort === 'desc' ? 'más recientes primero (click para orden ascendente)' : fechaSort === 'asc' ? 'más antiguos primero (click para quitar sort)' : 'sin orden (click para orden descendente)'}`}
+                                    >
+                                        Registrado
+                                        {fechaSort === 'desc' && <span aria-hidden="true">↓</span>}
+                                        {fechaSort === 'asc' && <span aria-hidden="true">↑</span>}
+                                    </button>
+                                </th>
                                 <th className="px-6 py-4">Estado</th>
                                 <th className="px-6 py-4 text-right">Acciones</th>
                             </tr>
@@ -203,7 +238,7 @@ export default function ProveedorManagementList() {
                         <tbody className="divide-y divide-slate-100">
                             {filteredProveedores.length === 0 ? (
                                 <tr>
-                                    <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                                    <td colSpan={6} className="px-6 py-8 text-center text-slate-500">
                                         No se encontraron proveedores que coincidan con los filtros.
                                     </td>
                                 </tr>
@@ -217,7 +252,7 @@ export default function ProveedorManagementList() {
                                                         // eslint-disable-next-line @next/next/no-img-element
                                                         <img src={prov.foto_perfil} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full flex items-center justify-center font-semibold text-slate-400">{prov.nombre.charAt(0)}</div>
+                                                        <div className="w-full h-full flex items-center justify-center font-semibold text-slate-500">{prov.nombre.charAt(0)}</div>
                                                     )}
                                                 </div>
                                                 <div>
@@ -246,13 +281,13 @@ export default function ProveedorManagementList() {
                                                         onClick={() => copyValue(prov.email_auth, 'Correo')}
                                                         aria-label={`Copiar correo de ${prov.nombre}`}
                                                         title="Copiar correo"
-                                                        className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                        className="p-1 rounded-md text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                                                     >
                                                         <Copy size={14} />
                                                     </button>
                                                 </div>
                                             ) : (
-                                                <p className="text-slate-400 italic text-xs">Sin cuenta en auth</p>
+                                                <p className="text-slate-500 italic text-xs">Sin cuenta en auth</p>
                                             )}
                                             {prov.email_auth && (
                                                 prov.email_confirmado ? (
@@ -271,14 +306,14 @@ export default function ProveedorManagementList() {
                                                 cero placeholder vacío. Botón Copiar por cada uno. */}
                                             {prov.telefono && (
                                                 <div className="flex items-center gap-2 mt-1 text-xs text-slate-600">
-                                                    <Phone size={12} className="text-slate-400 shrink-0" />
+                                                    <Phone size={12} className="text-slate-500 shrink-0" />
                                                     <span>{prov.telefono}</span>
                                                     <button
                                                         type="button"
                                                         onClick={() => copyValue(prov.telefono, 'Teléfono')}
                                                         aria-label={`Copiar teléfono de ${prov.nombre}`}
                                                         title="Copiar teléfono"
-                                                        className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                        className="p-0.5 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                                                     >
                                                         <Copy size={12} />
                                                     </button>
@@ -286,14 +321,14 @@ export default function ProveedorManagementList() {
                                             )}
                                             {prov.whatsapp && (
                                                 <div className="flex items-center gap-2 mt-1 text-xs text-slate-600">
-                                                    <MessageCircle size={12} className="text-slate-400 shrink-0" />
+                                                    <MessageCircle size={12} className="text-slate-500 shrink-0" />
                                                     <span>{prov.whatsapp}</span>
                                                     <button
                                                         type="button"
                                                         onClick={() => copyValue(prov.whatsapp, 'WhatsApp')}
                                                         aria-label={`Copiar whatsapp de ${prov.nombre}`}
                                                         title="Copiar whatsapp"
-                                                        className="p-0.5 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                                                        className="p-0.5 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
                                                     >
                                                         <Copy size={12} />
                                                     </button>
@@ -310,7 +345,7 @@ export default function ProveedorManagementList() {
                                                     <UserCheck size={10} /> Perfil completo
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-slate-400 uppercase tracking-widest">
+                                                <span className="inline-flex items-center gap-1 mt-1 text-[10px] font-medium text-slate-500 uppercase tracking-widest">
                                                     Perfil incompleto
                                                 </span>
                                             )}
@@ -322,8 +357,20 @@ export default function ProveedorManagementList() {
                                         <td className="px-6 py-4 text-center">
                                             <div className="inline-flex flex-col items-center justify-center">
                                                 <span className="font-bold text-slate-700 text-lg leading-none">{prov.n_servicios_activos ?? 0}</span>
-                                                <span className="text-[10px] uppercase font-medium text-slate-400 tracking-widest">Activos {prov.n_servicios && prov.n_servicios !== prov.n_servicios_activos ? `/ ${prov.n_servicios} total` : ''}</span>
+                                                <span className="text-[10px] uppercase font-medium text-slate-500 tracking-widest">Activos {prov.n_servicios && prov.n_servicios !== prov.n_servicios_activos ? `/ ${prov.n_servicios} total` : ''}</span>
                                             </div>
+                                        </td>
+                                        {/* Sprint admin-fecha-reg (2026-11-20) — fecha de registro
+                                            del proveedor. Formato DD-MM-YYYY (chileno). Dato
+                                            viene del RPC como timestamptz. */}
+                                        <td className="px-6 py-4">
+                                            {prov.created_at ? (
+                                                <span className="text-slate-600 text-sm">
+                                                    {format(new Date(prov.created_at), 'dd-MM-yyyy', { locale: es })}
+                                                </span>
+                                            ) : (
+                                                <span className="text-slate-400 italic text-xs">—</span>
+                                            )}
                                         </td>
                                         {/* T3 — misma triada de T2 (proveedores.tsx) con tokens semanticos:
                                             success = aprobado, warning = suspendido (pausa reversible, no danger),
@@ -348,7 +395,7 @@ export default function ProveedorManagementList() {
                                                         onClick={() => { setProviderToSuspend(prov); setSuspendModalOpen(true); }}
                                                         disabled={actionId === prov.id}
                                                         title="Suspender cuenta"
-                                                        className="p-2 text-slate-400 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-colors"
+                                                        className="p-2 text-slate-500 hover:text-warning-600 hover:bg-warning-50 rounded-lg transition-colors"
                                                     >
                                                         {actionId === prov.id ? <Loader2 size={18} className="animate-spin" /> : <ShieldAlert size={18} />}
                                                     </button>
@@ -374,7 +421,7 @@ export default function ProveedorManagementList() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     title="Ver perfil público"
-                                                    className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                                                    className="p-2 text-slate-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                                                 >
                                                     <ExternalLink size={18} />
                                                 </a>

@@ -248,12 +248,12 @@ export default function ConversionMetrics() {
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">Vistas de servicios (30d)</p>
                     <p className="text-3xl font-bold text-slate-900">{stats.vistas30d}</p>
-                    <p className="text-xs text-slate-400 mt-1">~{vistaRatio} vistas por conversación iniciada</p>
+                    <p className="text-xs text-slate-500 mt-1">~{vistaRatio} vistas por conversación iniciada</p>
                 </div>
                 <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
                     <p className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-2">Top servicios por click en chat</p>
                     {stats.topClicksChat.length === 0 ? (
-                        <p className="text-sm text-slate-400">Sin datos</p>
+                        <p className="text-sm text-slate-500">Sin datos</p>
                     ) : (
                         <div className="space-y-1">
                             {stats.topClicksChat.map((s, i) => (
@@ -277,7 +277,7 @@ export default function ConversionMetrics() {
                     <table className="w-full text-sm">
                         <tbody>
                             {stats.topCategorias.length === 0 && (
-                                <tr><td className="px-5 py-3 text-slate-400">Sin datos</td></tr>
+                                <tr><td className="px-5 py-3 text-slate-500">Sin datos</td></tr>
                             )}
                             {stats.topCategorias.map((row, i) => (
                                 <tr key={i} className="border-b border-slate-50 last:border-0">
@@ -298,7 +298,7 @@ export default function ConversionMetrics() {
                     <table className="w-full text-sm">
                         <tbody>
                             {stats.topComunas.length === 0 && (
-                                <tr><td className="px-5 py-3 text-slate-400">Sin datos</td></tr>
+                                <tr><td className="px-5 py-3 text-slate-500">Sin datos</td></tr>
                             )}
                             {stats.topComunas.map((row, i) => (
                                 <tr key={i} className="border-b border-slate-50 last:border-0">

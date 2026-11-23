@@ -144,7 +144,7 @@ export default function DatePickerConHora({ id, value, onChange, min, required }
                     aria-required={required || undefined}
                 >
                     <CalendarIcon size={16} className="text-slate-500 shrink-0" />
-                    <span className={parsed ? 'text-slate-900' : 'text-slate-400'}>{displayFecha}</span>
+                    <span className={parsed ? 'text-slate-900' : 'text-slate-500'}>{displayFecha}</span>
                 </button>
                 <div className="relative">
                     <Clock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />

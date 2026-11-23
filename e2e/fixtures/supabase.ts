@@ -297,6 +297,30 @@ export async function getSupabaseAsProveedor(): Promise<SupabaseClient> {
 }
 
 /**
+ * Sprint fix-fix-cuidado (2026-11-23) — invalida el cache del rol para forzar
+ * `buildEntry` fresh en el próximo call. Útil cuando una query RLS devuelve
+ * silent-null (data=null, error=null) — indicador de que la sesión
+ * server-side fue revocada aunque el JWT local no haya expirado. Recupera
+ * una sesión viva con el fallback de password dentro de buildEntry.
+ *
+ * Patrón que lo gatilla:
+ * - `supabase.from(X).insert(...).select().single()` retorna `{data: null,
+ *   error: null}` → RLS POLICY WITH CHECK pasó pero RETURNING 0 filas, o
+ *   session revocada mid-request.
+ * - fixtures de INSERT efímeros (servicio-efimero, servicio-cuidado-listo)
+ *   envuelven esa condición en `throw new Error("INSERT falló: sin data")`.
+ *
+ * Correcto uso: desde fixtures que detectan silent-null, llamar antes del
+ * retry. Evita bucle infinito: UN solo retry por caller.
+ */
+export function invalidateRoleCache(role: 'proveedor' | 'tutor'): void {
+    cachedClients.delete(role);
+    cachedProfileIds.delete(role);
+    cachedAuthUserIds.delete(role);
+    // inflight queda como está — si hay un init paralelo, lo deja completar.
+}
+
+/**
  * Cliente Supabase autenticado como TUTOR (F2-3-E).
  */
 export async function getSupabaseAsTutor(): Promise<SupabaseClient> {
@@ -304,32 +328,92 @@ export async function getSupabaseAsTutor(): Promise<SupabaseClient> {
 }
 
 /**
+ * Sprint fix-sel-stale (2026-11-23) — helper interno que resuelve el user
+ * profile id (fila de `proveedores` o `usuarios_buscadores`) con retry
+ * defensivo ante silent-null. Reemplaza la lógica duplicada entre
+ * `getProveedorId` y `getTutorId`, y agrega el patrón de retry con cliente
+ * fresh cuando `.single()` devuelve `{data: null, error: null}` — la
+ * manifestación 3b del patrón AUTH-TOKEN-PERSIST (SELECT silent-null tras
+ * sesión revocada mid-request). Manifestación 3a (INSERT silent-null) ya
+ * está cubierta en PR #170.
+ *
+ * Throw si:
+ * - auth.getUser falla (userErr o no user.id) — session inválida.
+ * - .single() devuelve error explícito (constraint, policy, schema) — NO retry.
+ * - .single() devuelve silent-null → retry UNA vez con cliente fresh;
+ *   si el retry también cae silent-null, throw descartando session issue.
+ */
+async function resolveProfileId(
+    role: 'proveedor' | 'tutor',
+    table: 'proveedores' | 'usuarios_buscadores',
+): Promise<string> {
+    const getSupabase = role === 'proveedor' ? getSupabaseAsProveedor : getSupabaseAsTutor;
+    const authFile = role === 'proveedor' ? AUTH_FILE_PROVEEDOR : AUTH_FILE_TUTOR;
+    const envVarHint = role === 'proveedor' ? 'E2E_STAGING_EMAIL' : 'E2E_STAGING_TUTOR_EMAIL';
+
+    const resolveOnce = async () => {
+        const supabase = await getSupabase();
+        const accessToken = await getRoleAccessToken(role, authFile);
+        const { data: userRes, error: userErr } = await supabase.auth.getUser(accessToken);
+        if (userErr || !userRes?.user?.id) {
+            throw new Error(`[e2e/supabase] No se pudo resolver el usuario autenticado (${role}): ${userErr?.message ?? 'no user'}`);
+        }
+        cachedAuthUserIds.set(role, userRes.user.id);
+        const { data, error } = await supabase
+            .from(table)
+            .select('id')
+            .eq('auth_user_id', userRes.user.id)
+            .single();
+        return { data, error, authUserId: userRes.user.id };
+    };
+
+    const firstAttempt = await resolveOnce();
+    if (firstAttempt.error) {
+        throw new Error(
+            `[e2e/supabase] El usuario autenticado no tiene fila en '${table}' (error: ${firstAttempt.error.message}). ` +
+            `Verifica que ${envVarHint} sea un usuario con rol ${role} en staging.`,
+        );
+    }
+    if (firstAttempt.data) {
+        cachedProfileIds.set(role, (firstAttempt.data as any).id as string);
+        return (firstAttempt.data as any).id as string;
+    }
+
+    // Silent-null → retry fresh (ver servicio-efimero.ts para contexto AUTH-TOKEN-PERSIST).
+    console.warn(
+        `[e2e/supabase] resolveProfileId(${role},${table}) devolvió silent-null ` +
+        `(patrón AUTH-TOKEN-PERSIST manifestación 3b). Reintentando con cliente fresh...`,
+    );
+    invalidateRoleCache(role);
+    const retry = await resolveOnce();
+    if (retry.error) {
+        throw new Error(
+            `[e2e/supabase] El usuario autenticado no tiene fila en '${table}' tras retry (error: ${retry.error.message}). ` +
+            `Verifica que ${envVarHint} sea un usuario con rol ${role} en staging.`,
+        );
+    }
+    if (!retry.data) {
+        throw new Error(
+            `[e2e/supabase] silent-null también en retry fresh resolveProfileId(${role},${table}) — ` +
+            `no es session issue. Verificar que ${envVarHint} tiene fila en '${table}' con auth_user_id=${retry.authUserId}.`,
+        );
+    }
+    console.warn(`[e2e/supabase] resolveProfileId(${role},${table}) OK en retry fresh.`);
+    cachedProfileIds.set(role, (retry.data as any).id as string);
+    return (retry.data as any).id as string;
+}
+
+/**
  * Devuelve el ID del proveedor (fila en `proveedores`) asociado al usuario
  * autenticado como proveedor. Cacheado.
+ *
+ * Sprint fix-sel-stale (2026-11-23) — delegado a `resolveProfileId` para
+ * compartir el retry defensivo ante silent-null con `getTutorId`.
  */
 export async function getProveedorId(): Promise<string> {
     const cached = cachedProfileIds.get('proveedor');
     if (cached) return cached;
-    const supabase = await getSupabaseAsProveedor();
-    const accessToken = await getRoleAccessToken('proveedor', AUTH_FILE_PROVEEDOR);
-    const { data: userRes, error: userErr } = await supabase.auth.getUser(accessToken);
-    if (userErr || !userRes?.user?.id) {
-        throw new Error(`[e2e/supabase] No se pudo resolver el usuario autenticado (proveedor): ${userErr?.message ?? 'no user'}`);
-    }
-    cachedAuthUserIds.set('proveedor', userRes.user.id);
-    const { data: prov, error: provErr } = await supabase
-        .from('proveedores')
-        .select('id')
-        .eq('auth_user_id', userRes.user.id)
-        .single();
-    if (provErr || !prov) {
-        throw new Error(
-            `[e2e/supabase] El usuario autenticado no tiene fila en 'proveedores'. ` +
-            `Verifica que E2E_STAGING_EMAIL sea un usuario con rol proveedor en staging.`
-        );
-    }
-    cachedProfileIds.set('proveedor', prov.id as string);
-    return prov.id as string;
+    return resolveProfileId('proveedor', 'proveedores');
 }
 
 /**
@@ -340,24 +424,5 @@ export async function getProveedorId(): Promise<string> {
 export async function getTutorId(): Promise<string> {
     const cached = cachedProfileIds.get('tutor');
     if (cached) return cached;
-    const supabase = await getSupabaseAsTutor();
-    const accessToken = await getRoleAccessToken('tutor', AUTH_FILE_TUTOR);
-    const { data: userRes, error: userErr } = await supabase.auth.getUser(accessToken);
-    if (userErr || !userRes?.user?.id) {
-        throw new Error(`[e2e/supabase] No se pudo resolver el usuario autenticado (tutor): ${userErr?.message ?? 'no user'}`);
-    }
-    cachedAuthUserIds.set('tutor', userRes.user.id);
-    const { data: tut, error: tutErr } = await supabase
-        .from('usuarios_buscadores')
-        .select('id')
-        .eq('auth_user_id', userRes.user.id)
-        .single();
-    if (tutErr || !tut) {
-        throw new Error(
-            `[e2e/supabase] El usuario autenticado no tiene fila en 'usuarios_buscadores'. ` +
-            `Verifica que E2E_STAGING_TUTOR_EMAIL sea un usuario con rol tutor en staging (Camila).`
-        );
-    }
-    cachedProfileIds.set('tutor', tut.id as string);
-    return tut.id as string;
+    return resolveProfileId('tutor', 'usuarios_buscadores');
 }

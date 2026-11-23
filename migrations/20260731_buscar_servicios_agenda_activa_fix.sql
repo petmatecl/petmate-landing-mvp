@@ -190,6 +190,31 @@ BEGIN
 END;
 $function$;
 
+-- CLAUDE.md § P6.2 (agregado post-mortem 2026-11-19): el DROP FUNCTION de
+-- arriba eliminó los GRANT EXECUTE a anon/authenticated que la versión
+-- anterior tenía (migración 200_add_texto_to_buscar_servicios.sql L118).
+-- Sin este GRANT, el RPC devuelve 42501 permission denied a cualquier
+-- caller no-postgres (incluidos anon y authenticated). Incidente real:
+-- al aplicar esta migration a prod la tarde del 2026-11-19, /explorar
+-- quedó roto ~4h para usuarios deslogueados. Fix prod: GRANT ejecutado
+-- manualmente por PO. Esta línea del archivo queda para que al re-correr
+-- la migration contra staging u otro env, el GRANT se restaure
+-- automáticamente.
+GRANT EXECUTE ON FUNCTION public.buscar_servicios(
+    p_categoria_slug text,
+    p_categorias text[],
+    p_comuna text,
+    p_limit integer,
+    p_offset integer,
+    p_mascota text,
+    p_precio_min numeric,
+    p_precio_max numeric,
+    p_orden text,
+    p_texto text,
+    p_inclusiones text[],
+    p_modalidad text[]
+) TO anon, authenticated;
+
 COMMIT;
 
 -- ============================================================================

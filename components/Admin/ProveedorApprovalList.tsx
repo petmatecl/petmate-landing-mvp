@@ -302,7 +302,7 @@ export default function ProveedorApprovalList() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={prov.foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
+                            <div className="w-full h-full flex items-center justify-center text-slate-500 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
                         )}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -329,7 +329,7 @@ export default function ProveedorApprovalList() {
                         </button>
                         {prov.servicios_activos > 0 && (
                             <a href={`/proveedor/${prov.id}`} target="_blank" rel="noopener noreferrer"
-                                className="text-xs text-slate-400 hover:text-accent-600 inline-flex items-center gap-1 mt-0.5"
+                                className="text-xs text-slate-500 hover:text-accent-600 inline-flex items-center gap-1 mt-0.5"
                                 title="Abrir perfil público en nueva pestaña">
                                 Ver perfil público <ExternalLink size={11} />
                             </a>
@@ -337,7 +337,7 @@ export default function ProveedorApprovalList() {
                         {prov.comuna && (
                             <p className="text-sm text-slate-500 mt-1 flex items-center gap-1.5"><MapPin size={14} /> {prov.comuna}</p>
                         )}
-                        <p className="text-xs font-semibold text-slate-400 mt-2 bg-slate-50 inline-block px-2 py-1 rounded">
+                        <p className="text-xs font-semibold text-slate-500 mt-2 bg-slate-50 inline-block px-2 py-1 rounded">
                             {format(new Date(prov.created_at), "d 'de' MMMM, yyyy", { locale: es })}
                         </p>
                         <div className="mt-2 flex flex-wrap gap-1.5">
@@ -371,13 +371,13 @@ export default function ProveedorApprovalList() {
                 <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4 border-y xl:border-y-0 xl:border-x border-slate-100 py-4 xl:py-0 xl:px-6">
                     <div className="space-y-3">
                         <div className="text-sm">
-                            <span className="text-slate-400 text-xs font-medium uppercase tracking-widest mb-1 flex items-center gap-1.5"><Mail size={12} /> Correo</span>
+                            <span className="text-slate-500 text-xs font-medium uppercase tracking-widest mb-1 flex items-center gap-1.5"><Mail size={12} /> Correo</span>
                             {prov.email_auth ? (
                                 <a href={`mailto:${prov.email_auth}`} className="font-medium text-accent-700 hover:underline break-all">
                                     {prov.email_auth}
                                 </a>
                             ) : (
-                                <span className="text-slate-400 italic text-xs">Sin correo en auth.users</span>
+                                <span className="text-slate-500 italic text-xs">Sin correo en auth.users</span>
                             )}
                             {prov.email_publico && prov.email_publico !== prov.email_auth && (
                                 <div className="text-xs text-slate-500 mt-1 break-all">
@@ -387,7 +387,7 @@ export default function ProveedorApprovalList() {
                         </div>
                         {tieneTelefono && (
                             <div className="text-sm">
-                                <span className="text-slate-400 text-xs font-medium uppercase tracking-widest mb-1 flex items-center gap-1.5"><Phone size={12} /> Teléfono</span>
+                                <span className="text-slate-500 text-xs font-medium uppercase tracking-widest mb-1 flex items-center gap-1.5"><Phone size={12} /> Teléfono</span>
                                 <span className="font-medium text-slate-700">{prov.telefono || prov.whatsapp}</span>
                             </div>
                         )}
@@ -395,21 +395,21 @@ export default function ProveedorApprovalList() {
                     <div className="space-y-3">
                         {tieneRut && (
                             <div className="text-sm">
-                                <span className="text-slate-400 text-xs font-medium uppercase tracking-widest block mb-1">RUT</span>
+                                <span className="text-slate-500 text-xs font-medium uppercase tracking-widest block mb-1">RUT</span>
                                 <span className="font-mono font-medium text-slate-700 bg-slate-100 px-2 py-1 rounded">{prov.rut}</span>
                             </div>
                         )}
                         {tieneEmpresaData && (
                             <div className="text-xs bg-info-50/50 border border-info-100 rounded-lg p-2 space-y-1">
-                                {prov.razon_social && <div><span className="text-slate-400">Razón social:</span> <span className="text-slate-700 font-medium">{prov.razon_social}</span></div>}
-                                {prov.rut_empresa && <div><span className="text-slate-400">RUT empresa:</span> <span className="text-slate-700 font-mono">{prov.rut_empresa}</span></div>}
-                                {prov.nombre_fantasia && <div><span className="text-slate-400">Nombre fantasía:</span> <span className="text-slate-700 font-medium">{prov.nombre_fantasia}</span></div>}
-                                {prov.giro && <div><span className="text-slate-400">Giro:</span> <span className="text-slate-700">{prov.giro}</span></div>}
+                                {prov.razon_social && <div><span className="text-slate-500">Razón social:</span> <span className="text-slate-700 font-medium">{prov.razon_social}</span></div>}
+                                {prov.rut_empresa && <div><span className="text-slate-500">RUT empresa:</span> <span className="text-slate-700 font-mono">{prov.rut_empresa}</span></div>}
+                                {prov.nombre_fantasia && <div><span className="text-slate-500">Nombre fantasía:</span> <span className="text-slate-700 font-medium">{prov.nombre_fantasia}</span></div>}
+                                {prov.giro && <div><span className="text-slate-500">Giro:</span> <span className="text-slate-700">{prov.giro}</span></div>}
                             </div>
                         )}
                         {prov.bio && (
                             <div className="text-xs text-slate-600 leading-relaxed line-clamp-2" title={prov.bio}>
-                                <FileText size={11} className="inline text-slate-400 mr-1" />
+                                <FileText size={11} className="inline text-slate-500 mr-1" />
                                 {prov.bio}
                             </div>
                         )}
@@ -446,7 +446,7 @@ export default function ProveedorApprovalList() {
                                 <Mail size={16} /> Enviar recordatorio
                             </a>
                         ) : (
-                            <span className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-50 text-slate-400 font-semibold py-2.5 px-4 rounded-lg text-sm">
+                            <span className="flex-1 xl:flex-none flex items-center justify-center gap-2 bg-slate-50 text-slate-500 font-semibold py-2.5 px-4 rounded-lg text-sm">
                                 Sin correo — no hay canal
                             </span>
                         )
@@ -559,7 +559,7 @@ export default function ProveedorApprovalList() {
                         </div>
                     ) : (
                         <div className="grid gap-4">
-                            <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest">Verificaciones de Identidad ({verificaciones.length})</h2>
+                            <h2 className="text-xs font-medium text-slate-500 uppercase tracking-widest">Verificaciones de Identidad ({verificaciones.length})</h2>
                             {verificaciones.map(prov => (
                                 <div key={prov.id} className="bg-white rounded-2xl border border-slate-200 p-6 flex flex-col xl:flex-row gap-6 shadow-sm hover:shadow-md transition-shadow">
                                     {/* Avatar + Info */}
@@ -569,7 +569,7 @@ export default function ProveedorApprovalList() {
                                                 // eslint-disable-next-line @next/next/no-img-element
                                                 <img src={prov.foto_perfil} alt="Avatar" className="w-full h-full object-cover" />
                                             ) : (
-                                                <div className="w-full h-full flex items-center justify-center text-slate-400 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
+                                                <div className="w-full h-full flex items-center justify-center text-slate-500 font-semibold text-xl uppercase">{prov.nombre.charAt(0)}</div>
                                             )}
                                         </div>
                                         <div>
@@ -589,7 +589,7 @@ export default function ProveedorApprovalList() {
                                     {/* RUT + Carnet */}
                                     <div className="flex-1 border-y xl:border-y-0 xl:border-x border-slate-100 py-4 xl:py-0 xl:px-6 space-y-3">
                                         <div>
-                                            <span className="text-xs font-medium text-slate-400 uppercase tracking-widest block mb-1">RUT declarado</span>
+                                            <span className="text-xs font-medium text-slate-500 uppercase tracking-widest block mb-1">RUT declarado</span>
                                             <span className="font-mono font-semibold text-slate-900 text-lg">{prov.rut || '—'}</span>
                                         </div>
                                         {prov.foto_carnet ? (
@@ -601,7 +601,7 @@ export default function ProveedorApprovalList() {
                                                             className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
                                                             onClick={() => setSelectedImage(prov.foto_carnet_signed_url)} />
                                                     ) : (
-                                                        <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Sin URL</div>
+                                                        <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-500">Sin URL</div>
                                                     )}
                                                     <span className="text-xs text-slate-500 font-medium">Frontal</span>
                                                 </div>
@@ -613,14 +613,14 @@ export default function ProveedorApprovalList() {
                                                                 className="h-16 w-24 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-90 transition-opacity shadow-sm"
                                                                 onClick={() => setSelectedImage(prov.foto_carnet_dorso_signed_url)} />
                                                         ) : (
-                                                            <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-400">Sin URL</div>
+                                                            <div className="h-16 w-24 rounded-lg border border-slate-200 bg-slate-50 flex items-center justify-center text-xs text-slate-500">Sin URL</div>
                                                         )}
                                                         <span className="text-xs text-slate-500 font-medium">Dorso</span>
                                                     </div>
                                                 )}
                                             </div>
                                         ) : (
-                                            <div className="flex items-center gap-2 text-sm text-slate-400">
+                                            <div className="flex items-center gap-2 text-sm text-slate-500">
                                                 <Shield size={16} />
                                                 <span>Sin foto de carnet adjunta</span>
                                             </div>

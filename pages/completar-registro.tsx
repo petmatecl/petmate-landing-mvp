@@ -255,7 +255,7 @@ export default function CompletarRegistroPage() {
                         <div className="grid grid-cols-2 gap-3">
                             <div>
                                 <label htmlFor="apellido_p" className="text-sm font-medium text-slate-700 mb-1 block">
-                                    Apellido paterno {rol === 'usuario' && <span className="text-slate-400 text-xs font-normal">(opcional)</span>}
+                                    Apellido paterno {rol === 'usuario' && <span className="text-slate-500 text-xs font-normal">(opcional)</span>}
                                 </label>
                                 <input
                                     id="apellido_p"
@@ -269,7 +269,7 @@ export default function CompletarRegistroPage() {
                             </div>
                             <div>
                                 <label htmlFor="apellido_m" className="text-sm font-medium text-slate-700 mb-1 block">
-                                    Apellido materno <span className="text-slate-400 text-xs font-normal">(opcional)</span>
+                                    Apellido materno <span className="text-slate-500 text-xs font-normal">(opcional)</span>
                                 </label>
                                 <input
                                     id="apellido_m"
@@ -286,7 +286,7 @@ export default function CompletarRegistroPage() {
                         {rol === 'proveedor' && (
                             <div className="relative">
                                 <label htmlFor="comuna" className="text-sm font-medium text-slate-700 mb-1 block">
-                                    Comuna donde ofreces servicio <span className="text-slate-400 text-xs font-normal">(opcional, puedes agregar más después)</span>
+                                    Comuna donde ofreces servicio <span className="text-slate-500 text-xs font-normal">(opcional, puedes agregar más después)</span>
                                 </label>
                                 <input
                                     id="comuna"

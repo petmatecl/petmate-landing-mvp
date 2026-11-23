@@ -4,7 +4,14 @@ import Image from "next/image";
 import Header from "../../components/Header";
 import Footer from "../../components/Footer";
 import { BLOG_POSTS } from "../../lib/blogData";
-import { Calendar, Clock, ArrowRight } from "lucide-react";
+import { Calendar, Clock, ArrowRight,
+    Sun, ThermometerSun, Cat, ClipboardList, Heart, Home as HomeIcon, Hotel, Footprints, Store, Dog, FileText, Book } from "lucide-react";
+
+// Sprint blog-img-fix (2026-11-19) — placeholder gris con ícono Lucide
+// cuando coverImage es vacío. Mapeo compartido con blog/[slug].tsx.
+const COVER_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean | "true" | "false" }>> = {
+    Sun, ThermometerSun, Cat, ClipboardList, Heart, Home: HomeIcon, Hotel, Footprints, Store, Dog, FileText, Book,
+};
 
 export default function BlogIndex() {
     return (
@@ -38,14 +45,23 @@ export default function BlogIndex() {
                         {BLOG_POSTS.map((post) => (
                             <Link href={`/blog/${post.slug}`} key={post.id} className="group">
                                 <article className="flex flex-col h-full bg-white rounded-2xl overflow-hidden border-2 border-slate-300 shadow-sm hover:shadow-md hover:shadow-accent-900/5 transition-all duration-300">
-                                    {/* Image */}
+                                    {/* Image — sprint blog-img-fix: placeholder gris si coverImage vacío */}
                                     <div className="relative h-64 overflow-hidden">
-                                        <Image
-                                            src={post.coverImage}
-                                            alt={post.title}
-                                            fill
-                                            className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                        />
+                                        {post.coverImage ? (
+                                            <Image
+                                                src={post.coverImage}
+                                                alt={post.title}
+                                                fill
+                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
+                                            />
+                                        ) : (() => {
+                                            const Icon = post.coverIcon && COVER_ICONS[post.coverIcon] ? COVER_ICONS[post.coverIcon] : FileText;
+                                            return (
+                                                <div className="w-full h-full bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500">
+                                                    <Icon size={80} aria-hidden="true" />
+                                                </div>
+                                            );
+                                        })()}
                                         <div className="absolute top-4 left-4 flex gap-2">
                                             {post.tags.map(tag => (
                                                 <span key={tag} className="bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-medium text-slate-700 shadow-sm">
@@ -57,7 +73,7 @@ export default function BlogIndex() {
 
                                     {/* Content */}
                                     <div className="p-6 flex flex-col flex-grow">
-                                        <div className="flex items-center gap-4 text-xs text-slate-400 mb-3 font-medium">
+                                        <div className="flex items-center gap-4 text-xs text-slate-500 mb-3 font-medium">
                                             <div className="flex items-center gap-1">
                                                 <Calendar size={14} />
                                                 <span>{post.date}</span>

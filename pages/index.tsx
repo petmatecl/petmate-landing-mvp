@@ -70,7 +70,7 @@ function PrelaunchDemandCapture() {
               placeholder="Tu correo electrónico"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-400 transition-colors"
+              className="flex-1 h-12 px-4 border border-slate-200 rounded-xl bg-white text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-accent-600 focus:border-accent-600 placeholder:text-slate-500 transition-colors"
             />
             <select
               value={comuna}
@@ -90,7 +90,7 @@ function PrelaunchDemandCapture() {
             </button>
           </form>
         )}
-        <p className="text-xs text-slate-400 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores disponibles.</p>
+        <p className="text-xs text-slate-500 mt-4">Sin spam. Solo te contactamos cuando tengamos proveedores disponibles.</p>
       </div>
     </section>
   );
@@ -146,7 +146,7 @@ function ServiceCardItem({ s }: { s: any }) {
             <span className="text-slate-500 font-normal">({s.total_evaluaciones})</span>
           </div>
         ) : (
-          <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-[10px] font-medium text-slate-400 shadow-sm">
+          <div className="absolute top-2.5 right-2.5 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-full text-[10px] font-medium text-slate-500 shadow-sm">
             Sin reseñas aún
           </div>
         )}
@@ -189,12 +189,12 @@ function ServiceCardItem({ s }: { s: any }) {
           </div>
         )}
         {s.proveedor_comuna && (
-          <p className="text-xs text-slate-400 truncate">{s.proveedor_comuna}</p>
+          <p className="text-xs text-slate-500 truncate">{s.proveedor_comuna}</p>
         )}
         {s.precio_desde > 0 && (
           <p className="text-sm font-semibold text-slate-900 mt-auto pt-3 border-t border-slate-100">
             ${s.precio_desde.toLocaleString('es-CL')}
-            <span className="text-xs font-normal text-slate-400"> /{s.unidad_precio}</span>
+            <span className="text-xs font-normal text-slate-500"> /{s.unidad_precio}</span>
           </p>
         )}
       </div>
@@ -348,11 +348,11 @@ function FranjaDual({
           <div className="flex items-center justify-between mb-5 flex-wrap gap-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <div className="flex items-center gap-1">
-                <IconA className="w-5 h-5 text-slate-400" />
+                <IconA className="w-5 h-5 text-slate-500" />
                 <IconB className="w-4 h-4 text-accent-600" />
               </div>
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{titulo}</h2>
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-xs text-slate-500 font-medium">
                 {total} disponible{total !== 1 ? 's' : ''}
               </span>
               {/* Sprint home-carrusel punto 1 (PO 2026-11-12): botón flecha
@@ -431,9 +431,9 @@ function FranjaCategoria({
         <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 sm:p-6">
           <div className="flex items-center justify-between mb-5 flex-wrap gap-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <categoria.Icon className="w-5 h-5 text-slate-400" />
+              <categoria.Icon className="w-5 h-5 text-slate-500" />
               <h2 id={titleId} className="text-base font-semibold text-slate-900">{categoria.nombre}</h2>
-              <span className="text-xs text-slate-400 font-medium">
+              <span className="text-xs text-slate-500 font-medium">
                 {servicios.length} disponible{servicios.length !== 1 ? 's' : ''}
               </span>
               {/* Sprint home-carrusel punto 1 (PO 2026-11-12): flecha redonda
@@ -520,6 +520,33 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                 "@type": "SearchAction",
                 "target": "https://pawnecta.com/explorar?q={search_term_string}",
                 "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+        {/* Sprint seo-schema-org (2026-11-19) — Organization para knowledge
+            panel + brand entity recognition en Google. Sin sameAs hasta que
+            haya redes sociales activas (linked data con URL rota penaliza). */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Pawnecta",
+              "url": "https://www.pawnecta.com",
+              "logo": "https://www.pawnecta.com/pawnecta_logo_final-trans.png",
+              "description": "Marketplace de servicios para mascotas en Chile. Conecta tutores con paseadores, cuidadores, veterinarios, peluqueros y más.",
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "hola@pawnecta.com",
+                "contactType": "customer support",
+                "areaServed": "CL",
+                "availableLanguage": ["es"]
+              },
+              "areaServed": {
+                "@type": "Country",
+                "name": "Chile"
               }
             })
           }}
@@ -696,7 +723,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       ═══════════════════════════════════════════ */}
       <section className="bg-white border-y border-slate-100 py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-xs font-medium text-slate-400 uppercase tracking-widest mb-5">Explorar por categoría</h2>
+          <h2 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-5">Explorar por categoría</h2>
           <div className="flex flex-wrap gap-3">
             {categoriasEstaticas.map((cat) => {
               const isProxima = cat.estado === 'proxima';
@@ -709,7 +736,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                     inline-flex items-center gap-2 px-4 py-2.5 rounded-full border text-sm font-semibold
                     transition-all duration-200
                     ${isProxima
-                      ? 'bg-slate-50 border-slate-200 text-slate-400 cursor-not-allowed'
+                      ? 'bg-slate-50 border-slate-200 text-slate-500 cursor-not-allowed'
                       : 'bg-white border-slate-200 text-slate-700 hover:border-accent-600 hover:text-accent-600 hover:bg-accent-50 hover:shadow-sm cursor-pointer'
                     }
                   `}
@@ -722,7 +749,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
                     </span>
                   )}
                   {isProxima && (
-                    <span className="text-[10px] font-medium uppercase tracking-widest text-slate-400">Pronto</span>
+                    <span className="text-[10px] font-medium uppercase tracking-widest text-slate-500">Pronto</span>
                   )}
                 </button>
               );
@@ -752,7 +779,7 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
       <section aria-label="Cómo funciona para proveedores" className="py-24 px-4 sm:px-6 lg:px-8 bg-slate-900 relative">
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="text-center mb-16">
-            <p className="text-accent-500 font-medium uppercase tracking-widest text-xs mb-3">Para proveedores</p>
+            <p className="text-accent-600 font-medium uppercase tracking-widest text-xs mb-3">Para proveedores</p>
             <h2 className="text-3xl md:text-4xl font-semibold text-white tracking-tight">Ofrece tus servicios en Pawnecta</h2>
             <p className="text-slate-300 mt-4 text-lg">Visibilidad en búsquedas en tu comuna</p>
           </div>
