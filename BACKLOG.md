@@ -1699,7 +1699,7 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 ## Infraestructura y CI
 
-### CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA
+### ~~CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA~~ — **CERRADO 2026-11-23** (`docs/planes/ci-flakes-acumulados.md` con 5 clases + estado + deuda post-análisis)
 
 **Observación del PO 2026-11-20 PM**: en los últimos 4 PRs (#120, #122, #123, #125), el CI falló por tests pre-existentes de specs que el PR NO estaba tocando. 4 veces seguidas no es coincidencia.
 
