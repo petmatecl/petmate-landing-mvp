@@ -70,33 +70,36 @@ test.describe.serial('S2 — Días pintados: blackout + semi-abierto check-out l
         await abrirModalReservaEstadia(page, servicio.id);
         await expect(page.locator('.rdp')).toBeVisible();
 
-        // Extraer números de día. Las fechas están en el próximo mes por diseño
-        // (ver fechasBlackoutProximoMes arriba); navegamos siempre al próximo mes.
-        const desdeDay = parseInt(blackoutDesde.split('-')[2], 10);
-        const hastaDay = parseInt(blackoutHasta.split('-')[2], 10);
+        // Las fechas están en el próximo mes por diseño (ver
+        // fechasBlackoutProximoMes arriba); navegamos siempre al próximo mes.
+        const [yDesde, mDesde, dDesde] = blackoutDesde.split('-').map(Number);
+        const [yHasta, mHasta, dHasta] = blackoutHasta.split('-').map(Number);
+        const fechaDesde = new Date(yDesde, mDesde - 1, dDesde);
+        const fechaHasta = new Date(yHasta, mHasta - 1, dHasta);
 
         const nextBtn = page.getByRole('button', { name: /Go to the Next Month|next month|Ir al mes siguiente|Mes siguiente/i }).first();
         if (await nextBtn.isVisible().catch(() => false)) {
             await nextBtn.click();
         }
 
-        // El día `desdeDay` (dentro del blackout) debe estar disabled.
-        const diaDesde = locatorDiaPicker(page, desdeDay);
+        // Sprint F2-FIXTURE-DRIFT — firma Date del helper desambigua cuando
+        // hay 2 meses visibles. El día del blackout debe estar disabled.
+        const diaDesde = locatorDiaPicker(page, fechaDesde);
         await expect(diaDesde).toBeVisible();
         // react-day-picker v8 marca disabled días con `aria-disabled="true"` o
         // atributo `disabled`. Chequeamos ambos por robustez.
         const isDisabled = await diaDesde.evaluate((el) =>
             el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('rdp-day_disabled')
         );
-        expect(isDisabled, `día ${desdeDay} del blackout debería estar disabled`).toBe(true);
+        expect(isDisabled, `día ${dDesde} del blackout debería estar disabled`).toBe(true);
 
-        // El día `hastaDay` (check-out del blackout, semi-abierto) NO debe estar
-        // disabled — es el día en que la mascota se va, libre para nueva estadía.
-        const diaHasta = locatorDiaPicker(page, hastaDay);
+        // El día de check-out (semi-abierto) NO debe estar disabled — es el día
+        // en que la mascota se va, libre para nueva estadía.
+        const diaHasta = locatorDiaPicker(page, fechaHasta);
         await expect(diaHasta).toBeVisible();
         const hastaIsDisabled = await diaHasta.evaluate((el) =>
             el.hasAttribute('disabled') || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('rdp-day_disabled')
         );
-        expect(hastaIsDisabled, `día ${hastaDay} (check-out del blackout) debería estar LIBRE, no disabled`).toBe(false);
+        expect(hastaIsDisabled, `día ${dHasta} (check-out del blackout) debería estar LIBRE, no disabled`).toBe(false);
     });
 });

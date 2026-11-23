@@ -116,7 +116,9 @@ test.describe.serial('S4a — Race pre-insert: EXCLUDE rebota 23P01', () => {
         //      "incluye fechas no disponibles".
         //  (C) client también aceptó → submit y server rebota 23P01 →
         //      toast "acaban de ocuparse".
-        const diaDesde = locatorDiaPicker(page, desdeDay);
+        // Sprint F2-FIXTURE-DRIFT (BACKLOG) — usar firma Date para desambiguar
+        // cuando hay 2 meses visibles (numberOfMonths={2} en desktop).
+        const diaDesde = locatorDiaPicker(page, new Date(reservaYear, reservaMonth - 1, desdeDay));
         await expect(diaDesde).toBeVisible();
         const desdeDisabled = await diaDesde.evaluate((el) =>
             el.hasAttribute('disabled') ||

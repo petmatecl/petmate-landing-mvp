@@ -136,15 +136,28 @@ export async function cerrarModalReserva(page: Page): Promise<void> {
 }
 
 /**
- * Encuentra un día en el DayPicker por su número. react-day-picker v8
- * renderiza cada día como un <button> con `name="fecha"` accesible.
- * Devuelve el locator; el caller puede clickear o assertar disabled.
+ * Encuentra un día en el DayPicker.
+ *
+ * Dos firmas:
+ * - `(page, dayOfMonth: number)` — matchea por texto del botón. Ambigua
+ *   cuando hay 2 meses visibles (`numberOfMonths={2}` desktop) y el mismo
+ *   número aparece en ambos (ej. "1" aparece en nov y dic). Legacy, queda
+ *   para specs que ya anclan sus fechas a un mes único visible.
+ * - `(page, date: Date)` — matchea por `aria-label` completo
+ *   ("N de MES de AÑO" en locale es), robusta frente a 2 meses visibles o
+ *   cruces de mes. **Preferir esta en specs nuevos** — ver F2-FIXTURE-DRIFT
+ *   en BACKLOG.md.
  */
-export function locatorDiaPicker(page: Page, dayOfMonth: number) {
-    // react-day-picker v8 usa `<button name="day" aria-label="...">`. El
-    // aria-label incluye "N de mes de año" en locale es. Preferimos matchear
-    // el texto interno del button (el número).
-    return page.locator('.rdp-day').filter({ hasText: new RegExp(`^${dayOfMonth}$`) }).first();
+export function locatorDiaPicker(page: Page, dayOrDate: number | Date) {
+    if (typeof dayOrDate === 'number') {
+        return page.locator('.rdp-day').filter({ hasText: new RegExp(`^${dayOrDate}$`) }).first();
+    }
+    const d = dayOrDate;
+    const day = d.getDate();
+    const month = d.toLocaleDateString('es-CL', { month: 'long' });
+    const year = d.getFullYear();
+    const expected = `${day} de ${month} de ${year}`;
+    return page.locator(`.rdp-day[aria-label="${expected}"]`).first();
 }
 
 /**
