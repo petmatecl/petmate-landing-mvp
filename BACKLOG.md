@@ -1507,6 +1507,53 @@ Sistema de publicación de eventos del ecosistema mascota en Chile dentro de Paw
 
 Esta descripción la escribió el auditor con data del PO 2026-11-22. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch y post-umbral.
 
+---
+
+#### Monetización blanda
+
+Subsección creada 2026-11-23 a pedido del PO. Alberga iniciativas de ingreso que **no tocan el modelo gratis del marketplace** (zero comisión por transacción, zero propina proveedor↔tutor, zero venta forzada) y que diversifican canales de apoyo o retorno simbólico al proyecto. Prioridad default baja; cada ítem con su propia activación.
+
+---
+
+**PAWNECTA-APOYO-DONACIONES** — abierto · prioridad baja · fecha objetivo sin fecha (post-100 proveedores)
+
+Botón discreto en el sitio que permite a cualquier visitante (tutor, proveedor, comercio aliado, público general) donar una pequeña cantidad a Pawnecta como apoyo al proyecto. Modelo tipo "Buy Me a Coffee" adaptado a Chile.
+
+**NO es**:
+- Propina entre tutor y proveedor (descartado explícitamente 2026-11-23).
+- Comisión de transacción.
+- Venta de producto.
+
+**Implementación propuesta V1** (Opción B del análisis 2026-11-23):
+- Crear "link de pago" en Mercado Pago con monto sugerido (ej. $2.000 CLP) + opción de monto libre.
+- Botón discreto en el footer del sitio (copy sugerido: "Apóyanos con un café"; copy final a decidir).
+- Al hacer click, se abre nueva pestaña con el link de pago de MP.
+- Pawnecta recibe el pago directo en su cuenta Mercado Pago.
+- Comisión MP estándar (~3-4%).
+
+**Esfuerzo técnico V1**: 1-2 horas (botón + link + copy).
+**Esfuerzo operativo PO**: cuenta Mercado Pago empresa activa, crear link de pago, definir monto sugerido, decidir copy final, decidir ubicación exacta (footer confirmado, preguntar si también en `/quienes-somos`).
+
+**V2 (futuro, si V1 funciona)**:
+- Integración propia con SDK de MP.
+- Modal de pago en el sitio (no nueva pestaña).
+- Tracking de donaciones en tabla BD propia.
+- Panel admin con totales + contador "nos han invitado X cafés" (métrica pública opcional).
+
+**Decisiones pendientes del PO al momento de implementar V1**:
+- Monto sugerido: $2.000 / $3.000 / $5.000 CLP, o solo monto libre sin sugerencia.
+- Copy final del botón.
+- Ubicación exacta: footer confirmado; ¿también en `/quienes-somos`?
+- Métrica pública (ej. "nos han invitado X cafés") sí/no.
+
+**Prioridad y timing**: baja. Post-100 proveedores activos. Es canal blando de ingresos, no hay urgencia de activarlo pre-campañas.
+
+**Riesgo chico identificado**: percepción de "piden plata antes de dar valor". Mitigable con copy cuidado + ubicación discreta (NO hero, NO modal interruptivo) + activación recién post-100 proveedores (el sitio ya está entregando valor cuando aparece el pedido de apoyo).
+
+**Idea origen (PO 2026-11-23)**: diversificar canales de ingreso sin tocar el modelo gratis del marketplace. No reemplaza monetización futura (plan destacado proveedor, afiliación tiendas, etc.); es canal complementario.
+
+Esta descripción la escribió el auditor con data del PO 2026-11-23. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch + post-100 proveedores + decisiones pendientes del PO resueltas.
+
 ## Proyectos estructurales
 
 ### Categorías por modalidad (presencial / remoto / mixto)
