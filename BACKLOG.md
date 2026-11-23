@@ -8,8 +8,8 @@
 
 ### Cola activa 2026-11-23+ (arranca ya)
 
-1. **[abierto · arranca 2026-11-23] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
-   Fix a mano de 6 títulos de `servicios_publicados` con trailing spaces + typo "PETTSITER" + Unicode cursive. Cero cambio de código, solo `UPDATE`s sobre Supabase Studio prod. Auditor prepara bloque SQL con snapshot + UPDATE con RETURNING + verificación posterior + rollback escrito; PO ejecuta manual. Origen: audit catálogo [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
+1. **[cerrado 2026-11-22 ~18:58 CLT · ejecutado por PO en prod] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
+   Fix a mano de 8 trailing spaces en `servicios_publicados.titulo` + 1 typo "SERVICIO DE PETTSITER" → "Servicio de petsitter" + 1 Unicode cursive en `proveedores.nombre_publico` (proveedor `4ca16056-...` → "Paseítos Perrunos.cl"). Cero cambio de código. SQL preparado por auditor en [`docs/sprints/catalogo-cleanup-lite-sql-20261123.md`](docs/sprints/catalogo-cleanup-lite-sql-20261123.md) (patrón P5: snapshot + UPDATE con RETURNING + verificación posterior con control positivo P8 10ª + rollback escrito). **Evidencia P8 10ª**: bloque 3 de verificación posterior devolvió `fix_ok=true` en las 10 filas. Origen audit: [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
 
 2. **[abierto · arranca 2026-11-23] ANALYTICS-FUNNEL-TUTOR — prioridad alta · ~medio día**
    Implementar los 15 GA4 events faltantes del funnel tutor→contacto. Lista completa en [`docs/analisis/funnel-contacto-tutor-detalle-20261122.md`](docs/analisis/funnel-contacto-tutor-detalle-20261122.md). PR separado, zero merge autónomo, GO explícito del PO post-smoke. **Gating de campañas**: sin este tracking el gasto en ads es ciego al funnel.
@@ -1111,19 +1111,18 @@ Dashboard interno que consolide métricas clave del funnel en tiempo real (visit
 
 **Decisión de activación**: revisable cuando arranquen campañas y el PO vea en la práctica cuánta fricción le genera consultar 4 herramientas distintas. Si la fricción es tolerable, el ítem queda indefinido. Si bloquea operación → arrancar sprint ~1-2 días.
 
-### ADMIN-PROVEEDORES-FECHA-REGISTRO — pre-campañas · prioridad alta
+### ~~ADMIN-PROVEEDORES-FECHA-REGISTRO~~ — **CERRADO 2026-11-20 (aterrizado antes de que el ítem se pidiera formalmente)**
 
-**Qué**: agregar columna "Registrado" al listado del panel `/admin/proveedores` con la fecha en que el proveedor se registró, formato DD-MM-YYYY, ordenable.
+**Estado**: implementado en commit [`aad2a78`](../../commit/aad2a78) "admin · columna Registrado en /admin/proveedores con sort toggle".
+**Verificación simétrica P8 11ª (2026-11-23)**: grep sobre `components/Admin/ProveedorManagementList.tsx` → columna "Registrado" presente (líneas 222-233), sort toggle implementado (líneas 160-169 + 367-369), formato `dd-MM-yyyy` activo. Zero reimplementación necesaria.
 
-**Dato fuente**: ya existe en `public.proveedores.created_at` (verificar nombre exacto al implementar). Sin migración, sin backfill.
+Scope original del ítem (archivado para trazabilidad):
 
-**Trabajo**: editar `components/Admin/ProveedorManagementList.tsx` (o el que renderice la tabla) para agregar columna + prop en el fetch. Sort toggle ascendente/descendente.
-
-**Estimación**: 15-30 min. **Dependencia**: ninguna.
-
-**Impacto**: herramienta operacional del PO para monitorear la meta de 100 proveedores desde ya + ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
-
-**Prioridad**: alta pre-campañas. Entra en cualquier ventana calma (deuda chica). Habilita tracking directo visual del progreso hacia los 100 proveedores.
+- Columna "Registrado" al listado del panel `/admin/proveedores` con fecha formato DD-MM-YYYY, ordenable.
+- Dato fuente: `public.proveedores.created_at`. Sin migración, sin backfill.
+- Trabajo: editar `components/Admin/ProveedorManagementList.tsx`.
+- Estimación original: 15-30 min.
+- Impacto: herramienta operacional del PO para monitorear meta de 100 proveedores + antigüedad + patrones + outreach prioritario.
 
 ---
 
@@ -1161,7 +1160,7 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 ---
 
-### TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta
+### ~~TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta~~ — **CERRADO 2026-11-23 Opción A** (`docs/ops/query-tracking-100.sql`)
 
 **Qué**: dashboard o query recurrente que el PO revisa 1 vez por semana con el estado de la meta de 100 proveedores activos (criterio para activar campañas pagadas).
 
@@ -1609,6 +1608,30 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 - Camino corto: componente `HeroRotator` con array de slides + auto-rotate cada N segundos + indicadores dot navegables. Sin dependencias externas.
 - Camino largo: variantes A/B con tracking en `contactos` o tabla nueva para medir CTR por copy.
 
+### HOME-TABS-CATEGORIAS — post-campañas · prioridad media · pedido PO 2026-11-23
+
+**Problema**: la sección "Explorar por categoría" de `pages/index.tsx` renderiza una grilla con una card por categoría. Con las 10 categorías activas (`adiestramiento`, `cuidado`, `etologia`, `fotografia`, `guarderia`, `paseos`, `peluqueria`, `retratos`, `traslado`, `veterinario`) ocupa mucho vertical, empujando contenido valioso del home (widget de eventos cuando aterrice EVENTOS-MASCOTAS-ECOSISTEMA, sección "Cómo funciona", testimonios/cards F2) fuera del fold inicial. Impacta engagement + conversión del hero → siguiente step.
+
+**Idea de solución**: reemplazar la grilla actual por un patrón tipo **tabs al estilo Google** — el usuario elige la categoría que le interesa en una fila horizontal de tabs y se despliegan los cards/resumen de esa categoría. Reduce scroll vertical significativamente + permite surface de contenido más abajo en el fold.
+
+**Alternativas a evaluar en el kickoff**:
+- Tabs horizontales fijos (estilo Google).
+- Accordions (una categoría expandida a la vez, resto colapsadas).
+- Mega-menu / dropdown clickable (menos espacio pero menos descubrible).
+- Pills scrollable horizontal (patrón mobile-first).
+
+**Consideraciones a explorar pre-sprint**:
+- **Default tab**: ¿la más popular (por conteo de servicios activos vía `buscar_servicios`)?, ¿la última visitada por el user (localStorage)?, ¿aleatoria rotante (fairness para categorías nuevas)?, ¿fija (adiestramiento o cuidado por volumen de oferta)?
+- **Tratamiento mobile**: scroll horizontal de tabs (patrón iOS/Material) vs dropdown selector (un `<select>` con las 10 categorías). Trade-off: scroll horizontal es más descubrible pero compite con el swipe vertical del body.
+- **Impacto SEO**: contenido oculto en tabs no activas sigue en el DOM (inline con `hidden` CSS), Google lo indexa igual. Pero el link equity/relevancia del home pasa a diluirse entre 10 secciones semi-ocultas vs. 10 secciones todas visibles. Verificar con Search Console antes del merge a prod + evaluar `aria-controls` + `aria-selected` para accesibilidad.
+- **Tracking GA4**: cómo medir "categoría más vista" cuando hay una default pre-seleccionada que inflata su count. Opciones: (a) disparar `categoria_vista` solo tras interacción explícita (click en tab), (b) disparar al mount con flag `default=true` para filtrar en GA4.
+- **Scroll anchoring**: cuando el user hace click en una tab, ¿scroll a la tab o el contenido crece/decrece empujando el viewport? Lock del viewport durante la transición.
+- **Interacción con filtros `/explorar`**: ¿el click en una tab lleva a `/explorar?categoria=X` (consistente con la URL schema actual) o deja al user en el home con la tab activa?
+
+**Esfuerzo preliminar**: 3-5 días (sprint propio post-campañas). Alcance código: `pages/index.tsx` + componente nuevo `HomeTabsCategorias` + ajustes de tracking + testing visual (mobile + desktop + a11y keyboard + screenreader) + verificación SEO en Search Console pos-deploy.
+
+**No gating pre-campañas** — queda para después de la primera ronda de campañas Meta (confirmado PO 2026-11-23).
+
 ### Vincular conversaciones a agendamientos
 - Hoy las conversaciones del chat son genéricas (tutor↔proveedor), sin atarse a una solicitud puntual. Eso bloquea mostrar la mascota correcta en el chat (un tutor con varias solicitudes → no se sabe cuál mascota va en el hilo).
 - Cambio: agregar `agendamiento_id` a la tabla `conversations`.
@@ -1854,7 +1877,7 @@ Cron mensual (o post-deploy) que corre Lighthouse contra 5 páginas clave (home,
 
 **Prioridad**: baja. Post-launch, cuando el tráfico justifique monitoreo automático.
 
-### CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA
+### ~~CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA~~ — **CERRADO 2026-11-23** (`docs/planes/ci-flakes-acumulados.md` con 5 clases + estado + deuda post-análisis)
 
 **Observación del PO 2026-11-20 PM**: en los últimos 4 PRs (#120, #122, #123, #125), el CI falló por tests pre-existentes de specs que el PR NO estaba tocando. 4 veces seguidas no es coincidencia.
 

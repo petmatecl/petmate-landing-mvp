@@ -25,7 +25,8 @@
     "test:error-boundary": "npx tsx components/ErrorBoundary.test.tsx",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:e2e:report": "playwright show-report e2e/.report"
+    "test:e2e:report": "playwright show-report e2e/.report",
+    "test:smoke-prod": "playwright test --config=playwright.config.prod.ts"
   },
   "dependencies": {
     "@ducanh2912/next-pwa": "10.2.9",
