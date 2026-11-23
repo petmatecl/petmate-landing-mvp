@@ -8,8 +8,8 @@
 
 ### Cola activa 2026-11-23+ (arranca ya)
 
-1. **[abierto · arranca 2026-11-23] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
-   Fix a mano de 6 títulos de `servicios_publicados` con trailing spaces + typo "PETTSITER" + Unicode cursive. Cero cambio de código, solo `UPDATE`s sobre Supabase Studio prod. Auditor prepara bloque SQL con snapshot + UPDATE con RETURNING + verificación posterior + rollback escrito; PO ejecuta manual. Origen: audit catálogo [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
+1. **[cerrado 2026-11-22 ~18:58 CLT · ejecutado por PO en prod] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
+   Fix a mano de 8 trailing spaces en `servicios_publicados.titulo` + 1 typo "SERVICIO DE PETTSITER" → "Servicio de petsitter" + 1 Unicode cursive en `proveedores.nombre_publico` (proveedor `4ca16056-...` → "Paseítos Perrunos.cl"). Cero cambio de código. SQL preparado por auditor en [`docs/sprints/catalogo-cleanup-lite-sql-20261123.md`](docs/sprints/catalogo-cleanup-lite-sql-20261123.md) (patrón P5: snapshot + UPDATE con RETURNING + verificación posterior con control positivo P8 10ª + rollback escrito). **Evidencia P8 10ª**: bloque 3 de verificación posterior devolvió `fix_ok=true` en las 10 filas. Origen audit: [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
 
 2. **[abierto · arranca 2026-11-23] ANALYTICS-FUNNEL-TUTOR — prioridad alta · ~medio día**
    Implementar los 15 GA4 events faltantes del funnel tutor→contacto. Lista completa en [`docs/analisis/funnel-contacto-tutor-detalle-20261122.md`](docs/analisis/funnel-contacto-tutor-detalle-20261122.md). PR separado, zero merge autónomo, GO explícito del PO post-smoke. **Gating de campañas**: sin este tracking el gasto en ads es ciego al funnel.
