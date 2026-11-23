@@ -297,6 +297,30 @@ export async function getSupabaseAsProveedor(): Promise<SupabaseClient> {
 }
 
 /**
+ * Sprint fix-fix-cuidado (2026-11-23) — invalida el cache del rol para forzar
+ * `buildEntry` fresh en el próximo call. Útil cuando una query RLS devuelve
+ * silent-null (data=null, error=null) — indicador de que la sesión
+ * server-side fue revocada aunque el JWT local no haya expirado. Recupera
+ * una sesión viva con el fallback de password dentro de buildEntry.
+ *
+ * Patrón que lo gatilla:
+ * - `supabase.from(X).insert(...).select().single()` retorna `{data: null,
+ *   error: null}` → RLS POLICY WITH CHECK pasó pero RETURNING 0 filas, o
+ *   session revocada mid-request.
+ * - fixtures de INSERT efímeros (servicio-efimero, servicio-cuidado-listo)
+ *   envuelven esa condición en `throw new Error("INSERT falló: sin data")`.
+ *
+ * Correcto uso: desde fixtures que detectan silent-null, llamar antes del
+ * retry. Evita bucle infinito: UN solo retry por caller.
+ */
+export function invalidateRoleCache(role: 'proveedor' | 'tutor'): void {
+    cachedClients.delete(role);
+    cachedProfileIds.delete(role);
+    cachedAuthUserIds.delete(role);
+    // inflight queda como está — si hay un init paralelo, lo deja completar.
+}
+
+/**
  * Cliente Supabase autenticado como TUTOR (F2-3-E).
  */
 export async function getSupabaseAsTutor(): Promise<SupabaseClient> {
