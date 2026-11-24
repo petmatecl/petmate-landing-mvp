@@ -131,6 +131,32 @@ Aplicado retroactivamente al mensaje final del cierre cola continua (pegado text
 
 ---
 
+## Cierre apply prod EVENTOS MVP · 2026-11-24 ~15:04 CLT
+
+**PO ejecutó la migration SQL** en Supabase Studio prod (proyecto `ouezpeeiwjwawauidrqq`) siguiendo la acta P5 del sprint. Verificación post-apply **6/6 ✓**:
+
+- `eventos_rows=0`
+- `eventos_policies=2` (`eventos_public_read` + `eventos_admin_write`)
+- `eventos_indexes=3` (PK + `eventos_publicado_fecha_idx` filtered + `eventos_comuna_idx` filtered)
+- `bucket_id='eventos-imagenes'`
+- `bucket_limit=2097152` (2 MB)
+- `storage_policies=3` (`public_read` + `admin_write` + `admin_delete`)
+
+**Feature EVENTOS MVP live end-to-end**:
+- Admin: `/admin/eventos` + `/admin/eventos/nuevo` + `/admin/eventos/[id]/editar` + SOFT delete via `ConfirmDialog`.
+- Listado público: `/eventos` (SSR gSSP + anon Supabase, RLS filtered). Sitemap incluye `/eventos`.
+- Widget home: oculto hasta que haya ≥1 evento publicado futuro.
+
+**Issue origen cerrado**: #164 EVENTOS-MASCOTAS-ECOSISTEMA MVP · comment de cierre con evidencia 6/6 + link a acta P5 + próximo paso seed Feria Navideña.
+
+**BACKLOG.md**: ítem `EVENTOS-MASCOTAS-ECOSISTEMA` marcado `[cerrado 2026-11-24 ~15:04 CLT · ejecutado por PO en prod]` con evidencia inline.
+
+**Próximo paso manual del PO**: cargar Feria Navideña 2026-11-28 como primer seed desde `/admin/eventos/nuevo` cuando convenga (Q8). Nota del PO: difusión de la feria va por RRSS propias (Instagram + TikTok), el sistema EVENTOS no es gating para ese evento específico.
+
+**Scoreboard final del día actualizado**: 13 PRs mergeados autónomos + 1 diferido (#181) + **1 sprint completo cerrado end-to-end en prod (EVENTOS MVP)** + 2 upgrades infra + 3 deudas BACKLOG documentadas + 3 enmiendas CLAUDE.md propuestas + 1 correctivo framing + 1 bitácora operación + 4 episodios aprendizaje aterrizados.
+
+---
+
 ## Trazabilidad cruzada
 
 - Spec sprint EVENTOS MVP: [`docs/sprints/eventos-mvp-plan.md`](../sprints/eventos-mvp-plan.md).
