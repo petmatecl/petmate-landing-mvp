@@ -54,14 +54,16 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
         await limpiarConv();
     });
 
-    test('(a) primer clic SIN conversación previa → crea + navega + cero toast', async ({ page }) => {
-        // Diagnóstico ampliado 2026-09-24: primer run del CI (`36040364041`)
-        // falló con `expect(page).toHaveURL(/mensajes/)` timeout 12s y snapshot
-        // final mostraba el botón `Enviar mensaje a Admin` STILL `[disabled]`
-        // (isChatLoading=true persistente → algún await del handler pegado).
-        // Ampliamos captura: TODA request a supabase.co (no solo conversations),
-        // TODO console.log/warn/error, y screenshot al 5s para snapshot de
-        // estado intermedio antes del timeout final.
+    test('(a) primer clic SIN conversación previa → navega a modo new-chat + cero INSERT + cero toast', async ({ page }) => {
+        // Sprint CHAT-LAZY-CREATE (2026-11-23) — semántica actualizada:
+        // el click NO crea conv. Navega a `/mensajes?target=<authId>&servicio=<id>`
+        // y MessageThread entra en modo new-chat. La conv + primer message
+        // solo se crean al enviar (ver `e2e/specs/chat-lazy-create/no-orphan.spec.ts`).
+        //
+        // Este test preserva las garantías del fix chat-open-error 2026-09-24
+        // (no crash, no toast de error, botón enabled al arrancar) ajustadas
+        // al nuevo URL target. La verificación "cero huérfana al click" vive
+        // en la spec propia del sprint.
         interface NetLog { when: number; method: string; url: string; status?: number; postData?: string | null; body?: string }
         const netLog: NetLog[] = [];
         const t0 = Date.now();
@@ -88,6 +90,7 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
         });
 
         // Contadores por método sobre /rest/v1/conversations* para las asserts.
+        // Post CHAT-LAZY-CREATE esperamos cero INSERT desde el cliente al click.
         let convInserts = 0;
         page.on('request', req => {
             if (req.url().includes('/rest/v1/conversations') && req.method() === 'POST') {
@@ -98,20 +101,16 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
         await page.goto(`/servicio/${SERVICIO_A_ID}`, { waitUntil: 'domcontentloaded' });
         await page.waitForLoadState('networkidle', { timeout: 20_000 }).catch(() => { /* seguir */ });
 
-        // Selector por aria-label específico + verificar enabled antes del click
-        // (el botón tiene `disabled={isChatLoading}` en L1702 de ServiceDetailView;
-        // si arranca en true por algún estado stale, click sin efecto).
         const btn = page.getByLabel(/Enviar mensaje a/).first();
         await expect(btn).toBeVisible({ timeout: 15_000 });
         await expect(btn, 'botón "Enviar mensaje" debe estar enabled antes del click').toBeEnabled({ timeout: 5_000 });
 
         await btn.click();
 
-        // Debe navegar a /mensajes?id=... en <12s.
+        // Post-fix: navega a /mensajes?target=... (modo new-chat), cero INSERT.
         try {
-            await expect(page).toHaveURL(/\/mensajes\?id=/, { timeout: 12_000 });
+            await expect(page).toHaveURL(/\/mensajes\?target=/, { timeout: 12_000 });
         } catch (err) {
-            // Diagnóstico ampliado: al fail, capturar network + console + BD.
             console.log('\n═══════ FAIL DIAGNÓSTICO caso (a) ═══════');
             console.log(`URL al fail: ${page.url()}`);
             console.log(`\n▶ NETWORK supabase.co (${netLog.length}):`);
@@ -123,14 +122,6 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
             }
             console.log(`\n▶ CONSOLE (${consoleLog.length}):`);
             for (const c of consoleLog) console.log(`  ${c}`);
-            const admin = await getSupabaseAdmin();
-            const { data: postCheck } = await admin
-                .from('conversations')
-                .select('id, servicio_id, created_at')
-                .eq('client_id', CAMILA_AUTH_ID)
-                .eq('sitter_id', ALDO_PROVEEDOR_AUTH_ID);
-            console.log(`\n▶ BD post-click: ${postCheck?.length ?? 0} conv(s)`);
-            for (const r of postCheck ?? []) console.log(`    id=${r.id} servicio_id=${r.servicio_id} created_at=${r.created_at}`);
             console.log('═══════════════════════════════════════════\n');
             throw err;
         }
@@ -139,21 +130,21 @@ test.describe.serial('chat-open-error · regresión del fix', () => {
         await expect(
             page.getByText(/Hubo un error al intentar abrir el chat/i),
         ).toHaveCount(0);
-        const startingErrors = consoleLog.filter(c => c.includes('Error starting conversation'));
-        expect(startingErrors.length, `cero "Error starting conversation" esperado. Vistos: ${startingErrors.length}`).toBe(0);
+        const startingErrors = consoleLog.filter(c => c.includes('Error opening chat') || c.includes('Error starting conversation'));
+        expect(startingErrors.length, `cero error de chat esperado. Vistos: ${startingErrors.length}`).toBe(0);
 
-        // Se hizo exactamente 1 INSERT (el que crea la nueva conv).
-        expect(convInserts, `esperado 1 INSERT en conversations. Vistos: ${convInserts}`).toBe(1);
+        // Cero INSERT desde el cliente — el endpoint atómico corre server-side
+        // y solo al Enviar primer mensaje.
+        expect(convInserts, `esperado 0 INSERT desde cliente (lazy-create). Vistos: ${convInserts}`).toBe(0);
 
-        // La fila quedó persistida.
+        // BD: cero convs post-click (no-orphan).
         const admin = await getSupabaseAdmin();
         const { data: post } = await admin
             .from('conversations')
             .select('id, servicio_id')
             .eq('client_id', CAMILA_AUTH_ID)
             .eq('sitter_id', ALDO_PROVEEDOR_AUTH_ID);
-        expect(post?.length, 'esperado 1 conv creada').toBe(1);
-        expect(post![0].servicio_id, 'servicio_id debe ser el del servicio clickeado').toBe(SERVICIO_A_ID);
+        expect(post?.length ?? 0, 'esperado 0 convs post-click (no-orphan CHAT-LAZY-CREATE)').toBe(0);
     });
 
     test('(b) primer clic CON conversación previa por OTRO servicio del mismo proveedor → navega a la existente + cero INSERT + cero toast', async ({ page }) => {

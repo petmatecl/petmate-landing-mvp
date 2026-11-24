@@ -1,4 +1,6 @@
 ﻿import React, { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
 import { createNotification } from '../../lib/notifications';
@@ -13,13 +15,32 @@ import { getProxyImageUrl } from '../../lib/utils';
 interface Props {
     conversationId: string;
     userId: string | null;
+    // Sprint CHAT-LAZY-CREATE (2026-11-23) — modo "new chat". Cuando
+    // conversationId arranca con `new:<authId>` y newChatTargetAuthId está
+    // set, el componente NO fetchea messages/details (no hay conv aún).
+    // Renderiza header con getParticipantProfile(targetAuthId) + empty
+    // state. En handleSend llama al endpoint atómico
+    // POST /api/conversations/first-message → al éxito invoca
+    // onConversationCreated(realId) para que el parent actualice selected.
+    newChatTargetAuthId?: string;
+    newChatServicioId?: string;
+    onConversationCreated?: (realConvId: string) => void;
 }
 
-export default function MessageThread({ conversationId, userId }: Props) {
+export default function MessageThread({
+    conversationId,
+    userId,
+    newChatTargetAuthId,
+    newChatServicioId,
+    onConversationCreated,
+}: Props) {
+    const router = useRouter();
+    const isNewChat = conversationId.startsWith('new:') && !!newChatTargetAuthId;
     const { onlineUsers } = useOnlineStatus();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(!isNewChat);
+    const [sending, setSending] = useState(false);
     // Sprint pii-chat-nombre (2026-11-19) — shape ParticipantProfile unificado:
     // `display_name` precomputado por `getParticipantProfile`, cero componer
     // nombre + apellido en cliente.
@@ -35,7 +56,20 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const [mascotaChip, setMascotaChip] = useState<{ nombre: string; tipo: string; foto_mascota: string | null } | null>(null);
 
     useEffect(() => {
-        if (conversationId && userId) {
+        if (isNewChat && newChatTargetAuthId && userId) {
+            // Modo new-chat: solo resolver perfil del target + perfil propio.
+            // No hay conv ni mensajes que fetchear.
+            (async () => {
+                const [targetProfile, meProfile] = await Promise.all([
+                    getParticipantProfile(newChatTargetAuthId),
+                    getParticipantProfile(userId),
+                ]);
+                if (targetProfile) setOtherUser(targetProfile);
+                if (meProfile) setMyUser(meProfile);
+            })();
+            return;
+        }
+        if (conversationId && userId && !isNewChat) {
             fetchConversationDetails();
             fetchMessages();
             const unsubscribe = subscribeToMessages();
@@ -44,7 +78,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
             };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [conversationId, userId]);
+    }, [conversationId, userId, isNewChat, newChatTargetAuthId]);
 
     async function fetchConversationDetails() {
         try {
@@ -207,6 +241,52 @@ export default function MessageThread({ conversationId, userId }: Props) {
         const content = newMessage.trim();
         setNewMessage(''); // Clear input immediately
 
+        // Sprint CHAT-LAZY-CREATE (2026-11-23) — en modo new-chat, el primer
+        // envío va al endpoint atómico que crea conv + message en server-side.
+        if (isNewChat && newChatTargetAuthId) {
+            setSending(true);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.access_token) {
+                    toast.error('Sesión expirada. Vuelve a iniciar sesión.');
+                    setNewMessage(content);
+                    return;
+                }
+                const resp = await fetch('/api/conversations/first-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({
+                        proveedorAuthId: newChatTargetAuthId,
+                        content,
+                        servicioId: newChatServicioId ?? null,
+                    }),
+                });
+                const payload = await resp.json();
+                if (!resp.ok) {
+                    toast.error(payload?.error || 'No pudimos enviar el mensaje.');
+                    setNewMessage(content);
+                    return;
+                }
+                const realId: string = payload.conversationId;
+                // Reemplazar URL + notificar al parent para que suba el
+                // selectedConversationId al id real.
+                router.replace(`/mensajes?id=${realId}`, undefined, { shallow: true });
+                onConversationCreated?.(realId);
+            } catch (err) {
+                Sentry.captureException(err, {
+                    tags: { subsystem: 'chat_new_chat_submit' },
+                });
+                toast.error('No pudimos enviar el mensaje.');
+                setNewMessage(content);
+            } finally {
+                setSending(false);
+            }
+            return;
+        }
+
         // Optimistic Update
         const optimisticMsg: Message = {
             id: `temp-${Date.now()}`,
@@ -230,8 +310,6 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 })
                 .select()
                 .single();
-
-            if (error) throw error;
 
             if (error) throw error;
 
@@ -484,7 +562,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     />
                     <button
                         type="submit"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || sending}
                         className="bg-accent-600 text-white p-3 rounded-full hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent-600/20 active:scale-95 flex items-center justify-center shrink-0"
                     >
                         <Send size={18} />
