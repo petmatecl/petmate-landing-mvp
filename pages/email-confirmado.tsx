@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
 import { logSupabaseError } from "../lib/logSupabaseError";
+import { trackEvent } from "../lib/gtag";
 
 /**
  * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
@@ -222,6 +223,21 @@ export default function EmailConfirmadoPage() {
             /* storage bloqueado — fallback al roleContent default */
         }
     }, [freshAuthTokenSeen, user, proveedorRow, router]);
+
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): email_confirmado — fire
+    // una vez cuando el user se hidrata post-token fresh (click en el link
+    // del email que llegó a la inbox). El guard `firedRef` evita doble-fire
+    // en re-renders del effect. Gate PL2: no-op en non-prod.
+    const firedEmailConfirmadoRef = React.useRef(false);
+    useEffect(() => {
+        if (firedEmailConfirmadoRef.current) return;
+        if (freshAuthTokenSeen && user) {
+            firedEmailConfirmadoRef.current = true;
+            trackEvent('email_confirmado', {
+                has_return_url: typeof window !== 'undefined' && !!localStorage.getItem('pawnecta_last_service_url'),
+            });
+        }
+    }, [freshAuthTokenSeen, user]);
 
     // Detección de rol post-hidratación.
     type Rol = 'proveedor' | 'tutor' | 'orphan';

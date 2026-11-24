@@ -17,7 +17,7 @@ export const NewEvaluationEmail = ({
     return (
         <Html>
             <Head />
-            <Preview>{`🎉 Has recibido una nueva evaluación de ${rating} estrellas para tu servicio en Pawnecta.`}</Preview>
+            <Preview>{`Has recibido una nueva evaluación de ${rating} estrellas para tu servicio en Pawnecta.`}</Preview>
             <Body style={main}>
                 <Container style={container}>
                     <Section style={header}>
@@ -32,7 +32,7 @@ export const NewEvaluationEmail = ({
 
                         <Section style={evaluationBox}>
                             <Text style={ratingStars}>
-                                Calificación: <strong>{rating} de 5 estrellas</strong> {rating === 5 ? '🌟' : '⭐'}
+                                Calificación: <strong>{rating} de 5 estrellas</strong>
                             </Text>
                             <Hr style={hrLight} />
                             <Text style={commentText}>

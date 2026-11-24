@@ -14,7 +14,13 @@ import { useUnreadMessagesCount } from "../lib/hooks/useUnreadMessagesCount";
 export default function Header() {
 
   const [open, setOpen] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
+  // Sprint EXPLORAR-PRE-CAMPAÑA (2026-11-23) H5: removido banner "Estamos
+  // construyendo" para el prendido de campañas pagadas. User que paga ad
+  // espera un producto terminado — banner "Estamos construyendo" transmite
+  // WIP y daña confianza. Default off; para reactivar el canal de feedback
+  // del PO cambiar `useState(false)` → `useState(true)` o reemplazar por
+  // un canal menos intrusivo (FeedbackWidget sigue disponible en el footer).
+  const [showBanner, setShowBanner] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
