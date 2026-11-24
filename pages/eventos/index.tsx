@@ -2,8 +2,8 @@ import React from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
-import { Calendar, MapPin, Clock, ExternalLink, Ticket, PawPrint } from 'lucide-react';
-import { getProxyImageUrl } from '../lib/utils';
+import { Calendar, MapPin, Ticket, PawPrint, ChevronRight } from 'lucide-react';
+import { getProxyImageUrl } from '../../lib/utils';
 import type { GetServerSideProps } from 'next';
 
 // Sprint EVENTOS MVP (2026-11-24) — PR 3 · listado público.
@@ -90,17 +90,6 @@ function formatHora(h: string | null) {
     return h.slice(0, 5);
 }
 
-function externalLink(ev: EventoRow): string | null {
-    if (ev.organizador_instagram) {
-        const handle = ev.organizador_instagram.replace(/^@/, '').trim();
-        if (handle) return `https://www.instagram.com/${handle}/`;
-    }
-    if (ev.links_referencia && ev.links_referencia.length > 0) {
-        const url = ev.links_referencia[0].trim();
-        if (url) return url.startsWith('http') ? url : `https://${url}`;
-    }
-    return null;
-}
 
 export default function EventosPublicPage({ eventos }: Props) {
     return (
@@ -156,11 +145,13 @@ export default function EventosPublicPage({ eventos }: Props) {
 }
 
 function EventoCard({ evento }: { evento: EventoRow }) {
-    const external = externalLink(evento);
     const horaInicio = formatHora(evento.hora_inicio);
     const horaFin = formatHora(evento.hora_fin);
     return (
-        <article className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
+        <Link
+            href={`/eventos/${evento.id}`}
+            className="group block bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md hover:border-accent-300 transition-all"
+        >
             {/* Imagen o placeholder gradiente. Sprint EVENTOS-MVP-PULIDO
                 (2026-11-24): aspect-[4/3] + object-contain + fondo slate-50
                 para preservar flyers verticales completos sin recortar
@@ -227,36 +218,25 @@ function EventoCard({ evento }: { evento: EventoRow }) {
                 <p className="text-sm text-slate-600 mb-4 line-clamp-3 flex-1">
                     {evento.descripcion}
                 </p>
-                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): bloque "Organizado
-                    por" se omite completamente si no hay organizador_nombre
-                    ni link externo (ni Instagram handle ni links_referencia).
-                    Si solo falta organizador_nombre pero hay link externo,
-                    muestra el link solo sin header "Organizado por" (sería
-                    confuso sin nombre). Null-handling gracefully, sin
-                    espacios huérfanos. */}
-                {(evento.organizador_nombre || external) && (
-                    <div className="pt-3 border-t border-slate-100">
-                        {evento.organizador_nombre && <p className="text-xs text-slate-500 mb-2">Organizado por</p>}
-                        <div className="flex items-center justify-between gap-3">
-                            {evento.organizador_nombre && (
-                                <span className="text-sm font-medium text-slate-700 truncate">
-                                    {evento.organizador_nombre}
-                                </span>
-                            )}
-                            {external && (
-                                <a
-                                    href={external}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="inline-flex items-center gap-1 text-sm text-accent-600 hover:text-accent-700 font-medium shrink-0"
-                                >
-                                    Ver más <ExternalLink size={14} />
-                                </a>
-                            )}
-                        </div>
+                {/* Sprint EVENTOS-MVP-PULIDO PR 2 (2026-11-24): bloque
+                    "Organizado por" omitido si no hay nombre + footer con
+                    CTA "Ver evento →" linkeando al detalle. Toda la card
+                    es <Link> al detalle, cero link externo al Instagram
+                    desde el listado (ese link vive en la página detalle). */}
+                {evento.organizador_nombre && (
+                    <div className="pt-3 border-t border-slate-100 mb-3">
+                        <p className="text-xs text-slate-500 mb-1">Organizado por</p>
+                        <span className="text-sm font-medium text-slate-700 truncate block">
+                            {evento.organizador_nombre}
+                        </span>
                     </div>
                 )}
+                <div className="flex items-center justify-end pt-2">
+                    <span className="inline-flex items-center gap-1 text-sm font-semibold text-accent-600 group-hover:text-accent-700">
+                        Ver evento <ChevronRight size={16} />
+                    </span>
+                </div>
             </div>
-        </article>
+        </Link>
     );
 }

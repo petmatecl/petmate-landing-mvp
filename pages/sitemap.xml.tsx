@@ -22,8 +22,21 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
         .select("id, updated_at, proveedor_id")
         .eq("activo", true);
 
+    // Sprint EVENTOS-MVP-PULIDO PR 2 (2026-11-24): fetch de eventos
+    // individuales publicados + no deleted + fecha futura (misma lógica
+    // que /eventos lista + RLS public_read). Sitemap incluye cada
+    // /eventos/[id] para que buscadores indexen. Eventos pasados no se
+    // listan ni en sitemap (page detalle vuelve 404 para pasados).
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: eventos, error: eventosError } = await supabase
+        .from("eventos")
+        .select("id, fecha")
+        .eq("publicado", true)
+        .is("deleted_at", null)
+        .gte("fecha", today);
+
     // Sweep #1 fix B2 (2026-08-07) — FAIL-LOUD:
-    // Si cualquiera de los 2 fetches falla o retorna null, el sitemap SIN el
+    // Si cualquiera de los 3 fetches falla o retorna null, el sitemap SIN el
     // dataset completo NO debe servir XML "válido pero vacío" con 200 OK.
     // El bug pre-fix era: `|| []` colapsaba silencioso → sitemap con solo 6
     // STATIC_ROUTES + Cache-Control s-maxage=3600 → Google recrawls, sees
@@ -31,6 +44,12 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     // → catástrofe SEO silente por ≥1h. Fix: retornar HTTP 500 SIN
     // Cache-Control cacheable, que la CDN + Google no persistan el error.
     // El próximo crawl retornará al sitemap completo.
+    //
+    // Eventos NO entran en el FAIL-LOUD gate: si la tabla no existe (pre-
+    // apply de la migration EVENTOS MVP en algún entorno) o el fetch falla,
+    // caemos a sitemap sin eventos individuales — aceptable. El array se
+    // normaliza a [] en el concat. Las tablas críticas SEO (proveedores +
+    // servicios) siguen con el gate hard.
     if (proveedoresError || serviciosError || proveedores === null || servicios === null) {
         const errorSummary = [
             proveedoresError && `proveedores_publicos: ${proveedoresError.message}`,
@@ -68,6 +87,18 @@ export const getServerSideProps: GetServerSideProps = async ({ res }) => {
     // Service pages — solo servicios activos de proveedores aprobados.
     urls = urls.concat(serviciosPublicables.map(s =>
         `  <url><loc>https://pawnecta.com/servicio/${s.id}</loc><lastmod>${(s.updated_at || now).split('T')[0]}</lastmod><priority>0.9</priority></url>`
+    ));
+
+    // Sprint EVENTOS-MVP-PULIDO PR 2 (2026-11-24): eventos individuales
+    // publicados + futuros. Fallback a [] si el fetch falló (gate suave,
+    // ver nota arriba). Priority 0.6 — contenido temporal, menor que
+    // servicios/proveedores que son evergreen.
+    if (eventosError) {
+        console.warn('[sitemap] eventos fetch failed, skipping eventos individuales:', eventosError.message);
+    }
+    const eventosList = eventos ?? [];
+    urls = urls.concat(eventosList.map(e =>
+        `  <url><loc>https://pawnecta.com/eventos/${e.id}</loc><lastmod>${now}</lastmod><priority>0.6</priority></url>`
     ));
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>

@@ -101,7 +101,7 @@ export default function EventosWidget() {
                     {eventos.map((ev) => (
                         <Link
                             key={ev.id}
-                            href="/eventos"
+                            href={`/eventos/${ev.id}`}
                             className="group bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col hover:border-accent-300 hover:shadow-md transition-all"
                         >
                             {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): aspect-[4/3]

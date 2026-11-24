@@ -214,6 +214,14 @@ export default function Header() {
           >
             Blog
           </Link>
+          {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): link Eventos al lado
+              de Blog, mismo styling text-sm font-normal text-slate-500. */}
+          <Link
+            href="/eventos"
+            className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-4"
+          >
+            Eventos
+          </Link>
           <Link
             href="/explorar"
             className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-2"
@@ -449,6 +457,14 @@ export default function Header() {
                 >
                   Blog
                 </Link>
+                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): Eventos menú mobile (anon). */}
+                <Link
+                  href="/eventos"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
+                  onClick={() => setOpen(false)}
+                >
+                  Eventos
+                </Link>
                 <Link
                   href="/explorar"
                   className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
@@ -505,6 +521,18 @@ export default function Header() {
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
+                </Link>
+                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): Eventos menú mobile (auth). */}
+                <Link
+                  href="/eventos"
+                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/eventos')
+                      ? 'bg-accent-600 text-white font-semibold'
+                      : 'text-slate-500 font-normal hover:text-accent-600'
+                  }`}
+                  onClick={() => setOpen(false)}
+                >
+                  Eventos
                 </Link>
                 <Link
                   href="/blog"
