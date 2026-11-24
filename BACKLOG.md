@@ -1946,19 +1946,19 @@ Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](
 
 Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope. Codificar en `docs/playbooks/` el protocolo "fast recovery" ante quejas públicas o reseñas negativas durante campañas. Hoy vive como propuesta narrativa dentro de [`docs/planes/calidad-primera-campana.md`](docs/planes/calidad-primera-campana.md); convertir en checklist operacional accionable con pasos T0, T+15 min, T+1h, T+24h + templates de respuesta pública + flow privado DM post-respuesta visible.
 
-### WELCOME-EMAIL-SILENT-FAIL-GUARD — abierto · prioridad **MEDIA** (subió de BAJA el 2026-11-24 PM tras confirmación empírica) · post-launch
+### WELCOME-EMAIL-SILENT-FAIL-GUARD — abierto · prioridad **MEDIA** (subió de BAJA el 2026-11-24 PM tras confirmación empírica) · sin fecha (no gating)
 
 [pages/api/auth/welcome.ts:113-127](pages/api/auth/welcome.ts#L113-L127) no chequea `response.error` antes del `res.status(200).json({ success: true, response })`. Resend v4 puede devolver `{ data: null, error: { ... } }` **sin throw** cuando la API rechaza (rate limit, destinatario inválido, dominio no verificado, template oversize). Hoy el handler responde `200 success` con el error anidado dentro del body → **cero `Sentry.captureException`** (el `wrapApiHandlerWithSentry` captura solo throws reales) → silent-failure invisible salvo que alguien lea el response body del fetch desde el caller y haga algo con él (hoy el caller en `signup.ts` lo invoca fire-and-forget).
 
 Fix (~15 min): tras `const response = await resend.emails.send(...)`, chequear `if (response.error) { Sentry.captureMessage('welcome_email_resend_error', { level: 'warning', tags: { rol, errorName: response.error.name }, extra: { message: response.error.message } }); return res.status(502).json({ error: 'Email provider rejected', details: response.error }); }`. Opcional mantener `200 { skipped:true, reason }` siguiendo el patrón de los notify-* de Sprint 3 agendamiento.
 
-**Confirmación empírica 2026-11-24 PM (elevó prioridad a MEDIA)**: durante smoke #149 F-TR-17 pre-freeze, el flow de registro mostró `"¡Listo!"` al PO aunque Resend **rechazó el send silent** (Resend había llegado al 100% cuota free tier — razón del upgrade a Pro ese mismo día). El UI mostró success al usuario + el email jamás llegó + cero alerta productiva. Patrón exacto que la deuda documenta. Sube prioridad porque dejó de ser hipotético: tenemos UN caso real donde el gap costó smoke y pudo costar onboardings reales si hubiera pasado en prod.
+**Confirmación empírica 2026-11-24 PM (elevó prioridad a MEDIA)**: durante smoke #149 F-TR-17 de la jornada 24-11, el flow de registro mostró `"¡Listo!"` al PO aunque Resend **rechazó el send silent** (Resend había llegado al 100% cuota free tier — razón del upgrade a Pro ese mismo día). El UI mostró success al usuario + el email jamás llegó + cero alerta productiva. Patrón exacto que la deuda documenta. Sube prioridad porque dejó de ser hipotético: tenemos UN caso real donde el gap costó smoke y pudo costar onboardings reales si hubiera pasado en prod.
 
-Anotado inicialmente 2026-11-24 AM; confirmado empírico 2026-11-24 PM. Docs-only PR si solo agendar; código PR si se arregla después. **No gating pre-launch** — Resend ahora en Pro 50k/mes (ver [[resend-plan]]) → cap lejos de alcanzable en días post-launch; el fix del guard sigue siendo defense-in-depth para el próximo trigger silencioso (dominio no verificado, template oversize, rate limit post-crecimiento).
+Anotado inicialmente 2026-11-24 AM; confirmado empírico 2026-11-24 PM. Docs-only PR si solo agendar; código PR si se arregla después. **No gating** — Resend ahora en Pro 50k/mes (ver [[resend-plan]]) → cap lejos de alcanzable en volumen actual; el fix del guard sigue siendo defense-in-depth para el próximo trigger silencioso (dominio no verificado, template oversize, rate limit post-crecimiento con campañas pagadas).
 
-### RESEND-REMINDERS-DEDUP — abierto · prioridad MEDIA · post-launch
+### RESEND-REMINDERS-DEDUP — abierto · prioridad MEDIA · sin fecha (no gating)
 
-**Finding del PO 2026-11-24 PM** (durante smoke #149 pre-freeze, observando Resend dashboard post-upgrade Pro): **reminder emails del cron de reservas aparecen duplicados 3× en el mismo timestamp** en Resend Delivered log. Subjects observados (3 veces cada uno):
+**Finding del PO 2026-11-24 PM** (durante smoke #149 de la jornada 24-11, observando Resend dashboard post-upgrade Pro): **reminder emails del cron de reservas aparecen duplicados 3× en el mismo timestamp** en Resend Delivered log. Subjects observados (3 veces cada uno):
 
 - `[STAGING] (orig: acanocts+tutor@gmail.com) Mañana: tu reserva con Admin` ×3
 - `[STAGING] (orig: ...) Mañana: reserva de Camila Figueroa Mendoza` ×3
@@ -1985,13 +1985,13 @@ Patrón: 3 envelopes idénticos (mismo recipient, mismo subject, timestamps dent
 2. **Fix estructural**: agregar idempotency a nivel BD (ej. tabla `recordatorios_enviados` con `(agendamiento_id, target_date)` UNIQUE, INSERT ON CONFLICT DO NOTHING antes del send). Opción B: columna `agendamientos.recordatorio_24h_enviado_at` NOT NULL post-send, filter WHERE recordatorio_24h_enviado_at IS NULL. Opción B es más simple pero mezcla concepts; A es más escalable (próximo "1h antes" sprint que menciona CLAUDE.md necesitará su propia dedup key).
 3. **Guard contra callers e2e en prod**: ya existe `cronGuard` que exige `?bypassEnv=1 + x-cron-secret`. Verificar que en STAGING el guard no permite más de N invokes/hora o similar rate-limit para evitar que el CI drene quota Resend.
 
-**Mitigación provisional**: Pro plan 50k emails/mes (upgrade 2026-11-24, ver [[resend-plan]]) absorbe el 3× consumption sin fricción pre-launch. Fix estructural puede esperar a post-launch.
+**Mitigación provisional**: Pro plan 50k emails/mes (upgrade 2026-11-24, ver [[resend-plan]]) absorbe el 3× consumption sin fricción en volumen actual. Fix estructural puede esperar hasta que el gatillo del sprint suba (crecimiento post-campañas-pagadas o detección de spam a users reales).
 
 **Estimación**: 3-5h entre investigación + fix + test.
 
 Anotado 2026-11-24 PM post-finding del PO en Resend dashboard durante smoke #149. Relacionado: [[resend-plan]] auto-memory, [[RESEND-STAGING-SPLIT]] (si el fix requiere separar workspaces, se puede combinar).
 
-### RESEND-STAGING-SPLIT — abierto · prioridad MEDIA · post-launch
+### RESEND-STAGING-SPLIT — abierto · prioridad MEDIA · sin fecha (gatillo = quota mes ≥70%)
 
 Separar la quota Resend de staging/preview de la de prod. Hoy comparten `RESEND_API_KEY` (misma workspace) → CI runs + smokes manuales + previews consumen el mismo cap que los emails productivos. El 2026-11-24 ambos ambientes contribuyeron a saturar la quota free tier → upgrade a Pro ($20/mes 50k emails, ver [[resend-plan]] en auto-memory).
 
@@ -2000,7 +2000,7 @@ Opciones conocidas:
 - **A (ligera, ~2h)**: crear segundo workspace Resend con API key propia para staging + apuntar `RESEND_API_KEY` en Vercel scope Preview a esa key. Prod mantiene la actual. Cero cambio de código, solo env vars.
 - **B (más granular, ~4h)**: rate-limit en `lib/resend.ts` wrapper cuando `!IS_PROD` para cap self-impuesto (ej. 100 emails/día) + telemetry al dashboard interno. Más laborioso pero zero costo de workspace extra.
 
-**Gatillo para arrancar**: cuando la quota mes empiece a acercarse al 70% consumido post-launch. Mientras tanto el upgrade Pro da runway cómodo.
+**Gatillo para arrancar**: cuando la quota mes empiece a acercarse al 70% consumida (monitoreo del PO). Mientras tanto el upgrade Pro da runway cómodo.
 
 Anotado 2026-11-24 post-upgrade a Pro. Relacionado: [[resend-plan]] en auto-memory operativa.
 
