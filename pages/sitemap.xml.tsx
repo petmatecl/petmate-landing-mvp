@@ -2,7 +2,7 @@ import { GetServerSideProps } from "next";
 import { supabase } from "../lib/supabaseClient";
 
 const STATIC_ROUTES = [
-    "/", "/explorar", "/blog", "/faq", "/terminos", "/privacidad",
+    "/", "/explorar", "/blog", "/eventos", "/faq", "/terminos", "/privacidad",
 ];
 
 export const getServerSideProps: GetServerSideProps = async ({ res }) => {
