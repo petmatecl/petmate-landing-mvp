@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target } from 'lucide-react';
+import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target, Calendar } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -67,6 +67,17 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             }`}
                     >
                         <Target size={20} /> Métricas
+                    </Link>
+
+                    {/* Sprint EVENTOS MVP (2026-11-24) */}
+                    <Link
+                        href="/admin/eventos"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${router.pathname.startsWith('/admin/eventos')
+                            ? 'bg-accent-50 text-accent-700 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                    >
+                        <Calendar size={20} /> Eventos
                     </Link>
 
                     <Link
