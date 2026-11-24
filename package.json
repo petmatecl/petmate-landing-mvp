@@ -15,6 +15,7 @@
     "test:formatFecha": "npx tsx lib/formatFecha.test.ts",
     "test:noches": "npx tsx lib/nochesAgenda.test.ts",
     "test:tipo-cd": "npx tsx lib/tipo-cd-handlers.test.ts",
+    "test:eventos-format": "npx tsx lib/eventosFormat.test.ts",
     "test:g1-admin": "npx tsx lib/g1-admin.test.ts",
     "test:g1-agendamientos": "npx tsx lib/g1-agendamientos.test.ts",
     "test:g1-cron-auth": "npx tsx lib/g1-cron-auth.test.ts",

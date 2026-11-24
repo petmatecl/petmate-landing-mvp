@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { Calendar, MapPin, Ticket, ArrowLeft, Instagram, ExternalLink } from 'lucide-react';
 import { getProxyImageUrl } from '../../lib/utils';
+import { tipoLabel, formatFechaCompletaEvento, formatHoraEvento } from '../../lib/eventosFormat';
 import type { GetServerSideProps } from 'next';
 
 // Sprint EVENTOS-MVP-PULIDO PR 2 (2026-11-24) — Página detalle individual.
@@ -35,14 +36,6 @@ interface Props {
     evento: EventoDetailRow | null;
     siteOrigin: string;
 }
-
-const TIPO_LABELS: Record<string, string> = {
-    feria: 'Feria',
-    jornada: 'Jornada',
-    charla: 'Charla',
-    competencia: 'Competencia',
-    meetup: 'Meetup',
-};
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -77,18 +70,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
     }
 };
 
-function formatFecha(iso: string) {
-    const d = new Date(iso + 'T12:00:00');
-    return d.toLocaleDateString('es-CL', {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-    });
-}
-
-function formatHora(h: string | null) {
-    if (!h) return null;
-    return h.slice(0, 5);
-}
-
 function instagramUrl(handle: string): string {
     const clean = handle.replace(/^@/, '').trim();
     return `https://www.instagram.com/${clean}/`;
@@ -109,8 +90,8 @@ function truncate(s: string, max: number): string {
 
 export default function EventoDetailPage({ evento, siteOrigin }: Props) {
     if (!evento) return null;
-    const horaInicio = formatHora(evento.hora_inicio);
-    const horaFin = formatHora(evento.hora_fin);
+    const horaInicio = formatHoraEvento(evento.hora_inicio);
+    const horaFin = formatHoraEvento(evento.hora_fin);
     const ogTitle = `${evento.nombre} · Pawnecta`;
     const ogDescription = truncate(evento.descripcion, 160);
     const ogImage = evento.imagen_url
@@ -161,7 +142,7 @@ export default function EventoDetailPage({ evento, siteOrigin }: Props) {
 
                 <div className="mb-4">
                     <span className="inline-block px-3 py-1 text-sm font-medium bg-accent-100 text-accent-800 rounded-full">
-                        {TIPO_LABELS[evento.tipo] ?? evento.tipo}
+                        {tipoLabel(evento.tipo)}
                     </span>
                 </div>
 
@@ -173,7 +154,7 @@ export default function EventoDetailPage({ evento, siteOrigin }: Props) {
                     <div className="flex items-start gap-3">
                         <Calendar size={20} className="text-accent-600 mt-0.5 shrink-0" />
                         <div>
-                            <div className="font-semibold capitalize">{formatFecha(evento.fecha)}</div>
+                            <div className="font-semibold capitalize">{formatFechaCompletaEvento(evento.fecha)}</div>
                             {horaInicio && (
                                 <div className="text-sm text-slate-500">
                                     {horaInicio}{horaFin ? ` – ${horaFin}` : ''} hrs
