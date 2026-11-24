@@ -10,6 +10,7 @@ import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
 import { ChevronDown, LogOut } from "lucide-react";
 import { useUnreadMessagesCount } from "../lib/hooks/useUnreadMessagesCount";
+import { SOCIAL_LINKS } from "../lib/socialLinks";
 
 export default function Header() {
 
@@ -228,6 +229,26 @@ export default function Header() {
           >
             Explorar servicios
           </Link>
+          {/* Sprint RRSS-ICONS (2026-11-24): iconos RRSS discretos a la
+              izquierda del Ingresar / NotificationBell. Grupo horizontal
+              pequeño (16px) separado por gap mínimo. Color slate-400
+              default + hover al brand accent-600. Discoverability sin
+              empujar login/register. Fuente SOCIAL_LINKS en
+              lib/socialLinks.ts (compartida con Footer). */}
+          <div className="flex items-center gap-2 mr-3" aria-label="Redes sociales Pawnecta">
+            {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+              <a
+                key={name}
+                href={href}
+                aria-label={name}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center text-slate-400 hover:text-accent-600 transition-colors"
+              >
+                <Icon size={16} className="shrink-0" />
+              </a>
+            ))}
+          </div>
           {(!isAuthenticated || loggingOut) ? (
             <>
               <Link
@@ -632,6 +653,33 @@ export default function Header() {
                 </button>
               </>
             )}
+
+            {/* Sprint RRSS-ICONS (2026-11-24): sección "Síguenos" al fondo
+                del menu mobile (común a anon + auth). 4 iconos horizontales
+                grandes con labels compactos debajo, click abre red en
+                pestaña nueva. Visible solo cuando el menu mobile está
+                abierto — no empuja nav principal. */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3 text-center">
+                Síguenos
+              </p>
+              <div className="flex items-center justify-center gap-5">
+                {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    aria-label={name}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex flex-col items-center gap-1 text-slate-500 hover:text-accent-600 transition-colors"
+                  >
+                    <Icon size={22} className="shrink-0" />
+                    <span className="text-[10px] font-medium">{name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

@@ -1,11 +1,8 @@
 // components/Footer.tsx
 import Link from "next/link";
 import Image from "next/image";
-import { ChevronDown, Instagram } from "lucide-react";
-
-const socialLinks = [
-  { name: 'Instagram', href: 'https://www.instagram.com/pawnecta', Icon: Instagram },
-];
+import { ChevronDown } from "lucide-react";
+import { SOCIAL_LINKS } from "../lib/socialLinks";
 
 export function Footer() {
   return (
@@ -176,8 +173,13 @@ export function Footer() {
         </div>
       </div>
 
-      {/* BANDA INFERIOR — copyright + legal + social en una fila */}
-      <div className="border-t border-slate-200 py-5">
+      {/* BANDA INFERIOR — copyright + legal + social en una fila.
+          Sprint RRSS-ICONS (2026-11-24): pb-28 lg:pb-24 para dejar
+          espacio al FeedbackWidget flotante (bottom-24 mobile +
+          w-12 h-12 ≈ 144px clearance; bottom-6 lg + h~40px ≈ 70px).
+          Sin padding, el bubble flotante tapa los icons al fin del
+          scroll. */}
+      <div className="border-t border-slate-200 py-5 pb-28 lg:pb-24">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
           <p className="text-sm text-slate-500">© 2026 Pawnecta. Todos los derechos reservados.</p>
           <div className="flex items-center gap-4 text-sm text-slate-500">
@@ -193,15 +195,16 @@ export function Footer() {
             </button>
           </div>
           <div className="flex items-center gap-2">
-            {socialLinks.map(({ name, href, Icon }) => (
+            {SOCIAL_LINKS.map(({ name, href, Icon }) => (
               <Link
                 key={name}
                 href={href}
                 aria-label={name}
                 target="_blank"
+                rel="noopener noreferrer"
                 className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 hover:bg-accent-50 hover:text-accent-600 hover:border-accent-600 transition-all"
               >
-                <Icon size={18} aria-hidden="true" />
+                <Icon size={18} className="shrink-0" />
               </Link>
             ))}
           </div>
