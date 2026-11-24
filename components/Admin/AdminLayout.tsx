@@ -1,89 +1,91 @@
-import React from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/router';
+// components/Admin/AdminLayout.tsx
+// ----------------------------------------------------------------------------
+// Sprint admin-sidebar-ref — Opción III (2026-11-20). Reescritura para
+// consumir el nuevo <AdminSidebar/> compartido. Las 6 tabs SPA se
+// renderizan como Link a /admin?tab=X; la sub-ruta activa se detecta
+// por router.pathname.
+//
+// Qué NO maneja este layout:
+// - La tab "Aprobaciones" condicional. No tenemos acceso al count desde
+//   acá — el SPA la muestra cuando aplica; las sub-páginas no.
+// - Los badges de count (feedback nuevo, etc). Son data del SPA.
+//
+// Diseño visual: tomado del SPA (ShieldCheck + "Admin · Pawnecta"); el
+// componente <AdminSidebar/> es idéntico en ambas superficies.
+// ----------------------------------------------------------------------------
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target } from 'lucide-react';
+import { useRouter } from 'next/router';
+import {
+    BarChart3,
+    TrendingUp,
+    MessageSquareWarning,
+    Users,
+    MessageSquareText,
+    type LucideIcon,
+} from 'lucide-react';
+import AdminSidebar, { type AdminSidebarTab } from './AdminSidebar';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
 }
 
+// Los 5 tabs no-condicionales del SPA. "Aprobaciones" se omite (ver header).
+const SPA_TABS: AdminSidebarTab[] = [
+    { id: 'dashboard', label: 'Métricas', icon: BarChart3 },
+    { id: 'conversion', label: 'Conversión', icon: TrendingUp },
+    { id: 'moderacion', label: 'Moderación', icon: MessageSquareWarning },
+    { id: 'proveedores', label: 'Proveedores', icon: Users },
+    { id: 'feedback', label: 'Feedback', icon: MessageSquareText },
+];
+
 export default function AdminLayout({ children }: AdminLayoutProps) {
     const router = useRouter();
 
-    const isActive = (path: string) => router.pathname === path;
+    // Re-medir offset del header (navbar + banner opcional) — mismo mecanismo
+    // que pages/admin.tsx para que el sidebar sticky arranque abajo del
+    // header real, no a un offset hardcodeado.
+    const [headerH, setHeaderH] = useState(72);
+    useEffect(() => {
+        const measure = () => {
+            const header = document.querySelector('header');
+            if (header) {
+                const rect = header.getBoundingClientRect();
+                setHeaderH(rect.bottom);
+            }
+        };
+        measure();
+        window.addEventListener('resize', measure);
+        const t = setTimeout(measure, 500);
+        return () => {
+            window.removeEventListener('resize', measure);
+            clearTimeout(t);
+        };
+    }, []);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+        <div className="min-h-screen bg-[#F8FAFC] font-sans">
             <Head>
                 <title>Panel de Administración | Pawnecta</title>
             </Head>
 
-            {/* Sidebar / Mobile Nav */}
-            <aside className="bg-white border-b md:border-b-0 md:border-r border-slate-300 w-full md:w-64 flex-shrink-0 md:sticky md:top-24 md:h-[calc(100vh-6rem)] md:overflow-y-auto no-scrollbar">
-                <div className="p-6 border-b border-slate-300 flex items-center justify-between md:block">
-                    <Link href="/admin" className="text-xl font-bold text-accent-700 tracking-tight flex items-center gap-2">
-                        <PawPrint size={24} /> PAWNECTA <span className="text-slate-500 font-normal text-xs">Admin</span>
-                    </Link>
-                </div>
+            <div className="flex" style={{ paddingTop: headerH }}>
+                <AdminSidebar
+                    tabs={SPA_TABS}
+                    activeTab={null}
+                    activeSubRoute={router.pathname}
+                    headerH={headerH}
+                />
 
-                <nav className="p-4 space-y-1 overflow-x-auto md:overflow-visible flex md:block scrollbar-hide">
-                    <Link
-                        href="/admin"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin')
-                            ? 'bg-accent-50 text-accent-700 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                    >
-                        <LayoutDashboard size={20} /> Dashboard
-                    </Link>
-
-                    <Link
-                        href="/admin/evaluaciones"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/evaluaciones')
-                            ? 'bg-accent-50 text-accent-700 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                    >
-                        <Star size={20} /> Evaluaciones
-                    </Link>
-
-                    <Link
-                        href="/admin/notificaciones"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/notificaciones')
-                            ? 'bg-accent-50 text-accent-700 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                    >
-                        <Bell size={20} /> Notificaciones
-                    </Link>
-
-                    {/* Sprint TRACKING-META-100-PROVEEDORES Opción B (2026-11-20) */}
-                    <Link
-                        href="/admin/metricas-proveedores"
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/metricas-proveedores')
-                            ? 'bg-accent-50 text-accent-700 font-semibold'
-                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
-                            }`}
-                    >
-                        <Target size={20} /> Métricas
-                    </Link>
-
-                    <Link
-                        href="/"
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-50 hover:text-slate-600 font-medium transition-colors whitespace-nowrap mt-4"
-                    >
-                        <ArrowLeft size={20} /> Volver al Sitio
-                    </Link>
-                </nav>
-            </aside>
-
-            {/* Main Content */}
-            <main className="flex-1 p-4 md:p-8">
-                <div className="max-w-7xl mx-auto">
-                    {children}
-                </div>
-            </main>
+                <main className="flex-1 p-4 lg:p-6" style={{ paddingTop: `calc(1rem + 56px)` }}>
+                    {/* paddingTop extra = header mobile tabs 56px. Desktop
+                        lg: el sidebar sticky ya no necesita este offset — el
+                        padding de 2rem lo cubre. */}
+                    <div className="max-w-7xl mx-auto lg:pt-0 -mt-14 lg:-mt-0">
+                        {children}
+                    </div>
+                </main>
+            </div>
         </div>
     );
 }

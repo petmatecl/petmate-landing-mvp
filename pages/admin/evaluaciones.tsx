@@ -1,12 +1,12 @@
 ﻿import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
-import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import RoleGuard from '../../components/Shared/RoleGuard';
+import AdminLayout from '../../components/Admin/AdminLayout';
 import { trackEvent } from '../../lib/gtag';
 import {
-    ArrowLeft, Search, Star, MessageSquareWarning,
-    CheckCircle2, XCircle, Clock, ShieldCheck, Filter, UserIcon, AlertTriangle
+    Search, Star, MessageSquareWarning,
+    CheckCircle2, XCircle, Clock, Filter, UserIcon, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -203,27 +203,21 @@ function GestionEvaluaciones() {
     };
 
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans pb-12">
+        <div className="w-full pb-12">
             <Head><title>Evaluaciones | Admin</title></Head>
 
-            <header className="bg-slate-900 text-white p-6 sticky top-0 z-30">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-4 justify-between items-center">
-                    <div className="flex items-center gap-4">
-                        <Link href="/admin" className="text-slate-500 hover:text-white transition-colors bg-slate-800 p-2 rounded-lg">
-                            <ArrowLeft size={20} />
-                        </Link>
-                        <div>
-                            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-                                <MessageSquareWarning className="text-amber-400" />
-                                Evaluaciones
-                            </h1>
-                            <p className="text-sm text-slate-500">Revisión de feedback de usuarios a proveedores</p>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            {/* Sprint admin-sidebar-ref Opción III — removido el <header>
+                negro sticky + back button; AdminLayout provee el sidebar
+                unificado con navegación persistente. */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2 text-slate-900">
+                    <MessageSquareWarning className="text-amber-500" />
+                    Evaluaciones
+                </h1>
+                <p className="mt-1 text-sm text-slate-600">Revisión de feedback de usuarios a proveedores</p>
+            </div>
 
-            <div className="max-w-5xl mx-auto p-4 sm:p-6 lg:p-top-8">
+            <div className="max-w-5xl mx-auto">
 
                 {/* Estadísticas Rápidas */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-6">
@@ -472,7 +466,9 @@ function GestionEvaluaciones() {
 export default function GestionEvaluacionesPage() {
     return (
         <RoleGuard requiredRole="admin">
-            <GestionEvaluaciones />
+            <AdminLayout>
+                <GestionEvaluaciones />
+            </AdminLayout>
         </RoleGuard>
     );
 }
