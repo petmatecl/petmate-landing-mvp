@@ -33,6 +33,7 @@ import FavoritoButton from '../../components/Shared/FavoritoButton';
 import { useTrackVisit } from '../../lib/hooks/useTrackVisit';
 import { instagramUsernameFromUrl } from '../../lib/validators';
 import { roundCoordsForPublic } from '../../lib/coordsPrivacy';
+import { trackEvent } from '../../lib/gtag';
 // Sprint 4 Fase 1 / Commit 3: la ficha publica del proveedor ya no renderiza
 // proveedor.datos_especificos. Imports legacy (CAMPOS_POR_CATEGORIA,
 // formatValorCampo, CampoDinamico, findCampoLegacy) eliminados.
@@ -87,6 +88,20 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
 
     // Track visit (no trackea si es el dueño del perfil)
     useTrackVisit('proveedor', proveedor?.id, proveedor?.auth_user_id);
+
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): perfil_proveedor_visto —
+    // mide cada landing en la ficha pública del proveedor. Fire una sola
+    // vez por mount para ese id; cambio de id re-dispara. Gate PL2: no-op
+    // en non-prod.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => {
+        if (!proveedor?.id) return;
+        trackEvent('perfil_proveedor_visto', {
+            provider_id: proveedor.id,
+            verified: !!(proveedor.rut_verificado || proveedor.verificacion_estado === 'aprobado'),
+            service_count: Array.isArray(servicios) ? servicios.length : 0,
+        });
+    }, [proveedor?.id]);
 
     const handleProtectedLinkClick = (e: React.MouseEvent) => {
         if (!user) {
