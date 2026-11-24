@@ -27,6 +27,7 @@ import { fetchProveedoresPublicosByIds } from '../lib/supabase/queries/proveedor
 import ServiceCard, { ServiceResult } from '../components/Explore/ServiceCard';
 import ProveedorCard, { ProveedorCardData } from '../components/Explore/ProveedorCard';
 import { mapJoinToServiceResult } from '../lib/serviceMapper';
+import { displayName as displayNameOf } from '../lib/displayName';
 import { EstadoError } from '../components/Shared/EstadoError';
 
 type Tab = 'servicio' | 'proveedor';
@@ -142,7 +143,17 @@ export default function FavoritosPage() {
                 .filter(Boolean)
                 .map((p: any) => ({
                     id: p.id,
-                    nombre_publico: p.nombre_publico || `${p.nombre} ${p.apellido_p ?? ''}`.trim(),
+                    // Sprint pii-chat-nombre (2026-11-19) — displayName()
+                    // emite "Nombre I." cuando `nombre_publico` es null,
+                    // nunca el apellido completo. Antes acá se concatenaba
+                    // `${p.nombre} ${p.apellido_p}` como fallback, lo que
+                    // leakeaba apellido completo en superficie autenticada
+                    // (/favoritos tab Proveedores).
+                    nombre_publico: displayNameOf({
+                        nombre_publico: p.nombre_publico,
+                        nombre: p.nombre,
+                        apellido_p: p.apellido_p,
+                    }),
                     foto_perfil: p.foto_perfil,
                     comuna: p.comuna,
                     rut_verificado: p.rut_verificado,

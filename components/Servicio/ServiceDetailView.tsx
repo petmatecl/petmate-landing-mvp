@@ -23,7 +23,7 @@ const LocationMap = dynamic(() => import('../Shared/LocationMap'), {
 import { useRouter } from 'next/router';
 import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
-import { runReadQuery, runCountQuery } from '../../lib/supabaseReadQuery';
+import { runReadQuery } from '../../lib/supabaseReadQuery';
 import { useUser } from '../../contexts/UserContext';
 import LoginRequiredModal from '../Shared/LoginRequiredModal';
 import ExampleCTAModal, { ExampleAction } from './ExampleCTAModal';
@@ -326,30 +326,22 @@ export default function ServiceDetailView({
                 servicio_id: service.id,
             });
 
-            // Look for existing conversation (sitter_id = auth_user_id, not proveedores.id)
-            // Sprint tipo-b lote 3 (2026-09-09) — antes: si esta query fallaba
-            // (data null por network error, no por "no encontró"), el flujo
-            // caía a crear una conv nueva → duplicados. Ahora fail-close con
-            // toast: no creamos conv nueva si no pudimos verificar que ya
-            // existe. Log Sentry vía runReadQuery.
+            // Sprint CHAT-LAZY-CREATE (2026-11-23) — refactor: el click NO
+            // crea conv. Lookup existente; si hay, abre directo. Si no hay,
+            // navega a /mensajes?target=<proveedorAuthId>&servicio=<id> con
+            // el componente en modo "new chat" — la conv se crea atómicamente
+            // junto con el primer mensaje al pulsar Enviar.
             //
-            // Sprint chat-open-error (2026-09-24) — el filtro por servicio_id
-            // se REMOVIÓ. Decisión de producto PO 2026-09-24: UNA conversación
-            // por par tutor-proveedor, no por servicio. La BD ya lo enforce
-            // con `conversations_client_id_sitter_id_key UNIQUE (client_id,
-            // sitter_id)` (verificado prod + staging via MCP), sin servicio_id.
-            // El bug pre-fix: el filtro incluía servicio_id → si el tutor
-            // ya tenía conversación con este proveedor para OTRO servicio,
-            // esta query devolvía null → el flujo caía al INSERT → 409
-            // Conflict del constraint UNIQUE → catch → toast, sin conversación
-            // reusada. Bug reportado por PO 2026-09-24 desde ficha del
-            // servicio b1bdf757 "Acompañandolo en su hogar" con Maria Constanza
-            // (par ya tenía conversación de otro servicio). El servicio_id de
-            // la conversación existente se preserva como el primero — menos
-            // churn, semánticamente estable (retiene el contexto histórico
-            // del servicio con el que el par se conoció). El chat puede
-            // renderizar contexto adicional del servicio actual desde la UI
-            // sin tocar el servicio_id persistido.
+            // Reemplaza:
+            //   - INSERT conv al click (dejaba huérfanas si el user cerraba
+            //     la tab sin enviar — 4 verificadas en prod 2026-11-19).
+            //   - Rate limit client-side (ahora vive en el endpoint
+            //     /api/conversations/first-message).
+            //   - Lookup agendamiento vínculo (ahora también en el endpoint).
+            //
+            // Sprint chat-open-error (2026-09-24) — lookup por par (sin
+            // servicio_id). Constraint UNIQUE (client_id, sitter_id) ya
+            // enforce 1 conv por par.
             const proveedorAuthId = proveedor.auth_user_id;
             const existingResult = await runReadQuery<any>(
                 () => supabase
@@ -369,110 +361,21 @@ export default function ServiceDetailView({
                 return;
             }
 
-            // Rate limit: max 10 new conversations per 24h.
-            // Sprint tipo-b lote 3: fail-close si el count query falla —
-            // bypasearlo abriría el rate limit sin verificación.
-            const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const countResult = await runCountQuery(
-                () => supabase
-                    .from('conversations')
-                    .select('id', { count: 'exact', head: true })
-                    .eq('client_id', userId)
-                    .gte('created_at', since24h),
-                { subsystem: 'ficha_servicio_chat', table: 'conversations', route: '/servicio/[id]' },
-            );
-            if (countResult.error) {
-                toast.error('No pudimos abrir tu chat. Recarga y vuelve a intentar.');
-                return;
-            }
-            const convCount = countResult.count;
-
-            const CONV_LIMIT = Number(process.env.NEXT_PUBLIC_CONV_DAILY_LIMIT ?? 10);
-            if ((convCount ?? 0) >= CONV_LIMIT) {
-                toast.error('Has iniciado muchas conversaciones hoy. Intenta de nuevo mañana.');
-                return;
-            }
-
-            // Vinculo conversation → agendamiento (modelo b, punto 2).
-            // Antes de crear la conv, buscamos si YA existe un agendamiento
-            // entre este tutor y este servicio; si hay, arrancamos con
-            // agendamiento_id set. Cubre el caso "el tutor solicito primero
-            // y despues abre el chat" — el chip de mascota aparece desde
-            // el primer mensaje sin esperar a que el proveedor solicite
-            // otra cosa. Fire-and-forget en la escritura: si el lookup falla,
-            // agendamiento_id queda null y el punto 1 lo settea en la
-            // proxima solicitud del tutor.
-            // Sprint tipo-b lote 3 (2026-09-09) — hidratación cosmética (el
-            // vínculo se usa para mostrar chip de mascota, no bloquea el chat).
-            // Fallo silencioso + log Sentry via runReadQuery; el punto 1
-            // resetea el vínculo en la próxima solicitud del tutor.
-            let vinculoAgendamientoId: string | null = null;
-            const buscadorResult = await runReadQuery<any>(
-                () => supabase
-                    .from('usuarios_buscadores')
-                    .select('id')
-                    .eq('auth_user_id', userId)
-                    .maybeSingle(),
-                { subsystem: 'ficha_servicio_chat', table: 'usuarios_buscadores', route: '/servicio/[id]' },
-            );
-            if (buscadorResult.data?.id) {
-                // agendamientos.tutor_id referencia usuarios_buscadores.id
-                // (no auth.users.id) — necesitamos el buscador.id para el
-                // lookup. El scope (tutor + proveedor + servicio) matchea
-                // exactamente el scope de la conv (per-servicio).
-                const recentResult = await runReadQuery<any>(
-                    () => supabase
-                        .from('agendamientos')
-                        .select('id')
-                        .eq('tutor_id', buscadorResult.data!.id)
-                        .eq('proveedor_id', proveedor.id)
-                        .eq('servicio_id', service.id)
-                        .order('created_at', { ascending: false })
-                        .limit(1)
-                        .maybeSingle(),
-                    { subsystem: 'ficha_servicio_chat', table: 'agendamientos', route: '/servicio/[id]' },
-                );
-                vinculoAgendamientoId = recentResult.data?.id ?? null;
-            }
-
-            // Create new conversation (sitter_id must be auth.users.id)
-            const { data: newConv, error } = await supabase
-                .from('conversations')
-                .insert({
-                    client_id: userId,
-                    sitter_id: proveedorAuthId,
-                    servicio_id: service.id,
-                    proveedor_auth_id: proveedorAuthId,
-                    agendamiento_id: vinculoAgendamientoId,
-                })
-                .select()
-                .single();
-
-            if (error) throw error;
-            if (newConv) {
-                router.push(`/mensajes?id=${newConv.id}`);
-            }
-
+            // No existe → navegar en modo "new chat". MessageThread detecta
+            // target + servicio del query y renderiza placeholder hasta que
+            // el user envíe el primer mensaje (POST al endpoint atómico).
+            router.push(`/mensajes?target=${proveedorAuthId}&servicio=${service.id}`);
         } catch (error) {
-            // Sprint chat-open-error (2026-09-24) — reportar a Sentry para
-            // desbloquear diagnóstico del bug "1er clic falla + 2do clic
-            // funciona con conversación creada" que el PO reprodujo 2026-09-24
-            // y no dejó evento (el catch previo solo hacía console.error +
-            // toast). Regla operativa nueva del proyecto: todo catch que
-            // muestre toast.error al usuario reporta a Sentry con
-            // captureException + tag subsystem — aterrizar sistémicamente en
-            // sprint SENTRY-TOAST (kickoff domingo 2026-09-28); acá se
-            // adelanta el caso puntual para tener datos del próximo evento.
             Sentry.captureException(error, {
-                tags: { subsystem: 'ficha_servicio_chat_insert' },
+                tags: { subsystem: 'ficha_servicio_chat_click' },
                 contexts: {
-                    chat_insert: {
+                    chat_click: {
                         servicio_id: service.id,
                         proveedor_id: proveedor.id,
                     },
                 },
             });
-            console.error('Error starting conversation:', error);
+            console.error('Error opening chat:', error);
             toast.error('Hubo un error al intentar abrir el chat. Intenta de nuevo.');
         } finally {
             setIsChatLoading(false);

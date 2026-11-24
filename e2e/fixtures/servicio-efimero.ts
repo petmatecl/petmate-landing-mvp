@@ -10,6 +10,7 @@
 // ---------------------------------------------------------------------------
 import { SupabaseClient } from '@supabase/supabase-js';
 import { timeMark } from './timing';
+import { invalidateRoleCache, getSupabaseAsProveedor } from './supabase';
 
 // Sprint pan-1 PR-1 wrap (2026-09-11) — fix def 5: prefix display-friendly.
 // Mismo cambio que servicio-cuidado-listo.ts (ver comentario extenso allí).
@@ -81,43 +82,99 @@ async function crearServicioEfimero(
     opts: { slug: string; unidadPrecio: string },
 ): Promise<ServicioEfimero> {
     const categoriaId = await resolverCategoriaIdPorSlug(supabase, opts.slug);
-    const titulo = `${E2E_TITULO_PREFIX}${Date.now()}`;
-    const { data, error } = await supabase
+
+    // Sprint fix-fix-cuidado (2026-11-23) — payload compartido para primer
+    // intento + retry en caso de silent-null (RLS INSERT revocado post-signOut
+    // global del PO humano; patrón AUTH-TOKEN-PERSIST documentado en CLAUDE.md).
+    // Cada intento genera titulo nuevo para no colisionar con UNIQUE si
+    // acaso el 1er INSERT llegó a server y después el silent-null fue del
+    // RETURNING fallido.
+    const buildPayload = () => ({
+        proveedor_id: proveedorId,
+        categoria_id: categoriaId,
+        titulo: `${E2E_TITULO_PREFIX}${Date.now()}`,
+        // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
+        // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
+        // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
+        // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
+        // toast.error silencioso y test que esperaba éxito falla. Copy en
+        // tuteo, explica su rol de fixture y que se auto-elimina, sin
+        // pretender ser un servicio real ofertado.
+        descripcion:
+            'Servicio efímero generado por la suite e2e para probar el ' +
+            'flujo del editor y de reservas del proveedor. Se elimina ' +
+            'automáticamente al terminar cada test — no lo publiques ni ' +
+            'lo contactes, es solo de prueba.',
+        precio_desde: 15000,
+        unidad_precio: opts.unidadPrecio,
+        acepta_perros: true,
+        acepta_gatos: false,
+        acepta_otras: false,
+        tamanos_aceptados: ['pequeño', 'mediano'],
+        // Placeholder Unsplash (dominio whitelisteado en CSP del proyecto).
+        fotos: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400'],
+        comunas_cobertura: ['Providencia'],
+        activo: true,
+        agendamiento_habilitado: true,
+    });
+
+    const firstAttempt = await supabase
         .from('servicios_publicados')
-        .insert({
-            proveedor_id: proveedorId,
-            categoria_id: categoriaId,
-            titulo,
-            // Descripción ≥ 100 chars — respeta el guard `descripcion.trim()
-            // .length < 100` de `components/Proveedor/ServiceFormModal.tsx:625`
-            // (sprint panel-prov-fixes, 2026-08-27). Un fixture con descripción
-            // corta ejecuta Guardar pero el guard lo aborta antes del PATCH —
-            // toast.error silencioso y test que esperaba éxito falla. Copy en
-            // tuteo, explica su rol de fixture y que se auto-elimina, sin
-            // pretender ser un servicio real ofertado.
-            descripcion:
-                'Servicio efímero generado por la suite e2e para probar el ' +
-                'flujo del editor y de reservas del proveedor. Se elimina ' +
-                'automáticamente al terminar cada test — no lo publiques ni ' +
-                'lo contactes, es solo de prueba.',
-            precio_desde: 15000,
-            unidad_precio: opts.unidadPrecio,
-            acepta_perros: true,
-            acepta_gatos: false,
-            acepta_otras: false,
-            tamanos_aceptados: ['pequeño', 'mediano'],
-            // Placeholder Unsplash (dominio whitelisteado en CSP del proyecto).
-            fotos: ['https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=400'],
-            comunas_cobertura: ['Providencia'],
-            activo: true,
-            agendamiento_habilitado: true,
-        })
+        .insert(buildPayload())
         .select('id, titulo')
         .single();
-    if (error || !data) {
-        throw new Error(`[servicio-efimero] INSERT (${opts.slug}) falló: ${error?.message ?? 'sin data'}`);
+
+    // Sprint fix-fix-cuidado (2026-11-23) — retry defensivo UNA vez cuando
+    // `data=null + error=null` (silent-null, patrón de session revocada
+    // mid-request). Invalidar cache del rol → forzar buildEntry fresh →
+    // fallback signInWithPassword recupera sesión viva. Si el 2do intento
+    // también cae silent-null, es bug real (no revocación) y el mensaje
+    // de error lo distingue.
+    //
+    // Si el firstAttempt tiene error explícito (constraint, policy,
+    // schema), no reintentamos — propagamos el error original.
+    if (firstAttempt.error) {
+        throw new Error(
+            `[servicio-efimero] INSERT (${opts.slug}) falló con error: ${firstAttempt.error.message}`,
+        );
     }
-    return { id: data.id as string, titulo: data.titulo as string };
+    if (firstAttempt.data) {
+        return {
+            id: firstAttempt.data.id as string,
+            titulo: firstAttempt.data.titulo as string,
+        };
+    }
+    // data === null && error === null → silent-null → retry fresh.
+    console.warn(
+        `[servicio-efimero] INSERT (${opts.slug}) devolvió silent-null ` +
+        `(posible sesión revocada mid-request, patrón AUTH-TOKEN-PERSIST). ` +
+        `Reintentando con cliente fresh...`,
+    );
+    invalidateRoleCache('proveedor');
+    const freshSupabase = await getSupabaseAsProveedor();
+    const retryAttempt = await freshSupabase
+        .from('servicios_publicados')
+        .insert(buildPayload())
+        .select('id, titulo')
+        .single();
+    if (retryAttempt.error) {
+        throw new Error(
+            `[servicio-efimero] INSERT (${opts.slug}) falló en retry: ${retryAttempt.error.message}`,
+        );
+    }
+    if (!retryAttempt.data) {
+        throw new Error(
+            `[servicio-efimero] INSERT (${opts.slug}) silent-null también en retry fresh — ` +
+            `no es session issue. Verificar RLS policy, triggers o constraints en servicios_publicados.`,
+        );
+    }
+    console.warn(
+        `[servicio-efimero] INSERT (${opts.slug}) OK en retry fresh (id=${retryAttempt.data.id}).`,
+    );
+    return {
+        id: retryAttempt.data.id as string,
+        titulo: retryAttempt.data.titulo as string,
+    };
 }
 
 /**

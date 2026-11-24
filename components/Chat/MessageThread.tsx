@@ -1,4 +1,6 @@
 ﻿import React, { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/router';
+import * as Sentry from '@sentry/nextjs';
 import { supabase } from '../../lib/supabaseClient';
 import { Message } from '../../types/chat';
 import { createNotification } from '../../lib/notifications';
@@ -13,17 +15,39 @@ import { getProxyImageUrl } from '../../lib/utils';
 interface Props {
     conversationId: string;
     userId: string | null;
+    // Sprint CHAT-LAZY-CREATE (2026-11-23) — modo "new chat". Cuando
+    // conversationId arranca con `new:<authId>` y newChatTargetAuthId está
+    // set, el componente NO fetchea messages/details (no hay conv aún).
+    // Renderiza header con getParticipantProfile(targetAuthId) + empty
+    // state. En handleSend llama al endpoint atómico
+    // POST /api/conversations/first-message → al éxito invoca
+    // onConversationCreated(realId) para que el parent actualice selected.
+    newChatTargetAuthId?: string;
+    newChatServicioId?: string;
+    onConversationCreated?: (realConvId: string) => void;
 }
 
-export default function MessageThread({ conversationId, userId }: Props) {
+export default function MessageThread({
+    conversationId,
+    userId,
+    newChatTargetAuthId,
+    newChatServicioId,
+    onConversationCreated,
+}: Props) {
+    const router = useRouter();
+    const isNewChat = conversationId.startsWith('new:') && !!newChatTargetAuthId;
     const { onlineUsers } = useOnlineStatus();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
-    const [loading, setLoading] = useState(true);
-    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string; email?: string } | null>(null);
+    const [loading, setLoading] = useState(!isNewChat);
+    const [sending, setSending] = useState(false);
+    // Sprint pii-chat-nombre (2026-11-19) — shape ParticipantProfile unificado:
+    // `display_name` precomputado por `getParticipantProfile`, cero componer
+    // nombre + apellido en cliente.
+    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; display_name: string; foto_perfil?: string } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
-    const [myUser, setMyUser] = useState<{ nombre: string } | null>(null);
+    const [myUser, setMyUser] = useState<{ display_name: string } | null>(null);
     const [fetchError, setFetchError] = useState(false);
     // Vinculo chat-agendamiento (modelo b): si la conv esta linkeada a un
     // agendamiento y ese agendamiento tiene mascota_id, mostramos chip
@@ -32,7 +56,20 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const [mascotaChip, setMascotaChip] = useState<{ nombre: string; tipo: string; foto_mascota: string | null } | null>(null);
 
     useEffect(() => {
-        if (conversationId && userId) {
+        if (isNewChat && newChatTargetAuthId && userId) {
+            // Modo new-chat: solo resolver perfil del target + perfil propio.
+            // No hay conv ni mensajes que fetchear.
+            (async () => {
+                const [targetProfile, meProfile] = await Promise.all([
+                    getParticipantProfile(newChatTargetAuthId),
+                    getParticipantProfile(userId),
+                ]);
+                if (targetProfile) setOtherUser(targetProfile);
+                if (meProfile) setMyUser(meProfile);
+            })();
+            return;
+        }
+        if (conversationId && userId && !isNewChat) {
             fetchConversationDetails();
             fetchMessages();
             const unsubscribe = subscribeToMessages();
@@ -41,7 +78,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
             };
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [conversationId, userId]);
+    }, [conversationId, userId, isNewChat, newChatTargetAuthId]);
 
     async function fetchConversationDetails() {
         try {
@@ -204,6 +241,52 @@ export default function MessageThread({ conversationId, userId }: Props) {
         const content = newMessage.trim();
         setNewMessage(''); // Clear input immediately
 
+        // Sprint CHAT-LAZY-CREATE (2026-11-23) — en modo new-chat, el primer
+        // envío va al endpoint atómico que crea conv + message en server-side.
+        if (isNewChat && newChatTargetAuthId) {
+            setSending(true);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!session?.access_token) {
+                    toast.error('Sesión expirada. Vuelve a iniciar sesión.');
+                    setNewMessage(content);
+                    return;
+                }
+                const resp = await fetch('/api/conversations/first-message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${session.access_token}`,
+                    },
+                    body: JSON.stringify({
+                        proveedorAuthId: newChatTargetAuthId,
+                        content,
+                        servicioId: newChatServicioId ?? null,
+                    }),
+                });
+                const payload = await resp.json();
+                if (!resp.ok) {
+                    toast.error(payload?.error || 'No pudimos enviar el mensaje.');
+                    setNewMessage(content);
+                    return;
+                }
+                const realId: string = payload.conversationId;
+                // Reemplazar URL + notificar al parent para que suba el
+                // selectedConversationId al id real.
+                router.replace(`/mensajes?id=${realId}`, undefined, { shallow: true });
+                onConversationCreated?.(realId);
+            } catch (err) {
+                Sentry.captureException(err, {
+                    tags: { subsystem: 'chat_new_chat_submit' },
+                });
+                toast.error('No pudimos enviar el mensaje.');
+                setNewMessage(content);
+            } finally {
+                setSending(false);
+            }
+            return;
+        }
+
         // Optimistic Update
         const optimisticMsg: Message = {
             id: `temp-${Date.now()}`,
@@ -227,8 +310,6 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 })
                 .select()
                 .single();
-
-            if (error) throw error;
 
             if (error) throw error;
 
@@ -267,7 +348,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     userId: otherUser.auth_user_id,
                     type: 'message',
                     title: 'Nuevo mensaje',
-                    message: `${myUser?.nombre || 'Un usuario'} te envió un mensaje`,
+                    message: `${myUser?.display_name || 'Un usuario'} te envió un mensaje`,
                     link: `/mensajes?id=${conversationId}`,
                 }).catch(console.error);
 
@@ -330,7 +411,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={getProxyImageUrl(otherUser.foto_perfil) || ''}
-                                alt={otherUser.nombre}
+                                alt={otherUser.display_name || 'Participante'}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-slate-300"
                             />
                         ) : (
@@ -348,7 +429,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-900 text-sm">
-                            {otherUser.nombre} {otherUser.apellido_p}
+                            {otherUser.display_name || 'Participante'}
                         </h3>
                         {/* Par PRESENCIA (online-success / offline-slate) — online es estado
                             positivo de disponibilidad (facilita la conversacion); offline es
@@ -457,12 +538,12 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 {onlineUsers.has(otherUser.auth_user_id) ? (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-success-500 inline-block" />
-                    {otherUser.nombre} en línea
+                    {otherUser.display_name || 'Participante'} en línea
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
-                    {otherUser.nombre} desconectado
+                    {otherUser.display_name || 'Participante'} desconectado
                   </span>
                 )}
               </div>
@@ -481,7 +562,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     />
                     <button
                         type="submit"
-                        disabled={!newMessage.trim()}
+                        disabled={!newMessage.trim() || sending}
                         className="bg-accent-600 text-white p-3 rounded-full hover:bg-accent-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-accent-600/20 active:scale-95 flex items-center justify-center shrink-0"
                     >
                         <Send size={18} />

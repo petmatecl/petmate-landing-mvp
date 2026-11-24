@@ -1,5 +1,42 @@
 # Pawnecta — Backlog
 
+## Sprints Pre-Campañas
+
+**Convención**: sección creada 2026-11-23 para consolidar el bloque de trabajo pre-campañas pagadas definido tras la jornada de domingo 2026-11-22 (docs A-tanda + B-tanda, resumen ejecutivo en [`docs/sprints/resumen-ejecutivo-domingo-20261122.md`](docs/sprints/resumen-ejecutivo-domingo-20261122.md)). Se lee junto con `## PEDIDOS DIRECTOS DEL PO` al armar la cola operativa de los próximos 7-14 días; prevalece sobre deuda técnica equivalente hasta pasar los 30 ítems rojos del checklist consolidado (ver [`docs/sprints/checklist-definitivo-pre-campanas.md`](docs/sprints/checklist-definitivo-pre-campanas.md)). Decisión del PO 2026-11-22 noche.
+
+**Estados posibles**: `abierto` · `en curso <sha>` · `cerrado <fecha> <sha>`. Los sprints activos de la cola se marcan `en curso` apenas arranca su primer commit; los sin fecha quedan `abierto` hasta decisión de activación.
+
+### Cola activa 2026-11-23+ (arranca ya)
+
+1. **[cerrado 2026-11-22 ~18:58 CLT · ejecutado por PO en prod] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
+   Fix a mano de 8 trailing spaces en `servicios_publicados.titulo` + 1 typo "SERVICIO DE PETTSITER" → "Servicio de petsitter" + 1 Unicode cursive en `proveedores.nombre_publico` (proveedor `4ca16056-...` → "Paseítos Perrunos.cl"). Cero cambio de código. SQL preparado por auditor en [`docs/sprints/catalogo-cleanup-lite-sql-20261123.md`](docs/sprints/catalogo-cleanup-lite-sql-20261123.md) (patrón P5: snapshot + UPDATE con RETURNING + verificación posterior con control positivo P8 10ª + rollback escrito). **Evidencia P8 10ª**: bloque 3 de verificación posterior devolvió `fix_ok=true` en las 10 filas. Origen audit: [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
+
+2. **[abierto · arranca 2026-11-23] ANALYTICS-FUNNEL-TUTOR — prioridad alta · ~medio día**
+   Implementar los 15 GA4 events faltantes del funnel tutor→contacto. Lista completa en [`docs/analisis/funnel-contacto-tutor-detalle-20261122.md`](docs/analisis/funnel-contacto-tutor-detalle-20261122.md). PR separado, zero merge autónomo, GO explícito del PO post-smoke. **Gating de campañas**: sin este tracking el gasto en ads es ciego al funnel.
+
+3. **[abierto · arranca 2026-11-23] TUTOR-FUNNEL-PRE-CAMPAÑA — prioridad alta · ~2 días**
+   Top 5 fricciones bloqueantes del flujo signup tutor (ver [`docs/auditorias/signup-tutor-20261122.md`](docs/auditorias/signup-tutor-20261122.md) § Top 5). Decisión del auditor sobre consolidar en 1 PR vs dividir según cohesión de los cambios. Zero merge autónomo.
+
+4. **[abierto · arranca 2026-11-23] EXPLORAR-PRE-CAMPAÑA — prioridad alta · ~1-2 días**
+   Top 5 fixes de `/explorar` para tráfico pagado (ver [`docs/auditorias/explorar-para-trafico-pagado-20261122.md`](docs/auditorias/explorar-para-trafico-pagado-20261122.md) § Top 5). Landing principal de ads → bloquea prender campañas si no se cierra. PR separado, zero merge autónomo.
+
+5. **[abierto · arranca 2026-11-23] EMAILS-EMOJI-POLICY — prioridad media · ~1-2h**
+   Remover los 7 emojis presentes en templates transaccionales + extender la regla "NO emojis en UI" a "NO emojis en UI ni emails transaccionales" en `CLAUDE.md`. PR separado docs+código. Origen: audit [`docs/auditorias/emails-transaccionales-detalle-20261122.md`](docs/auditorias/emails-transaccionales-detalle-20261122.md).
+
+### Aceptados sin fecha (full descripción en sección respectiva)
+
+Los 5 ítems siguientes fueron aceptados al BACKLOG formal pero sin fecha de ejecución. Viven en su sección respectiva del archivo; esta tabla es puntero rápido desde la cola pre-campañas.
+
+| Ítem | Prioridad | Gatillo / condición | Sección donde vive |
+|------|-----------|---------------------|---------------------|
+| **PROVEEDOR-FUNNEL-PRE-CAMPAÑA** | media | ≥50 proveedores activos | `## Deuda técnica / pulido` |
+| **TIKTOK-FIRST-MOVER** | media | PO define cadencia realista de producción antes de activar | `## Producto > Post-launch — iniciativas grandes` |
+| **FAST-RECOVERY-PROTOCOL-CODIFICADO** | media | No urgente — codificar cuando haya ventana | `## Deuda técnica / pulido` |
+| **LIGHTHOUSE-REGRESION-WATCH** | baja | Post-launch, cuando tráfico justifique monitoreo automático | `## Infraestructura y CI` |
+| **PO-DASHBOARD-INTERNO** | media | Revisable con primera semana de campañas activas | `## Herramientas admin — pre-campañas y post-campañas` |
+
+---
+
 ## PEDIDOS DIRECTOS DEL PO
 
 **Convención**: todo pedido explícito de Aldo (verbal en chat, en actas, en instrucciones de sprint) vive acá con su fecha de pedido, estado, y referencia técnica al ítem original en secciones más profundas del backlog. Esta sección se lee **PRIMERO** al armar cualquier menú de "¿con qué seguimos?" o alcance de sprint/sweep — ver también la práctica operativa nueva en `CLAUDE.md > Workflow`.
@@ -77,7 +114,7 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 - **[abierto · PRE-SQL-SÁBADO · descubierto por PO en smoke post-#119 2026-11-19] PII-CHAT-NOMBRE · Chat (`ConversationList` + encabezado del hilo + mobile list) muestra apellido completo del proveedor visto por el tutor; posible simétrico del tutor visto por el proveedor** — cualquier user registrado que toque "Contactar" en una ficha ve el apellido completo del proveedor en la lista de conversaciones y en el header del hilo. Mismo vector de leak PII que PII-SSR-STRIP cerró en las superficies públicas, pero en superficie autenticada (chat) no cubierta por el spec P8 actual (`pii-nombre-publico/superficies-publicas.spec.ts`). **Diagnóstico sin código pedido por PO 2026-11-19** (5 preguntas: fuente de datos tabla+columnas, dirección tutor-ve-proveedor y proveedor-ve-tutor, interacción con PII-VIEW-TIGHT del sábado, superficies autenticadas vecinas con el mismo leak, propuesta de fix con `displayName`). Cierre antes del SQL del sábado 2026-11-21 porque la vista `proveedores_publicos` del DDL puede o romper el chat o arreglarlo sin código — depende de qué fuente consume el chat hoy. Estimación tras diagnóstico: TBD. Pre-requisito del diagnóstico: solo lectura (components/Chat/*, pages/mensajes.tsx, tabla conversations, policies RLS).
 
-- **[abierto · PRE-LANZAMIENTO 25-11 · decisión PO 2026-11-19 durante diagnóstico PII-CHAT-NOMBRE] CHAT-LAZY-CREATE · "Contactar" NO crea fila `conversations` hasta el primer mensaje enviado** — fix de raíz al patrón de huérfanas. Hoy [components/Servicio/ServiceDetailView.tsx:439-449](components/Servicio/ServiceDetailView.tsx#L439-L449) hace `INSERT conversations` al click de "Contactar" + redirige a `/mensajes?id=<nuevaConv>`. Si el user cierra sin enviar nada, la fila queda huérfana (0 mensajes). Verificación empírica prod 2026-11-19: existen 4 huérfanas (`b439cc90`, `42440eaf` del 24-09; `a11e7a8e` del 07-01; `9a28d98b` del 03-02) — todas del PO. Alcance aprobado PO 2026-11-19 tras diagnóstico sin código:
+- **[EN CURSO 2026-11-23 · sprint `chat-lazy-create` · PR pendiente] CHAT-LAZY-CREATE · "Contactar" NO crea fila `conversations` hasta el primer mensaje enviado** — fix de raíz al patrón de huérfanas. Hoy [components/Servicio/ServiceDetailView.tsx:439-449](components/Servicio/ServiceDetailView.tsx#L439-L449) hace `INSERT conversations` al click de "Contactar" + redirige a `/mensajes?id=<nuevaConv>`. Si el user cierra sin enviar nada, la fila queda huérfana (0 mensajes). Verificación empírica prod 2026-11-19: existen 4 huérfanas (`b439cc90`, `42440eaf` del 24-09; `a11e7a8e` del 07-01; `9a28d98b` del 03-02) — todas del PO. Alcance aprobado PO 2026-11-19 tras diagnóstico sin código:
   1. **Endpoint atómico** (Opción 2 elegida): `POST /api/conversations/first-message` con `verifySession` + verificación ownership client/sitter + rate limit 10 convs/24h (se mantiene, movido al server). INSERT conv + INSERT message atómico.
   2. **`ServiceDetailView.handleChatClick`**: si no existe conv, navega a `/mensajes?target=<proveedorAuthId>` sin INSERT. Si existe, `router.push('/mensajes?id=<X>')` como hoy.
   3. **`MessageThread` modo "new chat"**: cuando `conversationId` es placeholder (`new:<authId>` o viene de `router.query.target`), render header con `getParticipantProfile(targetAuthId)` + zona de mensajes vacía con copy "Envía el primer mensaje para iniciar la conversación". Input `onSubmit` llama al endpoint atómico → al éxito `router.replace('/mensajes?id=<realId>')`.
@@ -1058,19 +1095,34 @@ Anotados durante la ejecución del sprint. No forman parte del alcance directo (
 
 Mejoras operacionales al panel `/admin/*`. No cambian experiencia del usuario final — habilitan al PO para operar la plataforma con más visibilidad y acción manual durante la ventana pre-campañas (mientras se avanza hacia meta 100 proveedores) + post-activación de campañas.
 
-### ADMIN-PROVEEDORES-FECHA-REGISTRO — pre-campañas · prioridad alta
+### PO-DASHBOARD-INTERNO — abierto · prioridad media · sin fecha (revisable con primera semana de campañas activas)
 
-**Qué**: agregar columna "Registrado" al listado del panel `/admin/proveedores` con la fecha en que el proveedor se registró, formato DD-MM-YYYY, ordenable.
+Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope.
 
-**Dato fuente**: ya existe en `public.proveedores.created_at` (verificar nombre exacto al implementar). Sin migración, sin backfill.
+Dashboard interno que consolide métricas clave del funnel en tiempo real (visitas día, registros tutor/proveedor, contactos iniciados, reservas creadas, CPA agregado si GA4 está instrumentado) en una sola pantalla `/admin/metricas`, para evitar que el PO revise 4 herramientas distintas en paralelo (GA4 + /admin + Vercel + Sentry).
 
-**Trabajo**: editar `components/Admin/ProveedorManagementList.tsx` (o el que renderice la tabla) para agregar columna + prop en el fetch. Sort toggle ascendente/descendente.
+**Motivación**: `docs/sprints/primera-semana-campanas-rutina-po.md` detalla la rutina primer semana con 7 dashboards abiertos simultáneos. Sostenibilidad del PO durante primera semana en riesgo — consultar 4 herramientas en paralelo a las 09:00, 13:00, 19:00 todos los días durante 7 días es 1-2h diarias de fricción solo en navegación entre herramientas.
 
-**Estimación**: 15-30 min. **Dependencia**: ninguna.
+**Entregable**: página `/admin/metricas` con 6-8 cards (una por métrica) + refresh manual + opcional auto-refresh cada 60s. Consume RPC dedicado que agrega las queries en una sola llamada (patrón similar a `/admin/metricas-proveedores` existente).
 
-**Impacto**: herramienta operacional del PO para monitorear la meta de 100 proveedores desde ya + ver antigüedad de cada proveedor + patrones de registro. Útil para campañas de reactivación + priorizar outreach a los registrados primero.
+**Métricas candidatas**: visitas 24h, registros tutor 24h, registros proveedor 24h, contactos iniciados 24h, reservas creadas 24h, Sentry issues nuevos 24h, bounces email 24h, errores 5xx últimas 24h.
 
-**Prioridad**: alta pre-campañas. Entra en cualquier ventana calma (deuda chica). Habilita tracking directo visual del progreso hacia los 100 proveedores.
+**Prerrequisito**: ANALYTICS-FUNNEL-TUTOR (sprint 2 de la cola pre-campañas) debe estar aterrizado — sin tracking GA4 el dashboard tiene huecos.
+
+**Decisión de activación**: revisable cuando arranquen campañas y el PO vea en la práctica cuánta fricción le genera consultar 4 herramientas distintas. Si la fricción es tolerable, el ítem queda indefinido. Si bloquea operación → arrancar sprint ~1-2 días.
+
+### ~~ADMIN-PROVEEDORES-FECHA-REGISTRO~~ — **CERRADO 2026-11-20 (aterrizado antes de que el ítem se pidiera formalmente)**
+
+**Estado**: implementado en commit [`aad2a78`](../../commit/aad2a78) "admin · columna Registrado en /admin/proveedores con sort toggle".
+**Verificación simétrica P8 11ª (2026-11-23)**: grep sobre `components/Admin/ProveedorManagementList.tsx` → columna "Registrado" presente (líneas 222-233), sort toggle implementado (líneas 160-169 + 367-369), formato `dd-MM-yyyy` activo. Zero reimplementación necesaria.
+
+Scope original del ítem (archivado para trazabilidad):
+
+- Columna "Registrado" al listado del panel `/admin/proveedores` con fecha formato DD-MM-YYYY, ordenable.
+- Dato fuente: `public.proveedores.created_at`. Sin migración, sin backfill.
+- Trabajo: editar `components/Admin/ProveedorManagementList.tsx`.
+- Estimación original: 15-30 min.
+- Impacto: herramienta operacional del PO para monitorear meta de 100 proveedores + antigüedad + patrones + outreach prioritario.
 
 ---
 
@@ -1108,7 +1160,7 @@ El estado se detecta automáticamente al apretar el botón; el PO no elige qué 
 
 ---
 
-### TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta
+### ~~TRACKING-META-100-PROVEEDORES — pre-campañas · prioridad alta~~ — **CERRADO 2026-11-23 Opción A** (`docs/ops/query-tracking-100.sql`)
 
 **Qué**: dashboard o query recurrente que el PO revisa 1 vez por semana con el estado de la meta de 100 proveedores activos (criterio para activar campañas pagadas).
 
@@ -1393,6 +1445,115 @@ Tienda de merchandising de Pawnecta: poleras, tazones, llaveros, bolsas, calceti
 
 Esta descripción la escribió el PO con mi apoyo 2026-11-22. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch y post-hitos de comunidad.
 
+---
+
+**TIKTOK-FIRST-MOVER** — abierto · prioridad media · sin fecha (pendiente decisión PO sobre cadencia de producción antes de activar)
+
+Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope.
+
+Ítem estratégico de contenido: posicionarse como voz nativa en TikTok Chile pet-tech en los próximos 3-6 meses mientras no hay competencia establecida en el canal. Análisis origen: [`docs/analisis/competencia-tiktok-chile-20261122.md`](docs/analisis/competencia-tiktok-chile-20261122.md) — hallazgo meta: pet-tech CL/LATAM sin presencia TikTok relevante documentada.
+
+**NO arrancar hasta decisión del PO sobre cadencia realista de producción**. El contenido es el cuello de botella real, no el canal. Si la cadencia máxima sostenible son 1-2 videos/semana, posicionarse como "+1 plataforma" junto a Instagram tiene sentido. Si se puede sostener 2-3 TikToks/semana durante 3 meses, el ítem pasa a prioridad alta y TikTok se vuelve canal principal.
+
+**Material de apoyo ya producido** (jornada 2026-11-22):
+- [`docs/planes/videos-rrss-2-semanas-20261122.md`](docs/planes/videos-rrss-2-semanas-20261122.md) — 5 videos propuestos con guiones + colaboraciones (Nicole, Constanza).
+- [`docs/planes/instagram-feed-2-semanas-20261122.md`](docs/planes/instagram-feed-2-semanas-20261122.md) — 7 posts estáticos/carousel.
+- [`docs/analisis/referencias-contenido-rrss-20261122.md`](docs/analisis/referencias-contenido-rrss-20261122.md) — 9 cuentas referencia + 5 formatos ganadores.
+
+**Estimación**: cero esfuerzo técnico hasta que se decida cadencia. Si se activa, el esfuerzo es de producción de contenido, no de código.
+
+Esta descripción la escribió el auditor con apoyo del PO 2026-11-22 noche. No es trabajo activo hoy, solo anotación. Zero activación hasta decisión PO sobre cadencia.
+
+---
+
+**EVENTOS-MASCOTAS-ECOSISTEMA** — abierto · prioridad media · fecha objetivo sin fecha (post-100 proveedores activos, sprint 3-5 días dedicado)
+
+Sistema de publicación de eventos del ecosistema mascota en Chile dentro de Pawnecta: ferias, adopciones, charlas, workshops, competencias, meetups. Admin ingresa los eventos (manual o via scraping de Instagram/portales); render en una sección de la home + página dedicada `/eventos` con filtros por fecha, zona, tipo. Objetivo: expandir Pawnecta de "marketplace de servicios" a "hub de la comunidad mascota en Chile".
+
+**Taxonomía propuesta de tipos de evento**:
+- **Feria** — stand abierto al público, duración 1 día.
+- **Jornada de adopción** — refugios con mascotas disponibles para adopción.
+- **Charla / workshop** — formación o divulgación (ej. primeros auxilios, etología básica).
+- **Competencia** — concurso canino, agility, exhibiciones.
+- **Meetup / encuentro** — reunión social de tutores/razas.
+
+**Datos a modelar por evento**: nombre, fecha, horario (inicio-fin), lugar (nombre + dirección + comuna), organizador (nombre + Instagram handle si aplica), entrada (gratuita/pagada + monto), tipo (taxonomía arriba), descripción, imagen oficial (afiche), actividades destacadas (lista), links de referencia (Instagram del organizador, sitio web).
+
+**Primer evento seed confirmado (datos del PO 2026-11-22)**:
+
+| Campo | Valor |
+|-------|-------|
+| Nombre | Feria Navideña de Mascotas 2026 |
+| Fecha | 2026-11-28 (sábado) |
+| Horario | 09:30 – 13:30 CLT |
+| Lugar | Parque O'Higgins, Santiago (ingreso: Rondizzoni) |
+| Organizador | Municipalidad de Santiago (@munistgo) |
+| Entrada | Gratuita |
+| Tipo | Feria |
+| Actividades destacadas | Desfile de mascotas, adiestramiento canino con Carabineros, vacunación gratis, punto de adopción, stands |
+| Imagen oficial | Afiche PNG de la Municipalidad de Santiago (compartido por el PO en chat 2026-11-22) |
+| Links referencia | instagram.com/munistgo + instagram.com/cppetevents |
+
+**Observación operativa 2026-11-22**: el evento ocurre el 2026-11-28; el sistema realista no estará implementado para esa fecha (post-100 proveedores + sprint 3-5 días). Opción: cuando el sistema esté listo, admin puede ingresar eventos pasados como catálogo histórico de contenido "comunidad Pawnecta". **Para el evento del 28-11**: difusión vía cuentas RRSS de Pawnecta queda a cargo del PO (división de responsabilidades aclarada 2026-11-22 noche: sitio web = auditor, cuentas RRSS = PO; el auditor trabaja la pieza del sitio cuando corresponda, el PO trabaja la pieza de redes). No se crea entrada de blog porque el blog es contenido editorial permanente (guías, consejos), no eventos puntuales.
+
+**Prerrequisitos reales**:
+- ≥100 proveedores activos (meta de pre-campañas).
+- Base inicial de 3-5 eventos reales listos para sembrar al activar (evita página vacía).
+- Decisión de diseño admin: form manual vs scraping asistido de Instagram/portales municipales.
+
+**Estimación**: 3-5 días dedicados (schema BD + admin form + render home + página `/eventos` + filtros + imagen storage).
+
+**Prioridad y timing**: media. Post-100 proveedores activos. Antes de ese umbral queda en espera.
+
+Esta descripción la escribió el auditor con data del PO 2026-11-22. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch y post-umbral.
+
+---
+
+#### Monetización blanda
+
+Subsección creada 2026-11-23 a pedido del PO. Alberga iniciativas de ingreso que **no tocan el modelo gratis del marketplace** (zero comisión por transacción, zero propina proveedor↔tutor, zero venta forzada) y que diversifican canales de apoyo o retorno simbólico al proyecto. Prioridad default baja; cada ítem con su propia activación.
+
+---
+
+**PAWNECTA-APOYO-DONACIONES** — abierto · prioridad baja · fecha objetivo sin fecha (post-100 proveedores)
+
+Botón discreto en el sitio que permite a cualquier visitante (tutor, proveedor, comercio aliado, público general) donar una pequeña cantidad a Pawnecta como apoyo al proyecto. Modelo tipo "Buy Me a Coffee" adaptado a Chile.
+
+**NO es**:
+- Propina entre tutor y proveedor (descartado explícitamente 2026-11-23).
+- Comisión de transacción.
+- Venta de producto.
+
+**Implementación propuesta V1** (Opción B del análisis 2026-11-23):
+- Crear "link de pago" en Mercado Pago con monto sugerido (ej. $2.000 CLP) + opción de monto libre.
+- Botón discreto en el footer del sitio (copy sugerido: "Apóyanos con un café"; copy final a decidir).
+- Al hacer click, se abre nueva pestaña con el link de pago de MP.
+- Pawnecta recibe el pago directo en su cuenta Mercado Pago.
+- Comisión MP estándar (~3-4%).
+
+**Esfuerzo técnico V1**: 1-2 horas (botón + link + copy).
+**Esfuerzo operativo PO**: cuenta Mercado Pago empresa activa, crear link de pago, definir monto sugerido, decidir copy final, decidir ubicación exacta (footer confirmado, preguntar si también en `/quienes-somos`).
+
+**V2 (futuro, si V1 funciona)**:
+- Integración propia con SDK de MP.
+- Modal de pago en el sitio (no nueva pestaña).
+- Tracking de donaciones en tabla BD propia.
+- Panel admin con totales + contador "nos han invitado X cafés" (métrica pública opcional).
+
+**Decisiones pendientes del PO al momento de implementar V1**:
+- Monto sugerido: $2.000 / $3.000 / $5.000 CLP, o solo monto libre sin sugerencia.
+- Copy final del botón.
+- Ubicación exacta: footer confirmado; ¿también en `/quienes-somos`?
+- Métrica pública (ej. "nos han invitado X cafés") sí/no.
+
+**Prioridad y timing**: baja. Post-100 proveedores activos. Es canal blando de ingresos, no hay urgencia de activarlo pre-campañas.
+
+**Riesgo chico identificado**: percepción de "piden plata antes de dar valor". Mitigable con copy cuidado + ubicación discreta (NO hero, NO modal interruptivo) + activación recién post-100 proveedores (el sitio ya está entregando valor cuando aparece el pedido de apoyo).
+
+**Idea origen (PO 2026-11-23)**: diversificar canales de ingreso sin tocar el modelo gratis del marketplace. No reemplaza monetización futura (plan destacado proveedor, afiliación tiendas, etc.); es canal complementario.
+
+Esta descripción la escribió el auditor con data del PO 2026-11-23. No es trabajo activo hoy, solo anotación. Zero implementación hasta GO explícito post-launch + post-100 proveedores + decisiones pendientes del PO resueltas.
+
 ## Proyectos estructurales
 
 ### Categorías por modalidad (presencial / remoto / mixto)
@@ -1446,6 +1607,30 @@ Camino largo hacia una experiencia tipo Doctoralia (o Booksy, Wag!). Secuencia s
 - El hero de `pages/index.tsx` es estático (un mensaje + un CTA + una imagen). Rotar mensajes/CTAs para probar variantes de copy, destacar categorías nuevas (retratos, futuras) o promociones estacionales.
 - Camino corto: componente `HeroRotator` con array de slides + auto-rotate cada N segundos + indicadores dot navegables. Sin dependencias externas.
 - Camino largo: variantes A/B con tracking en `contactos` o tabla nueva para medir CTR por copy.
+
+### HOME-TABS-CATEGORIAS — post-campañas · prioridad media · pedido PO 2026-11-23
+
+**Problema**: la sección "Explorar por categoría" de `pages/index.tsx` renderiza una grilla con una card por categoría. Con las 10 categorías activas (`adiestramiento`, `cuidado`, `etologia`, `fotografia`, `guarderia`, `paseos`, `peluqueria`, `retratos`, `traslado`, `veterinario`) ocupa mucho vertical, empujando contenido valioso del home (widget de eventos cuando aterrice EVENTOS-MASCOTAS-ECOSISTEMA, sección "Cómo funciona", testimonios/cards F2) fuera del fold inicial. Impacta engagement + conversión del hero → siguiente step.
+
+**Idea de solución**: reemplazar la grilla actual por un patrón tipo **tabs al estilo Google** — el usuario elige la categoría que le interesa en una fila horizontal de tabs y se despliegan los cards/resumen de esa categoría. Reduce scroll vertical significativamente + permite surface de contenido más abajo en el fold.
+
+**Alternativas a evaluar en el kickoff**:
+- Tabs horizontales fijos (estilo Google).
+- Accordions (una categoría expandida a la vez, resto colapsadas).
+- Mega-menu / dropdown clickable (menos espacio pero menos descubrible).
+- Pills scrollable horizontal (patrón mobile-first).
+
+**Consideraciones a explorar pre-sprint**:
+- **Default tab**: ¿la más popular (por conteo de servicios activos vía `buscar_servicios`)?, ¿la última visitada por el user (localStorage)?, ¿aleatoria rotante (fairness para categorías nuevas)?, ¿fija (adiestramiento o cuidado por volumen de oferta)?
+- **Tratamiento mobile**: scroll horizontal de tabs (patrón iOS/Material) vs dropdown selector (un `<select>` con las 10 categorías). Trade-off: scroll horizontal es más descubrible pero compite con el swipe vertical del body.
+- **Impacto SEO**: contenido oculto en tabs no activas sigue en el DOM (inline con `hidden` CSS), Google lo indexa igual. Pero el link equity/relevancia del home pasa a diluirse entre 10 secciones semi-ocultas vs. 10 secciones todas visibles. Verificar con Search Console antes del merge a prod + evaluar `aria-controls` + `aria-selected` para accesibilidad.
+- **Tracking GA4**: cómo medir "categoría más vista" cuando hay una default pre-seleccionada que inflata su count. Opciones: (a) disparar `categoria_vista` solo tras interacción explícita (click en tab), (b) disparar al mount con flag `default=true` para filtrar en GA4.
+- **Scroll anchoring**: cuando el user hace click en una tab, ¿scroll a la tab o el contenido crece/decrece empujando el viewport? Lock del viewport durante la transición.
+- **Interacción con filtros `/explorar`**: ¿el click en una tab lleva a `/explorar?categoria=X` (consistente con la URL schema actual) o deja al user en el home con la tab activa?
+
+**Esfuerzo preliminar**: 3-5 días (sprint propio post-campañas). Alcance código: `pages/index.tsx` + componente nuevo `HomeTabsCategorias` + ajustes de tracking + testing visual (mobile + desktop + a11y keyboard + screenreader) + verificación SEO en Search Console pos-deploy.
+
+**No gating pre-campañas** — queda para después de la primera ronda de campañas Meta (confirmado PO 2026-11-23).
 
 ### Vincular conversaciones a agendamientos
 - Hoy las conversaciones del chat son genéricas (tutor↔proveedor), sin atarse a una solicitud puntual. Eso bloquea mostrar la mascota correcta en el chat (un tutor con varias solicitudes → no se sabe cuál mascota va en el hilo).
@@ -1676,7 +1861,23 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 
 ## Infraestructura y CI
 
-### CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA
+### LIGHTHOUSE-REGRESION-WATCH — abierto · prioridad baja · sin fecha (post-launch, cuando tráfico justifique monitoreo automático)
+
+Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope.
+
+Cron mensual (o post-deploy) que corre Lighthouse contra 5 páginas clave (home, /explorar, ficha servicio, perfil proveedor, /register) + alerta al PO si CLS/LCP/Perf se degradan >10% vs baseline anterior. Hoy depende de corridas manuales del PO (ver [`docs/auditorias/perf-post-fixes-20261122.md`](docs/auditorias/perf-post-fixes-20261122.md)).
+
+**Opciones de implementación**:
+- **Opción A (simple)**: GitHub Action con `treosh/lighthouse-ci-action` + scheduled `cron: '0 10 1 * *'` (día 1 de cada mes 10 UTC). Baseline guardado en archivo JSON en repo. Diff alertado vía issue/comment o email.
+- **Opción B (más robusta)**: integrar con Vercel Speed Insights (ya instalado) para capturar RUM (Real User Monitoring) continuo + umbrales p75 por ruta. No requiere cron, usa datos de usuarios reales.
+
+**Recomendación**: Opción B (Vercel Speed Insights) cuando el tráfico justifique — minimum sample size ~500 vistas/día por ruta para que p75 sea estable. Pre-campañas no alcanza el umbral; post-campañas sí.
+
+**Estimación**: Opción A: 2-3h. Opción B: ~1h configuración + revisar que SpeedInsights esté emitiendo data (según Vercel doctor: verificar instalación).
+
+**Prioridad**: baja. Post-launch, cuando el tráfico justifique monitoreo automático.
+
+### ~~CI-FLAKES-ACUMULADOS — pre-campañas · prioridad ALTA~~ — **CERRADO 2026-11-23** (`docs/planes/ci-flakes-acumulados.md` con 5 clases + estado + deuda post-análisis)
 
 **Observación del PO 2026-11-20 PM**: en los últimos 4 PRs (#120, #122, #123, #125), el CI falló por tests pre-existentes de specs que el PR NO estaba tocando. 4 veces seguidas no es coincidencia.
 
@@ -1736,6 +1937,16 @@ ORDER BY proveedores_reales DESC, categoria_slug;
 **Toma estructural**: el PR #136 no introduce bug — es evidencia de que `e2e-error-audit` tiene **inestabilidad acumulada que crece con la duración del run**. Causas candidatas para el análisis estructural: (i) refresh token lifetime vs duración de suite completa, (ii) fixture setup que debería rotar o renovar token entre specs largos, (iii) el `waitForLoadState('domcontentloaded')` que el spec usa en L99 no espera hidratación del userContext (comparar con la regla P10 del proyecto sobre eventos del SDK). Candidatos de fix estructural para el sprint CI-FLAKES-ACUMULADOS.
 
 ## Deuda técnica / pulido
+
+### PROVEEDOR-FUNNEL-PRE-CAMPAÑA — abierto · prioridad media · sin fecha (gatillo ≥50 proveedores activos)
+
+Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope. Sin fecha de ejecución porque el volumen de signup proveedor hoy es bajo. Top 5 fricciones del wizard multi-step signup proveedor documentadas en [`docs/auditorias/signup-proveedor-20261122.md`](docs/auditorias/signup-proveedor-20261122.md) § Top 5. Ejecución cuando el volumen justifique (≥50 proveedores activos).
+
+### FAST-RECOVERY-PROTOCOL-CODIFICADO — abierto · prioridad media · sin fecha (no urgente)
+
+Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope. Codificar en `docs/playbooks/` el protocolo "fast recovery" ante quejas públicas o reseñas negativas durante campañas. Hoy vive como propuesta narrativa dentro de [`docs/planes/calidad-primera-campana.md`](docs/planes/calidad-primera-campana.md); convertir en checklist operacional accionable con pasos T0, T+15 min, T+1h, T+24h + templates de respuesta pública + flow privado DM post-respuesta visible.
+
+---
 
 - **[abierto — PRIORIDAD BAJA, sprint pan-1 PR-3b 2026-09-11] `email-confirmado.tsx` con `getSession()` en fallback defensivo** — [pages/email-confirmado.tsx:141-148](pages/email-confirmado.tsx#L141-L148). Semántica distinta al bug del bell (no es race del mount productivo — es fallback para detectar sesión previa de OTRA tab cuando la URL viene limpia). No amerita fix inmediato porque (a) el path se dispara solo cuando URL NO trajo token (rama 3 del effect), (b) el fallback termina en `setHasSomethingToProcess(!!data?.session)` que si retorna false por race, la landing muestra el path guest correcto (URL limpia = user probablemente ya está logueado o vino sin sesión previa). Consideración: reemplazar por `useUser()` del contexto sería más limpio y elimina la última superficie del patrón `getSession + useEffect[]` del proyecto. Sprint chico (~30 min) — combinable con cualquier PR que toque `email-confirmado.tsx`.
 

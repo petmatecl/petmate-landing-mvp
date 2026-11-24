@@ -41,6 +41,27 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     const bypassQuery = bypassToken
         ? `?x-vercel-protection-bypass=${encodeURIComponent(bypassToken)}&x-vercel-set-bypass-cookie=samesitenone`
         : '';
+
+    // Sprint ci-conc-guard (2026-11-23) — WARMUP pre-auth: visitar `/`
+    // antes de `/login` da tiempo al preview Vercel a calentar el bundle
+    // (SSR chunks + edge functions + cold Node runtime) antes de la
+    // sequence crítica del setup. Observado en PR #168 run 45183160000:
+    // preview fresh del PR hit `/login` en la primera navigation del
+    // runner; goto + networkidle llegaron en 1.2s pero React no hidrató
+    // el `#email` input dentro del timeout de 15s del fill. Un warmup
+    // request a `/` (SSG más ligero + sin form) absorbe el cold start
+    // del preview para que `/login` ya llegue tibio al goto principal.
+    try {
+        await page.goto(`/${bypassQuery}`, { timeout: 30_000 });
+        await page.waitForLoadState('networkidle', { timeout: 15_000 });
+        step('0b warmup / done');
+    } catch (warmupErr) {
+        // Warmup es defensivo — si falla, seguir con el flujo normal.
+        // Un warmup roto no debe tumbar el setup.
+        const errMsg = warmupErr instanceof Error ? warmupErr.message : String(warmupErr);
+        console.log(`[AUTH-WARMUP] ${opts.roleName} warmup falló (seguimos igual): ${errMsg}`);
+    }
+
     await page.goto(`/login${bypassQuery}`, { timeout: 30_000 });
     step('1 goto /login done');
 
@@ -55,17 +76,20 @@ export async function authenticate(page: Page, opts: AuthOptions): Promise<void>
     // que los JS chunks + hidratación completaron.
     await page.waitForLoadState('networkidle', { timeout: 20_000 });
     step('2 networkidle done');
-    // Sprint hf-fill-timeout (2026-11-13) — fill timeout subido 5s → 15s.
-    // Los 5s originales del hf-auth-timeout iter 2 eran demasiado agresivos
-    // para el first chromium.launch() del runner CI: aun con el preview warm,
-    // el browser Playwright enfrenta cold start propio (chunks JS del /login
-    // SSG + hidratación React) antes de que `#email` quede actionable.
-    // Observado en runs 43463116657 + 43475066985 (ambos PR #113 cerrado):
-    // goto + networkidle en ~1.5s pero el fill subsiguiente reventaba a los
-    // 5s. 15s cubre el peor caso del first chromium launch en runner frio
-    // sin ser laxo.
-    await page.locator('#email').fill(opts.email, { timeout: 15_000 });
-    await page.locator('#password').fill(opts.password, { timeout: 15_000 });
+    // Sprint ci-conc-guard (2026-11-23) — fill timeout subido 15s → 30s.
+    // 30s cubre cold start compounded (fresh preview Vercel + first
+    // chromium.launch() del runner + React hidratación). Observado en PR
+    // #168 run 45183160000: el preview fresh del PR hit /login con
+    // networkidle a 1.2s pero `#email` no quedó actionable en +15s. El
+    // caso excedió el "peor caso del first chromium launch" que cubría
+    // el cap anterior de 15s (sprint hf-fill-timeout 2026-11-13).
+    //
+    // Combinado con el warmup `/` pre-auth (arriba), el 30s debería ser
+    // techo seguro — el warmup absorbe la mayoría del cold start y los
+    // 30s del fill cubren variabilidad residual del hidratar React
+    // `#email` autoFocus post-hidratar.
+    await page.locator('#email').fill(opts.email, { timeout: 30_000 });
+    await page.locator('#password').fill(opts.password, { timeout: 30_000 });
     step('3 form filled');
 
     // Sprint estab-e2e (2026-09-11) — retry ≤3× del submit + waitForURL.

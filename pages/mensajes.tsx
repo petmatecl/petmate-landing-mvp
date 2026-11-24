@@ -113,6 +113,8 @@ export default function MensajesPage() {
                     <ChatLayout
                         userId={userId}
                         initialConversationId={router.query.id as string}
+                        newChatTargetId={router.query.target as string}
+                        newChatServicioId={router.query.servicio as string}
                         returnTo={returnTo}
                     />
                 </div>
