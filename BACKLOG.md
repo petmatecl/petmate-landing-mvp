@@ -1946,6 +1946,64 @@ Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](
 
 Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope. Codificar en `docs/playbooks/` el protocolo "fast recovery" ante quejas públicas o reseñas negativas durante campañas. Hoy vive como propuesta narrativa dentro de [`docs/planes/calidad-primera-campana.md`](docs/planes/calidad-primera-campana.md); convertir en checklist operacional accionable con pasos T0, T+15 min, T+1h, T+24h + templates de respuesta pública + flow privado DM post-respuesta visible.
 
+### WELCOME-EMAIL-SILENT-FAIL-GUARD — abierto · prioridad **MEDIA** (subió de BAJA el 2026-11-24 PM tras confirmación empírica) · post-launch
+
+[pages/api/auth/welcome.ts:113-127](pages/api/auth/welcome.ts#L113-L127) no chequea `response.error` antes del `res.status(200).json({ success: true, response })`. Resend v4 puede devolver `{ data: null, error: { ... } }` **sin throw** cuando la API rechaza (rate limit, destinatario inválido, dominio no verificado, template oversize). Hoy el handler responde `200 success` con el error anidado dentro del body → **cero `Sentry.captureException`** (el `wrapApiHandlerWithSentry` captura solo throws reales) → silent-failure invisible salvo que alguien lea el response body del fetch desde el caller y haga algo con él (hoy el caller en `signup.ts` lo invoca fire-and-forget).
+
+Fix (~15 min): tras `const response = await resend.emails.send(...)`, chequear `if (response.error) { Sentry.captureMessage('welcome_email_resend_error', { level: 'warning', tags: { rol, errorName: response.error.name }, extra: { message: response.error.message } }); return res.status(502).json({ error: 'Email provider rejected', details: response.error }); }`. Opcional mantener `200 { skipped:true, reason }` siguiendo el patrón de los notify-* de Sprint 3 agendamiento.
+
+**Confirmación empírica 2026-11-24 PM (elevó prioridad a MEDIA)**: durante smoke #149 F-TR-17 pre-freeze, el flow de registro mostró `"¡Listo!"` al PO aunque Resend **rechazó el send silent** (Resend había llegado al 100% cuota free tier — razón del upgrade a Pro ese mismo día). El UI mostró success al usuario + el email jamás llegó + cero alerta productiva. Patrón exacto que la deuda documenta. Sube prioridad porque dejó de ser hipotético: tenemos UN caso real donde el gap costó smoke y pudo costar onboardings reales si hubiera pasado en prod.
+
+Anotado inicialmente 2026-11-24 AM; confirmado empírico 2026-11-24 PM. Docs-only PR si solo agendar; código PR si se arregla después. **No gating pre-launch** — Resend ahora en Pro 50k/mes (ver [[resend-plan]]) → cap lejos de alcanzable en días post-launch; el fix del guard sigue siendo defense-in-depth para el próximo trigger silencioso (dominio no verificado, template oversize, rate limit post-crecimiento).
+
+### RESEND-REMINDERS-DEDUP — abierto · prioridad MEDIA · post-launch
+
+**Finding del PO 2026-11-24 PM** (durante smoke #149 pre-freeze, observando Resend dashboard post-upgrade Pro): **reminder emails del cron de reservas aparecen duplicados 3× en el mismo timestamp** en Resend Delivered log. Subjects observados (3 veces cada uno):
+
+- `[STAGING] (orig: acanocts+tutor@gmail.com) Mañana: tu reserva con Admin` ×3
+- `[STAGING] (orig: ...) Mañana: reserva de Camila Figueroa Mendoza` ×3
+
+Patrón: 3 envelopes idénticos (mismo recipient, mismo subject, timestamps dentro de segundos entre sí), mismo bucket de hora. Consumo 3× de quota Resend sin valor adicional.
+
+**Diagnóstico preliminar (read-only, sin fix)**:
+
+- **Vercel cron único**: [vercel.json](vercel.json) tiene exactamente **1 schedule** = `{ path: "/api/cron/recordatorio-reserva", schedule: "0 22 * * *" }` → no es triple schedule. El endpoint se dispara 1 vez por día a las 22:00 UTC desde Vercel.
+- **Cero idempotency marker en el handler**: grep del handler [pages/api/cron/recordatorio-reserva.ts](pages/api/cron/recordatorio-reserva.ts) (638 líneas) por `already_sent|ya_enviado|sent_at|idempoten|dedup|recordatorio_enviado|reminded_at` → **0 matches**. El handler fetch reservas elegibles + envía sin marcar "ya envié este reminder para X reserva". Cualquier re-invocación re-envía los mismos emails.
+- **Múltiples callers del endpoint en staging**:
+  - [e2e/fixtures/cron-recordatorio.ts:278](e2e/fixtures/cron-recordatorio.ts#L278): fixtures e2e golpean `/api/cron/recordatorio-reserva` en staging con `?bypassEnv=1 + x-cron-secret` para validarlo.
+  - [e2e/specs/f2-recordatorios-cron/all.spec.ts](e2e/specs/f2-recordatorios-cron/all.spec.ts): suite API-only que hace múltiples invokes del endpoint por test.
+  - [e2e/specs/pan-1/def7-recordatorio-title.spec.ts](e2e/specs/pan-1/def7-recordatorio-title.spec.ts): spec adicional que invoca el endpoint para verificar título de notif.
+- **Hipótesis candidatas del 3×** (sin verificar, para investigar en el sprint):
+  1. **Concurrent CI**: 3 runs e2e en staging ejecutaron la suite `f2-recordatorios-cron` casi simultáneo (concurrency `staging-exclusive` serializa pero múltiples PRs pueden haber corrido en ventanas distintas que coinciden con el bucket de minuto). Cada run invoca el cron → 3 envelopes del mismo reminder.
+  2. **Loop interno del handler** con bug de duplicate fetch (3 queries con mismo resultado → 3 emails).
+  3. **Retry serverless** post-timeout no-idempotente (Vercel function timeout + retry policy → 2 invokes del mismo trigger).
+  4. **Fixture persiste** entre runs sin cleanup limpio → un `[TEST-cron-*]` tutor permanece en BD cuando el próximo run lo matchea otra vez.
+
+**Scope del sprint**:
+
+1. **Localizar causa exacta**: reproducir el patrón con un smoke controlado (invocar endpoint 3 veces explícito en staging + ver si cada invoke envía TODAS las reservas elegibles sin dedup).
+2. **Fix estructural**: agregar idempotency a nivel BD (ej. tabla `recordatorios_enviados` con `(agendamiento_id, target_date)` UNIQUE, INSERT ON CONFLICT DO NOTHING antes del send). Opción B: columna `agendamientos.recordatorio_24h_enviado_at` NOT NULL post-send, filter WHERE recordatorio_24h_enviado_at IS NULL. Opción B es más simple pero mezcla concepts; A es más escalable (próximo "1h antes" sprint que menciona CLAUDE.md necesitará su propia dedup key).
+3. **Guard contra callers e2e en prod**: ya existe `cronGuard` que exige `?bypassEnv=1 + x-cron-secret`. Verificar que en STAGING el guard no permite más de N invokes/hora o similar rate-limit para evitar que el CI drene quota Resend.
+
+**Mitigación provisional**: Pro plan 50k emails/mes (upgrade 2026-11-24, ver [[resend-plan]]) absorbe el 3× consumption sin fricción pre-launch. Fix estructural puede esperar a post-launch.
+
+**Estimación**: 3-5h entre investigación + fix + test.
+
+Anotado 2026-11-24 PM post-finding del PO en Resend dashboard durante smoke #149. Relacionado: [[resend-plan]] auto-memory, [[RESEND-STAGING-SPLIT]] (si el fix requiere separar workspaces, se puede combinar).
+
+### RESEND-STAGING-SPLIT — abierto · prioridad MEDIA · post-launch
+
+Separar la quota Resend de staging/preview de la de prod. Hoy comparten `RESEND_API_KEY` (misma workspace) → CI runs + smokes manuales + previews consumen el mismo cap que los emails productivos. El 2026-11-24 ambos ambientes contribuyeron a saturar la quota free tier → upgrade a Pro ($20/mes 50k emails, ver [[resend-plan]] en auto-memory).
+
+Opciones conocidas:
+
+- **A (ligera, ~2h)**: crear segundo workspace Resend con API key propia para staging + apuntar `RESEND_API_KEY` en Vercel scope Preview a esa key. Prod mantiene la actual. Cero cambio de código, solo env vars.
+- **B (más granular, ~4h)**: rate-limit en `lib/resend.ts` wrapper cuando `!IS_PROD` para cap self-impuesto (ej. 100 emails/día) + telemetry al dashboard interno. Más laborioso pero zero costo de workspace extra.
+
+**Gatillo para arrancar**: cuando la quota mes empiece a acercarse al 70% consumido post-launch. Mientras tanto el upgrade Pro da runway cómodo.
+
+Anotado 2026-11-24 post-upgrade a Pro. Relacionado: [[resend-plan]] en auto-memory operativa.
+
 ---
 
 - **[abierto — PRIORIDAD BAJA, sprint pan-1 PR-3b 2026-09-11] `email-confirmado.tsx` con `getSession()` en fallback defensivo** — [pages/email-confirmado.tsx:141-148](pages/email-confirmado.tsx#L141-L148). Semántica distinta al bug del bell (no es race del mount productivo — es fallback para detectar sesión previa de OTRA tab cuando la URL viene limpia). No amerita fix inmediato porque (a) el path se dispara solo cuando URL NO trajo token (rama 3 del effect), (b) el fallback termina en `setHasSomethingToProcess(!!data?.session)` que si retorna false por race, la landing muestra el path guest correcto (URL limpia = user probablemente ya está logueado o vino sin sesión previa). Consideración: reemplazar por `useUser()` del contexto sería más limpio y elimina la última superficie del patrón `getSession + useEffect[]` del proyecto. Sprint chico (~30 min) — combinable con cualquier PR que toque `email-confirmado.tsx`.
