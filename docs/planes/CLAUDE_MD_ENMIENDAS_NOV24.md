@@ -1,6 +1,8 @@
-# CLAUDE.md enmiendas propuestas — jornada 2026-11-24 PM (pre-freeze lanzamiento 25-11)
+# CLAUDE.md enmiendas propuestas — jornada 2026-11-24 PM
 
-Written for: el PO (Aldo). **Borrador de propuesta**, zero aplicación. Cada enmienda abajo captura una regla operativa nueva o un patrón diagnóstico que aterrizó durante la jornada pre-freeze del 24-11 PM y aún no está en `CLAUDE.md`. El PO revisa el borrador y decide cuáles mergear a `CLAUDE.md` en un PR dedicado (idealmente mañana al arranque, junto con el rehab del ruleset).
+Written for: el PO (Aldo). **Borrador de propuesta**, zero aplicación. Cada enmienda abajo captura una regla operativa nueva o un patrón diagnóstico que aterrizó durante la jornada 2026-11-24 PM y aún no está en `CLAUDE.md`. El PO revisa el borrador y decide cuáles mergear a `CLAUDE.md` en un PR dedicado (timing flexible, junto con el rehab ruleset o aparte).
+
+**Nota de corrección de framing 2026-11-24 PM**: la versión inicial de este archivo asumía erróneamente contexto "pre-freeze lanzamiento 25-11". El sitio Pawnecta YA ESTÁ OPERATIVO desde hace tiempo; no hay launch formal planeado. Las enmiendas abajo siguen siendo válidas porque las reglas operativas que proponen son independientes del framing (concurrency, Vercel env vars snapshot, Supabase Auth admin flow). Solo se ajusta la contextualización del timing.
 
 **Fuente primaria**: cola continua autónoma del 24-11 PM + episodio ruleset-gridlock + diagnóstico email silent-fail + upgrade Resend Pro. Las reglas abajo son destilación operativa de esas evidencias.
 
