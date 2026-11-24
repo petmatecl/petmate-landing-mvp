@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { createClient } from '@supabase/supabase-js';
@@ -115,6 +116,20 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             subject,
             html: htmlBody,
         });
+
+        // Sprint WELCOME-EMAIL-SILENT-FAIL-GUARD (2026-11-24) — guard
+        // extendido a los 6 endpoints similares. Resend v4 puede retornar
+        // {data:null, error:{...}} sin throw → el handler responde 200
+        // con error anidado + cero captura Sentry → silent-fail. Fix:
+        // capturar como warning + responder 502 con details.
+        if (response.error) {
+            Sentry.captureMessage('notify-provider-email-send-failed', {
+                level: 'warning',
+                tags: { email_error_name: response.error.name ?? 'unknown' },
+                extra: { error: response.error },
+            });
+            return res.status(502).json({ error: 'email-send-failed', details: response.error });
+        }
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {
