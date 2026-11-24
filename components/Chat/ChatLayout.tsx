@@ -10,21 +10,43 @@ interface Props {
     returnTo?: string;
     onBack?: () => void;
     initialClientUserId?: string | null;
+    // Sprint CHAT-LAZY-CREATE (2026-11-23) — modo "new chat": cuando
+    // newChatTargetId está set, se renderiza MessageThread con el placeholder
+    // `new:<authId>` y servicio_id del query. El thread muestra header
+    // + empty state + input; al enviar primer mensaje crea la conv
+    // atómicamente en el server y navega a /mensajes?id=<realId>.
+    newChatTargetId?: string;
+    newChatServicioId?: string;
 }
 
-export default function ChatLayout({ userId, initialConversationId, returnTo, onBack, initialClientUserId }: Props) {
-    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(initialConversationId || null);
-    const isMobile = typeof window !== 'undefined' && window.innerWidth < 768;
+export default function ChatLayout({
+    userId,
+    initialConversationId,
+    returnTo,
+    onBack,
+    initialClientUserId,
+    newChatTargetId,
+    newChatServicioId,
+}: Props) {
+    // Prioridad: initialConversationId > newChatTargetId (placeholder) > null.
+    const placeholderConvId = newChatTargetId ? `new:${newChatTargetId}` : null;
+    const [selectedConversationId, setSelectedConversationId] = useState<string | null>(
+        initialConversationId || placeholderConvId || null,
+    );
 
     React.useEffect(() => {
         if (initialConversationId) {
             setSelectedConversationId(initialConversationId);
+        } else if (newChatTargetId) {
+            setSelectedConversationId(`new:${newChatTargetId}`);
         }
-    }, [initialConversationId]);
+    }, [initialConversationId, newChatTargetId]);
 
     const handleBack = () => {
         setSelectedConversationId(null);
     };
+
+    const isNewChat = selectedConversationId?.startsWith('new:') ?? false;
 
     return (
         <div className="bg-white rounded-2xl border-2 border-slate-300 shadow-sm overflow-hidden flex h-[600px] max-h-[80vh]">
@@ -66,7 +88,13 @@ export default function ChatLayout({ userId, initialConversationId, returnTo, on
                                 ← Volver
                             </button>
                         </div>
-                        <MessageThread conversationId={selectedConversationId} userId={userId} />
+                        <MessageThread
+                            conversationId={selectedConversationId}
+                            userId={userId}
+                            newChatTargetAuthId={isNewChat ? newChatTargetId : undefined}
+                            newChatServicioId={isNewChat ? newChatServicioId : undefined}
+                            onConversationCreated={(realId) => setSelectedConversationId(realId)}
+                        />
                     </>
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-slate-500 bg-slate-50/30 p-8 text-center">

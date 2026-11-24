@@ -68,24 +68,36 @@ export default function ConversationList({ selectedId, onSelect, userId, targetU
     async function fetchConversations() {
         try {
             setLoading(true);
-            // 1. Fetch Conversations without join (to avoid FK issues)
+            // 1. Fetch Conversations with INNER JOIN a messages — solo trae
+            //    conversaciones que YA tengan al menos 1 mensaje.
+            //    Sprint CHAT-LAZY-CREATE (2026-11-23): oculta las 4 huérfanas
+            //    legacy prod (0-msg) + cualquier nueva que quede por crash
+            //    entre conv-insert y message-insert del endpoint. Zero DELETE.
             const { data: conversationsData, error } = await supabase
                 .from('conversations')
                 .select(`
                     id,
                     client_id,
                     sitter_id,
-                    updated_at
+                    updated_at,
+                    messages!inner(id)
                 `)
                 .or(`client_id.eq.${userId},sitter_id.eq.${userId}`)
-                .order('updated_at', { ascending: false });
+                .order('updated_at', { ascending: false })
+                .limit(1, { foreignTable: 'messages' });
 
             if (error) throw error;
 
             // `data` puede ser null si el query es denegado silenciosamente
             // por RLS o si la tabla esta vacia. Normalizamos a [] para que
             // .map no tire TypeError y el flow resuelva a empty state.
-            const rows: any[] = conversationsData ?? [];
+            // Nota: !inner garantiza que cada row tenga al menos 1 message,
+            // pero por seguridad filtramos defensivamente antes del map.
+            const rows: any[] = (conversationsData ?? []).filter((c: any) => {
+                const msgs = c?.messages;
+                if (Array.isArray(msgs)) return msgs.length > 0;
+                return msgs != null;
+            });
 
             // 2. Gather all unique user IDs involved (excluding self)
             const otherUserIds = Array.from(new Set(rows.map((c: any) => {
