@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { CheckCircle, Loader2, AlertTriangle } from "lucide-react";
 import { supabase } from "../lib/supabaseClient";
 import { useUser } from "../contexts/UserContext";
 import { resetInactivityTimer } from "../lib/sessionTimeout";
 import { logSupabaseError } from "../lib/logSupabaseError";
+import { trackEvent } from "../lib/gtag";
 
 /**
  * Sprint email-landing loader fix (2026-08-25) — refactor total del handler
@@ -66,6 +68,7 @@ import { logSupabaseError } from "../lib/logSupabaseError";
  * NO REQUIERE cambio de env, config Supabase, ni migration.
  */
 export default function EmailConfirmadoPage() {
+    const router = useRouter();
     const { proveedorRow, hasSeekerProfile, isLoading: userLoading, user } = useUser();
 
     const [errorKind, setErrorKind] = useState<'used_or_expired' | 'unknown' | null>(null);
@@ -175,6 +178,64 @@ export default function EmailConfirmadoPage() {
     useEffect(() => {
         if (freshAuthTokenSeen && user) {
             resetInactivityTimer();
+        }
+    }, [freshAuthTokenSeen, user]);
+
+    // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-17: redirigir al
+    // return_to si está presente en localStorage. LoginRequiredModal lo
+    // guarda cuando el user es gateado en una ficha / perfil / listing.
+    // Post-confirm email, en vez de caer en roleContent default (que para
+    // tutor manda a /explorar), redirige al servicio origen → cierra el
+    // ciclo "ad → ficha → gate → registro → confirm → ficha" sin perder
+    // contexto. Impacto esperado: +20-40% retención.
+    //
+    // Guard: solo redirige para tutor (los proveedores tienen su flow
+    // dedicado /proveedor?abrirServicio=1 que no se debe sobrescribir).
+    // Fire-once via ref para evitar loop si router.replace tarda.
+    const returnedToRef = React.useRef(false);
+    useEffect(() => {
+        if (returnedToRef.current) return;
+        if (!freshAuthTokenSeen || !user) return;
+        // Esperar a que el rol se determine (`proveedorRow` + `hasSeekerProfile`
+        // se resuelven async en el UserContext). Si es proveedor, saltamos.
+        if (proveedorRow) return;
+        try {
+            if (typeof window === 'undefined') return;
+            const returnTo = window.localStorage.getItem('pawnecta_return_to');
+            if (!returnTo) return;
+            // Guard de seguridad: solo redirige a paths relativos internos.
+            // Nunca a URLs absolutas (evita open redirect).
+            if (!returnTo.startsWith('/') || returnTo.startsWith('//')) {
+                window.localStorage.removeItem('pawnecta_return_to');
+                return;
+            }
+            // Guard anti-loop: no redirige a rutas de auth transit.
+            if (/^\/(login|register|email-confirmado|security-logout|reset-password|completar-registro)/i.test(returnTo)) {
+                window.localStorage.removeItem('pawnecta_return_to');
+                return;
+            }
+            returnedToRef.current = true;
+            window.localStorage.removeItem('pawnecta_return_to');
+            // router.replace para no dejar /email-confirmado en history
+            // (al apretar back no volver a esta transit screen).
+            router.replace(returnTo);
+        } catch {
+            /* storage bloqueado — fallback al roleContent default */
+        }
+    }, [freshAuthTokenSeen, user, proveedorRow, router]);
+
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): email_confirmado — fire
+    // una vez cuando el user se hidrata post-token fresh (click en el link
+    // del email que llegó a la inbox). El guard `firedRef` evita doble-fire
+    // en re-renders del effect. Gate PL2: no-op en non-prod.
+    const firedEmailConfirmadoRef = React.useRef(false);
+    useEffect(() => {
+        if (firedEmailConfirmadoRef.current) return;
+        if (freshAuthTokenSeen && user) {
+            firedEmailConfirmadoRef.current = true;
+            trackEvent('email_confirmado', {
+                has_return_url: typeof window !== 'undefined' && !!localStorage.getItem('pawnecta_last_service_url'),
+            });
         }
     }, [freshAuthTokenSeen, user]);
 

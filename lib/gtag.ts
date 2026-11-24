@@ -76,7 +76,21 @@ export type EventoDemanda =
     | 'reserva_confirmada'               // ⭐ KEY — {familia: F1|F2|legacy} INSERT estado=confirmada
     | 'solicitud_enviada'                // INSERT estado=pendiente (flujo viejo)
     | 'resena_publicada'                 // post-approval evaluaciones.estado=aprobado
-    | 'share_click';                     // {canal: whatsapp|copiar|share_nativo, entidad: servicio|proveedor_publico|proveedor_dashboard, entidad_id: <uuid>}
+    | 'share_click'                      // {canal: whatsapp|copiar|share_nativo, entidad: servicio|proveedor_publico|proveedor_dashboard, entidad_id: <uuid>}
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23) — 10 eventos nuevos del funnel
+    // tutor granular pre-campañas. Origen: docs/analisis/funnel-contacto-tutor-detalle-20261122.md
+    // § "Instrumentación GA4 granular propuesta". Naming en snake_case español
+    // consistente con los 12 anteriores.
+    | 'catalogo_visto'                   // {categoria?, comuna?, results_count?} — mount de /explorar, /[categoria], /[categoria]/[comuna]
+    | 'perfil_proveedor_visto'           // {provider_id, verified, service_count?} — mount de /proveedor/[id]
+    | 'cta_contacto_click'               // {service_id, source: ficha|card|busqueda, logged_in: bool}
+    | 'cta_reservar_click'               // {service_id, tipo: F1|F2|legacy, logged_in: bool}
+    | 'gate_login_mostrado'              // {action_intent: contacto|reserva|favorito|otro, source_service_id?}
+    | 'gate_login_eleccion'              // {choice: iniciar_sesion|registrarse|cerrar}
+    | 'registro_paso_visto'              // {step: 1|2|3|4, role: tutor|proveedor} — wizard progression
+    | 'registro_tutor_completado'        // ⭐ KEY — POST /api/auth/signup rol=tutor success (gemelo de registro_proveedor_completado)
+    | 'email_confirmado'                 // {role?, time_since_register_h?, has_return_url: bool} — landing /email-confirmado
+    | 'primera_accion_post_login';       // {action_type: contacto|reserva|favorito|exploracion, time_since_confirm_min?}
 
 // Union completo — usar como `EventoTracking` para expresar "cualquiera de los 11".
 export type EventoTracking = EventoOferta | EventoDemanda;

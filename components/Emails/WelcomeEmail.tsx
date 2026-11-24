@@ -33,7 +33,7 @@ export function WelcomeEmail(props: Readonly<WelcomeEmailProps>): React.ReactEle
                         style={{ margin: '0 auto 24px' }}
                     />
                     <Heading style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-                        ¡Bienvenido a Pawnecta, {firstName}! 🐾
+                        ¡Bienvenido a Pawnecta, {firstName}!
                     </Heading>
                     <Section>
                         <Text style={{ fontSize: '16px', lineHeight: '24px', color: '#374151' }}>

@@ -137,7 +137,15 @@ export default function RegisterWizard() {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
-  }, [step]);
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): registro_paso_visto —
+    // dispara en cada cambio de step del wizard. Permite medir drop por
+    // paso sin esperar completación. Gate PL2: no-op en non-prod.
+    // `rol` puede ser null en step 1 (pre-selección) — se envía vacío.
+    trackEvent('registro_paso_visto', {
+      step,
+      role: rol || '',
+    });
+  }, [step, rol]);
 
   // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-13: cooldown countdown
   // del botón de reenvío de email. Decrementa cada segundo mientras > 0.
@@ -334,6 +342,13 @@ export default function RegisterWizard() {
       // aparte). Gate PL2: no-op en staging/preview/dev.
       if (rol === 'proveedor') {
         trackEvent('registro_proveedor_completado');
+      }
+
+      // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): registro_tutor_completado —
+      // ⭐ KEY EVENT del funnel demanda. Gemelo del evento de proveedor.
+      // Dispara post-success de /api/auth/signup con rol=usuario (tutor).
+      if (rol === 'usuario') {
+        trackEvent('registro_tutor_completado');
       }
 
       // 2. Move to Success Screen (welcome email is sent server-side)
