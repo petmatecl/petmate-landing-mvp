@@ -25,6 +25,7 @@ import { logSupabaseError } from "../lib/logSupabaseError";
 import ServiceSkeleton from "../components/Explore/ServiceSkeleton";
 import { COMUNAS_CHILE } from "../lib/comunas";
 import { CAMPOS_POR_CATEGORIA } from "../lib/camposPorCategoria";
+import { trackEvent } from "../lib/gtag";
 
 interface Category {
     id: string;
@@ -389,6 +390,17 @@ export default function ExplorarPage() {
                 const serverTotal = rows.length > 0 ? Number(rows[0].total_count) : 0;
 
                 setTotalCount(serverTotal);
+
+                // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): catalogo_visto —
+                // mide cada landing en /explorar con filtros (o sin filtros).
+                // Gate PL2: no-op en staging/preview/dev. Fire una sola vez
+                // por carga porque este efecto re-corre solo cuando cambian
+                // los filtros del router.query.
+                trackEvent('catalogo_visto', {
+                    categoria: currentCategoria || '',
+                    comuna: currentComuna || '',
+                    results_count: serverTotal,
+                });
 
                 const mapped = rows.map(mapRpcToServiceResult);
                 // Mascota se filtra client-side (la RPC tambien lo hace,
