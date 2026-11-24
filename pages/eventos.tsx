@@ -22,9 +22,12 @@ interface EventoRow {
     hora_inicio: string | null;
     hora_fin: string | null;
     lugar_nombre: string;
-    direccion: string;
+    // Sprint EVENTOS-MVP-PULIDO (2026-11-24): direccion + organizador_nombre
+    // relajados a nullable en BD. Display handle null gracefully (sin coma
+    // ni separador si no vino el valor).
+    direccion: string | null;
     comuna: string;
-    organizador_nombre: string;
+    organizador_nombre: string | null;
     organizador_instagram: string | null;
     entrada_gratuita: boolean;
     entrada_monto: number | null;
@@ -158,17 +161,22 @@ function EventoCard({ evento }: { evento: EventoRow }) {
     const horaFin = formatHora(evento.hora_fin);
     return (
         <article className="bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col shadow-sm hover:shadow-md transition-shadow">
-            {/* Imagen (16:9) o placeholder gradiente */}
+            {/* Imagen o placeholder gradiente. Sprint EVENTOS-MVP-PULIDO
+                (2026-11-24): aspect-[4/3] + object-contain + fondo slate-50
+                para preservar flyers verticales completos sin recortar
+                (los afiches de eventos típicamente son verticales) + evitar
+                letterboxing feo en imágenes landscape (aspect-[4/3] es un
+                punto medio razonable). */}
             {evento.imagen_url ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                     src={getProxyImageUrl(evento.imagen_url) || ''}
                     alt={evento.nombre}
-                    className="w-full aspect-video object-cover bg-slate-100"
+                    className="w-full aspect-[4/3] object-contain bg-slate-50"
                     loading="lazy"
                 />
             ) : (
-                <div className="w-full aspect-video bg-gradient-to-br from-accent-100 to-accent-50 flex items-center justify-center">
+                <div className="w-full aspect-[4/3] bg-gradient-to-br from-accent-100 to-accent-50 flex items-center justify-center">
                     <Calendar className="w-12 h-12 text-accent-400" />
                 </div>
             )}
@@ -219,24 +227,35 @@ function EventoCard({ evento }: { evento: EventoRow }) {
                 <p className="text-sm text-slate-600 mb-4 line-clamp-3 flex-1">
                     {evento.descripcion}
                 </p>
-                <div className="pt-3 border-t border-slate-100">
-                    <p className="text-xs text-slate-500 mb-2">Organizado por</p>
-                    <div className="flex items-center justify-between gap-3">
-                        <span className="text-sm font-medium text-slate-700 truncate">
-                            {evento.organizador_nombre}
-                        </span>
-                        {external && (
-                            <a
-                                href={external}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center gap-1 text-sm text-accent-600 hover:text-accent-700 font-medium shrink-0"
-                            >
-                                Ver más <ExternalLink size={14} />
-                            </a>
-                        )}
+                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): bloque "Organizado
+                    por" se omite completamente si no hay organizador_nombre
+                    ni link externo (ni Instagram handle ni links_referencia).
+                    Si solo falta organizador_nombre pero hay link externo,
+                    muestra el link solo sin header "Organizado por" (sería
+                    confuso sin nombre). Null-handling gracefully, sin
+                    espacios huérfanos. */}
+                {(evento.organizador_nombre || external) && (
+                    <div className="pt-3 border-t border-slate-100">
+                        {evento.organizador_nombre && <p className="text-xs text-slate-500 mb-2">Organizado por</p>}
+                        <div className="flex items-center justify-between gap-3">
+                            {evento.organizador_nombre && (
+                                <span className="text-sm font-medium text-slate-700 truncate">
+                                    {evento.organizador_nombre}
+                                </span>
+                            )}
+                            {external && (
+                                <a
+                                    href={external}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1 text-sm text-accent-600 hover:text-accent-700 font-medium shrink-0"
+                                >
+                                    Ver más <ExternalLink size={14} />
+                                </a>
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </article>
     );

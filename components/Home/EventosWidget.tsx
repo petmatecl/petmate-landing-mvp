@@ -104,16 +104,20 @@ export default function EventosWidget() {
                             href="/eventos"
                             className="group bg-white border border-slate-200 rounded-xl overflow-hidden flex flex-col hover:border-accent-300 hover:shadow-md transition-all"
                         >
+                            {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): aspect-[4/3]
+                                + object-contain + fondo slate-50 para preservar
+                                flyers verticales completos sin recortar (match
+                                del card de /eventos listado). */}
                             {ev.imagen_url ? (
                                 /* eslint-disable-next-line @next/next/no-img-element */
                                 <img
                                     src={getProxyImageUrl(ev.imagen_url) || ''}
                                     alt={ev.nombre}
-                                    className="w-full aspect-[16/9] object-cover bg-slate-100"
+                                    className="w-full aspect-[4/3] object-contain bg-slate-50"
                                     loading="lazy"
                                 />
                             ) : (
-                                <div className="w-full aspect-[16/9] bg-gradient-to-br from-accent-100 to-accent-50 flex items-center justify-center">
+                                <div className="w-full aspect-[4/3] bg-gradient-to-br from-accent-100 to-accent-50 flex items-center justify-center">
                                     <Calendar className="w-8 h-8 text-accent-400" />
                                 </div>
                             )}

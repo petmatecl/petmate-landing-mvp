@@ -15,9 +15,12 @@ export interface EventoRow {
     hora_inicio?: string | null;     // HH:MM:SS
     hora_fin?: string | null;
     lugar_nombre: string;
-    direccion: string;
+    // Sprint EVENTOS-MVP-PULIDO (2026-11-24): direccion + organizador_nombre
+    // se relajaron a nullable en BD. Form guarda null cuando el admin deja
+    // vacío (no string vacío) — display handle null gracefully.
+    direccion: string | null;
     comuna: string;
-    organizador_nombre: string;
+    organizador_nombre: string | null;
     organizador_instagram?: string | null;
     entrada_gratuita: boolean;
     entrada_monto?: number | null;
@@ -98,8 +101,12 @@ export default function EventoForm({ initial, mode }: Props) {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-        if (!form.nombre.trim() || !form.fecha || !form.lugar_nombre.trim() || !form.direccion.trim() || !form.comuna.trim() || !form.organizador_nombre.trim() || !form.descripcion.trim()) {
-            setError('Completa todos los campos requeridos.');
+        // Sprint EVENTOS-MVP-PULIDO (2026-11-24): direccion + organizador_nombre
+        // son opcionales (ALTER DROP NOT NULL). Si vienen vacíos se guardan como
+        // null, no como string vacío, para que los display handles los omitan
+        // limpio (sin espacios huérfanos ni comas sueltas).
+        if (!form.nombre.trim() || !form.fecha || !form.lugar_nombre.trim() || !form.comuna.trim() || !form.descripcion.trim() || !form.tipo) {
+            setError('Completa todos los campos requeridos (nombre, fecha, tipo, lugar, comuna, descripción).');
             return;
         }
         if (!form.entrada_gratuita && (form.entrada_monto === null || form.entrada_monto === undefined || form.entrada_monto < 0)) {
@@ -114,9 +121,9 @@ export default function EventoForm({ initial, mode }: Props) {
                 hora_inicio: form.hora_inicio || null,
                 hora_fin: form.hora_fin || null,
                 lugar_nombre: form.lugar_nombre.trim(),
-                direccion: form.direccion.trim(),
+                direccion: form.direccion?.trim() || null,
                 comuna: form.comuna.trim(),
-                organizador_nombre: form.organizador_nombre.trim(),
+                organizador_nombre: form.organizador_nombre?.trim() || null,
                 organizador_instagram: form.organizador_instagram?.trim() || null,
                 entrada_gratuita: form.entrada_gratuita,
                 entrada_monto: form.entrada_gratuita ? null : form.entrada_monto,
@@ -198,8 +205,8 @@ export default function EventoForm({ initial, mode }: Props) {
                 <Field label="Lugar (nombre)" required>
                     <input type="text" value={form.lugar_nombre} onChange={(e) => update('lugar_nombre', e.target.value)} className={inputCls} placeholder="ej. Parque Bicentenario" />
                 </Field>
-                <Field label="Dirección" required>
-                    <input type="text" value={form.direccion} onChange={(e) => update('direccion', e.target.value)} className={inputCls} placeholder="ej. Av. Bicentenario 3200" />
+                <Field label="Dirección (opcional)" hint="Si no la tenés, pon solo el nombre del lugar y la comuna arriba.">
+                    <input type="text" value={form.direccion ?? ''} onChange={(e) => update('direccion', e.target.value)} className={inputCls} placeholder="ej. Av. Bicentenario 3200" />
                 </Field>
                 <Field label="Comuna" required>
                     <input type="text" value={form.comuna} onChange={(e) => update('comuna', e.target.value)} className={inputCls} placeholder="ej. Vitacura" />
@@ -208,8 +215,8 @@ export default function EventoForm({ initial, mode }: Props) {
 
             <section className="space-y-4">
                 <h2 className="text-lg font-semibold text-slate-900 border-b pb-2">Organizador</h2>
-                <Field label="Nombre organizador" required>
-                    <input type="text" value={form.organizador_nombre} onChange={(e) => update('organizador_nombre', e.target.value)} className={inputCls} />
+                <Field label="Nombre organizador (opcional)" hint="Ej. Municipalidad de Santiago. Si queda vacío, no aparece en el card público.">
+                    <input type="text" value={form.organizador_nombre ?? ''} onChange={(e) => update('organizador_nombre', e.target.value)} className={inputCls} />
                 </Field>
                 <Field label="Instagram del organizador" hint="Sin @, solo el handle">
                     <input type="text" value={form.organizador_instagram ?? ''} onChange={(e) => update('organizador_instagram', e.target.value)} className={inputCls} placeholder="ej. pawnecta_cl" />
