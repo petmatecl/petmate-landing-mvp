@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
 import { supabase } from '../lib/supabaseClient';
-import { ShieldCheck, BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
+import { BarChart3, Users, UserCheck, MessageSquareWarning, MessageSquareText, TrendingUp } from 'lucide-react';
 
 import dynamic from 'next/dynamic';
 import RoleGuard from '../components/Shared/RoleGuard';
+import AdminLayout from '../components/Admin/AdminLayout';
 import { useScrollToTopOnTabChange } from '../lib/hooks/useScrollToTopOnTabChange';
 
 const AdminMetrics = dynamic(() => import('../components/Admin/AdminMetrics'), { ssr: false });
@@ -143,143 +144,86 @@ function AdminDashboardInner() {
         }
     }, [activeTab, aprobacionesPendientesCount]);
 
-    // Detect real header height (navbar + optional banner)
-    const [headerH, setHeaderH] = useState(72);
-    useEffect(() => {
-        const measure = () => {
-            const header = document.querySelector('header');
-            if (header) {
-                const rect = header.getBoundingClientRect();
-                setHeaderH(rect.bottom);
-            }
-        };
-        measure();
-        window.addEventListener('resize', measure);
-        // Re-measure after a short delay (banner may close)
-        const t = setTimeout(measure, 500);
-        return () => { window.removeEventListener('resize', measure); clearTimeout(t); };
-    }, []);
-
     return (
-        <div className="min-h-screen bg-[#F8FAFC] font-sans">
+        <AdminLayout>
             <Head>
                 <title>Administración | Pawnecta</title>
             </Head>
 
-            <div className="flex" style={{ paddingTop: headerH }}>
-                {/* ── SIDEBAR: navegación sticky izquierda ── */}
-                <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-white border-r border-slate-200" style={{ position: 'sticky', top: headerH, height: `calc(100vh - ${headerH}px)` }}>
-                    <div className="p-5 border-b border-slate-100">
-                        <div className="flex items-center gap-2.5">
-                            <ShieldCheck className="w-7 h-7 text-accent-700" />
-                            <div>
-                                <h2 className="text-sm font-semibold text-slate-900 leading-tight">Admin</h2>
-                                <p className="text-[11px] text-slate-500">Pawnecta</p>
-                            </div>
-                        </div>
-                    </div>
-                    <nav role="tablist" aria-label="Secciones de administración" aria-orientation="vertical" className="flex-1 p-3 space-y-1">
-                        {tabs.map((tab) => {
-                            const Icon = tab.icon;
-                            const isActive = activeTab === tab.id;
-                            return (
-                                <button
-                                    key={tab.id}
-                                    role="tab"
-                                    aria-selected={isActive}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${isActive
-                                        ? 'bg-accent-50 text-accent-700 font-semibold'
-                                        : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
-                                        }`}
+            {/* Sprint ADMIN-SIDEBAR-UNIFY-A (2026-11-24) — wrap con AdminLayout
+                compartido; sidebar inline removido. Las 6 tabs SPA internas
+                (dashboard/conversion/aprobaciones/moderacion/proveedores/
+                feedback) se mantienen como sub-nav horizontal top dentro
+                del content del AdminLayout (ex-versión mobile extendida a
+                todo breakpoint para consistencia visual). Para las rutas
+                reales admin (Evaluaciones, Notificaciones, Métricas,
+                Eventos, Proveedores) el usuario navega via sidebar lateral
+                del AdminLayout; las tabs de arriba son sub-navegación
+                interna de esta página /admin. */}
+            <div role="tablist" aria-label="Secciones de administración" className="bg-white border border-slate-200 rounded-xl px-2 py-2 mb-6 flex gap-1.5 overflow-x-auto hide-scrollbar">
+                {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    const isActive = activeTab === tab.id;
+                    return (
+                        <button
+                            key={tab.id}
+                            role="tab"
+                            aria-selected={isActive}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-sm whitespace-nowrap transition-all ${isActive
+                                ? 'bg-accent-600 text-white font-semibold'
+                                : 'text-slate-600 hover:bg-slate-50'
+                                }`}
+                        >
+                            <Icon size={16} />
+                            {tab.label}
+                            {typeof tab.badge === 'number' && tab.badge > 0 && (
+                                <span
+                                    aria-label={`${tab.badge} pendientes`}
+                                    className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${isActive ? 'bg-white text-accent-700' : 'bg-accent-600 text-white'}`}
                                 >
-                                    <Icon size={18} className={isActive ? 'text-accent-700' : 'text-slate-500'} />
-                                    <span className="flex-1 text-left">{tab.label}</span>
-                                    {typeof tab.badge === 'number' && tab.badge > 0 && (
-                                        <span
-                                            aria-label={`${tab.badge} pendientes`}
-                                            className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-semibold bg-accent-600 text-white"
-                                        >
-                                            {tab.badge > 99 ? '99+' : tab.badge}
-                                        </span>
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </nav>
-                </aside>
-
-                {/* ── MOBILE: tabs horizontales ── */}
-                <div role="tablist" aria-label="Secciones de administración" className="lg:hidden fixed left-0 right-0 z-30 bg-white border-b border-slate-200 px-4 py-2 flex gap-2 overflow-x-auto hide-scrollbar" style={{ top: headerH }}>
-                    {tabs.map((tab) => {
-                        const Icon = tab.icon;
-                        const isActive = activeTab === tab.id;
-                        return (
-                            <button
-                                key={tab.id}
-                                role="tab"
-                                aria-selected={isActive}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`flex items-center gap-1.5 px-3 py-2 rounded-lg font-medium text-xs whitespace-nowrap transition-all ${isActive
-                                    ? 'bg-accent-600 text-white font-semibold'
-                                    : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
-                            >
-                                <Icon size={14} />
-                                {tab.label}
-                                {typeof tab.badge === 'number' && tab.badge > 0 && (
-                                    <span
-                                        aria-label={`${tab.badge} pendientes`}
-                                        className={`inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-semibold ${isActive ? 'bg-white text-accent-700' : 'bg-accent-600 text-white'}`}
-                                    >
-                                        {tab.badge > 99 ? '99+' : tab.badge}
-                                    </span>
-                                )}
-                            </button>
-                        );
-                    })}
-                </div>
-
-                {/* ── CONTENIDO PRINCIPAL ── */}
-                <div className="flex-1 min-w-0 px-4 sm:px-6 lg:px-8 py-6 lg:py-8 mt-12 lg:mt-0">
-                    <div className="max-w-6xl">
-                        {/* Header */}
-                        <div className="mb-8">
-                            <div className="flex items-center gap-3 flex-wrap">
-                                <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
-                                    {tabs.find(t => t.id === activeTab)?.label || 'Panel de Administración'}
-                                </h1>
-                                <RateLimitBadge />
-                            </div>
-                            {/* Sprint admin-visibilidad (2026-08-27) — subtítulo contextual
-                                por tab activo. El copy genérico "Herramientas de gestión
-                                y moderación" se heredó al tab Feedback donde suena a
-                                "vas a moderar", cuando la vista es solo lectura de
-                                sugerencias y reportes de usuarios. Ternario simple: si
-                                el tab activo tiene subtítulo propio, lo usa; sino el
-                                genérico histórico. */}
-                            <p className="mt-1 text-sm text-slate-500">
-                                {activeTab === 'feedback'
-                                    ? 'Sugerencias y reportes enviados por usuarios del sitio.'
-                                    : 'Herramientas de gestión y moderación del marketplace.'}
-                            </p>
-                        </div>
-
-                        {/* Tab content */}
-                        {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
-                        {activeTab === 'conversion' && (
-                            <div className="space-y-12">
-                                <OfertaMetrics />
-                                <ConversionMetrics />
-                            </div>
-                        )}
-                        {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
-                        {activeTab === 'moderacion' && <EvaluacionModerationList />}
-                        {activeTab === 'proveedores' && <ProveedorManagementList />}
-                        {activeTab === 'feedback' && <FeedbackList />}
-                    </div>
-                </div>
+                                    {tab.badge > 99 ? '99+' : tab.badge}
+                                </span>
+                            )}
+                        </button>
+                    );
+                })}
             </div>
-        </div>
+
+            {/* Header del tab activo */}
+            <div className="mb-8">
+                <div className="flex items-center gap-3 flex-wrap">
+                    <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
+                        {tabs.find(t => t.id === activeTab)?.label || 'Panel de Administración'}
+                    </h1>
+                    <RateLimitBadge />
+                </div>
+                {/* Sprint admin-visibilidad (2026-08-27) — subtítulo contextual
+                    por tab activo. El copy genérico "Herramientas de gestión
+                    y moderación" se heredó al tab Feedback donde suena a
+                    "vas a moderar", cuando la vista es solo lectura de
+                    sugerencias y reportes de usuarios. Ternario simple: si
+                    el tab activo tiene subtítulo propio, lo usa; sino el
+                    genérico histórico. */}
+                <p className="mt-1 text-sm text-slate-500">
+                    {activeTab === 'feedback'
+                        ? 'Sugerencias y reportes enviados por usuarios del sitio.'
+                        : 'Herramientas de gestión y moderación del marketplace.'}
+                </p>
+            </div>
+
+            {/* Tab content */}
+            {activeTab === 'dashboard' && <AdminMetrics setActiveTab={setActiveTab} />}
+            {activeTab === 'conversion' && (
+                <div className="space-y-12">
+                    <OfertaMetrics />
+                    <ConversionMetrics />
+                </div>
+            )}
+            {activeTab === 'aprobaciones' && <ProveedorApprovalList />}
+            {activeTab === 'moderacion' && <EvaluacionModerationList />}
+            {activeTab === 'proveedores' && <ProveedorManagementList />}
+            {activeTab === 'feedback' && <FeedbackList />}
+        </AdminLayout>
     );
 }

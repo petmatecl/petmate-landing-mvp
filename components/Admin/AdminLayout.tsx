@@ -2,7 +2,7 @@ import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import Head from 'next/head';
-import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target, Calendar } from 'lucide-react';
+import { LayoutDashboard, Star, Bell, ArrowLeft, PawPrint, Target, Calendar, Users } from 'lucide-react';
 
 interface AdminLayoutProps {
     children: React.ReactNode;
@@ -67,6 +67,21 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
                             }`}
                     >
                         <Target size={20} /> Métricas
+                    </Link>
+
+                    {/* Sprint ADMIN-SIDEBAR-UNIFY-A (2026-11-24) — Proveedores
+                        era ítem faltante en el sidebar compartido. La page
+                        pages/admin/proveedores.tsx existe hace tiempo (Patrón C
+                        del diagnóstico); este link la vuelve navegable desde
+                        el sidebar unificado. */}
+                    <Link
+                        href="/admin/proveedores"
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${isActive('/admin/proveedores')
+                            ? 'bg-accent-50 text-accent-700 font-semibold'
+                            : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 font-medium'
+                            }`}
+                    >
+                        <Users size={20} /> Proveedores
                     </Link>
 
                     {/* Sprint EVENTOS MVP (2026-11-24) */}

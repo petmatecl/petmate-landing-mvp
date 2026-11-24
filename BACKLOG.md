@@ -1956,6 +1956,23 @@ Fix (~15 min): tras `const response = await resend.emails.send(...)`, chequear `
 
 Anotado inicialmente 2026-11-24 AM; confirmado empírico 2026-11-24 PM. Docs-only PR si solo agendar; código PR si se arregla después. **No gating** — Resend ahora en Pro 50k/mes (ver [[resend-plan]]) → cap lejos de alcanzable en volumen actual; el fix del guard sigue siendo defense-in-depth para el próximo trigger silencioso (dominio no verificado, template oversize, rate limit post-crecimiento con campañas pagadas).
 
+### ADMIN-SIDEBAR-UNIFY-B — abierto · prioridad MEDIA · post-launch (no gating)
+
+Migrar las 4 pages admin del **Patrón C** (header top-of-page sin sidebar, pre-PR #140) al `AdminLayout` compartido:
+
+- [`pages/admin/evaluaciones.tsx`](pages/admin/evaluaciones.tsx) (`<header>` sticky bg-slate-900).
+- [`pages/admin/proveedores.tsx`](pages/admin/proveedores.tsx) (`<header>` sticky bg-slate-900).
+- [`pages/admin/metricas-proveedores.tsx`](pages/admin/metricas-proveedores.tsx) (idem).
+- [`pages/admin/servicios.tsx`](pages/admin/servicios.tsx) (idem).
+
+Requiere decisión UX sobre qué hacer con el `<header>` top-of-page actual:
+- **Opción A (descartar)**: remover el `<header>` sticky bg-slate-900 y usar el H1 común del `AdminLayout` main content (match /admin + /admin/eventos + /admin/notificaciones).
+- **Opción B (mantener vertical)**: preservar el header rojo-slate pero reposicionado como header del main content (no sticky top), con el sidebar `AdminLayout` a la izquierda.
+
+**Scope estimado**: 2-3h código + visual review. **Gatillo**: cuando el PO quiera uniformidad visual total en /admin/*. Hoy no es bloqueante — las 4 pages funcionan, solo que no comparten sidebar.
+
+Origen: diagnóstico del sprint ADMIN-SIDEBAR-UNIFY-A 2026-11-24 (PR auditor que migró `pages/admin.tsx` al `AdminLayout` tras detección del PO que /admin tenía sidebar distinto a /admin/eventos). PR A solo migró `/admin`; esta B cubre las 4 pages del Patrón C restantes.
+
 ### RESEND-REMINDERS-DEDUP — abierto · prioridad MEDIA · sin fecha (no gating)
 
 **Finding del PO 2026-11-24 PM** (durante smoke #149 de la jornada 24-11, observando Resend dashboard post-upgrade Pro): **reminder emails del cron de reservas aparecen duplicados 3× en el mismo timestamp** en Resend Delivered log. Subjects observados (3 veces cada uno):
