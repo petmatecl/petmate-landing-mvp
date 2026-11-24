@@ -1,0 +1,71 @@
+-- ═══════════════════════════════════════════════════════════════════════
+-- EVENTOS MVP PULIDO — relaxation NOT NULL direccion + organizador_nombre
+-- (sprint eventos-mvp-pulido 2026-11-24)
+-- ═══════════════════════════════════════════════════════════════════════
+--
+-- Scope: dar flexibilidad al admin al crear eventos. Decisión PO
+-- 2026-11-24 post-apply inicial de la Feria Navideña: "no es necesario
+-- ser tan estricto si seré yo mismo quien suba los eventos". Columnas
+-- required post-ALTER se reducen a lo esencial:
+--   - nombre (text NOT NULL)
+--   - fecha (date NOT NULL)
+--   - lugar_nombre (text NOT NULL)
+--   - comuna (text NOT NULL)
+--   - descripcion (text NOT NULL)
+--   - tipo (text NOT NULL, CHECK IN ('feria', 'jornada', ...))
+--   - entrada_gratuita (boolean NOT NULL DEFAULT false)
+--   - publicado (boolean NOT NULL DEFAULT false)
+--
+-- direccion + organizador_nombre quedan NULLABLE. El display del card
+-- + widget + /eventos lista + /eventos/[id] detalle debe handle null
+-- gracefully (sin "null" string ni espacios huérfanos).
+--
+-- Pre-verificado en staging (proyecto jmtadvdkicyylcwjcmcl) el
+-- 2026-11-24 PM — ALTER aplicada OK, is_nullable confirmado YES para
+-- las 2 columnas.
+--
+-- ═══════════════════════════════════════════════════════════════════════
+
+ALTER TABLE public.eventos ALTER COLUMN direccion DROP NOT NULL;
+ALTER TABLE public.eventos ALTER COLUMN organizador_nombre DROP NOT NULL;
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- Verificación post-apply (query manual — NO parte de la migration)
+-- ═══════════════════════════════════════════════════════════════════════
+--
+-- Ejecutar en SQL Editor tras aplicar el ALTER:
+--
+--   SELECT column_name, is_nullable
+--   FROM information_schema.columns
+--   WHERE table_schema = 'public' AND table_name = 'eventos'
+--     AND column_name IN ('direccion', 'organizador_nombre')
+--   ORDER BY column_name;
+--
+-- Esperado:
+--   direccion            | YES
+--   organizador_nombre   | YES
+--
+-- Confirmación negativa (opcional): las otras 8 required siguen NOT NULL:
+--
+--   SELECT column_name, is_nullable
+--   FROM information_schema.columns
+--   WHERE table_schema = 'public' AND table_name = 'eventos'
+--     AND column_name IN ('nombre', 'fecha', 'lugar_nombre', 'comuna', 'descripcion', 'tipo', 'entrada_gratuita', 'publicado')
+--   ORDER BY column_name;
+--
+-- Esperado: todas is_nullable = NO.
+
+-- ═══════════════════════════════════════════════════════════════════════
+-- Rollback (si se necesita revertir)
+-- ═══════════════════════════════════════════════════════════════════════
+--
+-- Prerequisito: todas las filas existentes de public.eventos deben tener
+-- valores NO NULL en direccion + organizador_nombre, sino el ALTER
+-- fallará con "column contains null values".
+--
+--   -- Verificar primero:
+--   SELECT COUNT(*) FROM public.eventos WHERE direccion IS NULL OR organizador_nombre IS NULL;
+--   -- Si > 0, migrar/completar los null antes del rollback.
+--
+--   ALTER TABLE public.eventos ALTER COLUMN direccion SET NOT NULL;
+--   ALTER TABLE public.eventos ALTER COLUMN organizador_nombre SET NOT NULL;
