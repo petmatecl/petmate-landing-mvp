@@ -37,7 +37,7 @@ export function NewMessageEmail(props: Readonly<NewMessageEmailProps>): React.Re
                         style={{ margin: '0 auto 24px' }}
                     />
                     <Heading style={{ fontSize: '24px', fontWeight: 'bold', color: '#1f2937' }}>
-                        Tienes un nuevo mensaje de {senderName} 💬
+                        Tienes un nuevo mensaje de {senderName}
                     </Heading>
                     <Section style={{
                         backgroundColor: '#f9fafb',
