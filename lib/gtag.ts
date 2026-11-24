@@ -76,7 +76,21 @@ export type EventoDemanda =
     | 'reserva_confirmada'               // ⭐ KEY — {familia: F1|F2|legacy} INSERT estado=confirmada
     | 'solicitud_enviada'                // INSERT estado=pendiente (flujo viejo)
     | 'resena_publicada'                 // post-approval evaluaciones.estado=aprobado
-    | 'share_click';                     // {canal: whatsapp|copiar|share_nativo, entidad: servicio|proveedor_publico|proveedor_dashboard, entidad_id: <uuid>}
+    | 'share_click'                      // {canal: whatsapp|copiar|share_nativo, entidad: servicio|proveedor_publico|proveedor_dashboard, entidad_id: <uuid>}
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23) — 10 eventos nuevos del funnel
+    // tutor granular pre-campañas. Origen: docs/analisis/funnel-contacto-tutor-detalle-20261122.md
+    // § "Instrumentación GA4 granular propuesta". Naming en snake_case español
+    // consistente con los 12 anteriores.
+    | 'catalogo_visto'                   // {categoria?, comuna?, results_count?} — mount de /explorar, /[categoria], /[categoria]/[comuna]
+    | 'perfil_proveedor_visto'           // {provider_id, verified, service_count?} — mount de /proveedor/[id]
+    | 'cta_contacto_click'               // {service_id, source: ficha|card|busqueda, logged_in: bool}
+    | 'cta_reservar_click'               // {service_id, tipo: F1|F2|legacy, logged_in: bool}
+    | 'gate_login_mostrado'              // {action_intent: contacto|reserva|favorito|otro, source_service_id?}
+    | 'gate_login_eleccion'              // {choice: iniciar_sesion|registrarse|cerrar}
+    | 'registro_paso_visto'              // {step: 1|2|3|4, role: tutor|proveedor} — wizard progression
+    | 'registro_tutor_completado'        // ⭐ KEY — POST /api/auth/signup rol=tutor success (gemelo de registro_proveedor_completado)
+    | 'email_confirmado'                 // {role?, time_since_register_h?, has_return_url: bool} — landing /email-confirmado
+    | 'primera_accion_post_login';       // {action_type: contacto|reserva|favorito|exploracion, time_since_confirm_min?}
 
 // Union completo — usar como `EventoTracking` para expresar "cualquiera de los 11".
 export type EventoTracking = EventoOferta | EventoDemanda;
@@ -134,4 +148,63 @@ export function trackEvent(
     // muerta que da hint erróneo es peor que no tener assertion.
 
     window.gtag('event', nombre, params ?? {});
+}
+
+// ============================================================================
+// Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23) — Helper coordinación
+// cross-pages para primera_accion_post_login.
+//
+// Problema: el evento `primera_accion_post_login` requiere saber cuándo el
+// user acaba de completar login/signup (marker) + disparar en el primer
+// evento de acción posterior (contacto/reserva/favorito/exploracion). Son
+// dos puntos del código en páginas distintas.
+//
+// Diseño: localStorage key `pawnecta_login_ts` con Date.now() seteada en
+// /email-confirmado post-hidratación (o en /login success). Leída + borrada
+// en el primer trackEvent de acción. La clave vive máximo 2 horas — si el
+// user hace su primera acción después, no se considera "post-login" ya.
+// ============================================================================
+
+const LOGIN_TS_KEY = 'pawnecta_login_ts';
+const WINDOW_POST_LOGIN_MS = 2 * 60 * 60 * 1000; // 2 horas
+
+/** Marca el instante de un login/signup genuino. Llamar en /email-confirmado
+ *  post-hidratación o en /login success. Guard try/catch para storage
+ *  bloqueado (private browsing). */
+export function markLoginForFirstAction(): void {
+    try {
+        if (typeof window === 'undefined') return;
+        window.localStorage.setItem(LOGIN_TS_KEY, String(Date.now()));
+    } catch {
+        /* storage bloqueado — ignorar */
+    }
+}
+
+/** Dispara `primera_accion_post_login` si hay marker reciente (<2h). Borra
+ *  el marker post-fire. Idempotente: si no hay marker, no-op silencioso. */
+export function firePrimeraAccionPostLogin(
+    actionType: 'contacto' | 'reserva' | 'favorito' | 'exploracion',
+): void {
+    try {
+        if (typeof window === 'undefined') return;
+        const raw = window.localStorage.getItem(LOGIN_TS_KEY);
+        if (!raw) return;
+        const ts = parseInt(raw, 10);
+        if (isNaN(ts)) {
+            window.localStorage.removeItem(LOGIN_TS_KEY);
+            return;
+        }
+        const elapsedMs = Date.now() - ts;
+        if (elapsedMs < 0 || elapsedMs > WINDOW_POST_LOGIN_MS) {
+            window.localStorage.removeItem(LOGIN_TS_KEY);
+            return;
+        }
+        window.localStorage.removeItem(LOGIN_TS_KEY);
+        trackEvent('primera_accion_post_login', {
+            action_type: actionType,
+            time_since_confirm_min: Math.round(elapsedMs / 60000),
+        });
+    } catch {
+        /* storage bloqueado — ignorar */
+    }
 }

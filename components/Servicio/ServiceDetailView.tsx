@@ -51,7 +51,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getProxyImageUrl } from '../../lib/utils';
-import { trackEvent } from '../../lib/gtag';
+import { trackEvent, firePrimeraAccionPostLogin } from '../../lib/gtag';
 
 // Sprint 4 Fase 1: el mapa local DETALLE_LABELS desaparecio. La fuente unica
 // de labels/tipos por (categoria, key) vive en lib/camposPorCategoria.ts; el
@@ -304,6 +304,16 @@ export default function ServiceDetailView({
     };
 
     const handleChatClick = async () => {
+        // Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23): cta_contacto_click.
+        // Fire ANTES del gate de login — mide intent incluso para anónimo
+        // que verá el LoginRequiredModal. Diferencia logged_in para medir
+        // conversión gate → login → contacto.
+        trackEvent('cta_contacto_click', {
+            service_id: service.id,
+            source: 'ficha',
+            logged_in: !!user,
+        });
+
         if (isExample) { setExampleModalAction('mensaje'); return; }
         setIsChatLoading(true);
 
@@ -316,6 +326,9 @@ export default function ServiceDetailView({
         }
 
         trackContacto('mensaje');
+        // Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23): primera acción
+        // post-login (chat). Dispara si localStorage tiene marker reciente.
+        firePrimeraAccionPostLogin('contacto');
         try {
             const userId = session.user.id;
 
@@ -477,6 +490,18 @@ export default function ServiceDetailView({
     // Mismo gating pattern que los otros CTAs (example → ExampleCTAModal;
     // guest → LoginRequiredModal; OK → abre el modal de solicitud).
     const handleSolicitarAgendamiento = async () => {
+        // Sprint ANALYTICS-FUNNEL-TUTOR fase 2 (2026-11-23): cta_reservar_click.
+        // tipo: F2 si capacidad_estadia, F1 si duracion_slot_min, legacy sino.
+        const tipoReserva: 'F1' | 'F2' | 'legacy' =
+            (service as any)?.capacidad_estadia != null ? 'F2'
+                : (service as any)?.duracion_slot_min != null ? 'F1'
+                    : 'legacy';
+        trackEvent('cta_reservar_click', {
+            service_id: service.id,
+            tipo: tipoReserva,
+            logged_in: !!user,
+        });
+
         if (isExample) { setExampleModalAction('agendamiento'); return; }
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) {
@@ -484,6 +509,9 @@ export default function ServiceDetailView({
             return;
         }
         setAgendamientoModalOpen(true);
+        // Sprint ANALYTICS-FUNNEL-TUTOR fase 2: primera acción post-login
+        // (reserva). Dispara si localStorage tiene marker reciente.
+        firePrimeraAccionPostLogin('reserva');
     };
 
     // Bandera derivada — agendamiento habilitado en este servicio. Si la
