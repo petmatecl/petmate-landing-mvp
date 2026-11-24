@@ -13,7 +13,7 @@ export function AprobacionProveedorEmail(props: Readonly<Props>): React.ReactEle
     const { nombre } = props;
     return (
         <div style={{ fontFamily: 'sans-serif', color: '#1A202C' }}>
-            <h1 style={{ color: '#1A6B4A' }}>¡Bienvenido(a) a Pawnecta, {nombre}! 🐾</h1>
+            <h1 style={{ color: '#1A6B4A' }}>¡Bienvenido(a) a Pawnecta, {nombre}!</h1>
             <p>
                 ¡Buenas noticias! Tu solicitud ha sido <strong>aprobada</strong> por nuestro equipo.
                 Ya puedes empezar a publicar tus servicios de cuidado de mascotas y conectar con dueños en todo Chile.
