@@ -1,0 +1,140 @@
+# Bitácora de operación + incidentes CI — 2026-11-24
+
+Written for: el PO (Aldo). Registro operativo de la jornada 2026-11-24 PM: 12 PRs mergeados autónomos (5 código pre-EVENTOS + 2 docs + 4 sprint EVENTOS MVP + 1 correctivo framing), 3 episodios documentados (ruleset-gridlock + diagnóstico email silent-fail + correctivo contexto operativo), 1 sprint completo cerrado end-to-end (EVENTOS MVP), 2 upgrades de infra (Resend Free → Pro, Sentry descartado).
+
+Complementa `docs/bitacora/incidentes-20261123.md` del día anterior. Este doc captura la perspectiva "qué pasó operativamente y qué aprendimos", NO estadísticas de CI (para eso: `docs/planes/ci-flakes-acumulados.md`).
+
+---
+
+## Scoreboard del día
+
+**12 PRs mergeados**:
+
+| PR | Branch | SHA | UTC | Scope |
+|---|---|---|---|---|
+| #153 | emails-emoji | `7af4c75` | 14:36 | EMAILS-EMOJI-POLICY (remover 7 emojis templates + extender regla CLAUDE.md) |
+| #147 | ga4-tutor | `d971d33` | 15:27 | ANALYTICS-FUNNEL-TUTOR (10 events taxonomía + 7 call sites instrumentados) |
+| #152 | explorar-pre | `b50efbc` | 15:30 | EXPLORAR-PRE-CAMPAÑA (H3+H4+H5 hero+subcopy+filtro fotos) |
+| #149 | tutor-return-to | `b0ecc7e` | 16:13 | F-TR-17 (preservar URL origen pre-registro en localStorage) |
+| #150 | resend-email | `f53397b` | 16:15 | F-TR-13 (reenviar email confirmación cooldown 60s) |
+| #182 | docs-deudas-pre | `02f16b0` | 16:20 | 3 deudas BACKLOG (WELCOME-EMAIL-GUARD + RESEND-STAGING-SPLIT + RESEND-REMINDERS-DEDUP) |
+| #183 | docs-plan-week1 | `2186800` | 16:24 | post-launch-week1-plan + CLAUDE_MD_ENMIENDAS_NOV24 propuestas |
+| #184 | docs-reset-ctx | `00f599b` | 16:52 | **Correctivo framing** — sitio ya operativo (no "launch 25-11") |
+| #185 | eventos-mvp-1 | `1191e33` | 16:58 | EVENTOS MVP PR 1 schema SQL + RLS + bucket + acta P5 |
+| #186 | eventos-mvp-2 | `7d30fc2` | 17:11 | EVENTOS MVP PR 2 admin CRUD `/admin/eventos` |
+| #187 | eventos-mvp-3 | `56d2838` | 17:15 | EVENTOS MVP PR 3 listado público `/eventos` + sitemap |
+| #188 | eventos-mvp-4 | `0fcd8df` | 17:21 | EVENTOS MVP PR 4 widget home (cierra sprint) |
+
+**1 PR diferido**: `#181 docs-env-notes` (hasta rehab ruleset + merge normal, timing flexible).
+
+**2 upgrades de infra**:
+- **Resend**: Free (3k errores/mes) → **Pro $20/mes 50k emails**. Causa: 100% cuota mes consumida por mix staging+prod.
+- **Sentry**: Free Developer 5k errores/mes **se mantiene**. Upgrade descartado por el PO. Mitigación = monitoreo manual Vercel Function Logs cuando corresponda.
+
+**1 ruleset relajado temporal**: `main` ruleset perdió `Playwright suite error-audit` + `Playwright suite F2` de required (rehab pendiente timing flexible, ver episodio 1 abajo).
+
+---
+
+## Episodio 1 — Ruleset-gridlock durante batch merges
+
+**Observación**: 2026-11-24 ~14:00 UTC durante batch empty-commits serial en 4 branches (ga4-tutor, tutor-return-to, resend-email, emails-emoji) para pickear `AUDIT_INBOX` nuevo post rotación env var.
+
+**Síntoma**: 3 de los 4 Playwright pull_request runs quedaron `CANCELLED`. Solo `emails-emoji` (run `45409380499`) sobrevivió al ciclo de serialización. `gh pr merge` + `gh pr merge --admin` ambos fallaron con `"4 of 4 required status checks have not succeeded"`. workflow_dispatch manual del PO **no cuenta** como check de PR.
+
+**Causa raíz técnica**: `.github/workflows/e2e-error-audit.yml` tiene `concurrency: group: staging-exclusive` global (no per-PR) + `cancel-in-progress: false`. GitHub Actions cancela runs encolados cuando otro empieza (comportamiento "cancel-in-progress" de facto por limitación del queue, no respeta `cancel-in-progress: false` para runs en queue). El ruleset `main` requiere 4 required checks (`typecheck-and-build` + `Vercel` + 2 Playwright suites) — sin los Playwright, `--admin` tampoco bypassea.
+
+**Mitigación aplicada**: el PO relajó temporalmente el ruleset (Settings → Rules → quitar los 2 Playwright de required). 4 merges secuenciales desbloqueados. Diferido `#181 docs-env-notes` hasta post-rehab.
+
+**Rehab pendiente**: timing flexible. Pasos UI GitHub documentados en auto-memory operativa del auditor (`reminder_ruleset_rehab_20261125.md`). Al GO del PO: 5 min de UI + merge #181 + aterrizar enmienda CLAUDE.md + agregar sprint candidato `CI-RULESET-CONCURRENCY-REFACTOR` al BACKLOG.
+
+**Lección documentada**: enmienda propuesta a CLAUDE.md en [`docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md`](../planes/CLAUDE_MD_ENMIENDAS_NOV24.md) § Enmienda 1 — regla operativa "concurrency `staging-exclusive` global cancela Playwright pull_request de PRs paralelos durante batch merges" + 3 mitigaciones conocidas (serial con pausa 10+ min, relax ruleset temporal, refactor concurrency per-PR).
+
+---
+
+## Episodio 2 — Diagnóstico email no-llega (hipótesis Supabase SMTP descartada)
+
+**Observación**: 2026-11-24 ~15:40 UTC durante smoke manual del PO del PR #149 F-TR-17 (register tutor con email prueba `petmatecl+smoke-f149-retry@gmail.com` + verificar llegada a Gmail).
+
+**Síntoma**: flow signup completa success (UI dice "¡Listo!") pero email de confirmación nunca llega. Resend dashboard tampoco muestra entry con destino `audit_inbox@mail.tm` ni `petmatecl+audit@gmail.com`.
+
+**Hipótesis inicial del PO**: Supabase Auth usando SMTP built-in de Supabase (rate-limited ~3-4/hora), smokes anteriores quemaron el cupo.
+
+**Diagnóstico via auth_logs MCP** (staging proyecto `jmtadvdkicyylcwjcmcl`, ventana 15:30-15:45 UTC): `POST /admin/users` (user_signedup) + `POST /admin/generate_link` para el email del smoke. **CERO logs `/mailer`, CERO intento SMTP, CERO rate-limit**. Supabase ni intentó enviar email.
+
+**Verificación en código**: el flow signup del app NO toca SMTP de Supabase en ningún punto.
+
+- [pages/register.tsx:254](../../pages/register.tsx#L254) hace `fetch('/api/auth/signup')`.
+- [pages/api/auth/signup.ts:58](../../pages/api/auth/signup.ts#L58) usa `supabaseAdmin.auth.admin.createUser(...)` — admin API, **no envía email automático**.
+- [pages/api/auth/signup.ts:95](../../pages/api/auth/signup.ts#L95) usa `supabaseAdmin.auth.admin.generateLink(...)` — genera link **sin enviar email**.
+- [pages/api/auth/signup.ts:223](../../pages/api/auth/signup.ts#L223) hace `fetch('/api/auth/welcome')` → endpoint Resend-based.
+
+**Causa raíz real** (confirmada por PO vía Resend dashboard): `WELCOME-EMAIL-SILENT-FAIL-GUARD` empíricamente activo. Resend v4 retorna `{data: null, error: {...}}` **sin throw** → `/api/auth/welcome` responde `200 success` con error anidado → cero `Sentry.captureException` → UI dice "¡Listo!" al usuario + email jamás enviado. Causa del Resend reject: 100% quota free tier consumida.
+
+**Fix inmediato**: **upgrade Resend a Pro $20/mes 50k emails**. Trigger operacional para que el flow vuelva a funcionar. Deuda estructural WELCOME-EMAIL-SILENT-FAIL-GUARD queda abierta como prioridad MEDIA post-launch (fix ~15 min documentado en `BACKLOG.md § Deuda técnica / pulido > WELCOME-EMAIL-SILENT-FAIL-GUARD`).
+
+**Lección documentada**: enmienda propuesta a CLAUDE.md en [`docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md`](../planes/CLAUDE_MD_ENMIENDAS_NOV24.md) § Enmienda 3 — regla documental "Supabase Auth NO envía SMTP en flow signup del app (admin API + Resend custom)" para evitar mal diagnóstico futuro.
+
+---
+
+## Episodio 3 — Correctivo contexto operativo (framing "launch 25-11" descartado)
+
+**Observación**: 2026-11-24 PM hacia el final de la jornada, tras varios dispatches donde yo venía propagando "freeze 24-11 16:00 CLT + launch 25-11" como premisa activa.
+
+**Correctivo del PO**: el sitio Pawnecta YA ESTÁ OPERATIVO desde hace tiempo. No hay launch event planeado. Meta real = **100 proveedores para activar campañas pagadas** (ads Google/Meta), sin fecha fija.
+
+**Acción correctiva aplicada**:
+
+- **Auto-memory operativa del auditor** (zero impacto repo): 3 archivos limpiados de refs falsas (`reminder_ruleset_rehab_20261125.md` + `audit_inbox.md` + `resend_plan.md`).
+- **PR #184 docs-reset-ctx** (merged `00f599b`): 3 archivos del repo corregidos:
+  - `docs/planes/post-launch-week1-plan.md` rewrite completo con framing "próxima semana pre-campañas-pagadas" + nota de corrección al tope.
+  - `docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md` nota de corrección al tope (las 3 enmiendas siguen válidas porque reglas operativas son independientes del framing).
+  - `BACKLOG.md` 3 entradas del día (WELCOME-EMAIL-SILENT-FAIL-GUARD + RESEND-REMINDERS-DEDUP + RESEND-STAGING-SPLIT) con headers/refs ajustadas (`post-launch` → `sin fecha (no gating)` o `sin fecha (gatillo = X)`). Entradas HISTÓRICAS del BACKLOG (lanzamiento 18-11, sprint SENTRY-1 pre-launch, decisiones PO del 11-11, etc.) NO se tocaron por ser contexto histórico legítimo.
+
+**Lección**: cuando propago un contexto operativo heredado de instrucciones previas, verificar con el PO si la premisa sigue viva antes de estructurar sprint o cola continua alrededor. El fail acá fue inferir "freeze/launch" del tono + fechas en instrucciones previas sin cross-check.
+
+---
+
+## Episodio 4 — Regla duplicación Telegram ↔ VS Code TEXTUAL (4ª instancia slip)
+
+**Observación**: durante los primeros 5 dispatches Telegram del día (post-merge #147, #152, #149, #150, #183), reporté en VS Code solo "Telegram urgency=update enviado" sin duplicar el texto literal del mensaje. Violación de la regla operativa establecida 2026-11-23 "todo dispatch Telegram se pega textual idéntico en VS Code mismo turno".
+
+**Correctivo del PO** (urgency explícita): 4ª instancia de slip clase comunicación. 5ª violación → pausa + urgency=alert.
+
+**Acción**: regla aterrizada en auto-memory como `feedback_telegram_vscode_duplication.md` con:
+- Rule explícita (literal copy, zero paráfrasis).
+- Why (PO revisa móvil vs laptop, pierde info al cambiar).
+- How to apply (bloque triple-backticks inmediato post-dispatch).
+- Checklist mecánico pre-envío.
+- Historia 4 instancias + sanción 5ª.
+
+Aplicado retroactivamente al mensaje final del cierre cola continua (pegado textual en turno corrector).
+
+**Lección**: fail recurrente del mismo tipo requiere aterrizar en auto-memory (no solo acta del día) para que no se pierda entre sesiones. La regla original estaba sabida pero no indexada — las 4 instancias del día bajaron por no tener el checklist mecánico pre-envío a mano.
+
+---
+
+## Sprint cerrado end-to-end · EVENTOS MVP
+
+**Alcance**: feature nueva de eventos de la comunidad (ferias, jornadas, charlas, competencias, meetups). Issue #164 respondido completo por el PO (Q1-Q8) + GO al scope + ventana 3-5 días libre asumida.
+
+**Secuencia (4 PRs mergeados en ~1h 16:58-17:21 UTC)**:
+
+1. **PR #185 schema + bucket** (16:58 `1191e33`): migration `migrations/20261124_eventos_mvp.sql` con tabla `public.eventos` (22 cols, SOFT delete, `publicado boolean`) + 2 RLS policies (`public_read` anon/authenticated + `admin_write` via `is_admin()`) + 3 indexes (PK + 2 filtered) + GRANTs explícitos + storage bucket `eventos-imagenes` (public, 2MB, JPEG/PNG/WebP) + 3 storage policies. Acta P5 con instrucciones apply prod + verificación 7/7 esperada + rollback comentado. **Pre-verificado end-to-end en staging** via MCP `supabase-staging-rw` antes de entregar.
+
+2. **PR #186 admin CRUD** (17:11 `7d30fc2`): sidebar entry "Eventos" en `AdminLayout` + `components/Admin/EventoForm.tsx` (form compartido crear/editar, upload imagen a bucket, validación client-side) + `pages/admin/eventos/index.tsx` (list + SOFT delete via `ConfirmDialog`) + `nuevo.tsx` + `[id]/editar.tsx` wrappers con `RoleGuard admin`.
+
+3. **PR #187 listado público** (17:15 `56d2838`): `pages/eventos.tsx` con `getServerSideProps` + anon Supabase (RLS filtered) + grilla responsive 3-cols/2-cols/1-col + `EventoCard` con imagen + metadatos + link externo a Instagram del organizador o primer `link_referencia` (Q7 MVP: sin detalle individual). Sitemap entry `/eventos`.
+
+4. **PR #188 widget home** (17:21 `0fcd8df`): `components/Home/EventosWidget.tsx` client component con fetch anon + LIMIT 3 próximos + fallback OCULTO si `eventos.length=0` (Q6 PO: zero DOM reservado). Integrado como "Sección 1.5" entre Hero y Franjas por categoría de `pages/index.tsx`.
+
+**Pendiente para feature live end-to-end**: PO ejecuta la migration SQL en Supabase Studio prod (instrucciones completas en `docs/sprints/eventos-schema-sql-acta.md`). Antes del apply: `/eventos` muestra empty state (no crash, filtro silencioso en gSSP), widget home oculto (fallback funciona), `/admin/eventos` da error de query (solo admin accede, zero impacto público). Al apply del PO con 0 rows: todo funciona en modo vacío. Primer evento publicado (Q8 seed Feria Navideña por el PO desde `/admin/eventos/nuevo`): feature visible end-to-end.
+
+---
+
+## Trazabilidad cruzada
+
+- Spec sprint EVENTOS MVP: [`docs/sprints/eventos-mvp-plan.md`](../sprints/eventos-mvp-plan.md).
+- Acta P5 schema SQL: [`docs/sprints/eventos-schema-sql-acta.md`](../sprints/eventos-schema-sql-acta.md).
+- 3 enmiendas CLAUDE.md propuestas: [`docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md`](../planes/CLAUDE_MD_ENMIENDAS_NOV24.md).
+- Plan próxima semana pre-campañas: [`docs/planes/post-launch-week1-plan.md`](../planes/post-launch-week1-plan.md) (nombre histórico; framing corregido al "pre-campañas-pagadas" en #184).
+- Bitácora del día anterior: [`incidentes-20261123.md`](incidentes-20261123.md).
