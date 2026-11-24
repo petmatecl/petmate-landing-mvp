@@ -20,10 +20,13 @@ export default function MessageThread({ conversationId, userId }: Props) {
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [loading, setLoading] = useState(true);
-    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; nombre: string; apellido_p?: string; foto_perfil?: string; email?: string } | null>(null);
+    // Sprint pii-chat-nombre (2026-11-19) — shape ParticipantProfile unificado:
+    // `display_name` precomputado por `getParticipantProfile`, cero componer
+    // nombre + apellido en cliente.
+    const [otherUser, setOtherUser] = useState<{ auth_user_id: string; display_name: string; foto_perfil?: string } | null>(null);
     const bottomRef = useRef<HTMLDivElement>(null);
 
-    const [myUser, setMyUser] = useState<{ nombre: string } | null>(null);
+    const [myUser, setMyUser] = useState<{ display_name: string } | null>(null);
     const [fetchError, setFetchError] = useState(false);
     // Vinculo chat-agendamiento (modelo b): si la conv esta linkeada a un
     // agendamiento y ese agendamiento tiene mascota_id, mostramos chip
@@ -267,7 +270,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     userId: otherUser.auth_user_id,
                     type: 'message',
                     title: 'Nuevo mensaje',
-                    message: `${myUser?.nombre || 'Un usuario'} te envió un mensaje`,
+                    message: `${myUser?.display_name || 'Un usuario'} te envió un mensaje`,
                     link: `/mensajes?id=${conversationId}`,
                 }).catch(console.error);
 
@@ -330,7 +333,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                                 src={getProxyImageUrl(otherUser.foto_perfil) || ''}
-                                alt={otherUser.nombre}
+                                alt={otherUser.display_name || 'Participante'}
                                 className="w-10 h-10 rounded-full object-cover border-2 border-slate-300"
                             />
                         ) : (
@@ -348,7 +351,7 @@ export default function MessageThread({ conversationId, userId }: Props) {
                     </div>
                     <div>
                         <h3 className="font-semibold text-slate-900 text-sm">
-                            {otherUser.nombre} {otherUser.apellido_p}
+                            {otherUser.display_name || 'Participante'}
                         </h3>
                         {/* Par PRESENCIA (online-success / offline-slate) — online es estado
                             positivo de disponibilidad (facilita la conversacion); offline es
@@ -457,12 +460,12 @@ export default function MessageThread({ conversationId, userId }: Props) {
                 {onlineUsers.has(otherUser.auth_user_id) ? (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-success-500 inline-block" />
-                    {otherUser.nombre} en línea
+                    {otherUser.display_name || 'Participante'} en línea
                   </span>
                 ) : (
                   <span className="flex items-center gap-1.5">
                     <span className="w-2 h-2 rounded-full bg-slate-300 inline-block" />
-                    {otherUser.nombre} desconectado
+                    {otherUser.display_name || 'Participante'} desconectado
                   </span>
                 )}
               </div>
