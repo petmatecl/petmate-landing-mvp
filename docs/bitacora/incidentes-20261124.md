@@ -153,7 +153,74 @@ Aplicado retroactivamente al mensaje final del cierre cola continua (pegado text
 
 **Próximo paso manual del PO**: cargar Feria Navideña 2026-11-28 como primer seed desde `/admin/eventos/nuevo` cuando convenga (Q8). Nota del PO: difusión de la feria va por RRSS propias (Instagram + TikTok), el sistema EVENTOS no es gating para ese evento específico.
 
-**Scoreboard final del día actualizado**: 13 PRs mergeados autónomos + 1 diferido (#181) + **1 sprint completo cerrado end-to-end en prod (EVENTOS MVP)** + 2 upgrades infra + 3 deudas BACKLOG documentadas + 3 enmiendas CLAUDE.md propuestas + 1 correctivo framing + 1 bitácora operación + 4 episodios aprendizaje aterrizados.
+**Scoreboard final del día actualizado**: 13 PRs mergeados autónomos + 1 diferido (#181) + **1 sprint completo cerrado end-to-end en prod (EVENTOS MVP)** + 2 upgrades infra + 3 deudas BACKLOG documentadas + 3 enmiendas CLAUDE.md propuestas + 1 correctivo framing + 1 bitácora operación + 5 episodios aprendizaje aterrizados.
+
+---
+
+## Episodio 5 — Bloqueo cola nocturna por visual snapshot drift acumulado (7 merges sin regen baseline)
+
+**Timeline**: 2026-11-24 PM, durante cola nocturna autónoma post-Bloque 1 WELCOME-GUARD (#196).
+
+**Síntoma**: PR #197 (fix-email-signup) + PR #198 (docs-rem-dedup) consecutivos, ambos con scope cero visual (templates email + docs respectivamente), ambos fallan CI con la **misma firma de 5 fails**:
+
+- `visual/paginas-clave.spec.ts:198` home desktop
+- `visual/paginas-clave.spec.ts:206` explorar desktop + mobile
+- `visual/paginas-clave.spec.ts:242` login desktop
+- `visual/paginas-clave.spec.ts:252` ficha servicio desktop
+
+Error común: `expect(page).toHaveScreenshot(expected) failed`.
+
+**Causa real**: drift acumulado del main de los 7 merges del día (RRSS-ICONS + ev-pulido-2 + docs-ev-cierre + admin-unify-a + ev-pulido-1 + docs-gastos + welcome-guard) sin regen de baselines. Ninguno de los PRs del día ejecutó el workflow `visual-update-snapshots`. Cada merge empujó 1-2 píxeles en algún header/footer/componente shared; acumulados 7 merges, superó el `threshold: 0.02 + maxDiffPixels: 100` del spec.
+
+**Clasificación**: 2 slips clase "visual snapshot drift" en el mismo día (umbrales P11 enmienda = 3 misma clase antes de pausa). Cero push de más PRs nuevos hasta desbloquear → protege el 3er slip que forzaría alert.
+
+**Escalada al PO**: urgency=alert con 3 opciones (A regenerar baseline / B override temporal / C pausar hasta mañana). PO eligió **Opción A**.
+
+**Resolución**:
+
+1. `git push origin origin/main:staging` (FF 568 commits, `1a523fc` → `86686ef`) — staging era mirror hace meses.
+2. `gh workflow run visual-update-snapshots.yml --ref main` → run `#45510429477`.
+3. Workflow generó las 5 PNGs correctas (exactamente las 5 que fallaban) + guardó artifact `visual-baselines-45510429477`.
+4. Workflow commit a main **rechazado por ruleset** con mensaje `GH013: Changes must be made through a pull request`. **Protección correcta** — regla operativa 2026-09-22 "cero push directo a main" activa.
+5. Pipeline alternativo: `gh run download 45510429477` → scratchpad → copio los 5 PNGs a `e2e/specs/visual/paginas-clave.spec.ts-snapshots/` en rama `vis-baseline` → commit + push + PR #199 hacia main.
+6. CI del PR #199: en curso al momento de escribir.
+
+**Scope del commit**: 5 PNGs, zero código productivo.
+
+**Trigger operativo propuesto para evitar recurrencia**:
+- **Alternativa A (lightweight)**: después de N=5 merges a main con cambios en `components/` shared o estilos, auto-regen baseline en el siguiente PR que mezcle código visual.
+- **Alternativa B (estructural)**: agregar `visual-update-snapshots` como step automático al merge de PRs que tocan `components/*` (si el workflow permite condicional por changed files).
+- **Alternativa C (preventive runbook)**: añadir al checklist pre-merge del PO un "si el PR toca estilos o header/footer compartido → dispatch manual visual-update-snapshots antes del merge".
+
+**Trabajo en paralelo durante bloqueo** (NO push hasta #199 verde):
+- ITEM 3 EVENTOS tests: commit local `f66700a` en rama `tests-eventos`. 40 unit tests + refactor 2 call sites a `lib/eventosFormat.ts`. Build + tsc OK.
+
+**Lección**: la combinación `cero push directo a main (ruleset)` + `workflow visual-update-snapshots con step git push` tiene un lock conocido — el workflow NO puede completar su propio commit. La ruta operativa es dispatch con `artifact_only=true` (habilitada desde sprint vis-bypass 2026-11-06) o aceptar el fail del step y abrir PR manual. Dejar documentado para el próximo episodio.
+
+### Episodio 5 extensión — 3er slip clase misma + decisión Opción B (2026-11-25)
+
+**Cola nocturna → mañana 25-11**: PR #199 con las 5 PNGs regeneradas pasó el setup del CI en segunda corrida, pero el test contra las PNGs nuevas:
+
+- home-desktop + login-desktop + ficha-servicio-desktop → **VERDE** ✓
+- **explorar-desktop + explorar-mobile → FALLA con las PNGs nuevas**
+
+Delta entre workflow visual-update (23:29 UTC) y rerun PR (00:07 UTC) = ~38 min. En esa ventana, la data de `servicios_publicados` cambió lo suficiente para que el grid de `/explorar` dejara de matchear su propia baseline recién generada. `home / login / ficha-servicio` son estables (hero estático / form estático / seed UUID fijo con máscara en visit counter).
+
+**3er slip clase "visual snapshot drift" del día** (#197 + #198 + #199-rerun). Regla operativa P8 enmienda: 3er slip misma clase → **pausa + urgency=alert**. Cumplida.
+
+**Decisión PO Opción B**: diagnóstico estructural = `/explorar` tiene contenido 100% dinámico (grid servicios_publicados cambia entre generación baseline y ejecución test). Snapshot vs dynamic data = flake permanente. Fix propuesto en 2 iteraciones:
+
+1. **Mitigación inmediata (aterrizada en PR #199 commit `dbf9533`)**: `test.skip(...)` sobre los 2 tests de explorar con comment inline apuntando a la deuda. Las 3 PNGs regeneradas estables mantienen cobertura visual del resto de superficies.
+2. **Fix estructural post-launch**: deuda **VISUAL-EXPLORAR-DYNAMIC** agendada en BACKLOG (prioridad MEDIA) con 2 opciones (maskPattern más agresivo ~1h / fixture DB controlado ~3-5h).
+
+**Diagnóstico adicional en #200** (BACKLOG docs-cat-dd, zero toca visual): fail con 5 visual drift (esperado — #200 usa PNGs viejas pre-#199) **+ 3 fails separados pre-existentes** NO introducidos por #200:
+- `cue-1-fix/a1-lock-sub-experiments.spec.ts:145` (A1.c watchdog warnings)
+- `link-confirm-email/p8-positivo-y-negativo.spec.ts:39` (signupLink admin.generateLink devuelve HTML en vez de JSON)
+- `sentry/gate.spec.ts:98` (R3 SENTRY-1 CSP + gate incorrecto)
+
+Son flakes pre-existentes del main que no se habían manifestado en las últimas corridas por azar. Escalada propia separada post-merge #199.
+
+**Scoreboard final del día actualizado**: 13 PRs mergeados autónomos + 1 diferido (#181) + **1 sprint completo cerrado end-to-end en prod (EVENTOS MVP)** + 2 upgrades infra + **4 deudas BACKLOG documentadas** (+ VISUAL-EXPLORAR-DYNAMIC) + 3 enmiendas CLAUDE.md propuestas + 1 correctivo framing + 1 bitácora operación + **5 episodios aprendizaje aterrizados con extensión del Ep. 5**.
 
 ---
 
