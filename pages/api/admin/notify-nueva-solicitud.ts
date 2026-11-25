@@ -108,7 +108,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         const { data: sendData, error: sendErr } = await resend.emails.send({
             from,
             to: ADMIN_INBOX,
-            subject: `${subjectPrefix}Nueva solicitud de proveedor pendiente: ${prov.nombre} ${prov.apellido_p || ''}`.trim(),
+            subject: `${subjectPrefix}Nuevo proveedor registrado: ${prov.nombre} ${prov.apellido_p || ''}`.trim(),
             // Patrón del proyecto: React component directo, no render() a HTML.
             // Ver notify-proveedor.ts para el patrón canónico.
             react: NuevoProveedorPendienteEmail({
@@ -161,7 +161,7 @@ async function enviarModoDegradado(res: NextApiResponse, fallback: FallbackPaylo
         const { data: sendData, error: sendErr } = await resend.emails.send({
             from,
             to: ADMIN_INBOX,
-            subject: `${subjectPrefix}[DEGRADADO] Nueva solicitud de proveedor: ${nombreCompleto}`.trim(),
+            subject: `${subjectPrefix}[DEGRADADO] Nuevo proveedor registrado: ${nombreCompleto}`.trim(),
             react: NuevoProveedorPendienteEmail({
                 proveedorNombre: nombreCompleto,
                 proveedorEmail: fallback.email,
