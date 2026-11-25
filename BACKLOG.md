@@ -1345,7 +1345,38 @@ Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCate
 4. **Hotel felino** — hospedaje especializado en gatos, presencial (recinto).
 5. **Visitas de medicación** — administración de tratamientos a domicilio, presencial.
 6. **Entrenamiento deportivo** — agility, canicross, deportes caninos, presencial.
-7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor.
+7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor. Expandido como ítem propio: ver `CATEGORIA-SERVICIOS-DESPEDIDA-Y-DUELO` abajo.
+
+### CATEGORIA-SERVICIOS-DESPEDIDA-Y-DUELO — abierto · prioridad MEDIA · sin fecha (pedido PO 2026-11-24)
+
+Expandir el catálogo con una categoría dedicada a servicios fúnebres de mascotas: **cremación, velorio, entierro, eutanasia a domicilio, asesoría emocional, transporte, urnas conmemorativas**. Gap identificado del catálogo actual — no gating de los primeros 100 proveedores pero hueco real del mercado chileno que Pawnecta puede cubrir con una vertical de alta sensibilidad.
+
+**Prioridad**: MEDIA. NO bloquea el objetivo "100 proveedores" ni ninguna campaña activa, pero es una necesidad real de tutores que hoy no tienen dónde buscar estos servicios de forma consolidada y verificada. La categoría tiene potencial de diferenciación de producto: pocos marketplaces chilenos cubren el flow completo con el tono adecuado.
+
+**Decisiones UX a resolver al arrancar sprint (todas PO)**:
+
+- **Nombre categoría**: tentativo "**Despedida y duelo**" (empático, centrado en el tutor que vive el proceso) o "**Servicios fúnebres**" (descriptivo, mejor SEO para búsquedas directas). Trade-off: empatía vs. discoverability. La doble solución (nombre empático en UI + metadatos SEO con términos descriptivos) es viable técnicamente — el slug de la categoría puede diferir del display name (ver `categorias_servicio.slug` vs `nombre`).
+- **Tono emocional del copy**: acompañamiento, NO transacción. Evitar vocabulario de ficha comercial estándar ("Reserva tu servicio", "Precio desde", CTAs tipo "Contratar ahora"). Ajustar a algo más cercano a "Conversa con el proveedor", "Pide orientación". Revisar textos de la ficha pública + email de confirmación + mensajes del chat.
+- **Fotos de referencia**: abstractas o florales, NO imágenes crudas del servicio. Recomendable a) imponer guidelines explícitas al proveedor en el flow de subir fotos (modal con preview + confirmación del proveedor que la foto cumple el tono), b) revisar manualmente (flag de moderación admin pre-publicación específico para esta categoría si el volumen lo permite).
+- **Posición en orden del catálogo**: **NO primero**. Un tutor que busca hospedaje o veterinario no debe encontrar esta categoría de entrada — carga emocional alta que puede alejar la navegación cotidiana. Opciones: (a) final de la grid con un separador visual suave, (b) sección separada "Momentos especiales" junto con "Retratos" y otras categorías de nicho emocional. Decisión PO al arrancar sprint.
+- **FAQ sensible (opcional)**: considerar sección de educación con tono empático sobre proceso de cremación, tiempos, legalidad en Chile, opciones memoriales (urnas, placas, árboles conmemorativos). Puede vivir como página estática `/eventos`-style o como sección dentro de la ficha del proveedor. Puede quedar fase 2 si el sprint inicial se enfoca solo en habilitar la categoría.
+
+**Scope técnico**:
+
+- **Schema de categorías**: verificar si `categorias_servicio` acepta nuevos valores sin ALTER (el catálogo es data-driven en la mayor parte del código; migrations recientes agregaron `retratos`, `etologia`, `fotografia` solo con INSERT en la tabla + actualización de `camposPorCategoria.ts`). Hipótesis alta: solo INSERT.
+- **Iconos por categoría**: hardcoded en `components/` (ej. `components/CategoriaIconFromString.tsx` o equivalente). Requiere code change con nuevo icono. Candidatos lucide-react: `Flower`, `Heart`, `Dove` (si existe; alternativa `Bird`), o un icono custom SVG más neutro. Cero emoji (regla CLAUDE.md).
+- **Campos del wizard (`camposPorCategoria.ts`)**: decidir qué campos dinámicos muestra esta categoría al proveedor cuando crea su servicio (ej. "¿Realiza eutanasia a domicilio?", "Zona de cobertura", "Opciones de urna", "Servicios incluidos": transporte, acompañamiento, memoriales, etc.). Lista completa es decisión UX + outreach con primeros proveedores piloto.
+- **Modalidad**: la categoría probablemente es `mixta` (presencial para ritual + remota para asesoría emocional). Puede requerir ajuste en `categorias-por-modalidad` si ese proyecto estructural ya aterrizó cuando se arranca el sprint (ver `Proyectos estructurales > Categorías por modalidad`).
+- **Ficha pública**: posible componente custom con tono/layout más empático que el genérico — depende del volumen/importancia que el PO quiera dar.
+
+**Dependencias para arrancar sprint**:
+
+- Decisión PO: nombre categoría (slug + display name + metadatos SEO).
+- Decisión PO: ubicación en el orden del catálogo + tratamiento visual (categoría regular vs sección separada).
+- Outreach comercial PO a proveedores reales del área funeraria de mascotas (cremación, veterinarias con servicio funerario, memoriales). Sin ≥2-3 proveedores onboardeados la categoría nace vacía — anti-pattern (rompe la promesa del catálogo). Fase 1 puede ser onboardear 1-2 proveedores piloto con los que validar el tono + el flow antes de habilitar la categoría públicamente.
+- Opcional: outreach a psicólogos/profesionales de duelo animal que ofrezcan asesoría — amplía la vertical a acompañamiento emocional, no solo servicios físicos.
+
+**Sprint cuando se arranque**: branch sugerido `cat-dd` o `despedida-duelo` (≤18 chars). Scope técnico probable ~1 jornada (INSERT categoría + icono lucide + definición `camposPorCategoria.ts` + ubicación en grid + QA del tono del copy) si el schema data-driven no requiere ALTER. Scope UX + onboarding (outreach + validación con proveedores piloto) es paralelo y más largo (~semanas).
 
 ### Post-launch — iniciativas grandes
 
