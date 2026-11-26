@@ -23,6 +23,7 @@
 // transaccional.
 // ----------------------------------------------------------------------------
 import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
@@ -178,6 +179,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 donde,
             }) as React.ReactElement,
         });
+
+        // Sprint WELCOME-EMAIL-SILENT-FAIL-GUARD (2026-11-24) — guard
+        // extendido. Resend v4 {data:null, error} sin throw → silent-fail.
+        if (response.error) {
+            Sentry.captureMessage('notify-tutor-reserva-confirmada-email-send-failed', {
+                level: 'warning',
+                tags: { email_error_name: response.error.name ?? 'unknown' },
+                extra: { error: response.error },
+            });
+            return res.status(502).json({ error: 'email-send-failed', details: response.error });
+        }
 
         console.log('[notify-tutor-reserva-confirmada] enviado', {
             messageId: response.data?.id,

@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
 import { emailLimiter } from '../../../lib/rateLimit';
@@ -116,6 +117,25 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
             subject: subject,
             html: htmlComponent,
         });
+
+        // Sprint WELCOME-EMAIL-SILENT-FAIL-GUARD (2026-11-24): Resend v4
+        // puede devolver `{ data: null, error: {...} }` sin throw cuando
+        // la API rechaza (rate limit, destinatario inválido, dominio no
+        // verificado, template oversize, cuota agotada). Sin este guard,
+        // el handler responde 200 success con error anidado → cero
+        // `Sentry.captureException` (wrapApiHandlerWithSentry captura solo
+        // throws) → silent-failure. Confirmado empíricamente durante
+        // smoke #149 del 2026-11-24 (UI "¡Listo!" + email jamás enviado +
+        // cero alerta). Ver BACKLOG entry WELCOME-EMAIL-SILENT-FAIL-GUARD
+        // + docs/bitacora/incidentes-20261124.md Episodio 2.
+        if (response.error) {
+            Sentry.captureMessage('welcome-email-send-failed', {
+                level: 'warning',
+                tags: { rol, email_error_name: response.error.name ?? 'unknown' },
+                extra: { error: response.error, email_subject: subject },
+            });
+            return res.status(502).json({ error: 'email-send-failed', details: response.error });
+        }
 
         return res.status(200).json({ success: true, response });
     } catch (error) {

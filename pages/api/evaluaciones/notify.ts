@@ -1,4 +1,5 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
+import * as Sentry from '@sentry/nextjs';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
@@ -118,6 +119,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
                 comentario: ev.comentario,
             }) as React.ReactElement,
         });
+
+        // Sprint WELCOME-EMAIL-SILENT-FAIL-GUARD (2026-11-24) — guard
+        // extendido. Resend v4 {data:null, error} sin throw → silent-fail.
+        if (response.error) {
+            Sentry.captureMessage('evaluaciones-notify-email-send-failed', {
+                level: 'warning',
+                tags: { email_error_name: response.error.name ?? 'unknown' },
+                extra: { error: response.error },
+            });
+            return res.status(502).json({ error: 'email-send-failed', details: response.error });
+        }
 
         return res.status(200).json({ success: true, messageId: response.data?.id });
     } catch (error) {

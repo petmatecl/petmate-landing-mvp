@@ -16,6 +16,7 @@ import { toast } from "sonner";
 
 import SearchBar from "../components/Home/SearchBar";
 import StepCard from "../components/Home/StepCard";
+import EventosWidget from "../components/Home/EventosWidget";
 // Sprint home-carrusel punto 4 (2026-11-12): HomeVisitorCounter removido
 // del render con la eliminación de la SECCIÓN 7. El fetch del valor
 // `totalVisitasMes` se mantiene en getStaticProps por si otras secciones
@@ -615,6 +616,14 @@ export default function HomePage({ featuredServices, stats, categoryCounts, tota
           </div>
         </div>
       </section>
+
+      {/* ═══════════════════════════════════════════
+          SECCIÓN 1.5 — WIDGET EVENTOS COMUNIDAD
+          Sprint EVENTOS MVP (2026-11-24): entre Hero y Explorar
+          por categoría (Q6). Fallback 0 eventos = widget OCULTO
+          (zero DOM reservado). Fetch client-side con anon key.
+      ═══════════════════════════════════════════ */}
+      <EventosWidget />
 
       {/* ═══════════════════════════════════════════
           SECCIÓN 2 — FRANJAS POR CATEGORÍA (pares)

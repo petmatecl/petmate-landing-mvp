@@ -1,6 +1,7 @@
-import React, { useId, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { useModalDialog } from '../../lib/useModalDialog';
+import { trackEvent } from '../../lib/gtag';
 import Button from '../UI/Button';
 
 interface LoginRequiredModalProps {
@@ -8,6 +9,12 @@ interface LoginRequiredModalProps {
     onClose: () => void;
     title?: string;
     message?: string;
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): intento del usuario que
+    // disparó el gate. Permite medir drop por tipo de acción intencionada.
+    actionIntent?: 'contacto' | 'reserva' | 'favorito' | 'otro';
+    // Sprint ANALYTICS-FUNNEL-TUTOR: id del servicio origen (si aplica).
+    // Opcional; sin él, solo medimos el gate sin contexto.
+    sourceServiceId?: string;
 }
 
 // ZB1 sprint ZONAB-1 (2026-07-31): migrado al patrón canónico —
@@ -17,7 +24,9 @@ export default function LoginRequiredModal({
     isOpen,
     onClose,
     title = "Inicia sesión para continuar",
-    message = "Necesitas una cuenta para enviar mensajes o dejar una evaluación."
+    message = "Necesitas una cuenta para enviar mensajes o dejar una evaluación.",
+    actionIntent = 'otro',
+    sourceServiceId,
 }: LoginRequiredModalProps) {
     const router = useRouter();
     const titleId = useId();
@@ -25,6 +34,56 @@ export default function LoginRequiredModal({
     const containerRef = useRef<HTMLDivElement>(null);
 
     useModalDialog({ isOpen, onClose, containerRef });
+
+    // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-17: preservar URL
+    // origen pre-registro. Cuando el modal gate se abre, guarda la URL
+    // actual en localStorage para que /email-confirmado pueda redirigir
+    // al usuario de vuelta al servicio origen post-confirm email.
+    //
+    // Impacto medido en benchmark industria: +20-40% retención post-confirm
+    // (H1 funnel tutor del doc A6 funnel-contacto-tutor-detalle-20261122).
+    //
+    // Guard try/catch: storage puede fallar en private browsing o cuando
+    // el user tiene storage bloqueado. Cero ruido — simplemente el
+    // return_to no se aplica y el flow cae al home default.
+    //
+    // Guard de path "accionable": solo guarda URLs que tienen sentido
+    // como destino de retorno (ficha de servicio, perfil de proveedor,
+    // /explorar, categoría/comuna). Excluye rutas de auth transit
+    // (/login, /register, /email-confirmado, /security-logout, etc)
+    // para evitar loops de redirección.
+    useEffect(() => {
+        if (!isOpen) return;
+        try {
+            if (typeof window !== 'undefined' && router.asPath) {
+                const asPath = router.asPath;
+                const isAuthTransit = /^\/(login|register|email-confirmado|security-logout|reset-password|completar-registro)/i.test(asPath);
+                const isActionable = /^\/(servicio|proveedor|explorar|[a-z-]+(\/[a-z-]+)?$)/i.test(asPath);
+                if (isActionable && !isAuthTransit) {
+                    window.localStorage.setItem('pawnecta_return_to', asPath);
+                }
+            }
+        } catch {
+            /* storage bloqueado o lleno — ignorar */
+        }
+    }, [isOpen, router.asPath]);
+
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): gate_login_mostrado — fire
+    // al mostrar el modal. Un evento por apertura; cerrar + reabrir dispara
+    // 2 events (intencional: medir fricción repetida).
+    useEffect(() => {
+        if (!isOpen) return;
+        trackEvent('gate_login_mostrado', {
+            action_intent: actionIntent,
+            ...(sourceServiceId ? { source_service_id: sourceServiceId } : {}),
+        });
+    }, [isOpen, actionIntent, sourceServiceId]);
+
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): gate_login_eleccion helper
+    // disparado desde cada handler del modal con el `choice` correspondiente.
+    const fireEleccion = (choice: 'iniciar_sesion' | 'registrarse' | 'cerrar') => {
+        trackEvent('gate_login_eleccion', { choice });
+    };
 
     if (!isOpen) return null;
 
@@ -39,7 +98,7 @@ export default function LoginRequiredModal({
                 className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 relative"
             >
                 <button
-                    onClick={onClose}
+                    onClick={() => { fireEleccion('cerrar'); onClose(); }}
                     aria-label="Cerrar"
                     className="absolute top-4 right-4 text-slate-500 hover:text-slate-600 transition-colors"
                 >
@@ -72,7 +131,7 @@ export default function LoginRequiredModal({
                      * grep del className en runtime).
                      */}
                     <Button
-                        onClick={() => router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`)}
+                        onClick={() => { fireEleccion('iniciar_sesion'); router.push(`/login?redirect=${encodeURIComponent(router.asPath)}`); }}
                         variant="primary"
                         size="modal-cta"
                         weight="medium"
@@ -91,7 +150,7 @@ export default function LoginRequiredModal({
                      * variant o si este botón unifica hacia secondary.
                      */}
                     <button
-                        onClick={() => router.push('/register')}
+                        onClick={() => { fireEleccion('registrarse'); router.push('/register'); }}
                         className="w-full bg-white hover:bg-slate-50 text-accent-700 border-2 border-accent-600 font-medium tracking-wide py-3 px-4 rounded-xl transition-colors"
                     >
                         Registrarme gratis

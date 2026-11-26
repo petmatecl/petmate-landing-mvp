@@ -27,10 +27,10 @@ export const NuevoProveedorPendienteEmail = ({
 }: Readonly<Props>): React.ReactElement => (
     <div style={{ fontFamily: 'sans-serif', color: '#1A202C', maxWidth: '560px', margin: '0 auto', padding: '20px' }}>
         <h1 style={{ color: '#0F5A3E', fontSize: '20px', margin: '0 0 16px' }}>
-            Nueva solicitud de proveedor pendiente
+            Nuevo proveedor registrado
         </h1>
         <p style={{ margin: '0 0 20px', color: '#4A5568' }}>
-            Un proveedor completó su registro y espera revisión de su cuenta.
+            Un proveedor completó su registro y fue aprobado automáticamente. Su perfil puede estar incompleto — monitorea el panel admin para contactarlo si no publica servicios dentro de 48-72h.
         </p>
 
         <table style={{ width: '100%', borderCollapse: 'collapse', margin: '0 0 24px' }}>
@@ -77,7 +77,7 @@ export const NuevoProveedorPendienteEmail = ({
                 fontSize: '14px',
             }}
         >
-            Revisar en el panel de admin
+            Ver en el panel de admin
         </a>
 
         <p style={{ margin: '32px 0 0', color: '#718096', fontSize: '12px', borderTop: '1px solid #E2E8F0', paddingTop: '16px' }}>

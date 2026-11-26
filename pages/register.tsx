@@ -70,6 +70,12 @@ export default function RegisterWizard() {
   // depender del scroll al banner de arriba.
   const [passwordError, setPasswordError] = useState('');
 
+  // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-13: reenvío de email
+  // de confirmación con cooldown 60s. Impacto esperado: +10-15% confirm
+  // email (benchmark industria 10-20% abandono si no llega el email).
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [resendStatus, setResendStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
+
   // Step 3: Provider Info
   const [comunaQuery, setComunaQuery] = useState('');
   const [showComunaList, setShowComunaList] = useState(false);
@@ -131,7 +137,46 @@ export default function RegisterWizard() {
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'auto' });
     }
-  }, [step]);
+    // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): registro_paso_visto —
+    // dispara en cada cambio de step del wizard. Permite medir drop por
+    // paso sin esperar completación. Gate PL2: no-op en non-prod.
+    // `rol` puede ser null en step 1 (pre-selección) — se envía vacío.
+    trackEvent('registro_paso_visto', {
+      step,
+      role: rol || '',
+    });
+  }, [step, rol]);
+
+  // Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-13: cooldown countdown
+  // del botón de reenvío de email. Decrementa cada segundo mientras > 0.
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((c) => Math.max(0, c - 1)), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
+
+  // Handler de reenvío. Guard anti-doble-fire + anti-spam cooldown 60s.
+  const handleResendEmail = async () => {
+    if (resendCooldown > 0 || resendStatus === 'sending' || !email) return;
+    setResendStatus('sending');
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+      });
+      if (resendError) {
+        console.error('Error reenviando email:', resendError);
+        setResendStatus('error');
+      } else {
+        setResendStatus('ok');
+      }
+    } catch (err) {
+      console.error('Exception reenviando email:', err);
+      setResendStatus('error');
+    } finally {
+      setResendCooldown(60);
+    }
+  };
 
   // Pre-seleccionar rol desde query param ?rol=proveedor o ?rol=usuario
   useEffect(() => {
@@ -297,6 +342,13 @@ export default function RegisterWizard() {
       // aparte). Gate PL2: no-op en staging/preview/dev.
       if (rol === 'proveedor') {
         trackEvent('registro_proveedor_completado');
+      }
+
+      // Sprint ANALYTICS-FUNNEL-TUTOR (2026-11-23): registro_tutor_completado —
+      // ⭐ KEY EVENT del funnel demanda. Gemelo del evento de proveedor.
+      // Dispara post-success de /api/auth/signup con rol=usuario (tutor).
+      if (rol === 'usuario') {
+        trackEvent('registro_tutor_completado');
       }
 
       // 2. Move to Success Screen (welcome email is sent server-side)
@@ -753,9 +805,38 @@ export default function RegisterWizard() {
                     Después ya puedes entrar a tu panel y publicar tu primer servicio.
                   </p>
                 )}
-                <p className="text-xs text-slate-500 mb-8 max-w-md mx-auto">
+                <p className="text-xs text-slate-500 mb-4 max-w-md mx-auto">
                   ¿No lo encuentras? Revisa tu carpeta de spam o correo no deseado.
                 </p>
+
+                {/* Sprint TUTOR-FUNNEL-PRE-CAMPAÑA (2026-11-23) F-TR-13:
+                    botón de reenvío con cooldown 60s. Impacto esperado:
+                    +10-15% confirm email (benchmark industria 10-20%
+                    abandono si no llega en los primeros 60s). */}
+                <div className="mb-8 max-w-md mx-auto">
+                  <button
+                    type="button"
+                    onClick={handleResendEmail}
+                    disabled={resendCooldown > 0 || resendStatus === 'sending'}
+                    className="text-sm text-accent-700 hover:text-accent-800 font-medium disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {resendStatus === 'sending'
+                      ? 'Reenviando…'
+                      : resendCooldown > 0
+                        ? `Reenviar email en ${resendCooldown}s`
+                        : 'Reenviar email de confirmación'}
+                  </button>
+                  {resendStatus === 'ok' && (
+                    <p className="text-xs text-success-700 mt-2">
+                      Listo. Revisa tu bandeja de entrada y la carpeta de spam.
+                    </p>
+                  )}
+                  {resendStatus === 'error' && (
+                    <p className="text-xs text-warning-700 mt-2">
+                      No pudimos reenviar el correo. Intenta de nuevo en un momento.
+                    </p>
+                  )}
+                </div>
 
                 <button
                   onClick={() => router.push('/')}

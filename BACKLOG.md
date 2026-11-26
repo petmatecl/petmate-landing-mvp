@@ -227,6 +227,8 @@ Historia de por qué existe esta sección: durante el ciclo de 2 semanas de trab
 
 - **[abierto · POST-LANZAMIENTO · decisión PO 2026-11-10 sprint home-verdad-1-3] VIS-HOME-FULLPAGE · El visual test del home solo cubre el above-the-fold; evaluar fullPage o specs por sección** — hallazgo P8 durante el workflow `visual-update-snapshots` del sprint home-verdad-1-3 (run 42881800902): PR modificó extensamente `pages/index.tsx` (eliminó testimonios, cambió 3 cards de "Por qué confiar", reescribió StepCard paso 2, eliminó sección "Proveedores que puedes conocer" completa, cambió CTA final L666), pero las PNG `home-desktop-visual-linux.png` y `home-mobile-visual-linux.png` quedaron **byte-idénticas a main**. Causa: `expect(page).toHaveScreenshot(name, SNAPSHOT_OPTS)` en [e2e/specs/visual/paginas-clave.spec.ts:203](e2e/specs/visual/paginas-clave.spec.ts#L203) **sin `fullPage: true`** → Playwright captura solo el viewport inicial (desktop 1440x900, mobile 375x812). Todos los cambios de HOME-VERDAD cayeron below-fold. Trade-off a evaluar post-launch: (a) agregar `fullPage: true` a `SNAPSHOT_OPTS` (más superficie cubierta, pero más flake potencial por contenido dinámico de secciones below-fold, baselines más pesadas); (b) dividir el spec home en N tests por sección con selectors acotados (`heroSection`, `confianzaSection`, etc.); (c) dejar igual y confiar en QA manual del PO para below-fold (status quo). Pre-requisito para decisión: comparar flakiness histórica del home vs otras páginas con fullPage. Estimación opción (a): 30 min + 1 ciclo de aprobación visual de las nuevas baselines full-height. Opción (b): 2-3h (refactor spec + locators estables por sección). Opción (c): cero esfuerzo.
 
+- **[abierto · POST-LANZAMIENTO · nota PO 2026-11-25 sprint cola nocturna · prioridad MEDIA] VISUAL-EXPLORAR-DYNAMIC · Los tests visuales de `/explorar` (desktop + mobile) están actualmente skipeados porque la página tiene contenido 100% dinámico sin estabilizar** — aterrizado 2026-11-25 en PR #199 (vis-baseline) tras 3er slip de "visual drift" en el día (#197 + #198 + #199 rerun). El rerun del PR #199 regeneró 5 baselines nuevas y pasaron verdes para home-desktop + login-desktop + ficha-servicio-desktop, pero `/explorar` siguió fallando contra las PNGs nuevas porque la grilla de `servicios_publicados` (orden por ranking, imágenes, counters, text dinámicos) cambia en segundos entre la ejecución del workflow `visual-update-snapshots` y la ejecución del rerun del PR (en el caso del fail observado: ~38 min entre ambos, varios servicios publicados o editados durante la ventana). **Diseño test incorrecto**: snapshot pixel-perfect contra contenido dinámico sin fixture de BD controlado ni maskPattern suficiente. La máscara actual (`barraLocator` + `gridLocator`) cubre el grid principal pero el bbox del grid cambia con el número de cards visibles → pixels de borde quedan sin masking → diff. **Mitigación inmediata (aterrizada en PR #199)**: `test.skip(...)` sobre los 2 tests de explorar, comment inline apuntando a esta deuda. **Fix propuesto post-launch (2 opciones)**: (a) **maskPattern más agresivo**: extender la máscara al contenedor outer completo del area de resultados (incluyendo count, filtros, paginación), dejando solo header + filtros laterales como superficie comparable → estable pero cobertura visual del cuerpo nula; (b) **Fixture DB controlado**: antes del snapshot, insertar un seed de servicios fijos y filtrar `/explorar?__visual_fixture=1` que la página respete + cleanup post-run → cobertura visual intacta pero requiere endpoint productivo con gate + fixture SQL + teardown. **Esfuerzo**: opción (a) ~1h; opción (b) ~3-5h. **Impacto**: restaurar la capacidad de catchear regresiones visuales de `/explorar` sin falsos positivos crónicos. **Prioridad MEDIA** (no gating lanzamiento — otros 3 tests visuales siguen cubriendo home, login, ficha-servicio).
+
 - **[abierto · POST-LANZAMIENTO · diagnóstico 2026-11-11 sesión miércoles · decisión PO 2026-11-11] ANON-RLS-PROVEEDORES · Policies con subquery a `proveedores` fallan 42501 cuando el rol efectivo es `anon` (SELECT privilege ausente)** — hallazgo del diagnóstico `permission denied for table proveedores` del 2026-11-11 (120 denies/día en postgres_logs prod, latente desde al menos 2026-11-07, NO coincide con RPC-C Lote 3). **Root cause verificado**: rol `anon` no tiene SELECT privilege sobre `public.proveedores` (verificado `has_table_privilege('anon','public.proveedores','SELECT') = false`). Las policies `contactos.proveedor_read_contactos` + `certificaciones.proveedor_crud_certificaciones` evalúan subquery `proveedor_id IN (SELECT id FROM proveedores WHERE auth_user_id = auth.uid())` → el subquery necesita leer `proveedores` → cuando el request viene con rol anon → policy explota con 42501. **Call sites afectados**: `pages/proveedor/[id].tsx:856` (certificaciones ficha pública) + `pages/proveedor/[id].tsx:907` (count contactos ficha pública). Ambos en `getServerSideProps` → SSR corre como anon key. Otras policies con mismo subquery (agendamientos, planes_visibilidad, preguntas) NO se disparan desde paths anon hoy. **Impacto visible hoy**: `contactosCount` siempre = 0 en ficha pública; certificaciones aprobadas no se muestran. **Mientras no se arregle: una certificación aprobada por admin NO aparece en la ficha pública** (hoy 0 cert aprobadas en prod, impacto visible = 0). **Reglas acordadas PO 2026-11-11 para el fix**: (a) contador de contactos solo se muestra desde `COUNT(DISTINCT auth_user_id) >= 3` personas distintas (no clicks); (b) select de certificaciones público SIN `documento_url` (bucket `documents` es privado, puede traer PII). **Opción 3 (quirúrgica, 2 call sites a `supabaseAdmin`) descartada hoy** por PO porque hoy ningún proveedor en prod tiene ≥3 personas distintas → cero fichas visibles aun con fix → sin impacto pre-launch; sube a bundle post-lanzamiento con la Opción 2 estructural. **Opción 2 estructural (sprint)**: migrar las 4 policies con subquery `FROM proveedores` a `SECURITY DEFINER function` (ej. `CREATE FUNCTION mi_proveedor_id() RETURNS uuid LANGUAGE sql SECURITY DEFINER AS $$ SELECT id FROM proveedores WHERE auth_user_id = auth.uid(); $$;` + `GRANT EXECUTE TO anon, authenticated` + reescribir policies usando `mi_proveedor_id()`). Preserva privilegio mínimo + elimina la necesidad de GRANT anon ni workarounds. Estimación: 2-3h + migration + test. Diagnóstico completo con queries de verificación queda en el chat de la sesión 2026-11-11 (auditor + PO); migrar a `docs/auditorias/anon-rls-proveedores-20261111.md` al arrancar el sprint, con las queries `has_table_privilege` + `pg_policies` + conteos de denies en `postgres_logs`.
 
 - **[abierto · POST-LANZAMIENTO · alcance definido PO 2026-11-11 tras Lighthouse mediana] UPLOAD-IMG-RESIZE · Compresión y validación de imágenes al subir al bucket `servicios-fotos` + avatar** — hallazgo del diagnóstico Lighthouse mediana 2026-11-11: ficha `/servicio/7134e58a-...` descarga 8.2 MB en 6 imágenes (hero 944 KB + 3 galería 1.4-2.3 MB cada una + avatar 1 MB), sin ninguna optimización al momento del upload. El fix pre-launch (`perf-ficha` sprint jueves 2026-11-12) usa `<Image>` de Next.js para servir optimizado en runtime, pero el **archivo source en el bucket Supabase sigue pesando 2+ MB cada uno**.
@@ -1343,7 +1345,38 @@ Orden por prioridad estimada; cada una entra por el mismo camino (`camposPorCate
 4. **Hotel felino** — hospedaje especializado en gatos, presencial (recinto).
 5. **Visitas de medicación** — administración de tratamientos a domicilio, presencial.
 6. **Entrenamiento deportivo** — agility, canicross, deportes caninos, presencial.
-7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor.
+7. **Servicios funerarios** — cremación, entierro, memoriales para mascotas. Presencial o mixto según proveedor. Expandido como ítem propio: ver `CATEGORIA-SERVICIOS-DESPEDIDA-Y-DUELO` abajo.
+
+### CATEGORIA-SERVICIOS-DESPEDIDA-Y-DUELO — abierto · prioridad MEDIA · sin fecha (pedido PO 2026-11-24)
+
+Expandir el catálogo con una categoría dedicada a servicios fúnebres de mascotas: **cremación, velorio, entierro, eutanasia a domicilio, asesoría emocional, transporte, urnas conmemorativas**. Gap identificado del catálogo actual — no gating de los primeros 100 proveedores pero hueco real del mercado chileno que Pawnecta puede cubrir con una vertical de alta sensibilidad.
+
+**Prioridad**: MEDIA. NO bloquea el objetivo "100 proveedores" ni ninguna campaña activa, pero es una necesidad real de tutores que hoy no tienen dónde buscar estos servicios de forma consolidada y verificada. La categoría tiene potencial de diferenciación de producto: pocos marketplaces chilenos cubren el flow completo con el tono adecuado.
+
+**Decisiones UX a resolver al arrancar sprint (todas PO)**:
+
+- **Nombre categoría**: tentativo "**Despedida y duelo**" (empático, centrado en el tutor que vive el proceso) o "**Servicios fúnebres**" (descriptivo, mejor SEO para búsquedas directas). Trade-off: empatía vs. discoverability. La doble solución (nombre empático en UI + metadatos SEO con términos descriptivos) es viable técnicamente — el slug de la categoría puede diferir del display name (ver `categorias_servicio.slug` vs `nombre`).
+- **Tono emocional del copy**: acompañamiento, NO transacción. Evitar vocabulario de ficha comercial estándar ("Reserva tu servicio", "Precio desde", CTAs tipo "Contratar ahora"). Ajustar a algo más cercano a "Conversa con el proveedor", "Pide orientación". Revisar textos de la ficha pública + email de confirmación + mensajes del chat.
+- **Fotos de referencia**: abstractas o florales, NO imágenes crudas del servicio. Recomendable a) imponer guidelines explícitas al proveedor en el flow de subir fotos (modal con preview + confirmación del proveedor que la foto cumple el tono), b) revisar manualmente (flag de moderación admin pre-publicación específico para esta categoría si el volumen lo permite).
+- **Posición en orden del catálogo**: **NO primero**. Un tutor que busca hospedaje o veterinario no debe encontrar esta categoría de entrada — carga emocional alta que puede alejar la navegación cotidiana. Opciones: (a) final de la grid con un separador visual suave, (b) sección separada "Momentos especiales" junto con "Retratos" y otras categorías de nicho emocional. Decisión PO al arrancar sprint.
+- **FAQ sensible (opcional)**: considerar sección de educación con tono empático sobre proceso de cremación, tiempos, legalidad en Chile, opciones memoriales (urnas, placas, árboles conmemorativos). Puede vivir como página estática `/eventos`-style o como sección dentro de la ficha del proveedor. Puede quedar fase 2 si el sprint inicial se enfoca solo en habilitar la categoría.
+
+**Scope técnico**:
+
+- **Schema de categorías**: verificar si `categorias_servicio` acepta nuevos valores sin ALTER (el catálogo es data-driven en la mayor parte del código; migrations recientes agregaron `retratos`, `etologia`, `fotografia` solo con INSERT en la tabla + actualización de `camposPorCategoria.ts`). Hipótesis alta: solo INSERT.
+- **Iconos por categoría**: hardcoded en `components/` (ej. `components/CategoriaIconFromString.tsx` o equivalente). Requiere code change con nuevo icono. Candidatos lucide-react: `Flower`, `Heart`, `Dove` (si existe; alternativa `Bird`), o un icono custom SVG más neutro. Cero emoji (regla CLAUDE.md).
+- **Campos del wizard (`camposPorCategoria.ts`)**: decidir qué campos dinámicos muestra esta categoría al proveedor cuando crea su servicio (ej. "¿Realiza eutanasia a domicilio?", "Zona de cobertura", "Opciones de urna", "Servicios incluidos": transporte, acompañamiento, memoriales, etc.). Lista completa es decisión UX + outreach con primeros proveedores piloto.
+- **Modalidad**: la categoría probablemente es `mixta` (presencial para ritual + remota para asesoría emocional). Puede requerir ajuste en `categorias-por-modalidad` si ese proyecto estructural ya aterrizó cuando se arranca el sprint (ver `Proyectos estructurales > Categorías por modalidad`).
+- **Ficha pública**: posible componente custom con tono/layout más empático que el genérico — depende del volumen/importancia que el PO quiera dar.
+
+**Dependencias para arrancar sprint**:
+
+- Decisión PO: nombre categoría (slug + display name + metadatos SEO).
+- Decisión PO: ubicación en el orden del catálogo + tratamiento visual (categoría regular vs sección separada).
+- Outreach comercial PO a proveedores reales del área funeraria de mascotas (cremación, veterinarias con servicio funerario, memoriales). Sin ≥2-3 proveedores onboardeados la categoría nace vacía — anti-pattern (rompe la promesa del catálogo). Fase 1 puede ser onboardear 1-2 proveedores piloto con los que validar el tono + el flow antes de habilitar la categoría públicamente.
+- Opcional: outreach a psicólogos/profesionales de duelo animal que ofrezcan asesoría — amplía la vertical a acompañamiento emocional, no solo servicios físicos.
+
+**Sprint cuando se arranque**: branch sugerido `cat-dd` o `despedida-duelo` (≤18 chars). Scope técnico probable ~1 jornada (INSERT categoría + icono lucide + definición `camposPorCategoria.ts` + ubicación en grid + QA del tono del copy) si el schema data-driven no requiere ALTER. Scope UX + onboarding (outreach + validación con proveedores piloto) es paralelo y más largo (~semanas).
 
 ### Post-launch — iniciativas grandes
 
@@ -1466,7 +1499,7 @@ Esta descripción la escribió el auditor con apoyo del PO 2026-11-22 noche. No 
 
 ---
 
-**EVENTOS-MASCOTAS-ECOSISTEMA** — abierto · prioridad media · fecha objetivo sin fecha (post-100 proveedores activos, sprint 3-5 días dedicado)
+**EVENTOS-MASCOTAS-ECOSISTEMA** — **[cerrado 2026-11-24 ~15:04 CLT · ejecutado por PO en prod]**. Sprint MVP completo end-to-end (4 PRs auditor + apply manual PO de la migration SQL). **Evidencia**: 6/6 checks verificación post-apply ✓ (`eventos_rows=0, eventos_policies=2, eventos_indexes=3, bucket_id='eventos-imagenes', bucket_limit=2097152, storage_policies=3`). PRs aterrizados en main: #185 `1191e33` schema+bucket · #186 `7d30fc2` admin CRUD `/admin/eventos` · #187 `56d2838` listado público `/eventos` + sitemap · #188 `0fcd8df` widget home. Migration ejecutada manual por el PO vía Supabase Studio prod (proyecto `ouezpeeiwjwawauidrqq`) siguiendo la [acta P5](docs/sprints/eventos-schema-sql-acta.md). **Feature live**: admin puede crear/editar/borrar eventos; listado público `/eventos` muestra ordenados por fecha ASC filtrados por `publicado=true AND deleted_at IS NULL AND fecha >= CURRENT_DATE`; widget home oculto hasta que haya ≥1 evento publicado futuro. **Siguiente paso manual**: PO carga Feria Navideña 2026-11-28 como seed desde `/admin/eventos/nuevo` cuando convenga (Q8). Issue origen cerrado en GitHub #164 el mismo día. Scope inicial preservado abajo para trazabilidad histórica.
 
 Sistema de publicación de eventos del ecosistema mascota en Chile dentro de Pawnecta: ferias, adopciones, charlas, workshops, competencias, meetups. Admin ingresa los eventos (manual o via scraping de Instagram/portales); render en una sección de la home + página dedicada `/eventos` con filtros por fecha, zona, tipo. Objetivo: expandir Pawnecta de "marketplace de servicios" a "hub de la comunidad mascota en Chile".
 
@@ -1945,6 +1978,81 @@ Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](
 ### FAST-RECOVERY-PROTOCOL-CODIFICADO — abierto · prioridad media · sin fecha (no urgente)
 
 Cross-reference: aceptado 2026-11-22 como ítem de [`## Sprints Pre-Campañas`](#sprints-pre-campañas) al tope. Codificar en `docs/playbooks/` el protocolo "fast recovery" ante quejas públicas o reseñas negativas durante campañas. Hoy vive como propuesta narrativa dentro de [`docs/planes/calidad-primera-campana.md`](docs/planes/calidad-primera-campana.md); convertir en checklist operacional accionable con pasos T0, T+15 min, T+1h, T+24h + templates de respuesta pública + flow privado DM post-respuesta visible.
+
+### WELCOME-EMAIL-SILENT-FAIL-GUARD — abierto · prioridad **MEDIA** (subió de BAJA el 2026-11-24 PM tras confirmación empírica) · sin fecha (no gating)
+
+[pages/api/auth/welcome.ts:113-127](pages/api/auth/welcome.ts#L113-L127) no chequea `response.error` antes del `res.status(200).json({ success: true, response })`. Resend v4 puede devolver `{ data: null, error: { ... } }` **sin throw** cuando la API rechaza (rate limit, destinatario inválido, dominio no verificado, template oversize). Hoy el handler responde `200 success` con el error anidado dentro del body → **cero `Sentry.captureException`** (el `wrapApiHandlerWithSentry` captura solo throws reales) → silent-failure invisible salvo que alguien lea el response body del fetch desde el caller y haga algo con él (hoy el caller en `signup.ts` lo invoca fire-and-forget).
+
+Fix (~15 min): tras `const response = await resend.emails.send(...)`, chequear `if (response.error) { Sentry.captureMessage('welcome_email_resend_error', { level: 'warning', tags: { rol, errorName: response.error.name }, extra: { message: response.error.message } }); return res.status(502).json({ error: 'Email provider rejected', details: response.error }); }`. Opcional mantener `200 { skipped:true, reason }` siguiendo el patrón de los notify-* de Sprint 3 agendamiento.
+
+**Confirmación empírica 2026-11-24 PM (elevó prioridad a MEDIA)**: durante smoke #149 F-TR-17 de la jornada 24-11, el flow de registro mostró `"¡Listo!"` al PO aunque Resend **rechazó el send silent** (Resend había llegado al 100% cuota free tier — razón del upgrade a Pro ese mismo día). El UI mostró success al usuario + el email jamás llegó + cero alerta productiva. Patrón exacto que la deuda documenta. Sube prioridad porque dejó de ser hipotético: tenemos UN caso real donde el gap costó smoke y pudo costar onboardings reales si hubiera pasado en prod.
+
+Anotado inicialmente 2026-11-24 AM; confirmado empírico 2026-11-24 PM. Docs-only PR si solo agendar; código PR si se arregla después. **No gating** — Resend ahora en Pro 50k/mes (ver [[resend-plan]]) → cap lejos de alcanzable en volumen actual; el fix del guard sigue siendo defense-in-depth para el próximo trigger silencioso (dominio no verificado, template oversize, rate limit post-crecimiento con campañas pagadas).
+
+### ADMIN-SIDEBAR-UNIFY-B — abierto · prioridad MEDIA · post-launch (no gating)
+
+Migrar las 4 pages admin del **Patrón C** (header top-of-page sin sidebar, pre-PR #140) al `AdminLayout` compartido:
+
+- [`pages/admin/evaluaciones.tsx`](pages/admin/evaluaciones.tsx) (`<header>` sticky bg-slate-900).
+- [`pages/admin/proveedores.tsx`](pages/admin/proveedores.tsx) (`<header>` sticky bg-slate-900).
+- [`pages/admin/metricas-proveedores.tsx`](pages/admin/metricas-proveedores.tsx) (idem).
+- [`pages/admin/servicios.tsx`](pages/admin/servicios.tsx) (idem).
+
+Requiere decisión UX sobre qué hacer con el `<header>` top-of-page actual:
+- **Opción A (descartar)**: remover el `<header>` sticky bg-slate-900 y usar el H1 común del `AdminLayout` main content (match /admin + /admin/eventos + /admin/notificaciones).
+- **Opción B (mantener vertical)**: preservar el header rojo-slate pero reposicionado como header del main content (no sticky top), con el sidebar `AdminLayout` a la izquierda.
+
+**Scope estimado**: 2-3h código + visual review. **Gatillo**: cuando el PO quiera uniformidad visual total en /admin/*. Hoy no es bloqueante — las 4 pages funcionan, solo que no comparten sidebar.
+
+Origen: diagnóstico del sprint ADMIN-SIDEBAR-UNIFY-A 2026-11-24 (PR auditor que migró `pages/admin.tsx` al `AdminLayout` tras detección del PO que /admin tenía sidebar distinto a /admin/eventos). PR A solo migró `/admin`; esta B cubre las 4 pages del Patrón C restantes.
+
+### RESEND-REMINDERS-DEDUP — abierto · prioridad MEDIA · sin fecha (no gating)
+
+**Finding del PO 2026-11-24 PM** (durante smoke #149 de la jornada 24-11, observando Resend dashboard post-upgrade Pro): **reminder emails del cron de reservas aparecen duplicados 3× en el mismo timestamp** en Resend Delivered log. Subjects observados (3 veces cada uno):
+
+- `[STAGING] (orig: acanocts+tutor@gmail.com) Mañana: tu reserva con Admin` ×3
+- `[STAGING] (orig: ...) Mañana: reserva de Camila Figueroa Mendoza` ×3
+
+Patrón: 3 envelopes idénticos (mismo recipient, mismo subject, timestamps dentro de segundos entre sí), mismo bucket de hora. Consumo 3× de quota Resend sin valor adicional.
+
+**Diagnóstico preliminar (read-only, sin fix)**:
+
+- **Vercel cron único**: [vercel.json](vercel.json) tiene exactamente **1 schedule** = `{ path: "/api/cron/recordatorio-reserva", schedule: "0 22 * * *" }` → no es triple schedule. El endpoint se dispara 1 vez por día a las 22:00 UTC desde Vercel.
+- **Cero idempotency marker en el handler**: grep del handler [pages/api/cron/recordatorio-reserva.ts](pages/api/cron/recordatorio-reserva.ts) (638 líneas) por `already_sent|ya_enviado|sent_at|idempoten|dedup|recordatorio_enviado|reminded_at` → **0 matches**. El handler fetch reservas elegibles + envía sin marcar "ya envié este reminder para X reserva". Cualquier re-invocación re-envía los mismos emails.
+- **Múltiples callers del endpoint en staging**:
+  - [e2e/fixtures/cron-recordatorio.ts:278](e2e/fixtures/cron-recordatorio.ts#L278): fixtures e2e golpean `/api/cron/recordatorio-reserva` en staging con `?bypassEnv=1 + x-cron-secret` para validarlo.
+  - [e2e/specs/f2-recordatorios-cron/all.spec.ts](e2e/specs/f2-recordatorios-cron/all.spec.ts): suite API-only que hace múltiples invokes del endpoint por test.
+  - [e2e/specs/pan-1/def7-recordatorio-title.spec.ts](e2e/specs/pan-1/def7-recordatorio-title.spec.ts): spec adicional que invoca el endpoint para verificar título de notif.
+- **Hipótesis candidatas del 3×** (sin verificar, para investigar en el sprint):
+  1. **Concurrent CI**: 3 runs e2e en staging ejecutaron la suite `f2-recordatorios-cron` casi simultáneo (concurrency `staging-exclusive` serializa pero múltiples PRs pueden haber corrido en ventanas distintas que coinciden con el bucket de minuto). Cada run invoca el cron → 3 envelopes del mismo reminder.
+  2. **Loop interno del handler** con bug de duplicate fetch (3 queries con mismo resultado → 3 emails).
+  3. **Retry serverless** post-timeout no-idempotente (Vercel function timeout + retry policy → 2 invokes del mismo trigger).
+  4. **Fixture persiste** entre runs sin cleanup limpio → un `[TEST-cron-*]` tutor permanece en BD cuando el próximo run lo matchea otra vez.
+
+**Scope del sprint**:
+
+1. **Localizar causa exacta**: reproducir el patrón con un smoke controlado (invocar endpoint 3 veces explícito en staging + ver si cada invoke envía TODAS las reservas elegibles sin dedup).
+2. **Fix estructural**: agregar idempotency a nivel BD (ej. tabla `recordatorios_enviados` con `(agendamiento_id, target_date)` UNIQUE, INSERT ON CONFLICT DO NOTHING antes del send). Opción B: columna `agendamientos.recordatorio_24h_enviado_at` NOT NULL post-send, filter WHERE recordatorio_24h_enviado_at IS NULL. Opción B es más simple pero mezcla concepts; A es más escalable (próximo "1h antes" sprint que menciona CLAUDE.md necesitará su propia dedup key).
+3. **Guard contra callers e2e en prod**: ya existe `cronGuard` que exige `?bypassEnv=1 + x-cron-secret`. Verificar que en STAGING el guard no permite más de N invokes/hora o similar rate-limit para evitar que el CI drene quota Resend.
+
+**Mitigación provisional**: Pro plan 50k emails/mes (upgrade 2026-11-24, ver [[resend-plan]]) absorbe el 3× consumption sin fricción en volumen actual. Fix estructural puede esperar hasta que el gatillo del sprint suba (crecimiento post-campañas-pagadas o detección de spam a users reales).
+
+**Estimación**: 3-5h entre investigación + fix + test.
+
+Anotado 2026-11-24 PM post-finding del PO en Resend dashboard durante smoke #149. Relacionado: [[resend-plan]] auto-memory, [[RESEND-STAGING-SPLIT]] (si el fix requiere separar workspaces, se puede combinar).
+
+### RESEND-STAGING-SPLIT — abierto · prioridad MEDIA · sin fecha (gatillo = quota mes ≥70%)
+
+Separar la quota Resend de staging/preview de la de prod. Hoy comparten `RESEND_API_KEY` (misma workspace) → CI runs + smokes manuales + previews consumen el mismo cap que los emails productivos. El 2026-11-24 ambos ambientes contribuyeron a saturar la quota free tier → upgrade a Pro ($20/mes 50k emails, ver [[resend-plan]] en auto-memory).
+
+Opciones conocidas:
+
+- **A (ligera, ~2h)**: crear segundo workspace Resend con API key propia para staging + apuntar `RESEND_API_KEY` en Vercel scope Preview a esa key. Prod mantiene la actual. Cero cambio de código, solo env vars.
+- **B (más granular, ~4h)**: rate-limit en `lib/resend.ts` wrapper cuando `!IS_PROD` para cap self-impuesto (ej. 100 emails/día) + telemetry al dashboard interno. Más laborioso pero zero costo de workspace extra.
+
+**Gatillo para arrancar**: cuando la quota mes empiece a acercarse al 70% consumida (monitoreo del PO). Mientras tanto el upgrade Pro da runway cómodo.
+
+Anotado 2026-11-24 post-upgrade a Pro. Relacionado: [[resend-plan]] en auto-memory operativa.
 
 ---
 

@@ -10,11 +10,18 @@ import UserInitialsAvatar from "./Shared/UserInitialsAvatar";
 import QuickSearch from "./Header/QuickSearch";
 import { ChevronDown, LogOut } from "lucide-react";
 import { useUnreadMessagesCount } from "../lib/hooks/useUnreadMessagesCount";
+import { SOCIAL_LINKS } from "../lib/socialLinks";
 
 export default function Header() {
 
   const [open, setOpen] = useState(false);
-  const [showBanner, setShowBanner] = useState(true);
+  // Sprint EXPLORAR-PRE-CAMPAÑA (2026-11-23) H5: removido banner "Estamos
+  // construyendo" para el prendido de campañas pagadas. User que paga ad
+  // espera un producto terminado — banner "Estamos construyendo" transmite
+  // WIP y daña confianza. Default off; para reactivar el canal de feedback
+  // del PO cambiar `useState(false)` → `useState(true)` o reemplazar por
+  // un canal menos intrusivo (FeedbackWidget sigue disponible en el footer).
+  const [showBanner, setShowBanner] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [avatarOpen, setAvatarOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -208,12 +215,40 @@ export default function Header() {
           >
             Blog
           </Link>
+          {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): link Eventos al lado
+              de Blog, mismo styling text-sm font-normal text-slate-500. */}
+          <Link
+            href="/eventos"
+            className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-4"
+          >
+            Eventos
+          </Link>
           <Link
             href="/explorar"
             className="text-sm font-normal text-slate-500 hover:text-accent-600 mr-2"
           >
             Explorar servicios
           </Link>
+          {/* Sprint RRSS-ICONS (2026-11-24): iconos RRSS discretos a la
+              izquierda del Ingresar / NotificationBell. Grupo horizontal
+              pequeño (16px) separado por gap mínimo. Color slate-400
+              default + hover al brand accent-600. Discoverability sin
+              empujar login/register. Fuente SOCIAL_LINKS en
+              lib/socialLinks.ts (compartida con Footer). */}
+          <div className="flex items-center gap-2 mr-3" aria-label="Redes sociales Pawnecta">
+            {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+              <a
+                key={name}
+                href={href}
+                aria-label={name}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center text-slate-400 hover:text-accent-600 transition-colors"
+              >
+                <Icon size={16} className="shrink-0" />
+              </a>
+            ))}
+          </div>
           {(!isAuthenticated || loggingOut) ? (
             <>
               <Link
@@ -443,6 +478,14 @@ export default function Header() {
                 >
                   Blog
                 </Link>
+                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): Eventos menú mobile (anon). */}
+                <Link
+                  href="/eventos"
+                  className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
+                  onClick={() => setOpen(false)}
+                >
+                  Eventos
+                </Link>
                 <Link
                   href="/explorar"
                   className="inline-flex items-center justify-center rounded-lg border border-transparent px-3.5 py-2 text-sm font-normal text-slate-500 hover:text-accent-600"
@@ -499,6 +542,18 @@ export default function Header() {
                   onClick={() => setOpen(false)}
                 >
                   Explorar servicios
+                </Link>
+                {/* Sprint EVENTOS-MVP-PULIDO (2026-11-24): Eventos menú mobile (auth). */}
+                <Link
+                  href="/eventos"
+                  className={`inline-flex items-center justify-center rounded-lg px-3.5 py-2 text-sm transition-colors ${
+                    isRouteActive('/eventos')
+                      ? 'bg-accent-600 text-white font-semibold'
+                      : 'text-slate-500 font-normal hover:text-accent-600'
+                  }`}
+                  onClick={() => setOpen(false)}
+                >
+                  Eventos
                 </Link>
                 <Link
                   href="/blog"
@@ -598,6 +653,33 @@ export default function Header() {
                 </button>
               </>
             )}
+
+            {/* Sprint RRSS-ICONS (2026-11-24): sección "Síguenos" al fondo
+                del menu mobile (común a anon + auth). 4 iconos horizontales
+                grandes con labels compactos debajo, click abre red en
+                pestaña nueva. Visible solo cuando el menu mobile está
+                abierto — no empuja nav principal. */}
+            <div className="mt-6 pt-4 border-t border-slate-200">
+              <p className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-3 text-center">
+                Síguenos
+              </p>
+              <div className="flex items-center justify-center gap-5">
+                {SOCIAL_LINKS.map(({ name, href, Icon }) => (
+                  <a
+                    key={name}
+                    href={href}
+                    aria-label={name}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setOpen(false)}
+                    className="inline-flex flex-col items-center gap-1 text-slate-500 hover:text-accent-600 transition-colors"
+                  >
+                    <Icon size={22} className="shrink-0" />
+                    <span className="text-[10px] font-medium">{name}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
