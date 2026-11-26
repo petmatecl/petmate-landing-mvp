@@ -220,7 +220,47 @@ Delta entre workflow visual-update (23:29 UTC) y rerun PR (00:07 UTC) = ~38 min.
 
 Son flakes pre-existentes del main que no se habían manifestado en las últimas corridas por azar. Escalada propia separada post-merge #199.
 
-**Scoreboard final del día actualizado**: 13 PRs mergeados autónomos + 1 diferido (#181) + **1 sprint completo cerrado end-to-end en prod (EVENTOS MVP)** + 2 upgrades infra + **4 deudas BACKLOG documentadas** (+ VISUAL-EXPLORAR-DYNAMIC) + 3 enmiendas CLAUDE.md propuestas + 1 correctivo framing + 1 bitácora operación + **5 episodios aprendizaje aterrizados con extensión del Ep. 5**.
+### Episodio 5 — Cierre cola nocturna total (2026-11-25/26, 14 merges)
+
+La cola nocturna completa, incluyendo todos los wrap-ups y 3 reruns bajo distintas enmiendas P11 + 1 fix structural de workflow, terminó con **14 PRs mergeados en ~5 horas** (20:00 CLT 25-11 → 01:24 CLT 26-11):
+
+| # | PR | Rama | Commit | Scope | CI notes |
+|---|---|---|---|---|---|
+| 1 | #199 | vis-baseline | `cae6abe` | skip /explorar + 3 PNGs regen + deuda VISUAL-EXPLORAR-DYNAMIC | 1 rerun P11 iter 1 por AUTH-TOKEN-PERSIST en 1er intento |
+| 2 | #197 | fix-email-signup | `13e51dd` | cosmético email auto-aprobación | verde primer intento |
+| 3 | #203 | docs-bit-ep5 | `4dd488b` | bitácora Ep5 texto inicial | verde primer intento |
+| 4 | #198 | docs-rem-dedup | `d9e8166` | RESEND-REMINDERS-DEDUP plan docs | verde post-sync |
+| 5 | #204 | docs-gastos-el | `e9e11a6` | ElevenLabs + IVA 19% docs/ops | verde primer intento post-sync |
+| 6 | #200 | docs-cat-dd | `bec2180` | CATEGORIA-DESPEDIDA-Y-DUELO BACKLOG | los 3 flakes transient de la primera iter NO recurrieron (diagnóstico PR #201 vindicated) |
+| 7 | #201 | docs-flake-pre | `3b39ee8` | Diagnóstico read-only 3 flakes transient | verde primer intento |
+| 8 | #202 | docs-vis-expl | `ec1919d` | Plan técnico VISUAL-EXPLORAR-DYNAMIC | verde primer intento |
+| 9 | #205 | docs-flake-f2 | `f800fc0` | F2-CHAT-PERFIL-FLAKY revisión | verde primer intento |
+| 10 | #206 | fix-fix-cleanup | `189dc49` | FIX-FIXTURES-CLEANUP recon | **1 rerun manual GO PO Op A** (transient s1-picker-render.spec.ts:49 / Estadía 2-14 noches no visible, 10s timeout — verde en attempt 2) |
+| 11 | #207 | docs-rss-split | `a518913` | RESEND-STAGING-SPLIT 4 opciones | **1 rerun autónomo P11 subset infra** (Supabase 522 Cloudflare wall-to-wall en servicio-efimero.ts INSERT, verde en attempt 2) |
+| 12 | #208 | docs-index | `0cda155` | INDEX.md consolidado 141 docs | **1 rerun autónomo P11 subset AUTH-TOKEN-PERSIST** (setup+setup-tutor TimeoutError 30s locator.fill, verde en attempt 2 bajo regla temporal 2026-11-13) |
+| 13 | #209 | docs-deps | `4e291a1` | audit deps stale 2026-11-24 | verde primer intento |
+| 14 | #210 | tests-eventos | `075b5ea` | ITEM 3 EVENTOS — helper + 40 unit tests + 3 e2e smokes | **1 fix structural real** (B3 CI-SPEC-COUNT guard detectó que `e2e/specs/eventos/` no estaba en el `playwright test` del workflow — fix `92a4f05` agregando el dir — guard funcionando como está diseñado) |
+
+**Patrones de rerun confirmados**:
+1. **Rerun manual bajo GO PO Op A (P11 ampliación 2026-09-11)**: usado en #206 para spec pre-existente que el PR no toca con historial verde 2/2 reciente. Verde attempt 2 → merge. Documentado que spec s1-picker-render puede ser candidato BACKLOG a threshold 15s si recurre.
+2. **Rerun autónomo P11 subset infra (2026-09-11)**: usado en #207 para Supabase 522 Cloudflare wall-to-wall. PR docs-only + firma inequívoca infra terceros → regla permite UN único rerun sin GO. Verde attempt 2.
+3. **Rerun autónomo P11 subset AUTH-TOKEN-PERSIST (regla temporal 2026-11-13 extendida 2026-11-19)**: usado en #208 para firma canónica `[setup] + [setup-tutor]` TimeoutError locator.fill 30s. UN único rerun bajo regla temporal hasta ruleset rehab 25-11. Verde attempt 2.
+
+**Patrón de fix structural (no rerun)**:
+- #210 fail fue **regression real** (nuevo dir `eventos/` no agregado al workflow). B3 CI-SPEC-COUNT guard atrapó el gap. Fix correcto: agregar `e2e/specs/eventos/` al comando `playwright test`. Zero rerun artificial.
+
+**Concurrency `staging-exclusive` queue-replace**: observado en fase intermedia cuando pusheé 5 syncs seguidos del post-#199 → cancel-in-progress:false solo preserva IN_PROGRESS, no PENDING → pushes posteriores reemplazan el queued. Forzó serialización estricta (1 push → wait CI → sync next → push) con tiempos ~15-20min/PR. Documentado para futuros patrones batch.
+
+**Scoreboard final cola nocturna 25-26 nov actualizado**:
+- 14 PRs mergeados autónomos + 1 diferido (#181 docs-env-notes, post-ruleset-rehab 25-11 AM).
+- 1 sprint completo cerrado end-to-end en prod (EVENTOS MVP) hasta cobertura tests + 3 e2e smokes.
+- 3 reruns usados (manual GO PO Op A × 1, autónomo P11 subset infra × 1, autónomo P11 AUTH-TOKEN-PERSIST × 1).
+- 1 fix structural workflow (CI-SPEC-COUNT eventos/).
+- **4 deudas BACKLOG documentadas** (VISUAL-EXPLORAR-DYNAMIC + CATEGORIA-DESPEDIDA-Y-DUELO + RESEND-STAGING-SPLIT + 3 defensive fixes en flakes transient).
+- 3 enmiendas CLAUDE.md propuestas.
+- 1 correctivo framing.
+- 1 bitácora operación con Ep5 ampliado 3 veces (texto inicial + extensión Opción B + cierre total).
+- Observación de patrón `staging-exclusive` queue-replace para futuros batches.
 
 ---
 
