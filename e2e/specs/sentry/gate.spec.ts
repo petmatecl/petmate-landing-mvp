@@ -99,7 +99,7 @@ test.describe('R3 SENTRY-1 — CSP + gate', () => {
         await page.goto('/proveedor');
         await page.waitForLoadState('domcontentloaded');
 
-        const token = await page.evaluate(() => {
+        const extractToken = () => page.evaluate(() => {
             for (let i = 0; i < window.localStorage.length; i++) {
                 const key = window.localStorage.key(i)!;
                 if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
@@ -111,15 +111,41 @@ test.describe('R3 SENTRY-1 — CSP + gate', () => {
             }
             return null;
         });
+
+        let token = await extractToken();
         expect(token).toBeTruthy();
 
         const baseURL = new URL(page.url()).origin;
-        const resp = await page.request.post(`${baseURL}/api/admin/sentry-smoke`, {
+        let resp = await page.request.post(`${baseURL}/api/admin/sentry-smoke`, {
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
         });
+
+        // Re-login defensivo 2026-11-26 — flake transient con historial verde
+        // 3/3 en runs 2026-11-24 PM (45464223205/45434113282/45425920498); 1ª
+        // ocurrencia en PR #200 run 45518259208 (2026-11-25). El storageState
+        // del fixture puede cargar un access_token cerca de exp, y si el POST
+        // ocurre pasado ese límite Supabase devuelve 401 sin refresh del
+        // cliente del test. page.reload() dispara el auto-refresh de Supabase
+        // JS (hydrate del UserContext re-adquiere sesión) → fetch del token
+        // nuevo + retry UN único. El filtro busca EXACTAMENTE status 401 —
+        // errores reales (500, 403 del gate admin) NO reintentan. Ver análisis
+        // read-only en docs/planes/flakes-pre-existing-20261125.md § Flake 3.
+        if (resp.status() === 401) {
+            console.log('[sentry/gate] 401 on first POST — defensive re-login via page reload');
+            await page.reload({ waitUntil: 'domcontentloaded' });
+            token = await extractToken();
+            expect(token, 'Re-login defensivo: token nuevo debe estar disponible post-reload').toBeTruthy();
+            resp = await page.request.post(`${baseURL}/api/admin/sentry-smoke`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+        }
+
         expect(resp.status()).toBe(200);
         const body = await resp.json();
         console.log('[sentry-smoke server-side]', JSON.stringify(body, null, 2));
