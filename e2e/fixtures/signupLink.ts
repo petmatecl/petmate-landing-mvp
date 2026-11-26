@@ -105,11 +105,39 @@ export async function generateSignupLink(
     });
 
     const siteUrl = opts.redirectTo ?? deriveSiteUrl();
-    const { data, error } = await admin.auth.admin.generateLink({
-        type: 'magiclink',
-        email,
-        options: { redirectTo: `${siteUrl}/email-confirmado` },
-    });
+
+    // Retry defensivo 2026-11-26 — flake transient con historial verde 3/3
+    // en runs 2026-11-24 PM (45464223205/45434113282/45425920498); 1ª
+    // ocurrencia en PR #200 run 45518259208 (2026-11-25). Supabase Auth
+    // Admin ocasionalmente devuelve HTML en lugar de JSON (edge proxy
+    // Cloudflare durante hiccup / 5xx / 522) — el SDK falla con
+    // "Unexpected token '<', '<!DOCTYPE'... is not valid JSON". Retry UN
+    // único con backoff 500ms cubre ventanas transient sin silenciar
+    // fallos permanentes: el filtro busca EXACTAMENTE la signature del
+    // error HTML (includes 'is not valid JSON' && includes "'<'") — errores
+    // reales de auth (401/403 JSON) NO reintentan. Ver análisis read-only
+    // en docs/planes/flakes-pre-existing-20261125.md § Flake 2.
+    const MAX_ATTEMPTS = 2;
+    type GenerateLinkResult = Awaited<ReturnType<typeof admin.auth.admin.generateLink>>;
+    let result: GenerateLinkResult | null = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+        result = await admin.auth.admin.generateLink({
+            type: 'magiclink',
+            email,
+            options: { redirectTo: `${siteUrl}/email-confirmado` },
+        });
+
+        const errMsg = result.error?.message ?? '';
+        const isHtmlResponse = errMsg.includes('is not valid JSON') && errMsg.includes("'<'");
+        if (!result.error || !isHtmlResponse) break;
+
+        if (attempt < MAX_ATTEMPTS) {
+            console.log(`[signupLink] attempt ${attempt} HTML response — retry in 500ms`);
+            await new Promise((r) => setTimeout(r, 500));
+        }
+    }
+
+    const { data, error } = result!;
 
     if (error) {
         // Error clear + key masked (Supabase SDK a veces incluye el token en
