@@ -149,21 +149,51 @@ test.describe('PAN-1 def 3 · bell consume UserContext (fix mount race + opción
         const uid_camila = (await supabase_camila.auth.getUser()).data.user!.id;
         expect(uid_aldo).not.toBe(uid_camila);
 
+        // Retry defensivo 2026-11-26 — flake transient detectado en PR #215
+        // CI 45839867270 + PR #216 attempt 1/2 (2026-11-26) con firma
+        // TimeoutError 15s en `contarNotifsVisibles` esperando que el
+        // `notifs-loading` state desaparezca. Causa probable: cold start
+        // Vercel preview + hidratación del bell desde UserContext puede
+        // estirarse >15s en runs post-cold-deploy. Pattern retry extendido
+        // del auth setup (3 attempts): cada attempt crea fresh context →
+        // navegar → openBell → contarNotifsVisibles. Preserva señal de
+        // regresión real (3 attempts fail → sigue fallando) sin ruido cold
+        // start. Ver docs/planes/flakes-pre-existing-20261125.md como
+        // referencia de patrón defensivo aplicado también a A1.e.
+        const MAX_ATTEMPTS = 3;
+        const abrirYContarNotifsConRetry = async (
+            storageState: string,
+            route: string,
+            rol: string,
+        ): Promise<number> => {
+            for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+                const ctx = await browser.newContext({ storageState });
+                const page = await ctx.newPage();
+                try {
+                    await page.goto(route);
+                    await openBell(page);
+                    const count = await contarNotifsVisibles(page);
+                    await ctx.close();
+                    if (attempt > 1) console.log(`[pan-1 def3 T3] ${rol} SUCCESS on attempt ${attempt}/${MAX_ATTEMPTS}`);
+                    return count;
+                } catch (err) {
+                    await ctx.close();
+                    const msg = err instanceof Error ? err.message : String(err);
+                    if (attempt < MAX_ATTEMPTS) {
+                        console.log(`[pan-1 def3 T3] ${rol} attempt ${attempt}/${MAX_ATTEMPTS} failed (${msg.slice(0, 80)}) — retry`);
+                        continue;
+                    }
+                    throw err;
+                }
+            }
+            throw new Error(`[pan-1 def3 T3] ${rol} unreachable — loop sin return`);
+        };
+
         // Context Aldo — abrir bell en /admin.
-        const ctxAldo = await browser.newContext({ storageState: 'e2e/.auth/proveedor.json' });
-        const pageAldo = await ctxAldo.newPage();
-        await pageAldo.goto('/admin');
-        await openBell(pageAldo);
-        const visiblesAldo = await contarNotifsVisibles(pageAldo);
-        await ctxAldo.close();
+        const visiblesAldo = await abrirYContarNotifsConRetry('e2e/.auth/proveedor.json', '/admin', 'Aldo');
 
         // Context Camila — abrir bell en /mis-reservas (accesible para tutor).
-        const ctxCamila = await browser.newContext({ storageState: 'e2e/.auth/tutor.json' });
-        const pageCamila = await ctxCamila.newPage();
-        await pageCamila.goto('/mis-reservas');
-        await openBell(pageCamila);
-        const visiblesCamila = await contarNotifsVisibles(pageCamila);
-        await ctxCamila.close();
+        const visiblesCamila = await abrirYContarNotifsConRetry('e2e/.auth/tutor.json', '/mis-reservas', 'Camila');
 
         // Assertion: Camila (tutor) debe tener DISTINTO set de notifs que Aldo.
         // No verificamos igualdad exacta (Camila puede tener 0 o N cualquiera);
