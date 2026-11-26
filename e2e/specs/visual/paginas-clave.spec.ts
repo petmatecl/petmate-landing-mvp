@@ -203,11 +203,17 @@ test.describe('visual público', () => {
                 await expect(page).toHaveScreenshot(`home-${vp.name}.png`, SNAPSHOT_OPTS);
             });
 
-            // SKIP visual: /explorar tiene contenido 100% dinámico (grid
-            // servicios_publicados cambia entre generación baseline y ejecución
-            // test). Ver deuda VISUAL-EXPLORAR-DYNAMIC en BACKLOG para fix
-            // estructural (maskPattern o fixture controlado).
-            test.skip(`explorar (/explorar)`, async ({ page }) => {
+            // UN-SKIP 2026-11-26 — Opción A maskPattern aterrizada per spec
+            // docs/sprints/visual-explorar-dynamic-plan.md. El test estaba
+            // skip porque /explorar tiene contenido 100% dinámico (grid
+            // servicios_publicados cambia entre generación baseline y
+            // ejecución test). Fix estructural: maskPattern sobre grid cards
+            // (dinámico: fotos, nombres, precios, ratings) + barra count +
+            // controles. Resto visible: Header, filtros sidebar/dropdowns,
+            // Hero si hay, Footer, layout general. Baseline regenerada vía
+            // workflow visual-update-snapshots post-maskPattern aplicado.
+            // Ver docs/sprints/visual-explorar-dynamic-plan.md § Opción A.
+            test(`explorar (/explorar)`, async ({ page }) => {
                 skipIfBaselineMissing(`explorar-${vp.name}.png`);
                 await page.goto(`/explorar${BYPASS_QUERY}`);
                 await waitForStablePaint(page);
