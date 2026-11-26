@@ -49,6 +49,17 @@ Complementa `docs/bitacora/incidentes-20261123.md` del día anterior. Este doc c
 
 **Lección documentada**: enmienda propuesta a CLAUDE.md en [`docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md`](../planes/CLAUDE_MD_ENMIENDAS_NOV24.md) § Enmienda 1 — regla operativa "concurrency `staging-exclusive` global cancela Playwright pull_request de PRs paralelos durante batch merges" + 3 mitigaciones conocidas (serial con pausa 10+ min, relax ruleset temporal, refactor concurrency per-PR).
 
+### Cierre del episodio ruleset-gridlock (2026-11-26 AM)
+
+- **Rehabilitación del ruleset `main`**: PO ejecutó los pasos UI del recordatorio `reminder_ruleset_rehab_20261125.md` el 2026-11-26 AM. Los 2 Playwright requeridos (`Playwright suite error-audit` + `Playwright suite F2`) quedaron re-agregados a `required_status_checks`. Verificado vía `gh api repos/petmatecl/petmate-landing-mvp/rulesets/23838343` — 4 required checks activos (`typecheck-and-build` + `Vercel` + `Playwright suite F2` + `Playwright suite error-audit`) + `strict_required_status_checks_policy: true` + rules `deletion`, `non_fast_forward`, `pull_request` activas. Ruleset restaurado a stance pre-24-11 PM.
+- **Merge `#181 docs-env-notes`** (`docs/ops/README.md` sanitized env vars): rama había quedado 100 commits detrás de `main` post-batch del 25-26 nov. Flow aplicado: `git merge origin/main --no-edit` sobre `origin/docs-env-notes` @ `49da641`, resolviendo sin conflictos (100% docs). Pre-push: `npx tsc --noEmit` OK + `npm run build` exit 0. Push `49da641..08f57d9`. CI verde 5/5 (`typecheck-and-build`, `Vercel`, `Vercel Preview Comments`, `Playwright suite error-audit`, `Playwright suite F2`). Merge autónomo bajo ruleset strict rehabilitado → `e01677c` en main. Fast-forward sin cherry-pick.
+- **Memoria `reminder_ruleset_rehab_20261125.md`**: removida del índice MEMORY.md (cumplió su fecha de expiración declarada "cuando se rehabilite el ruleset + mergee #181").
+- **Timing total del episodio**: de 24-11 ~14:00 UTC (inicio gridlock) a 26-11 ~AM CLT (cierre) ≈ 44h entre fail en vuelo y merge aterrizado. 7 PRs code + 2 docs intermedios mergeados durante el lapso bajo ruleset relajado + 15 PRs cola nocturna 25-26 (ver Ep5 cierre) + #181 como último paso del cierre.
+- **Deuda remanente ligada al episodio**:
+  1. **Enmienda CLAUDE.md** (§ CI/deploys) propuesta en [`docs/planes/CLAUDE_MD_ENMIENDAS_NOV24.md`](../planes/CLAUDE_MD_ENMIENDAS_NOV24.md) § Enmienda 1 — aterrizar como regla operativa permanente (pendiente GO PO).
+  2. **Sprint `CI-RULESET-CONCURRENCY-REFACTOR`** al BACKLOG (prioridad MEDIA, post-launch) — refactor `concurrency` del workflow `e2e-error-audit.yml` de `staging-exclusive` global a `per-PR` (o esquema híbrido que preserve serialización contra Supabase staging sin cancelar runs encolados de PRs distintos).
+- **Lección retenida**: `cancel-in-progress: false` solo preserva el run IN_PROGRESS. El slot PENDING es siempre reemplazado por el nuevo push. Para evitar cancelaciones durante batch merges, el único patrón confiable hoy es serialización estricta `1 push → wait CI terminal → merge → next push` — confirmado como patrón operativo en Ep5 cierre cola nocturna 25-26 nov.
+
 ---
 
 ## Episodio 2 — Diagnóstico email no-llega (hipótesis Supabase SMTP descartada)
