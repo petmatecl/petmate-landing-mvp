@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { supabase } from '../../lib/supabaseClient';
 import { getProxyImageUrl } from '../../lib/utils';
+import { tipoLabel, formatFechaCortaEvento } from '../../lib/eventosFormat';
 import { Calendar, MapPin, ChevronRight } from 'lucide-react';
 
 // Sprint EVENTOS MVP (2026-11-24) — PR 4 · widget home.
@@ -21,19 +22,6 @@ interface EventoWidgetRow {
     comuna: string;
     tipo: string;
     imagen_url: string | null;
-}
-
-const TIPO_LABELS: Record<string, string> = {
-    feria: 'Feria',
-    jornada: 'Jornada',
-    charla: 'Charla',
-    competencia: 'Competencia',
-    meetup: 'Meetup',
-};
-
-function formatFechaCorta(iso: string) {
-    const d = new Date(iso + 'T12:00:00');
-    return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'short' });
 }
 
 export default function EventosWidget() {
@@ -124,10 +112,10 @@ export default function EventosWidget() {
                             <div className="p-4 flex-1 flex flex-col">
                                 <div className="flex items-center gap-2 mb-2">
                                     <span className="inline-block px-2 py-0.5 text-xs font-medium bg-accent-100 text-accent-800 rounded-full">
-                                        {TIPO_LABELS[ev.tipo] ?? ev.tipo}
+                                        {tipoLabel(ev.tipo)}
                                     </span>
                                     <span className="text-xs text-slate-500 font-medium">
-                                        {formatFechaCorta(ev.fecha)}
+                                        {formatFechaCortaEvento(ev.fecha)}
                                     </span>
                                 </div>
                                 <h3 className="text-base font-bold text-slate-900 mb-2 line-clamp-2 group-hover:text-accent-700 transition-colors">

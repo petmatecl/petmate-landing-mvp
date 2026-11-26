@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { createClient } from '@supabase/supabase-js';
 import { Calendar, MapPin, Ticket, PawPrint, ChevronRight } from 'lucide-react';
 import { getProxyImageUrl } from '../../lib/utils';
+import { tipoLabel, formatFechaLargaEvento, formatHoraEvento } from '../../lib/eventosFormat';
 import type { GetServerSideProps } from 'next';
 
 // Sprint EVENTOS MVP (2026-11-24) — PR 3 · listado público.
@@ -41,14 +42,6 @@ interface Props {
     eventos: EventoRow[];
 }
 
-const TIPO_LABELS: Record<string, string> = {
-    feria: 'Feria',
-    jornada: 'Jornada',
-    charla: 'Charla',
-    competencia: 'Competencia',
-    meetup: 'Meetup',
-};
-
 export const getServerSideProps: GetServerSideProps<Props> = async () => {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -79,17 +72,6 @@ export const getServerSideProps: GetServerSideProps<Props> = async () => {
         return { props: { eventos: [] } };
     }
 };
-
-function formatFecha(iso: string) {
-    const d = new Date(iso + 'T12:00:00');
-    return d.toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' });
-}
-
-function formatHora(h: string | null) {
-    if (!h) return null;
-    return h.slice(0, 5);
-}
-
 
 export default function EventosPublicPage({ eventos }: Props) {
     return (
@@ -145,8 +127,8 @@ export default function EventosPublicPage({ eventos }: Props) {
 }
 
 function EventoCard({ evento }: { evento: EventoRow }) {
-    const horaInicio = formatHora(evento.hora_inicio);
-    const horaFin = formatHora(evento.hora_fin);
+    const horaInicio = formatHoraEvento(evento.hora_inicio);
+    const horaFin = formatHoraEvento(evento.hora_fin);
     return (
         <Link
             href={`/eventos/${evento.id}`}
@@ -175,7 +157,7 @@ function EventoCard({ evento }: { evento: EventoRow }) {
             <div className="p-5 flex-1 flex flex-col">
                 <div className="mb-3">
                     <span className="inline-block px-2.5 py-0.5 text-xs font-medium bg-accent-100 text-accent-800 rounded-full">
-                        {TIPO_LABELS[evento.tipo] ?? evento.tipo}
+                        {tipoLabel(evento.tipo)}
                     </span>
                 </div>
                 <h3 className="text-lg font-bold text-slate-900 mb-2 line-clamp-2">
@@ -185,7 +167,7 @@ function EventoCard({ evento }: { evento: EventoRow }) {
                     <div className="flex items-start gap-2">
                         <Calendar size={16} className="text-slate-400 mt-0.5 shrink-0" />
                         <span>
-                            {formatFecha(evento.fecha)}
+                            {formatFechaLargaEvento(evento.fecha)}
                             {horaInicio && (
                                 <span className="text-slate-500">
                                     {' · '}{horaInicio}{horaFin ? ` – ${horaFin}` : ''}
