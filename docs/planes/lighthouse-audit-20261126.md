@@ -85,17 +85,19 @@ Patrón recurrente detectado vía audit insights: **optimización de imágenes +
 
 **Sprint dedicado Fix 1 queda descartado como tal**. Residual: 1 PR chico migrando `pages/index.tsx:184` a `next/Image` si post-mediciones muestra impacto en Lighthouse home. Decisión del PO tras ver los números post-fix.
 
-### Fix 2 — LCP `/explorar` y `/explorar?categoria=paseos` (impacto: 2 URLs ROJO) — **PRIORITARIO**
+### Fix 2 — LCP `/explorar` (impacto: 2 URLs ROJO) — **APLICADO PARCIAL 2026-11-27**
 
-**Issue**: LCP 6.3-7.3s en `/explorar`, rojo claro. SearchBar hero + grid de cards contribuye pesado. El `lcp-discovery-insight` score 0 indica que el resource LCP no se descubre temprano.
+**Issue**: LCP 6.3-7.3s en `/explorar`, rojo claro. Grid de cards contribuye pesado. El `lcp-discovery-insight` score 0 indica que el resource LCP no se descubre temprano.
 
-**Acción propuesta** (requiere GO PO):
-- Agregar `<link rel="preload">` para la imagen LCP del hero de SearchBar.
-- Priorizar la primera card del grid con `priority={true}` en su `next/Image`.
-- Mover CSS crítico inline (si el framework lo permite — Next 15 Pages Router default no lo hace).
-- **Scope estimado**: 0.5-1 día.
-- **Impacto esperado**: LCP -2 a -3s. Perf +10-15 pts para ambas URLs de `/explorar`.
-- **Esfuerzo**: Medio. Requiere identificar el elemento LCP exacto vía DevTools Network panel.
+**Fix aterrizado** (parte de PR Fix 2 LCP /explorar, pendiente de CI):
+- `components/Explore/ServiceCard.tsx`: nuevo prop `priority?: boolean` opcional. Cuando `true`, pasa `priority={true}` a `next/Image` → emite `<link rel="preload" as="image">` para el cover.
+- `pages/explorar.tsx`: la primera card de la página 1 (`pagina === 1 && idx === 0`) recibe `priority={true}`. Resto queda `loading="lazy"` por default.
+
+**Pendiente** (en Fix 1 sprint): migrar imágenes de hero de `pages/index.tsx` (home) si aplica.
+
+**Impacto esperado**: LCP -1 a -2s en `/explorar` por preload temprano del cover de la primera card. Perf +5-10 pts.
+
+**Verificación post-merge**: Lighthouse mobile 3 runs mediana vs baseline 26-11.
 
 ### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` (impacto: 3 URLs afectadas) — **APLICADO 2026-11-27 (PR a11y-fix)**
 
@@ -116,29 +118,31 @@ Análisis específico post-parse del JSON raw:
 
 **Verificación post-merge**: Lighthouse mobile 3 runs mediana contra `/explorar` y `/proveedor/{id}`. Esperado: `color-contrast`, `heading-order`, `select-name` score 1.0.
 
-### Fix 4 — `legacy-javascript-insight` + `unused-javascript` (impacto: 4/4 URLs)
+### Fix 4 — `legacy-javascript-insight` + `unused-javascript` — **DESCARTADO 2026-11-27**
 
-**Issue**: bundle contiene JS transpilado para browsers legacy que ya no requerimos (ES5 polyfills, Promise polyfills, async/await transformation). Y hay tree-shaking opportunities.
+**Decisión del PO 2026-11-27**: descartado como sprint. No hay oportunidad clara de ganancia sin análisis bundle-analyzer profundo.
 
-**Acción propuesta** (requiere GO PO):
-- Verificar `browserslist` en `package.json` — actualizar target a "defaults, not IE 11".
-- Analizar bundle con `@next/bundle-analyzer` (dev-only tool).
-- Identificar paquetes con imports completos vs tree-shaking selectivo (ej. `date-fns/*` vs `date-fns`).
-- **Scope estimado**: 0.5 día análisis + 1 día aplicar fixes.
-- **Impacto esperado**: -50 a -200 KB bundle size, +2-5 pts Perf.
-- **Esfuerzo**: Bajo (análisis) + Medio (aplicación).
+**Verificación previa al descarte** (grep sobre el repo 2026-11-27):
+- No existe `.browserslistrc` ni config `browserslist` en `package.json` → Next 15 usa su default, que ya excluye IE 11 y navegadores con < 0.5% share.
+- `date-fns` imports: todos usan named imports (`import { format } from 'date-fns'` → tree-shakeable). Cero wildcards.
+- `import * as Sentry from '@sentry/nextjs'`: patrón diseñado por el SDK Sentry; el bundler lo trata correctamente en server-side y no ensucia el bundle cliente.
+- No se detectaron imports no-tree-shakeable obvios en pages/, components/ ni lib/.
 
-### Fix 5 — `cache-insight` (home) + `total-byte-weight` (home) — **QUICK WIN** si se cambian headers CDN
+**Motivo**: sin un `@next/bundle-analyzer` que identifique chunks concretos para optimizar, el sprint es exploración sin target. Ganancia esperada (-50 a -200 KB) está en el límite de varianza de muestreo del score Lighthouse. Prioridad baja frente a Fix 1, 2, 3, 5.
+
+**Si se reabre a futuro**: arrancar con `ANALYZE=true npm run build` + `@next/bundle-analyzer` (dev-only) para identificar chunks pesados concretos antes de proponer cambios. No es sprint factible sin ese insumo.
+
+### Fix 5 — `cache-insight` (home) + `total-byte-weight` (home) — **APLICADO 2026-11-27 (PR #244 lh-cache-hdrs)**
 
 **Issue**: `home` scora 50/100 en `cache-insight` (lifetimes cortos) y 50/100 en `total-byte-weight` (payload > threshold recomendado).
 
-**Acción propuesta** (requiere GO PO):
-- Configurar `Cache-Control` headers específicos para assets estáticos vía `next.config.js:headers()`.
-- Verificar que `/public/*` tiene `immutable, max-age=31536000` (1 año — para versioned assets).
-- Comprimir imágenes grandes (home hero puede estar cerca de 500 KB — target 100 KB WebP).
-- **Scope estimado**: 0.5 día.
-- **Impacto esperado**: Perf home +5-8 pts, cache hit ratio CDN mejor.
-- **Esfuerzo**: Bajo.
+**Fix aterrizado** (PR #244, merge pending CI):
+- Nueva regla `headers()` en `next.config.js` para assets estáticos del directorio `/public/*` (png/jpg/jpeg/webp/avif/gif/svg/ico/woff/woff2/ttf/otf/eot).
+- Policy: `public, max-age=3600, stale-while-revalidate=86400` — 1h cache + 24h SWR.
+- NO toca `/_next/static/*` (Next ya pone `immutable, max-age=31536000` automático, content-hashed).
+- Evidencia empírica pre-fix: `/pawnecta_logo_final-trans.png` (~100 KB) venía con `max-age=0, must-revalidate` → re-descarga cada visita.
+
+**Compresión imágenes home hero** queda pendiente como item aparte del sprint Fix 1 (imágenes a `next/Image`).
 
 ---
 
