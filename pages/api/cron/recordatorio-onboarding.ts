@@ -56,7 +56,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     // del batch fallido.
     const { data: providersNoService, error: noServiceErr } = await supabaseAdmin
       .from('proveedores')
-      .select('auth_user_id, nombre, email_onboarding_at, created_at')
+      .select('id, auth_user_id, nombre, email_onboarding_at, created_at')
       .eq('estado', 'aprobado')
       .is('email_onboarding_at', null)
       .lt('created_at', cutoff48h)
@@ -66,13 +66,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (noServiceErr) throw noServiceErr;
 
     for (const prov of (providersNoService || [])) {
-      // Check if they have any services
-      const { count } = await supabaseAdmin
+      // Check if they have any ACTIVE services. Fail closed: si la query
+      // devuelve error, saltamos al proveedor (no enviamos). Antes el código
+      // usaba `proveedor_auth_id` (columna inexistente) → error silente →
+      // count=null → nunca se saltaba a nadie → email spam a proveedores
+      // que ya publicaban. Sprint PROVEEDOR-NUDGE-PROV-ID-FIX 2026-11-27.
+      const { count: serviciosActivosB1, error: countErrB1 } = await supabaseAdmin
         .from('servicios_publicados')
         .select('id', { count: 'exact', head: true })
-        .eq('proveedor_auth_id', prov.auth_user_id);
-
-      if ((count || 0) > 0) continue;
+        .eq('proveedor_id', prov.id)
+        .eq('activo', true);
+      if (countErrB1) {
+        logSupabaseError('api-cron:recordatorio-onboarding:count_servicios_bloque1', countErrB1, { providerId: prov.id });
+        continue;
+      }
+      if ((serviciosActivosB1 || 0) > 0) continue;
 
       const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
       logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_service', authErr, { providerId: prov.auth_user_id });
@@ -175,7 +183,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     const { data: providersNudge, error: nudgeErr } = await supabaseAdmin
       .from('proveedores')
-      .select('auth_user_id, nombre, nudge_count, nudge_perfil_enviado_at, created_at')
+      .select('id, auth_user_id, nombre, nudge_count, nudge_perfil_enviado_at, created_at')
       .eq('estado', 'aprobado')
       .eq('nudge_opt_out', false)
       .not('email_onboarding_at', 'is', null)
@@ -188,13 +196,19 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     if (nudgeErr) throw nudgeErr;
 
     for (const prov of (providersNudge || [])) {
-      // Verificar que SIGUE con 0 servicios activos — podría haber
-      // publicado entre bloques, es señal buena, saltar.
-      const { count: countServicios } = await supabaseAdmin
+      // Verificar que SIGUE con 0 servicios ACTIVOS — podría haber
+      // publicado entre bloques, es señal buena, saltar. Fail closed: si la
+      // query devuelve error, saltamos al proveedor (no enviamos). Sprint
+      // PROVEEDOR-NUDGE-PROV-ID-FIX 2026-11-27.
+      const { count: countServicios, error: countErrB3 } = await supabaseAdmin
         .from('servicios_publicados')
         .select('id', { count: 'exact', head: true })
-        .eq('proveedor_auth_id', prov.auth_user_id)
+        .eq('proveedor_id', prov.id)
         .eq('activo', true);
+      if (countErrB3) {
+        logSupabaseError('api-cron:recordatorio-onboarding:count_servicios_bloque3', countErrB3, { providerId: prov.id });
+        continue;
+      }
       if ((countServicios || 0) > 0) continue;
 
       const { data: authUserNudge, error: authErrNudge } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
