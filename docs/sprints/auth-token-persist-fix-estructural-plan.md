@@ -113,6 +113,37 @@ Artifacts descargados de los 2 fails canonical de hoy:
 
 **La Opción C (tocar productivo) ya no aplica**. Causa es 100% entorno CI. Autorización PO vigente para fix autónomo (solo CI + setup e2e).
 
+### 3.6 Diagnóstico del fail toast-dup de #238 (post-rerun 46026583492)
+
+**Contexto**: tras el rerun manual autorizado del PR #238, los setups auth pasaron limpios (sin "Deployment is building") pero apareció un fail nuevo en `launch-l1/toast-dup-regresion.spec.ts:73` con `locator.click` timeout 60s.
+
+**Evidencia** (artifact run 46026583492, `error-context.md`):
+
+```
+Call log:
+  - waiting for getByRole('button', { name: /...|Guardar/i }).last()
+    - locator resolved to <button ...>Guardar Cambios</button>
+  - attempting click action
+    89 × waiting for element to be visible, enabled and stable
+       - element is visible, enabled and stable
+       - <div role="region" aria-label="Aviso de cookies" class="fixed bottom-0 inset-x-0 z-50 ...">
+         intercepts pointer events
+     - retrying click action
+```
+
+**Causa distinta**: el **cookie banner** (`<div role="region" aria-label="Aviso de cookies">` con z-50 fixed bottom) intercepta el click al botón "Guardar Cambios". El test retrea 89 veces en 60s sin éxito, cada intento bloqueado por el banner.
+
+**NO es "Deployment is building"**. La Opción D **NO lo cubre**.
+
+**Hipótesis de este flake**:
+- El fixture auth guarda el storageState con cookies aceptadas (`authenticate.ts:166-173` ya hace click en "Aceptar todas"). Pero el storageState se persiste solo si el banner aparece en el flow de setup. Si en algún run el banner no apareció al login (cookie ya existente, timing race), la aceptación no corre y el storageState captura una sesión sin la cookie de dismiss → específicos tests downstream encuentran el banner al navegar a otras páginas.
+- Alternativa: el banner usa `localStorage.setItem` para el flag de dismiss, y storageState() captura localStorage del origin donde se hizo click. Si el test navega a un origin distinto (preview vs www), el flag no aplica.
+
+**Fix fuera de alcance de este sprint** (sprint distinto). Se registra como:
+- **CI-COOKIE-BANNER-INTERCEPT** (BACKLOG, prioridad media): auditar el teardown del banner en `authenticate.ts` + mejorar la persistencia cross-origin. Fases: (1) analizar storageState guardado buscando el flag de dismiss; (2) decidir si mover el flag a cookie en vez de localStorage; (3) si localStorage sigue → agregar `localStorage.setItem` manual en setup post-login antes del storageState save.
+
+Este fail **no comparte causa con AUTH-TOKEN-PERSIST** canonical. La Opción D del sprint **no lo resuelve**. Se incluye acá por trazabilidad (fue descubierto al analizar el rerun de #238) pero el fix propio queda encolado aparte.
+
 ## 4. Opciones de fix
 
 ### Opción D — wait-for-deployment-ready en el workflow CI (PREFERIDA post-Fase 1.5, zero riesgo productivo, autónoma)
