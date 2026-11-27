@@ -19,6 +19,7 @@
     "test:g1-admin": "npx tsx lib/g1-admin.test.ts",
     "test:g1-agendamientos": "npx tsx lib/g1-agendamientos.test.ts",
     "test:g1-cron-auth": "npx tsx lib/g1-cron-auth.test.ts",
+    "test:g1-cron-onboarding-nudge": "npx tsx lib/g1-cron-onboarding-nudge.test.ts",
     "test:g1-notifs-push-evals": "npx tsx lib/g1-notifs-push-evals.test.ts",
     "test:g1-resto": "npx tsx lib/g1-resto.test.ts",
     "test:g1-new-message-name-resolve": "npx tsx lib/g1-new-message-name-resolve.test.ts",
