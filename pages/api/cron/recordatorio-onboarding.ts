@@ -3,6 +3,7 @@ import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
+import NudgePerfilEmail from '../../../components/Emails/NudgePerfilEmail';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
@@ -208,27 +209,21 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ? `${prov.nombre}, aún tienes cuenta en Pawnecta — ¿seguimos adelante?`
         : `${prov.nombre}, un último recordatorio desde Pawnecta`;
 
+      // Sprint A PR 3 (nudge-email) refined — template React Email
+      // extraído a components/Emails/NudgePerfilEmail.tsx para seguir
+      // patrón canónico del repo (ver notify-proveedor.ts:190 como
+      // referencia). Resend consume el componente React directamente.
+      // El unsubscribeUrl va vacío por ahora — PR 4 (nudge-unsub) agrega
+      // el endpoint + genera URL firmada.
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to: authUserNudge.user.email,
         subject,
-        html: `
-          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b;padding:20px">
-            <h2 style="color:#047857">¡Hola, ${escapeHtml(prov.nombre)}!</h2>
-            ${isFirstNudge ? `
-            <p style="font-size:16px;line-height:1.5">Pasó ya una semana desde que aprobamos tu perfil en Pawnecta. Sabemos que a veces la vida se complica y empezar un flujo nuevo lleva tiempo.</p>
-            <p style="font-size:16px;line-height:1.5">Si aún quieres recibir consultas de tutores en tu comuna, solo te falta un paso: publicar tu primer servicio. Toma 5 minutos y te va a ayudar para que tutores cerca tuyo te encuentren.</p>
-            ` : `
-            <p style="font-size:16px;line-height:1.5">Te escribimos una vez hace una semana porque notamos que tu perfil está aprobado pero aún no has publicado tu primer servicio.</p>
-            <p style="font-size:16px;line-height:1.5">Este es el último recordatorio que te enviaremos — no queremos insistir. Si aún te sirve la plataforma, 5 minutos para publicar un servicio te van a ayudar a recibir tus primeras consultas.</p>
-            `}
-            <a href="${siteUrl}/proveedor" style="display:inline-block;background:#047857;color:white;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:bold;margin-top:16px;font-size:16px">
-              Publicar mi servicio
-            </a>
-            <p style="margin-top:24px;font-size:14px;color:#64748b">Si decides no seguir con Pawnecta, está perfecto — puedes dejar tu cuenta inactiva o escribirnos a contacto@pawnecta.com si quieres eliminar tus datos.</p>
-            <p style="margin-top:16px;font-size:12px;color:#94a3b8">Pawnecta — Conectando mascotas con cuidadores de confianza</p>
-          </div>
-        `,
+        react: NudgePerfilEmail({
+          nombre: prov.nombre,
+          isFirstNudge,
+          panelUrl: `${siteUrl}/proveedor`,
+        }),
       });
 
       await supabaseAdmin
