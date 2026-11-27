@@ -5,6 +5,7 @@ import { es } from 'date-fns/locale';
 import { Search, ShieldAlert, CheckCircle, ExternalLink, Loader2, MapPin, AlertTriangle, PlayCircle, Copy, CheckCircle2, Phone, MessageCircle, UserCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import ConfirmDialog from '../Shared/ConfirmDialog';
+import { revalidateProveedor } from '../../lib/revalidate';
 
 export default function ProveedorManagementList() {
     const [proveedores, setProveedores] = useState<any[]>([]);
@@ -92,6 +93,11 @@ export default function ProveedorManagementList() {
             toast.success('Proveedor suspendido');
             setProveedores(prev => prev.map(p => p.id === providerToSuspend.id ? { ...p, estado: 'suspendido' } : p));
             setSuspendModalOpen(false);
+            // Sprint PERF F5 — invalida caché ISR del perfil del proveedor Y
+            // de todas las fichas de sus servicios (cascadeServicios:true);
+            // el filtro estado='aprobado' en la vista public_proveedores los
+            // hará invisibles → ficha pública retorna 404.
+            void revalidateProveedor(providerToSuspend.id, supabase, { cascadeServicios: true });
             setProviderToSuspend(null);
             setSuspensionReason('');
         } catch (error: any) {
@@ -115,6 +121,10 @@ export default function ProveedorManagementList() {
 
             toast.success('Proveedor reactivado');
             setProveedores(prev => prev.map(p => p.id === provId ? { ...p, estado: 'aprobado' } : p));
+            // Sprint PERF F5 — invalida caché ISR del perfil + todas las
+            // fichas de servicios (la reactivación vuelve a mostrar la cuenta
+            // en el catálogo público).
+            void revalidateProveedor(provId, supabase, { cascadeServicios: true });
         } catch (error: any) {
             console.error('Error reactivando', error);
             toast.error(error.message || 'Error al reactivar');

@@ -38,6 +38,7 @@ import { formatFechaPreferida, formatFechaCorta, formatRangoNoches, formatPuntua
 import FichaMascota from '../../components/Mascota/FichaMascota';
 import { MODALIDAD_LABELS, type ModalidadCuidado } from '../../lib/categoriaTemporal';
 import { formatDireccionLinea } from '../../lib/formatDireccion';
+import { revalidateServicio, revalidateProveedor } from '../../lib/revalidate';
 import { toast } from 'sonner';
 import { validateRut, formatRut } from '../../lib/rutValidation';
 import { normalizeUrl, normalizeChileanPhone, normalizeInstagram, normalizeFacebook, normalizeTiktok, normalizeYoutube } from '../../lib/validators';
@@ -831,6 +832,8 @@ export default function ProveedorDashboard() {
             // Update with real URL
             setFotoPerfil(url);
             toast.success('Foto de perfil actualizada');
+            // Sprint PERF F5 — invalida caché ISR del perfil público.
+            if (proveedor?.id) void revalidateProveedor(proveedor.id, supabase);
         } catch (err: any) {
             // Sprint conviene ORPH-EDIT (2026-09-12) — antes se exponía
             // `err.message` crudo al user (mala UX + leak de detalles internos
@@ -1010,6 +1013,9 @@ export default function ProveedorDashboard() {
                 toast.error('No pudimos guardar tu perfil. Reintenta en unos minutos.');
             } else {
                 toast.success('Perfil actualizado correctamente');
+                // Sprint PERF F5 — invalida caché ISR del perfil público
+                // tras el save exitoso. El proveedor ve el cambio inmediato.
+                if (proveedor?.id) void revalidateProveedor(proveedor.id, supabase);
                 // Reset baseline + dirty: el snapshot actual es ahora el
                 // "limpio". Sin esto, el sticky save bar se quedaria visible
                 // post-save porque el effect compararia contra el baseline viejo.
@@ -1175,6 +1181,9 @@ export default function ProveedorDashboard() {
             setServicios(prev => prev.filter(s => s.id !== id));
             toast.success('Servicio eliminado');
             closeConfirm();
+            // Sprint PERF F5 — invalida caché ISR de la ficha eliminada
+            // (Next cachea el 404) + ficha del proveedor (cambia su lista).
+            void revalidateServicio(id, supabase);
         } catch (err: any) {
             toast.error(err?.message || 'Error al eliminar el servicio.');
         } finally {
@@ -1190,6 +1199,9 @@ export default function ProveedorDashboard() {
                 setServicios(prev => prev.map(s => s.id === id ? { ...s, activo: !currentStatus } : s));
                 toast.success(currentStatus ? 'Servicio pausado' : 'Servicio activado');
                 closeConfirm();
+                // Sprint PERF F5 — invalida caché ISR de la ficha (activo=false
+                // → cache next request = 404; activo=true → recrea la ficha).
+                void revalidateServicio(id, supabase);
             } else {
                 // Sprint conviene ORPH-EDIT (2026-09-12) — antes exponía
                 // `error.message` crudo. Ahora: copy amigable + detalle a Sentry.
