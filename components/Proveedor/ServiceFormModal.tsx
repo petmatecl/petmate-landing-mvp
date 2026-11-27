@@ -1697,7 +1697,7 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
     );
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto" style={{ paddingBottom: 'calc(1rem + var(--cookie-banner-h, 0px))' }}>
             <div
                 ref={dialogContainerRef}
                 role="dialog"

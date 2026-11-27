@@ -34,3 +34,40 @@ Cero daño productivo observable:
 - PR #238 (dry-run) solo agrega modo `?dryRun=1` al cron endpoint. Mismo análisis.
 
 El daño fue **de proceso**: el auditor ejecutó una operación que requería GO sin tenerlo. Si la regla en el fondo era incorrecta (ej. había que escalar porque el fail era un bug real, no flake infra), el rerun habría enmascarado una regresión. En este caso los reruns pasaron verdes y ambos PRs están sanos, pero el patrón podría haber causado un merge con bug latente en otro escenario.
+
+## Bug productivo cookie banner que intercepta botones críticos en pantallas de acción
+
+**Resumen**: el CookieBanner (`fixed bottom-0 inset-x-0 z-50`) ha estado tapando botones críticos (Guardar perfil proveedor, Publicar/editar servicio, Confirmar reserva) para usuarios reales que no aceptaron ni rechazaron cookies al cargar el sitio. Bug detectado el 2026-11-27 durante el diagnóstico Fase 1 del sprint AUTH-TOKEN-PERSIST-FIX-ESTRUCTURAL, cuando el análisis del trace del fail launch-l1/toast-dup de PR #238 (run 46026583492) mostró el banner interceptando pointer events sobre el botón "Guardar Cambios" (89 retries en 60s).
+
+### Fecha estimada de origen
+
+El bug nace cuando CookieBanner + sticky save bar del perfil proveedor coexisten:
+- CookieBanner nace: commit `85d828b` del 2026-04-30 17:34 CLT (`feat(consent): close #17 — granular cookie banner + GA consent gate`).
+- Sticky save bar perfil proveedor nace: commit `c14426a` del 2026-06-02 13:58 CLT (`refactor(perfil): mi perfil pasa a 5 sub-tabs con sticky save bar`).
+
+**Bug colisión activa desde el 2026-06-02** — ~6 meses sin detectar.
+
+### Impacto
+
+Pantallas afectadas:
+- **Editar perfil proveedor**: sticky save bar `fixed bottom-0 z-30` — tapada 100% por banner `z-50` siempre. Proveedor no puede guardar perfil si no aceptó cookies primero.
+- **Modal publicar / editar servicio** (`ServiceFormModal`): footer con botón "Publicar" / "Guardar cambios" tapado por banner en todos los viewports (mobile 210-250px, desktop 80-100px del banner vs ~26-43px de gap modal-viewport).
+- **Modal confirmar reserva** (`SolicitarAgendamientoModal`): mismo patrón que ServiceFormModal.
+- **Botón flotante Feedback** (`FeedbackWidget`): tapado por el banner a `bottom-6`.
+- **Mobile action sheet + bottom bar de ficha de servicio**: tapado por banner en mobile.
+- **Mobile filters panel de /explorar**: idem.
+
+**Alcance pre-fix**: un número desconocido de proveedores pueden haber intentado publicar servicios y encontrado que el botón "no responde" (en realidad, lo tapaba el banner). Cohort probable: proveedores que llegaron, se registraron, y no aceptaron cookies antes de intentar publicar. El nudge recordatorio-onboarding bloque 1 lleva 6 meses enviando "publica tu primer servicio" a users que no podían publicar.
+
+### Fix aterrizado
+
+Sprint `cookie-banner-fix` (PR en curso, 2026-11-27):
+- CookieBanner publica su altura real en `--cookie-banner-h` vía ResizeObserver.
+- globals.css declara default 0px.
+- Los 8 call-sites afectados (sticky save bar + 2 modales + FeedbackWidget button/panel + 3 mobile bottom bars/sheets) usan `bottom: var(--cookie-banner-h, 0px)` o `paddingBottom: calc(1rem + var(--cookie-banner-h, 0px))`.
+- Banner compactado en mobile: botones en 1 fila (antes apilados en 3 filas), texto más corto. Altura mobile ~90-120px (antes 210-250).
+- Test e2e nuevo `e2e/specs/cookie-banner/interceptacion.spec.ts` verifica click real sin force en los 3 botones críticos en 360×640 + 1280×800 (6 tests total). Diseñado para fallar en main pre-fix y pasar con el fix.
+
+### Deuda asociada cerrada
+
+- `CI-COOKIE-BANNER-INTERCEPT` del BACKLOG (entrada previa del mismo día) removida — resulta que el "flake CI" era en realidad el bug productivo. El PO lo señaló explícitamente al pedir verificación visual.

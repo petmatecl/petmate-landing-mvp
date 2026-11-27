@@ -27,6 +27,12 @@ html, body {
      Used by sticky elements that need to position below the header. */
   --header-height: 105px;
 
+  /* Dynamic cookie banner height — updated by CookieBanner.tsx via
+     ResizeObserver mientras el banner está visible (0px cuando no). Usado
+     por sticky bars, modal wrappers y flotantes para no quedar tapados.
+     Sprint cookie-banner-fix 2026-11-27. */
+  --cookie-banner-h: 0px;
+
   /* --- High Contrast Surface Tokens (Definitive System) --- */
   --page-bg: #f8fafc;
   /* Slate-50 */

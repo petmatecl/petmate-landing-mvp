@@ -627,7 +627,7 @@ export default function ExplorarPage() {
                         className="lg:hidden fixed inset-0 bg-black/40 z-40"
                         onClick={() => setMobileFiltersOpen(false)}
                     />
-                    <div role="dialog" aria-modal="true" aria-labelledby="mobile-filters-title" className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto">
+                    <div role="dialog" aria-modal="true" aria-labelledby="mobile-filters-title" className="lg:hidden fixed left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[85vh] overflow-y-auto" style={{ bottom: 'var(--cookie-banner-h, 0px)' }}>
                         <div className="flex items-center justify-between p-5 border-b border-slate-100">
                             <h2 id="mobile-filters-title" className="text-base font-semibold text-slate-900">Filtros</h2>
                             <button

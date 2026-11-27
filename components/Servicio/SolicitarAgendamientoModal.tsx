@@ -1362,7 +1362,7 @@ export default function SolicitarAgendamientoModal({
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm" style={{ paddingBottom: 'calc(1rem + var(--cookie-banner-h, 0px))' }}>
             <div
                 ref={dialogContainerRef}
                 role="dialog"

@@ -191,7 +191,7 @@ export default function FeedbackWidget() {
                     aria-expanded={false}
                     aria-controls="feedback-widget-panel"
                     aria-label="Enviar feedback"
-                    className="fixed bottom-24 right-6 lg:bottom-6 z-40 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-accent-600 hover:border-accent-600 rounded-full shadow-lg font-medium opacity-60 hover:opacity-100 transition-all w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:text-sm"
+                    className="fixed right-6 z-40 flex items-center justify-center gap-2 bg-white border border-slate-200 text-slate-600 hover:text-accent-600 hover:border-accent-600 rounded-full shadow-lg font-medium opacity-60 hover:opacity-100 transition-all w-12 h-12 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 sm:text-sm bottom-[calc(6rem+var(--cookie-banner-h,0px))] lg:bottom-[calc(1.5rem+var(--cookie-banner-h,0px))]"
                 >
                     <MessageCircle size={16} aria-hidden="true" />
                     <span className="hidden sm:inline">Feedback</span>
@@ -205,7 +205,7 @@ export default function FeedbackWidget() {
                     role="dialog"
                     aria-label="Enviar feedback"
                     aria-modal="false"
-                    className="fixed bottom-6 right-6 left-6 sm:left-auto z-50 sm:w-96 max-h-[80vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl"
+                    className="fixed right-6 left-6 sm:left-auto z-50 sm:w-96 max-h-[80vh] overflow-y-auto bg-white border border-slate-200 rounded-2xl shadow-2xl bottom-[calc(1.5rem+var(--cookie-banner-h,0px))]"
                 >
                     {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
