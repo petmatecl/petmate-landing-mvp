@@ -197,7 +197,10 @@ require.cache[require.resolve('../lib/rateLimit')] = {
 } as any;
 // Bypass cronGuard — deja pasar en tests.
 require.cache[require.resolve('../lib/cronGuard')] = {
-    exports: { skipIfNonProd: (_req: any, _res: any) => false },
+    exports: {
+        skipIfNonProd: (_req: any, _res: any) => false,
+        validateCronRequest: (_req: any, _res: any) => true,
+    },
 } as any;
 // Bypass validaciones — schema.safeParse siempre success con body identity.
 require.cache[require.resolve('../lib/validations')] = {

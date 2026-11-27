@@ -5,7 +5,7 @@ import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
 import NudgePerfilEmail from '../../../components/Emails/NudgePerfilEmail';
 import { signUnsubscribeToken } from '../../../lib/unsubscribeToken';
-import { skipIfNonProd } from '../../../lib/cronGuard';
+import { skipIfNonProd, validateCronRequest } from '../../../lib/cronGuard';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 /**
@@ -15,18 +15,8 @@ import { logSupabaseError } from '../../../lib/logSupabaseError';
  * Schedule: Run daily via Vercel Cron or external scheduler
  */
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-  if (req.method !== 'GET' && req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
-
+  if (!validateCronRequest(req, res)) return;
   if (skipIfNonProd(req, res)) return;
-
-  // Vercel Cron sends Authorization: Bearer <secret>
-  const authHeader = req.headers.authorization;
-  const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
-  if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-    return res.status(401).json({ error: 'Unauthorized' });
-  }
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -87,6 +87,7 @@ require.cache[require.resolve('../lib/cronGuard')] = {
     exports: {
         skipIfNonProd: (_req: any, _res: any) => false,
         verifyCronSecret: (_req: any) => true,
+        validateCronRequest: (_req: any, _res: any) => true,
     },
 } as any;
 require.cache[require.resolve('../lib/apiAuth')] = {

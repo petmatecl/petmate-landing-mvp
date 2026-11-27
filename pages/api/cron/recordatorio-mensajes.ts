@@ -3,23 +3,12 @@ import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
-import { skipIfNonProd } from '../../../lib/cronGuard';
+import { skipIfNonProd, validateCronRequest } from '../../../lib/cronGuard';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'GET' && req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
+    if (!validateCronRequest(req, res)) return;
     if (skipIfNonProd(req, res)) return;
-
-    // Secure with a shared secret
-    // Vercel Cron sends Authorization: Bearer <secret>
-    const authHeader = req.headers.authorization;
-    const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
 
     const supabaseAdmin = createClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,

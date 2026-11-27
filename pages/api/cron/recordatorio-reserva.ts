@@ -53,7 +53,7 @@ import type React from 'react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { resend } from '../../../lib/resend';
-import { skipIfNonProd } from '../../../lib/cronGuard';
+import { skipIfNonProd, validateCronRequest } from '../../../lib/cronGuard';
 import {
     formatRangoNoches, formatRangoNochesPartes, ymdChile,
     formatFechaSinHora, formatHoraCorta, formatBloqueHorarioSinFecha,
@@ -96,17 +96,7 @@ type Elegible = {
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'GET' && req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    // Auth por secret (Vercel Cron manda Bearer; header alternativo para
-    // smoke manual). Alineado con `invitacion-resenas.ts`.
-    const authHeader = req.headers.authorization;
-    const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!validateCronRequest(req, res)) return;
 
     const bypassEnv = req.query.bypassEnv === '1';
     if (!bypassEnv && skipIfNonProd(req, res)) return;
