@@ -1,7 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
-import { skipIfNonProd } from '../../../lib/cronGuard';
+import { skipIfNonProd, validateCronRequest } from '../../../lib/cronGuard';
 
 /**
  * Cron: resetea visitas_mes a 0 en servicios_publicados y proveedores.
@@ -12,17 +12,8 @@ import { skipIfNonProd } from '../../../lib/cronGuard';
  *   o x-cron-secret: ${CRON_SECRET}        (manual / external scheduler)
  */
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'GET' && req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
+        if (!validateCronRequest(req, res)) return;
     if (skipIfNonProd(req, res)) return;
-
-    const authHeader = req.headers.authorization;
-    const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;

@@ -36,7 +36,7 @@ import type { NextApiRequest, NextApiResponse } from 'next';
 import { wrapApiHandlerWithSentry } from '@sentry/nextjs';
 import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
-import { skipIfNonProd } from '../../../lib/cronGuard';
+import { skipIfNonProd, validateCronRequest } from '../../../lib/cronGuard';
 import { InvitacionResenaEmail } from '../../../components/Emails/InvitacionResenaEmail';
 import { formatFechaServicioInline } from '../../../lib/formatFecha';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
@@ -46,17 +46,7 @@ const BUFFER_HORAS = 24;
 const BATCH_LIMIT = 30;
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'GET' && req.method !== 'POST') {
-        return res.status(405).json({ error: 'Method not allowed' });
-    }
-
-    // Auth por secret (Vercel Cron manda `Authorization: Bearer <secret>`;
-    // aceptamos tambien x-cron-secret para invocaciones manuales).
-    const authHeader = req.headers.authorization;
-    const secret = req.headers['x-cron-secret'] || (authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null);
-    if (!process.env.CRON_SECRET || secret !== process.env.CRON_SECRET) {
-        return res.status(401).json({ error: 'Unauthorized' });
-    }
+    if (!validateCronRequest(req, res)) return;
 
     // Gate de entorno. Se saltea con ?bypassEnv=1 (autenticado por secret),
     // util para smoke en staging con datos controlados.

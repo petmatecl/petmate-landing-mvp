@@ -167,7 +167,11 @@ require.cache[require.resolve('../lib/resend')] = {
 // Otros stubs.
 require.cache[require.resolve('../lib/supabaseClient')] = { exports: { supabase: {} } } as any;
 require.cache[require.resolve('../lib/cronGuard')] = {
-    exports: { skipIfNonProd: () => false, verifyCronSecret: () => true },
+    exports: {
+        skipIfNonProd: () => false,
+        verifyCronSecret: () => true,
+        validateCronRequest: () => true,
+    },
 } as any;
 require.cache[require.resolve('../lib/logSupabaseError')] = {
     exports: { logSupabaseError: () => {} },
