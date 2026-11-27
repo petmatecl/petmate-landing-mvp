@@ -878,32 +878,46 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         proveedor.lat = latPublica;
         proveedor.lng = lngPublica;
 
-        const { data: rawServices } = await supabase
-            .from('servicios_publicados')
-            .select(`
-                id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
-                visitas_total, visitas_mes, favoritos_total, detalles,
-                categorias_servicio!inner (nombre, slug, icono)
-            `)
-            .eq('proveedor_id', id)
-            .eq('activo', true);
-
-        const { data: evaluaciones } = await supabase
-            .from('evaluaciones')
-            .select('rating, servicio_id')
-            .eq('proveedor_id', id)
-            .eq('estado', 'aprobado');
-
-        // Diplomas aprobados (tabla `certificaciones`). RLS ya filtra
-        // estado='aprobado' via policy public_read_approved_cert, pero
-        // filtro explicito por defensa en profundidad — si la RLS se
-        // deshabilita / modifica, este SSR sigue sin exponer pendientes.
-        const { data: certificacionesAprobadasRaw } = await supabase
-            .from('certificaciones')
-            .select('id, titulo, institucion, anio, documento_url')
-            .eq('proveedor_id', id)
-            .eq('estado', 'aprobado')
-            .order('created_at', { ascending: false });
+        // Sprint PERF F1 (2026-11-27) — las 4 queries dependientes solo del
+        // `id` del proveedor se paralelizan con Promise.all (eran 4 round-trips
+        // serializados a PostgREST, ~1 s adicional). La diplomas query
+        // conserva el `order('created_at')` que la hacía ordenada.
+        const [
+            { data: rawServices },
+            { data: evaluaciones },
+            { data: certificacionesAprobadasRaw },
+            { count: contactosCount },
+        ] = await Promise.all([
+            supabase
+                .from('servicios_publicados')
+                .select(`
+                    id, titulo, descripcion, precio_desde, precio_hasta, unidad_precio, fotos, destacado,
+                    visitas_total, visitas_mes, favoritos_total, detalles,
+                    categorias_servicio!inner (nombre, slug, icono)
+                `)
+                .eq('proveedor_id', id)
+                .eq('activo', true),
+            supabase
+                .from('evaluaciones')
+                .select('rating, servicio_id')
+                .eq('proveedor_id', id)
+                .eq('estado', 'aprobado'),
+            // Diplomas aprobados (tabla `certificaciones`). RLS ya filtra
+            // estado='aprobado' via policy public_read_approved_cert, pero
+            // filtro explicito por defensa en profundidad — si la RLS se
+            // deshabilita / modifica, este SSR sigue sin exponer pendientes.
+            supabase
+                .from('certificaciones')
+                .select('id, titulo, institucion, anio, documento_url')
+                .eq('proveedor_id', id)
+                .eq('estado', 'aprobado')
+                .order('created_at', { ascending: false }),
+            // Contact count (all time).
+            supabase
+                .from('contactos')
+                .select('*', { head: true, count: 'exact' })
+                .eq('proveedor_id', id),
+        ]);
         const certificacionesAprobadas: CertificacionPublica[] = certificacionesAprobadasRaw || [];
 
         let globalRatingPromedio = 0;
@@ -948,12 +962,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 };
             });
         }
-
-        // Contact count (all time)
-        const { count: contactosCount } = await supabase
-            .from('contactos')
-            .select('*', { head: true, count: 'exact' })
-            .eq('proveedor_id', id);
 
         // Visitas totales agregadas de todos los servicios activos del
         // proveedor. Se computa en JS sobre rawServices (que ya viene con
