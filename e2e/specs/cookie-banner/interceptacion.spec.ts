@@ -70,10 +70,15 @@ test.describe.serial('cookie-banner-fix — perfil proveedor', () => {
             await clearConsentAndReload(page);
             await expectBannerVisible(page);
 
+            // El panel "Mi Perfil" en desktop tiene sub-tabs
+            // (Identidad/Información/Credenciales/Galería/Operación); la
+            // Biografía vive en "Información". Hay que activar esa sub-tab
+            // antes de buscar el textarea.
+            await page.getByRole('button', { name: /^Información/i }).first().click();
+
             // Marcar el perfil como "sucio" para que aparezca la sticky save bar.
             // El campo "Biografía" (textarea) es el más neutro — editar no cambia
-            // datos críticos si el test aborta. Buscamos el textarea de bio por
-            // label o placeholder; en su defecto, el primer textarea de la tab.
+            // datos críticos si el test aborta.
             const bioField = page
                 .getByRole('textbox', { name: /Biograf|Bio|Sobre/i })
                 .or(page.locator('textarea').first());
@@ -175,17 +180,31 @@ test.describe.serial('cookie-banner-fix — modal confirmar reserva (tutor)', ()
             await clearConsentAndReload(page);
             await expectBannerVisible(page);
 
-            // Primera card de servicio en la grid de resultados.
-            const firstCard = page.locator('a[href*="/servicio/"]').first();
-            await expect(firstCard).toBeVisible({ timeout: 10_000 });
-            await firstCard.click();
-            await page.waitForURL(/\/servicio\//);
+            // Primera card de servicio NO-EJEMPLO. Los servicios de ejemplo
+            // tienen el aviso "Ejemplo:" al tope y el CTA Reservar queda
+            // deshabilitado/ausente — hay que saltar esos para llegar a uno
+            // que renderice el modal real.
+            const cards = page.locator('a[href*="/servicio/"]');
+            await expect(cards.first()).toBeVisible({ timeout: 10_000 });
 
-            // Click en CTA "Reservar" / "Solicitar reserva" (varía por categoría).
-            const reservarBtn = page
-                .getByRole('button', { name: /Reservar|Solicitar.*reserva|Agendar/i })
-                .first();
-            await expect(reservarBtn).toBeVisible({ timeout: 10_000 });
+            // Probar hasta 5 cards buscando una donde el CTA Reservar aparezca.
+            let reservarVisible = false;
+            const count = Math.min(5, await cards.count());
+            for (let i = 0; i < count; i++) {
+                await cards.nth(i).click();
+                await page.waitForURL(/\/servicio\//);
+                const btn = page.getByRole('button', { name: /^Reservar$|Solicitar.*reserva|Agendar/i }).first();
+                if (await btn.isVisible({ timeout: 2_000 }).catch(() => false)) {
+                    reservarVisible = true;
+                    break;
+                }
+                // Volver atrás para probar la siguiente card.
+                await page.goBack();
+                await page.waitForLoadState('domcontentloaded');
+            }
+            expect(reservarVisible, 'No se encontró una card con CTA Reservar en las primeras 5').toBeTruthy();
+
+            const reservarBtn = page.getByRole('button', { name: /^Reservar$|Solicitar.*reserva|Agendar/i }).first();
             await reservarBtn.click();
 
             // Modal abierto — el footer tiene "Confirmar reserva" (o similar).
