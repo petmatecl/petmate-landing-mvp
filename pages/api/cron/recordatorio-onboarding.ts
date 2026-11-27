@@ -39,6 +39,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     let sent = 0;
     const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    // Sprint PROVEEDOR-PERFIL-NUDGE-7D (2026-11-26) — ventana accionable
+    // del nudge "¿por qué no has publicado?". Hard upper bound 60 días
+    // para proteger reputation sender Resend. Users >60d son candidatos a
+    // flow reactivación aparte (no re-engagement post-onboarding). Ver
+    // docs/sprints/proveedor-perfil-nudge-plan.md § 5.
+    const cutoff60d = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString();
 
     // 1. Approved providers with no published services (registered 48h-7d ago)
     // Sprint tipo-cd v2 — cambio de comportamiento: si la query principal
@@ -140,6 +146,97 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       await supabaseAdmin
         .from('proveedores')
         .update({ email_foto_at: new Date().toISOString() })
+        .eq('auth_user_id', prov.auth_user_id);
+
+      sent++;
+    }
+
+    // 3. Approved providers 7d-60d ago, bloque "nudge perfil incompleto".
+    // Sprint PROVEEDOR-PERFIL-NUDGE-7D (2026-11-26) — max 2 nudges strict
+    // enforcement via nudge_count. Idempotency 7-day gap via
+    // nudge_perfil_enviado_at (last_nudge_sent_at semantics).
+    //
+    // Query shape:
+    //   WHERE nudge_count < 2
+    //     AND (nudge_perfil_enviado_at IS NULL
+    //          OR nudge_perfil_enviado_at < NOW() - INTERVAL '7 days')
+    //     AND created_at BETWEEN cutoff60d AND cutoff7d
+    //     AND email_onboarding_at IS NOT NULL (recibió onboarding 48h-7d)
+    //
+    // Runtime count check: si publicó servicios entre bloques, saltar
+    // (señal buena — no insistir).
+    //
+    // Exclusión cuentas internas @pawnecta.com (admin + similares).
+    //
+    // Email template: inline por ahora (PR 2 Sprint A). Extracción a
+    // módulo compartido en PR 3 nudge-email (misma sesión dispatch).
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { data: providersNudge, error: nudgeErr } = await supabaseAdmin
+      .from('proveedores')
+      .select('auth_user_id, nombre, nudge_count, nudge_perfil_enviado_at, created_at')
+      .eq('estado', 'aprobado')
+      .not('email_onboarding_at', 'is', null)
+      .lt('nudge_count', 2)
+      .or(`nudge_perfil_enviado_at.is.null,nudge_perfil_enviado_at.lt.${sevenDaysAgo}`)
+      .lt('created_at', cutoff7d)
+      .gt('created_at', cutoff60d)
+      .limit(30);
+    logSupabaseError('api-cron:recordatorio-onboarding:providers_nudge', nudgeErr);
+    if (nudgeErr) throw nudgeErr;
+
+    for (const prov of (providersNudge || [])) {
+      // Verificar que SIGUE con 0 servicios activos — podría haber
+      // publicado entre bloques, es señal buena, saltar.
+      const { count: countServicios } = await supabaseAdmin
+        .from('servicios_publicados')
+        .select('id', { count: 'exact', head: true })
+        .eq('proveedor_auth_id', prov.auth_user_id)
+        .eq('activo', true);
+      if ((countServicios || 0) > 0) continue;
+
+      const { data: authUserNudge, error: authErrNudge } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
+      logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_nudge', authErrNudge, { providerId: prov.auth_user_id });
+      if (!authUserNudge?.user?.email) continue;
+
+      // Exclusión cuentas internas @pawnecta.com.
+      const emailNudge = authUserNudge.user.email.toLowerCase();
+      if (emailNudge.endsWith('@pawnecta.com')) continue;
+
+      // Subject tone: nudge 1 vs nudge 2 (segundo es más suave).
+      const isFirstNudge = (prov.nudge_count || 0) === 0;
+      const subject = isFirstNudge
+        ? `${prov.nombre}, aún tienes cuenta en Pawnecta — ¿seguimos adelante?`
+        : `${prov.nombre}, un último recordatorio desde Pawnecta`;
+
+      await resend.emails.send({
+        from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
+        to: authUserNudge.user.email,
+        subject,
+        html: `
+          <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#1e293b;padding:20px">
+            <h2 style="color:#047857">¡Hola, ${escapeHtml(prov.nombre)}!</h2>
+            ${isFirstNudge ? `
+            <p style="font-size:16px;line-height:1.5">Pasó ya una semana desde que aprobamos tu perfil en Pawnecta. Sabemos que a veces la vida se complica y empezar un flujo nuevo lleva tiempo.</p>
+            <p style="font-size:16px;line-height:1.5">Si aún quieres recibir consultas de tutores en tu comuna, solo te falta un paso: publicar tu primer servicio. Toma 5 minutos y te va a ayudar para que tutores cerca tuyo te encuentren.</p>
+            ` : `
+            <p style="font-size:16px;line-height:1.5">Te escribimos una vez hace una semana porque notamos que tu perfil está aprobado pero aún no has publicado tu primer servicio.</p>
+            <p style="font-size:16px;line-height:1.5">Este es el último recordatorio que te enviaremos — no queremos insistir. Si aún te sirve la plataforma, 5 minutos para publicar un servicio te van a ayudar a recibir tus primeras consultas.</p>
+            `}
+            <a href="${siteUrl}/proveedor" style="display:inline-block;background:#047857;color:white;padding:14px 28px;border-radius:12px;text-decoration:none;font-weight:bold;margin-top:16px;font-size:16px">
+              Publicar mi servicio
+            </a>
+            <p style="margin-top:24px;font-size:14px;color:#64748b">Si decides no seguir con Pawnecta, está perfecto — puedes dejar tu cuenta inactiva o escribirnos a contacto@pawnecta.com si quieres eliminar tus datos.</p>
+            <p style="margin-top:16px;font-size:12px;color:#94a3b8">Pawnecta — Conectando mascotas con cuidadores de confianza</p>
+          </div>
+        `,
+      });
+
+      await supabaseAdmin
+        .from('proveedores')
+        .update({
+          nudge_perfil_enviado_at: new Date().toISOString(),
+          nudge_count: (prov.nudge_count || 0) + 1,
+        })
         .eq('auth_user_id', prov.auth_user_id);
 
       sent++;
