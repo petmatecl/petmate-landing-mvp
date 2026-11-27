@@ -60,7 +60,7 @@ export function NudgePerfilEmail(props: Readonly<NudgePerfilEmailProps>): React.
                                 <Text style={{ fontSize: '16px', lineHeight: '24px', color: '#1e293b' }}>
                                     Si aún quieres recibir consultas de tutores en tu comuna, solo
                                     te falta un paso: publicar tu primer servicio. Toma 5 minutos
-                                    y te va a ayudar para que tutores cerca tuyo te encuentren.
+                                    y ayuda a que tutores cerca de ti te encuentren.
                                 </Text>
                             </>
                         ) : (
