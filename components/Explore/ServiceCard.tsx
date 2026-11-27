@@ -60,9 +60,18 @@ export interface ServiceResult {
 
 interface Props {
     service: ServiceResult;
+    /**
+     * Sprint lh-lcp-explorar (2026-11-27) — AUDIT-LH Fix 2. Las primeras
+     * cards above-the-fold de /explorar deberían pasar priority=true para
+     * que next/Image emita `<link rel="preload" as="image">` → el LCP
+     * resource se descubre temprano y el browser lo trae en paralelo al
+     * HTML. Audit mostró LCP 6.3-7.3s en /explorar (rojo); objetivo <2.5s.
+     * El caller decide qué índice marca priority según layout.
+     */
+    priority?: boolean;
 }
 
-export default function ServiceCard({ service }: Props) {
+export default function ServiceCard({ service, priority = false }: Props) {
     // Use first photo of service, fallback to provider photo, fallback to generic
     const defaultImage = "https://images.pexels.com/photos/733872/pexels-photo-733872.jpeg?auto=compress&cs=tinysrgb&w=600";
     const coverImage = service.fotos?.[0] || service.proveedor_foto || defaultImage;
@@ -104,6 +113,7 @@ export default function ServiceCard({ service }: Props) {
                     fill
                     sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                     unoptimized={isPreOptimizedHost(coverImage)}
+                    priority={priority}
                     className="object-cover group-hover:scale-105 transition-transform duration-500"
                     onError={(e) => {
                         const target = e.currentTarget as HTMLImageElement;
