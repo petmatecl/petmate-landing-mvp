@@ -4,6 +4,7 @@ import { createClient } from '@supabase/supabase-js';
 import { resend } from '../../../lib/resend';
 import { escapeHtml } from '../../../lib/sanitize';
 import NudgePerfilEmail from '../../../components/Emails/NudgePerfilEmail';
+import { signUnsubscribeToken } from '../../../lib/unsubscribeToken';
 import { skipIfNonProd } from '../../../lib/cronGuard';
 import { logSupabaseError } from '../../../lib/logSupabaseError';
 
@@ -176,6 +177,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       .from('proveedores')
       .select('auth_user_id, nombre, nudge_count, nudge_perfil_enviado_at, created_at')
       .eq('estado', 'aprobado')
+      .eq('nudge_opt_out', false)
       .not('email_onboarding_at', 'is', null)
       .lt('nudge_count', 2)
       .or(`nudge_perfil_enviado_at.is.null,nudge_perfil_enviado_at.lt.${sevenDaysAgo}`)
@@ -209,12 +211,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
         ? `${prov.nombre}, aún tienes cuenta en Pawnecta — ¿seguimos adelante?`
         : `${prov.nombre}, un último recordatorio desde Pawnecta`;
 
-      // Sprint A PR 3 (nudge-email) refined — template React Email
-      // extraído a components/Emails/NudgePerfilEmail.tsx para seguir
-      // patrón canónico del repo (ver notify-proveedor.ts:190 como
-      // referencia). Resend consume el componente React directamente.
-      // El unsubscribeUrl va vacío por ahora — PR 4 (nudge-unsub) agrega
-      // el endpoint + genera URL firmada.
+      // Sprint A PR 4 (nudge-unsub) — unsubscribe link firmado HMAC. El
+      // template consume unsubscribeUrl si está presente; el endpoint
+      // /api/unsubscribe verifica el token antes de setear nudge_opt_out.
+      // Si UNSUBSCRIBE_SECRET no está en env, se envía sin link (fallback
+      // seguro, no bloquea el nudge).
+      const unsubscribeSecret = process.env.UNSUBSCRIBE_SECRET;
+      const unsubscribeUrl = unsubscribeSecret
+        ? `${siteUrl}/api/unsubscribe?u=${encodeURIComponent(prov.auth_user_id)}&t=${signUnsubscribeToken(prov.auth_user_id, unsubscribeSecret)}`
+        : undefined;
+
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
         to: authUserNudge.user.email,
@@ -223,6 +229,7 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
           nombre: prov.nombre,
           isFirstNudge,
           panelUrl: `${siteUrl}/proveedor`,
+          unsubscribeUrl,
         }),
       });
 
