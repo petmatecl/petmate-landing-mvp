@@ -85,23 +85,24 @@ Patrón recurrente detectado vía audit insights: **optimización de imágenes +
 - **Impacto esperado**: LCP -2 a -3s. Perf +10-15 pts para ambas URLs de `/explorar`.
 - **Esfuerzo**: Medio. Requiere identificar el elemento LCP exacto vía DevTools Network panel.
 
-### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` + `link-text` (impacto: 3 URLs afectadas)
+### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` (impacto: 3 URLs afectadas) — **APLICADO 2026-11-27 (PR a11y-fix)**
 
-**Issue**: 4 audits de a11y fallando en `/explorar`, `/explorar?categoria=paseos`, `/proveedor/{id}`. A11y score 90-95 vs objetivo ≥95.
-- `color-contrast`: texto con contrast ratio < WCAG AA (4.5:1 normal, 3:1 large).
-- `heading-order`: h1 → h3 saltos de nivel sin h2.
-- `select-name`: selects sin label asociado.
-- `link-text`: links con texto no descriptivo ("Click aquí", "Ver más").
+Análisis específico post-parse del JSON raw:
 
-**Acción propuesta** (requiere GO PO):
-- Audit individual de cada issue vía DevTools Lighthouse en Chrome (elementos exactos).
-- Fix contrast: ajustar paleta Tailwind en componentes afectados (probable `/explorar` SearchBar labels gris claro sobre white).
-- Fix heading-order: insertar h2 intermedios en secciones.
-- Fix select-name: agregar `<label>` a `<select>` que faltan.
-- Fix link-text: renombrar "Ver más" a texto descriptivo.
-- **Scope estimado**: 0.5-1 día.
-- **Impacto esperado**: A11y +5-7 pts.
-- **Esfuerzo**: Bajo. Cambios cosméticos.
+| Issue | URL | Elemento concreto | Fix aplicado |
+|---|---|---|---|
+| `color-contrast` (8 items) | /explorar | `<span class="text-xs text-accent-600">Activo</span>` en ServiceCard | `text-accent-600` → `text-accent-700` |
+| `heading-order` (1 item) | /explorar + /explorar?cat | `<h3>` título servicio en ServiceCard (h1 page → h3 card, salta h2) | `<h3>` → `<h2>` (misma clase visual) |
+| `select-name` (1 item) | /explorar | `<select id="explorar-orden">` con `<label htmlFor>` oculto por `hidden sm:block` → Lighthouse mobile no detecta asociación | `hidden sm:block` → `sr-only sm:not-sr-only` (presente para SR siempre, visible solo desktop) |
+| `heading-order` (1 item) | /proveedor | Footer `<h4>Servicios</h4>` + `<h4>Pawnecta</h4>` (page tiene h1→h2, salta a h4) | `<h4>` → `<h3>` en los 2 headings del footer |
+
+**Fuera de alcance de este PR**:
+- `link-text` (1 item en /proveedor con snippet `?`): sin selector parseable en el JSON. Deuda: grep manual `Ver más`, `Click aquí`, `Leer más` etc. en pages/ + components/ y renombrar a texto descriptivo. Sprint aparte post-merge.
+- `color-contrast` (1 item en /proveedor): botón del CookieBanner. Puede estar resuelto en PR #242 cookie-banner-fix que compactó estilos. Verificar en Lighthouse post-merge #242.
+
+**Impacto esperado** (del audit): A11y +5-7 pts.
+
+**Verificación post-merge**: Lighthouse mobile 3 runs mediana contra `/explorar` y `/proveedor/{id}`. Esperado: `color-contrast`, `heading-order`, `select-name` score 1.0.
 
 ### Fix 4 — `legacy-javascript-insight` + `unused-javascript` (impacto: 4/4 URLs)
 
