@@ -59,19 +59,31 @@ Snapshot 2026-11-22 ([`docs/auditorias/lighthouse-20261122.md`](../auditorias/li
 
 Patrón recurrente detectado vía audit insights: **optimización de imágenes + reducción JS legacy + a11y**.
 
-### Fix 1 — `image-delivery-insight` (impacto: 4/4 URLs afectadas) — **QUICK WIN**
+### Fix 1 — `image-delivery-insight` — **INVENTARIO 2026-11-27, SCOPE REDUCIDO**
 
-**Issue**: todas las URLs scoran 50/100 en delivery de imágenes. Diagnóstico común:
-- Imágenes servidas sin `srcset` responsive para mobile.
-- Falta `loading="lazy"` en imágenes below-the-fold.
-- Formato JPEG legacy en lugar de WebP/AVIF.
+**Hallazgo del inventario**: las 3 zonas priority que el audit nombraba (`/explorar` cards, ficha de servicio, ficha de proveedor público) **YA están migradas** a `next/Image` en el sprint perf-ficha 2026-11-12. Verificado via `grep "<img "`:
 
-**Acción propuesta** (requiere GO PO):
-- Migrar `<img>` restantes (grep `<img src=` en `pages/` + `components/`) a `next/Image` con `priority={true}` solo para hero y `loading="lazy"` por default.
-- `next/Image` sirve WebP/AVIF automático + srcset.
-- **Scope estimado**: 1-2 días. Enumerar superficie exacta vía grep antes de empezar.
-- **Impacto esperado**: +5-10 pts Perf cada URL, LCP -1 a -2s en `/explorar`.
-- **Esfuerzo**: Medio. Blast radius acotado a reemplazos de componente.
+| Zona priority PO | Estado | Archivo |
+|---|---|---|
+| Cards `/explorar` | ✅ Migrada | `components/Explore/ServiceCard.tsx` usa `next/Image` con `fill` + `sizes` responsivo + `priority` para 1ra card (PR #245) |
+| Ficha servicio | ✅ Migrada | `components/Servicio/*` sin `<img>` crudo |
+| Ficha proveedor público | ✅ Migrada | `pages/proveedor/[id].tsx:774,781` usa `<Image>` |
+
+**`<img>` crudos pendientes** (ninguno en las 3 zonas priority):
+
+| Superficie | Cantidad | Impacto Lighthouse | Recomendación |
+|---|---|---|---|
+| `pages/index.tsx:184` avatar proveedor 20×20px en carousel destacados | 1 | **Bajo** — asset < 1 KB en JPEG. Convertir a `next/Image` agrega overhead del componente > ahorro en el asset | Mantener `<img>` con `eslint-disable` (ya tiene) |
+| `pages/proveedor/index.tsx` dashboard (flow privado — foto perfil, carnet preview, foto espacio) | 5 | **Mínimo** — no es ruta pública, no se mide en Lighthouse de rutas visitadas | PR aparte post-launch, baja prioridad |
+| `components/Admin/*` carnet signed URLs + avatares + eventos | 10+ | **Cero** — solo admin logeado | Omitir, no justifica sprint |
+| `components/Explore/CaregiverMap.tsx:112` popup Leaflet (HTML string, no JSX) | 1 | **Cero** — renderizado solo al click marker, fuera del LCP window | Omitir (patrón no-JSX impide `next/Image` directo) |
+| `components/Proveedor/ServiceFormModal.tsx` previews locales `URL.createObjectURL` | 2 | **Cero** — flow privado de edición | Omitir |
+
+**Conclusión**: Fix 1 **efectivamente cerrado** por sprint perf-ficha 2026-11-12 + `priority` de PR #245. El score 50/100 de `image-delivery-insight` en el audit refiere a aspectos distintos (lazy-loading nativo, `srcset` responsive) que `next/Image` resuelve pero Lighthouse sigue descontando por métricas internas (varianza de scoring).
+
+**Siguiente verificación**: Lighthouse mobile mediana 3 runs post-merge de PR #244 cache + PR #245 LCP + PR #246 a11y. Si `image-delivery-insight` sigue en 50/100, inspeccionar el audit `details.items[]` concreto para identificar qué recurso específico falla (puede ser un asset de `/public/` sin srcset — fuera de alcance de migración `next/Image`).
+
+**Sprint dedicado Fix 1 queda descartado como tal**. Residual: 1 PR chico migrando `pages/index.tsx:184` a `next/Image` si post-mediciones muestra impacto en Lighthouse home. Decisión del PO tras ver los números post-fix.
 
 ### Fix 2 — LCP `/explorar` y `/explorar?categoria=paseos` (impacto: 2 URLs ROJO) — **PRIORITARIO**
 
