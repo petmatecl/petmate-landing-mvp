@@ -53,7 +53,7 @@ export function Footer() {
             retratos, traslado, veterinario. Cuidado absorbió el concepto de
             "hospedaje" (nombre display: "Cuidado y Hospedaje"). */}
         <div>
-          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Servicios</h4>
+          <h3 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Servicios</h3>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/explorar?categoria=cuidado" className="hover:text-accent-600 transition-colors">Cuidado y Hospedaje</Link></li>
             <li><Link href="/explorar?categoria=guarderia" className="hover:text-accent-600 transition-colors">Guardería diurna</Link></li>
@@ -69,7 +69,7 @@ export function Footer() {
 
         {/* Pawnecta + Contacto fusionado */}
         <div>
-          <h4 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Pawnecta</h4>
+          <h3 className="text-xs font-medium text-slate-500 uppercase tracking-widest mb-4">Pawnecta</h3>
           <ul className="mt-4 space-y-3 text-sm text-slate-600">
             <li><Link href="/quienes-somos" className="hover:text-accent-600 transition-colors">Quiénes somos</Link></li>
             <li><Link href="/faq" className="hover:text-accent-600 transition-colors">Preguntas frecuentes</Link></li>

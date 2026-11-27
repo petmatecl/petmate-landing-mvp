@@ -156,9 +156,9 @@ export default function ServiceCard({ service, priority = false }: Props) {
                     reserva altura de 2 lineas (2 x 1.25 line-height del leading-tight)
                     para alinear proveedor/precio verticalmente entre cards vecinas
                     del grid, aunque un titulo sea de 1 linea y otro de 2. */}
-                <h3 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2 min-h-[2.5em] mb-2">
+                <h2 title={service.titulo} className="font-semibold text-lg leading-tight text-slate-900 group-hover:text-accent-600 transition-colors line-clamp-2 min-h-[2.5em] mb-2">
                     {service.titulo}
-                </h3>
+                </h2>
 
                 {/* Proveedor info (Footer de texto) */}
                 <div className="flex items-center gap-2 mb-2">
@@ -184,7 +184,7 @@ export default function ServiceCard({ service, priority = false }: Props) {
                     ) && (
                             <span className="flex items-center gap-1 shrink-0 ml-auto">
                                 <span className="w-2 h-2 rounded-full bg-accent-600 inline-block" />
-                                <span className="text-xs text-accent-600">Activo</span>
+                                <span className="text-xs text-accent-700">Activo</span>
                             </span>
                         )}
                 </div>
