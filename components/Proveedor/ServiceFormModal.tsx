@@ -28,6 +28,7 @@ import { categoriaAdmiteAgendaF1, esCategoriaMultiDia, sustantivoAgendaPorCatego
 import { nochesEntre } from '../../lib/formatFecha';
 import { useModalDialog } from '../../lib/useModalDialog';
 import { trackEvent } from '../../lib/gtag';
+import { revalidateServicio } from '../../lib/revalidate';
 
 // Fase 1 agenda con disponibilidad real — Incremento 2A.
 // Constantes del editor semanal. Duracion en minutos: opciones canonicas
@@ -1239,6 +1240,14 @@ export default function ServiceFormModal({ isOpen, onClose, proveedorId, existin
                     toast.error('Servicio guardado, pero hubo un problema con los bloqueos. Revisa esa sección y reintenta.');
                     return false;
                 }
+            }
+
+            // Sprint PERF F5 (2026-11-27) — on-demand revalidation de la ficha
+            // pública del servicio recién creado/editado. Fire-and-forget: si
+            // falla, la caché auto-expira en 60s. revalidateServicio también
+            // revalida /proveedor/{id} (agregados visitas/favoritos).
+            if (savedServicioId) {
+                void revalidateServicio(savedServicioId, supabase);
             }
 
             return true;

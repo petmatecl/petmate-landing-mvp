@@ -4,7 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { isPreOptimizedHost } from '../../lib/imageOptimizer';
 import { useRouter } from 'next/router';
-import { GetServerSideProps } from 'next';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import ShareButtons from '../../components/Share/ShareButtons';
 import { getOgImageUrl, getCanonicalUrl } from '../../lib/shareUrl';
 import { supabase } from '../../lib/supabaseClient';
@@ -841,7 +841,16 @@ export default function ProveedorPage({ proveedor, servicios, globalRatingPromed
     );
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// Sprint PERF F5 (2026-11-27) — ISR con revalidate 60s + on-demand via
+// /api/revalidate/proveedor. Ninguna prop del gSSP dependía del user logueado;
+// favoritos y ownership son client-side. Perfiles suspendidos / sin proveedor
+// → notFound:true → Next cachea el 404.
+export const getStaticPaths: GetStaticPaths = async () => ({
+    paths: [],
+    fallback: 'blocking',
+});
+
+export const getStaticProps: GetStaticProps = async (context) => {
     const { id } = context.params as { id: string };
 
     try {
@@ -864,7 +873,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             .maybeSingle();
 
         if (provError || !proveedor) {
-            return { notFound: true };
+            return { notFound: true, revalidate: 60 };
         }
 
         // Defense-in-depth: la vista proveedores_publicos ya devuelve lat/lng
@@ -981,11 +990,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         };
 
         return {
-            props: { proveedor: proveedorSanitizado, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas, visitasTotalProveedor }
+            props: { proveedor: proveedorSanitizado, servicios, globalRatingPromedio, globalTotalEvaluaciones, contactosCount: contactosCount || 0, certificacionesAprobadas, visitasTotalProveedor },
+            revalidate: 60,
         };
 
     } catch (e) {
-        console.error('Error en getServerSideProps de proveedor', e);
-        return { notFound: true };
+        console.error('Error en getStaticProps de proveedor', e);
+        return { notFound: true, revalidate: 60 };
     }
 };

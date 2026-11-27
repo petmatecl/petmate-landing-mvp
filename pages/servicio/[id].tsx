@@ -1,4 +1,4 @@
-import { GetServerSideProps } from 'next';
+import { GetStaticPaths, GetStaticProps } from 'next';
 import { useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { mapRpcToServiceResult } from '../../lib/serviceMapper';
@@ -44,7 +44,16 @@ export default function ServicioPage(props: ServiceDetailProps) {
     return <ServiceDetailView {...props} isExample={isExample} />;
 }
 
-export const getServerSideProps: GetServerSideProps = async (context) => {
+// Sprint PERF F5 (2026-11-27) — ISR con revalidate 60s + on-demand via
+// /api/revalidate/servicio. Ninguna prop del gSSP dependía del user logueado
+// (confirmado en el pre-check): favoritos, ownership, reserva son client-side.
+// Fichas desactivadas / eliminadas → notFound:true → Next cachea el 404.
+export const getStaticPaths: GetStaticPaths = async () => ({
+    paths: [],
+    fallback: 'blocking',
+});
+
+export const getStaticProps: GetStaticProps = async (context) => {
     const { id } = context.params as { id: string };
 
     try {
@@ -78,7 +87,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             } else {
                 console.info(`[servicio/${id}] no encontrado o inactivo → 404`);
             }
-            return { notFound: true };
+            return { notFound: true, revalidate: 60 };
         }
 
         // Sprint PERF F2 (2026-11-27) — las 3 queries dependientes solo del
@@ -127,7 +136,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
             // PL1-B1: mismo tratamiento que servicio inexistente — 404 en vez de
             // redirect 307, para no perpetuar el ciclo de 307-fantasmas.
             console.info(`[servicio/${id}] proveedor no aprobado → 404`);
-            return { notFound: true };
+            return { notFound: true, revalidate: 60 };
         }
         // Sprint PII-SSR-STRIP (2026-11-18) — resolver displayName server-side
         // y strip del `nombre` + `apellido_p` crudos antes de serializar
@@ -192,16 +201,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
                 globalRatingPromedio,
                 globalTotalEvaluaciones,
                 globalRatingUnavailable,
-            }
+            },
+            revalidate: 60,
         };
 
     } catch (e) {
-        console.error("Error en getServerSideProps de servicio", e);
-        return {
-            redirect: {
-                destination: '/explorar',
-                permanent: false,
-            },
-        };
+        console.error("Error en getStaticProps de servicio", e);
+        return { notFound: true, revalidate: 60 };
     }
 };
