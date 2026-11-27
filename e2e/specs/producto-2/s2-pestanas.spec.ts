@@ -120,7 +120,7 @@ test.afterAll(async () => {
     await borrarServicioResiliente(supaProv, ctx.servicioId);
 });
 
-test.describe('PD2 S2 — pestañas Próximas/Pendientes/Historial', () => {
+test.describe.serial('PD2 S2 — pestañas Próximas/Pendientes/Historial', () => {
     test('Default = Próximas + los 3 tabs presentes con role=tab', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 

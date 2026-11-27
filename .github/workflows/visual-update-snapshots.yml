@@ -127,33 +127,16 @@ jobs:
           E2E_STAGING_CRON_SECRET=$E2E_STAGING_CRON_SECRET
           EOF
 
-      - name: Warmup preview endpoints (cold start amortization pre-setup)
-        # Mismo pattern que e2e-error-audit.yml — sin este step, los setups
-        # de auth pueden fallar por cold start Vercel + Supabase Auth
-        # concurrent bajo mismo request.
-        # Sprint hf-fill-timeout (2026-11-13): agregado check "Pawnecta" en
-        # el body como señal de diagnóstico (warning-only, no bloqueante).
-        # Logging distinto por caso: "+app" = HTML de Pawnecta; "sin app" =
-        # HTML genérico de Vercel (building, SSO, etc). Si todos muestran
-        # "sin app" en runs post-merge, iniciar CI-WARMUP diferido.
+      - name: Wait for preview to be APP-Ready (blocking)
+        # Sprint authtoken-f2-fix (2026-11-27) — reemplaza el warmup
+        # warning-only previo por un bloqueo real sobre "app servida" vs
+        # UI "Deployment is building". Si en 10 min el preview no sirve la
+        # app → exit 1 y workflow aborta. Causa raíz + evidencia:
+        # docs/sprints/auth-token-persist-fix-estructural-plan.md § 3.3.
         env:
           PREVIEW_URL: ${{ github.event.inputs.preview_url }}
           BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
-        run: |
-          BYPASS_QP="?x-vercel-protection-bypass=${BYPASS}"
-          echo "=== Warmup preview endpoints ==="
-          for path in "/" "/login" "/explorar" "/proveedor" "/admin" "/mis-reservas"; do
-            TMP=$(mktemp)
-            STATUS=$(curl -s -o "$TMP" -w "%{http_code}" -L "${PREVIEW_URL}${path}${BYPASS_QP}" || echo "000")
-            if grep -q "Pawnecta" "$TMP" 2>/dev/null; then
-              echo "  ${path} → HTTP ${STATUS} (+app)"
-            else
-              echo "  ${path} → HTTP ${STATUS} (sin app)"
-            fi
-            rm -f "$TMP"
-            sleep 0.5
-          done
-          echo "=== Warmup done ==="
+        run: bash .github/scripts/wait-for-preview-ready.sh
 
       - name: Update snapshots
         env:

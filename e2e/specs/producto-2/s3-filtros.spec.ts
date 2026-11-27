@@ -100,7 +100,7 @@ test.afterAll(async () => {
     await borrarServicioResiliente(supaProv, ctx.servicioId);
 });
 
-test.describe('PD3 S3 — filtros por proveedor + mascota', () => {
+test.describe.serial('PD3 S3 — filtros por proveedor + mascota', () => {
     test('Dropdowns condicionales: ambos aparecen o no según cuentas del panel activo', async ({ page }) => {
         // Contadores globales de Camila pueden hacer que en OTRAS pestañas
         // el dropdown proveedor sí aparezca (múltiples proveedores

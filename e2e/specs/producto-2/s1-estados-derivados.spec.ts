@@ -123,7 +123,7 @@ test.afterAll(async () => {
     await borrarServicioResiliente(supaProv, ctx.servicioId);
 });
 
-test.describe('PD1 S1 — estados derivados en /mis-solicitudes', () => {
+test.describe.serial('PD1 S1 — estados derivados en /mis-solicitudes', () => {
     test('Realizada: badge REALIZADA visible, card no ofrece "Cancelar reserva"', async ({ page }) => {
         await page.goto('/mis-solicitudes');
 
