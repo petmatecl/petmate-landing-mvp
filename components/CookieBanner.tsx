@@ -13,6 +13,11 @@ export default function CookieBanner() {
     const previousFocusRef = useRef<HTMLElement | null>(null);
     const dialogRef = useRef<HTMLDivElement>(null);
     const firstFocusRef = useRef<HTMLButtonElement>(null);
+    // Sprint cookie-banner-fix (2026-11-27) — ref al contenedor visible del
+    // banner para medir su altura real con ResizeObserver y publicarla en
+    // --cookie-banner-h. Los sticky bars + modales fullscreen + flotantes
+    // leen esta variable para no quedar tapados detrás del banner.
+    const bannerRef = useRef<HTMLDivElement>(null);
 
     // Show banner on first visit (no consent saved)
     useEffect(() => {
@@ -29,6 +34,35 @@ export default function CookieBanner() {
         window.addEventListener('open-cookie-settings', handler);
         return () => window.removeEventListener('open-cookie-settings', handler);
     }, []);
+
+    // Sprint cookie-banner-fix (2026-11-27) — publica la altura real del
+    // banner en --cookie-banner-h mientras el banner principal está visible.
+    // Usa ResizeObserver para capturar cambios de layout (resize viewport,
+    // breakpoint sm:→lg:). Al desmontar o cambiar de view → 0px (resetea
+    // los consumers). Bug histórico: desde 2026-06-02 (nacimiento de la
+    // sticky save bar del perfil proveedor) el banner z-50 tapaba botones
+    // críticos (Guardar perfil, Publicar servicio, Confirmar reserva) de
+    // users reales que no aceptaron cookies. Evidencia dimensional en
+    // docs/bitacora/incidentes-20261127.md.
+    useEffect(() => {
+        const root = typeof document !== 'undefined' ? document.documentElement : null;
+        if (!root) return;
+        if (view !== 'banner' || !bannerRef.current) {
+            root.style.setProperty('--cookie-banner-h', '0px');
+            return;
+        }
+        const el = bannerRef.current;
+        const update = () => {
+            root.style.setProperty('--cookie-banner-h', `${el.offsetHeight}px`);
+        };
+        update();
+        const ro = new ResizeObserver(update);
+        ro.observe(el);
+        return () => {
+            ro.disconnect();
+            root.style.setProperty('--cookie-banner-h', '0px');
+        };
+    }, [view]);
 
     // Focus management + keyboard for preferences view
     useEffect(() => {
@@ -75,46 +109,47 @@ export default function CookieBanner() {
     if (view === 'banner') {
         return (
             <div
+                ref={bannerRef}
                 role="region"
                 aria-label="Aviso de cookies"
-                className="fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 shadow-lg p-4 sm:p-5"
+                className="fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-200 shadow-lg px-3 py-3 sm:px-5 sm:py-4"
             >
-                <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-4 lg:items-center">
-                    <div className="flex items-start gap-3 flex-1">
-                        <Cookie className="text-accent-600 shrink-0 mt-0.5" size={20} aria-hidden="true" />
-                        <p className="text-sm text-slate-600 leading-relaxed">
-                            Usamos cookies para mejorar tu experiencia y analizar el uso del sitio. Las necesarias son
-                            obligatorias. Puedes aceptar todas, rechazar las opcionales o personalizar tus preferencias.{' '}
+                <div className="max-w-6xl mx-auto flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
+                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <Cookie className="text-accent-600 shrink-0 mt-0.5" size={18} aria-hidden="true" />
+                        <p className="text-xs sm:text-sm text-slate-600 leading-snug sm:leading-relaxed">
+                            Usamos cookies para mejorar tu experiencia. Puedes aceptar, rechazar o personalizar.{' '}
                             <Link href="/privacidad" className="text-accent-700 underline hover:text-accent-800">
                                 Más información
                             </Link>
                             .
                         </p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                    <div className="flex flex-row gap-2 shrink-0 w-full lg:w-auto">
                         <button
                             onClick={() => { rejectAll(); setView(null); }}
-                            className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+                            className="flex-1 lg:flex-none px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
                         >
-                            Rechazar todas
+                            Rechazar
                         </button>
                         <button
                             onClick={() => {
                                 setDraftPrefs({ analytics: false, marketing: false });
                                 setView('preferences');
                             }}
-                            className="px-4 py-2 text-sm font-semibold text-slate-700 border border-slate-300 rounded-xl hover:bg-slate-50 transition-colors"
+                            className="flex-1 lg:flex-none px-3 py-2 text-xs sm:text-sm font-semibold text-slate-700 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
                         >
                             Personalizar
                         </button>
                         <Button
                             onClick={() => { acceptAll(); setView(null); }}
                             variant="primary"
-                            size="md"
-                            radius="xl"
+                            size="sm"
+                            radius="lg"
                             weight="semibold"
+                            className="flex-1 lg:flex-none whitespace-nowrap"
                         >
-                            Aceptar todas
+                            Aceptar
                         </Button>
                     </div>
                 </div>

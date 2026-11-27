@@ -80,10 +80,10 @@ export default function MobileActionSheet({
                 aria-modal="true"
                 aria-hidden={!isOpen}
                 aria-labelledby={titleId}
-                className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
+                style={{ bottom: 'var(--cookie-banner-h, 0px)', maxHeight: '85vh' }}
+                className={`lg:hidden fixed left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl transition-transform duration-300 ease-out flex flex-col ${
                     isOpen ? 'translate-y-0' : 'translate-y-full pointer-events-none'
                 }`}
-                style={{ maxHeight: '85vh' }}
             >
                 {/* Grabber — indicador visual de swipe zone. */}
                 <div className="flex justify-center pt-3 pb-1 shrink-0">

@@ -1730,7 +1730,7 @@ export default function ServiceDetailView({
                 precio queda a la izquierda como social proof del momento de
                 accion. z-40 sobre headers sticky (z-30) pero bajo modales
                 (z-50). El sheet abre en z-50 encima de todo. */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]">
+            <div className="lg:hidden fixed left-0 right-0 z-40 bg-white border-t border-slate-200 shadow-[0_-2px_8px_rgba(0,0,0,0.06)]" style={{ bottom: 'var(--cookie-banner-h, 0px)' }}>
                 <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
                     <div className="shrink-0">
                         <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider leading-none">Desde</p>

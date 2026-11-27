@@ -2373,7 +2373,7 @@ export default function ProveedorDashboard() {
                                 dirty. Submitea el form externo via attr `form`.
                                 lg:left-[260px] respeta el sidebar fijo. */}
                             {perfilDirty && (
-                                <div className="fixed bottom-0 left-0 right-0 lg:left-[260px] bg-white border-t border-slate-200 shadow-lg z-30 animate-in slide-in-from-bottom duration-200">
+                                <div className="fixed left-0 right-0 lg:left-[260px] bg-white border-t border-slate-200 shadow-lg z-30 animate-in slide-in-from-bottom duration-200" style={{ bottom: 'var(--cookie-banner-h, 0px)' }}>
                                     <div className="max-w-3xl mx-auto p-4 flex items-center justify-between gap-4">
                                         <p className="text-sm font-medium text-slate-700">Tienes cambios sin guardar</p>
                                         <button
