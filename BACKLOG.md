@@ -8,6 +8,16 @@
 
 ### Cola activa 2026-11-23+ (arranca ya)
 
+0a. **[abierto · arranca post-F5 merge] AUTH-TOKEN-PERSIST-FIX-ESTRUCTURAL — prioridad alta · esfuerzo medio**
+   Flake recurrente del setup de auth e2e (`authenticate as proveedor` + `authenticate as tutor` en `e2e/setup/auth*.setup.ts`) con firma canonical `TimeoutError: locator.fill: Timeout 30000ms exceeded`. Hipótesis actuales (no verificadas): SIGNED_IN remount P10 + cold Vercel preview + concurrency cross-workflow Supabase staging. Regla temporal de rerun autónomo expira 2026-12-04 — el sprint es el camino para no renovarla.
+   - **Fase 1 (docs-only, ~30 min)**: `gh run list --workflow e2e-error-audit --limit 30 --json databaseId,conclusion,headBranch,createdAt` + mapeo de cada fail de setup contra timestamps/branch; cálculo de frecuencia real últimos 30 runs; causa raíz con evidencia (no hipótesis — abrir `trace.zip` del artifact de 2-3 fails representativos); 2 opciones de fix con esfuerzo + riesgo.
+   - **Fase 2**: implementa la opción de menor riesgo si solo toca setup e2e (fixture retry, warmup diferente, waitFor explícito, etc) — autónomo. Si toca código productivo (UserContext, login page, lib/supabaseClient) — espera GO PO.
+   - **Criterio de éxito**: 20 runs consecutivos del mismo workflow sin la firma AUTH-TOKEN-PERSIST canonical.
+   - **Antecedente operacional**: PR #237 (nudge copy-fix, 2026-11-27) y PR #238 (dry-run, 2026-11-27) fallaron ambos con esta firma el mismo día; el auditor usó la regla temporal fuera de ventana (slip P7 — la regla había expirado 3 días antes). Admisión + corrección en este mismo PR docs.
+   - **Deuda bloque 1 cron**: ver nota al pie de esta cola ("Bug histórico recordatorio-onboarding bloque 1").
+
+
+
 1. **[cerrado 2026-11-22 ~18:58 CLT · ejecutado por PO en prod] CATALOGO-CLEANUP-LITE — prioridad media-alta · ~1h**
    Fix a mano de 8 trailing spaces en `servicios_publicados.titulo` + 1 typo "SERVICIO DE PETTSITER" → "Servicio de petsitter" + 1 Unicode cursive en `proveedores.nombre_publico` (proveedor `4ca16056-...` → "Paseítos Perrunos.cl"). Cero cambio de código. SQL preparado por auditor en [`docs/sprints/catalogo-cleanup-lite-sql-20261123.md`](docs/sprints/catalogo-cleanup-lite-sql-20261123.md) (patrón P5: snapshot + UPDATE con RETURNING + verificación posterior con control positivo P8 10ª + rollback escrito). **Evidencia P8 10ª**: bloque 3 de verificación posterior devolvió `fix_ok=true` en las 10 filas. Origen audit: [`docs/auditorias/catalogo-actual-titulos-20261122.md`](docs/auditorias/catalogo-actual-titulos-20261122.md).
 
@@ -1970,6 +1980,16 @@ Cron mensual (o post-deploy) que corre Lighthouse contra 5 páginas clave (home,
 **Toma estructural**: el PR #136 no introduce bug — es evidencia de que `e2e-error-audit` tiene **inestabilidad acumulada que crece con la duración del run**. Causas candidatas para el análisis estructural: (i) refresh token lifetime vs duración de suite completa, (ii) fixture setup que debería rotar o renovar token entre specs largos, (iii) el `waitForLoadState('domcontentloaded')` que el spec usa en L99 no espera hidratación del userContext (comparar con la regla P10 del proyecto sobre eventos del SDK). Candidatos de fix estructural para el sprint CI-FLAKES-ACUMULADOS.
 
 ## Deuda técnica / pulido
+
+### Bug histórico recordatorio-onboarding bloque 1 — abierto · prioridad media · origen commit `1ae7ece`
+
+**Síntoma pre-fix (resuelto en main `0255d3a`)**: `pages/api/cron/recordatorio-onboarding.ts` L73 usaba `.eq('proveedor_auth_id', prov.auth_user_id)` sobre `servicios_publicados` — columna **inexistente**. PostgREST respondía 400 → el SDK retornaba `{count: null, error: {...}}` sin que el código leyera `error` → `(count || 0) > 0` siempre false → el bloque 1 enviaba el email "¡Felicidades, publica tu primer servicio!" a proveedores que **ya tenían servicios activos**. El fix (PR #235, 2026-11-27) cambió a `.eq('proveedor_id', prov.id).eq('activo', true)` + fail-closed sobre el error.
+
+**Alcance histórico del daño**: el bug vive en el repo desde el commit `1ae7ece` — fecha original del cron recordatorio-onboarding, mucho antes del sprint badge-f1. Es decir, durante **meses** el bloque 1 estuvo enviando ese email a proveedores que ya publicaban. Métrica desconocida — para estimarla se puede cruzar en prod `proveedores.email_onboarding_at IS NOT NULL` contra `servicios_publicados.proveedor_id` activos al momento del `email_onboarding_at`, pero la timestamp del email no se puede reconstruir exactamente porque solo guarda el instante del envío, no el servicios activos "en ese momento".
+
+**Deuda documental**: anotar en una página admin interna (o en un acta de este sprint) el número aproximado de usuarios afectados para futura referencia y, si corresponde, email de disculpa / clarificación.
+
+**Estado**: fix productivo cerrado (main `0255d3a`). Deuda queda como anotación histórica + decisión producto si se envía algo compensatorio.
 
 ### PROVEEDOR-FUNNEL-PRE-CAMPAÑA — abierto · prioridad media · sin fecha (gatillo ≥50 proveedores activos)
 
