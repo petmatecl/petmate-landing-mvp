@@ -182,6 +182,30 @@ const nextConfig = {
           { key: 'Cache-Control', value: 'public, max-age=0, must-revalidate' },
         ],
       },
+      // Sprint lh-cache-hdrs (2026-11-27) — AUDIT-LH Fix 5 de
+      // docs/planes/lighthouse-audit-20261126.md § 4. Assets estáticos del
+      // directorio /public (logos, imágenes, fonts, favicon) venían con
+      // `Cache-Control: public, max-age=0, must-revalidate` default de
+      // Vercel para `/public/*` → cada visita re-descargaba el logo
+      // (~100 KB) + favicon + fonts. Fix: cache 1h con 24h SWR para
+      // reutilización sin perder ventana de re-deploy ante cambio de
+      // asset.
+      //
+      // Balance conservador:
+      // - max-age=3600 (1h): primera carga paga; siguientes 1h sirven
+      //   desde cache browser.
+      // - stale-while-revalidate=86400 (24h): entre hora 1 y 25, el
+      //   browser sirve stale + revalida en background → cero latencia
+      //   percibida + detección rápida de cambios en el asset.
+      //
+      // NO aplica a /_next/static/* (Next ya pone immutable 1 año porque
+      // son content-hashed) ni a /sw.js y /workbox-* (lógica propia above).
+      {
+        source: '/:path(.+\\.(?:png|jpg|jpeg|webp|avif|gif|svg|ico|woff|woff2|ttf|otf|eot))',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=3600, stale-while-revalidate=86400' },
+        ],
+      },
     ]
   },
 
