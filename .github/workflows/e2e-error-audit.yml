@@ -156,19 +156,19 @@ jobs:
             echo "url=https://pawnecta-landing-mvp-git-${BRANCH}-petmatecls-projects.vercel.app" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Wait for preview to be Ready (best effort)
-        run: |
-          URL="${{ steps.preview.outputs.url }}?x-vercel-protection-bypass=${{ secrets.PLAYWRIGHT_BYPASS }}"
-          for i in $(seq 1 30); do
-            STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "$URL" || echo "000")
-            if [ "$STATUS" = "200" ]; then
-              echo "Preview Ready (HTTP $STATUS) after ${i}0s"
-              exit 0
-            fi
-            echo "Preview no Ready aún (HTTP $STATUS), esperando 10s (attempt $i/30)..."
-            sleep 10
-          done
-          echo "Preview NO reached Ready state en 5min — sigo igual, los tests reportarán el fallo con más contexto"
+      - name: Wait for preview to be APP-Ready (blocking)
+        # Sprint authtoken-f2-fix (2026-11-27) — reemplaza el check previo
+        # "solo HTTP 200" que daba OK en la UI "Deployment is building" de
+        # Vercel (HTTP 200 pero sin app). El nuevo script verifica además
+        # que el body contenga el marker "Pawnecta" y NO "Deployment is
+        # building". Causa raíz confirmada via traces de #237+#238:
+        # docs/sprints/auth-token-persist-fix-estructural-plan.md § 3.3.
+        # BLOQUEANTE: si el preview no está ready en 10 min, el step falla
+        # con exit 1 y el workflow aborta. Antes era warning-only.
+        env:
+          PREVIEW_URL: ${{ steps.preview.outputs.url }}
+          BYPASS: ${{ secrets.PLAYWRIGHT_BYPASS }}
+        run: bash .github/scripts/wait-for-preview-ready.sh
 
       # Sprint estab-e2e (2026-09-11) — MEDICIÓN Supabase Auth latency.
       # 5 POST staging con anon real + creds dummy (400 esperado tras validar

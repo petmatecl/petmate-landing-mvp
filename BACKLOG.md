@@ -1981,6 +1981,20 @@ Cron mensual (o post-deploy) que corre Lighthouse contra 5 páginas clave (home,
 
 ## Deuda técnica / pulido
 
+### CI-COOKIE-BANNER-INTERCEPT — abierto · prioridad media · origen fail launch-l1/toast-dup-regresion 2026-11-27
+
+**Síntoma**: tests downstream del setup auth encuentran el cookie banner (`<div role="region" aria-label="Aviso de cookies">` z-50 fixed bottom) interceptando clicks en botones del fondo del modal. Observado en `e2e/specs/launch-l1/toast-dup-regresion.spec.ts:73` (post-rerun manual PR #238, run 46026583492): 89 retries de `locator.click` en 60s, cada uno bloqueado por el banner.
+
+**Causa probable**: `e2e/setup/authenticate.ts:166-173` ya hace click en "Aceptar todas" + espera a que desaparezca el banner antes del storageState save. Pero algún edge case rompe la persistencia:
+- (a) Timing race donde el banner no aparece al login (cookie pre-existente del contexto) → no se hace click → la cookie de dismiss no se setea.
+- (b) Cross-origin: el banner usa localStorage para el flag; storageState() captura localStorage del origin del login, pero el test navega a otra ruta que podría estar bajo un origin ligeramente distinto (bypass query vs sin query).
+
+**Fases propuestas** (sprint aparte, docs-only Fase 1 + fix Fase 2):
+1. Fase 1: analizar un `storageState` capturado reciente buscando el flag de dismiss. Decidir si está en cookie o localStorage. Grep en `components/CookieBanner.tsx`.
+2. Fase 2: si en localStorage → agregar `localStorage.setItem('cookieConsent', ...)` manual en `authenticate.ts` post-login antes del storageState save, independiente de si el banner aparece. Autónomo (solo setup e2e).
+
+**Hipótesis adicional a verificar**: pueden ser dos flakes separados del mismo cookie banner, no solo uno. Grep en el histórico de fails similares. Si recurre en ≥2 PRs, prioridad alta.
+
 ### Bug histórico recordatorio-onboarding bloque 1 — abierto · prioridad media · origen commit `1ae7ece`
 
 **Síntoma pre-fix (resuelto en main `0255d3a`)**: `pages/api/cron/recordatorio-onboarding.ts` L73 usaba `.eq('proveedor_auth_id', prov.auth_user_id)` sobre `servicios_publicados` — columna **inexistente**. PostgREST respondía 400 → el SDK retornaba `{count: null, error: {...}}` sin que el código leyera `error` → `(count || 0) > 0` siempre false → el bloque 1 enviaba el email "¡Felicidades, publica tu primer servicio!" a proveedores que **ya tenían servicios activos**. El fix (PR #235, 2026-11-27) cambió a `.eq('proveedor_id', prov.id).eq('activo', true)` + fail-closed sobre el error.
