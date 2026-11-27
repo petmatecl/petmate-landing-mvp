@@ -1,5 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
+import Image from "next/image";
+import { isPreOptimizedHost } from "../lib/imageOptimizer";
 import { useRouter } from "next/router";
 import { useState, useId, useRef, useEffect } from "react";
 import { mapJoinToServiceResult } from "../lib/serviceMapper";
@@ -123,12 +125,18 @@ function ServiceCardItem({ s }: { s: any }) {
       className="group cursor-pointer bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col h-full"
     >
       <div className="w-full h-44 overflow-hidden bg-slate-100 relative">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        {/* Sprint lh-home-img-opt (2026-11-27) — AUDIT-LH Fix 1. Migrado de
+            <img> crudo a next/Image. Fotos Supabase de usuarios venían sin
+            optimizar (2.1-2.9 MB JPEG baseline); next/Image sirve WebP +
+            srcset responsive → ~50-150 KB por foto. Audit image-delivery-
+            insight home 0.5 → objetivo >0.9. */}
+        <Image
           src={foto}
           alt={s.titulo}
-          loading="lazy"
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          fill
+          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+          unoptimized={isPreOptimizedHost(foto)}
+          className="object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             const img = e.currentTarget as HTMLImageElement;
             const fallback = FALLBACK_HOME[s.categoria_slug] || FALLBACK_HOME['default'];
