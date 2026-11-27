@@ -59,73 +59,90 @@ Snapshot 2026-11-22 ([`docs/auditorias/lighthouse-20261122.md`](../auditorias/li
 
 Patrón recurrente detectado vía audit insights: **optimización de imágenes + reducción JS legacy + a11y**.
 
-### Fix 1 — `image-delivery-insight` (impacto: 4/4 URLs afectadas) — **QUICK WIN**
+### Fix 1 — `image-delivery-insight` — **INVENTARIO 2026-11-27, SCOPE REDUCIDO**
 
-**Issue**: todas las URLs scoran 50/100 en delivery de imágenes. Diagnóstico común:
-- Imágenes servidas sin `srcset` responsive para mobile.
-- Falta `loading="lazy"` en imágenes below-the-fold.
-- Formato JPEG legacy en lugar de WebP/AVIF.
+**Hallazgo del inventario**: las 3 zonas priority que el audit nombraba (`/explorar` cards, ficha de servicio, ficha de proveedor público) **YA están migradas** a `next/Image` en el sprint perf-ficha 2026-11-12. Verificado via `grep "<img "`:
 
-**Acción propuesta** (requiere GO PO):
-- Migrar `<img>` restantes (grep `<img src=` en `pages/` + `components/`) a `next/Image` con `priority={true}` solo para hero y `loading="lazy"` por default.
-- `next/Image` sirve WebP/AVIF automático + srcset.
-- **Scope estimado**: 1-2 días. Enumerar superficie exacta vía grep antes de empezar.
-- **Impacto esperado**: +5-10 pts Perf cada URL, LCP -1 a -2s en `/explorar`.
-- **Esfuerzo**: Medio. Blast radius acotado a reemplazos de componente.
+| Zona priority PO | Estado | Archivo |
+|---|---|---|
+| Cards `/explorar` | ✅ Migrada | `components/Explore/ServiceCard.tsx` usa `next/Image` con `fill` + `sizes` responsivo + `priority` para 1ra card (PR #245) |
+| Ficha servicio | ✅ Migrada | `components/Servicio/*` sin `<img>` crudo |
+| Ficha proveedor público | ✅ Migrada | `pages/proveedor/[id].tsx:774,781` usa `<Image>` |
 
-### Fix 2 — LCP `/explorar` y `/explorar?categoria=paseos` (impacto: 2 URLs ROJO) — **PRIORITARIO**
+**`<img>` crudos pendientes** (ninguno en las 3 zonas priority):
 
-**Issue**: LCP 6.3-7.3s en `/explorar`, rojo claro. SearchBar hero + grid de cards contribuye pesado. El `lcp-discovery-insight` score 0 indica que el resource LCP no se descubre temprano.
+| Superficie | Cantidad | Impacto Lighthouse | Recomendación |
+|---|---|---|---|
+| `pages/index.tsx:184` avatar proveedor 20×20px en carousel destacados | 1 | **Bajo** — asset < 1 KB en JPEG. Convertir a `next/Image` agrega overhead del componente > ahorro en el asset | Mantener `<img>` con `eslint-disable` (ya tiene) |
+| `pages/proveedor/index.tsx` dashboard (flow privado — foto perfil, carnet preview, foto espacio) | 5 | **Mínimo** — no es ruta pública, no se mide en Lighthouse de rutas visitadas | PR aparte post-launch, baja prioridad |
+| `components/Admin/*` carnet signed URLs + avatares + eventos | 10+ | **Cero** — solo admin logeado | Omitir, no justifica sprint |
+| `components/Explore/CaregiverMap.tsx:112` popup Leaflet (HTML string, no JSX) | 1 | **Cero** — renderizado solo al click marker, fuera del LCP window | Omitir (patrón no-JSX impide `next/Image` directo) |
+| `components/Proveedor/ServiceFormModal.tsx` previews locales `URL.createObjectURL` | 2 | **Cero** — flow privado de edición | Omitir |
 
-**Acción propuesta** (requiere GO PO):
-- Agregar `<link rel="preload">` para la imagen LCP del hero de SearchBar.
-- Priorizar la primera card del grid con `priority={true}` en su `next/Image`.
-- Mover CSS crítico inline (si el framework lo permite — Next 15 Pages Router default no lo hace).
-- **Scope estimado**: 0.5-1 día.
-- **Impacto esperado**: LCP -2 a -3s. Perf +10-15 pts para ambas URLs de `/explorar`.
-- **Esfuerzo**: Medio. Requiere identificar el elemento LCP exacto vía DevTools Network panel.
+**Conclusión**: Fix 1 **efectivamente cerrado** por sprint perf-ficha 2026-11-12 + `priority` de PR #245. El score 50/100 de `image-delivery-insight` en el audit refiere a aspectos distintos (lazy-loading nativo, `srcset` responsive) que `next/Image` resuelve pero Lighthouse sigue descontando por métricas internas (varianza de scoring).
 
-### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` + `link-text` (impacto: 3 URLs afectadas)
+**Siguiente verificación**: Lighthouse mobile mediana 3 runs post-merge de PR #244 cache + PR #245 LCP + PR #246 a11y. Si `image-delivery-insight` sigue en 50/100, inspeccionar el audit `details.items[]` concreto para identificar qué recurso específico falla (puede ser un asset de `/public/` sin srcset — fuera de alcance de migración `next/Image`).
 
-**Issue**: 4 audits de a11y fallando en `/explorar`, `/explorar?categoria=paseos`, `/proveedor/{id}`. A11y score 90-95 vs objetivo ≥95.
-- `color-contrast`: texto con contrast ratio < WCAG AA (4.5:1 normal, 3:1 large).
-- `heading-order`: h1 → h3 saltos de nivel sin h2.
-- `select-name`: selects sin label asociado.
-- `link-text`: links con texto no descriptivo ("Click aquí", "Ver más").
+**Sprint dedicado Fix 1 queda descartado como tal**. Residual: 1 PR chico migrando `pages/index.tsx:184` a `next/Image` si post-mediciones muestra impacto en Lighthouse home. Decisión del PO tras ver los números post-fix.
 
-**Acción propuesta** (requiere GO PO):
-- Audit individual de cada issue vía DevTools Lighthouse en Chrome (elementos exactos).
-- Fix contrast: ajustar paleta Tailwind en componentes afectados (probable `/explorar` SearchBar labels gris claro sobre white).
-- Fix heading-order: insertar h2 intermedios en secciones.
-- Fix select-name: agregar `<label>` a `<select>` que faltan.
-- Fix link-text: renombrar "Ver más" a texto descriptivo.
-- **Scope estimado**: 0.5-1 día.
-- **Impacto esperado**: A11y +5-7 pts.
-- **Esfuerzo**: Bajo. Cambios cosméticos.
+### Fix 2 — LCP `/explorar` (impacto: 2 URLs ROJO) — **APLICADO PARCIAL 2026-11-27**
 
-### Fix 4 — `legacy-javascript-insight` + `unused-javascript` (impacto: 4/4 URLs)
+**Issue**: LCP 6.3-7.3s en `/explorar`, rojo claro. Grid de cards contribuye pesado. El `lcp-discovery-insight` score 0 indica que el resource LCP no se descubre temprano.
 
-**Issue**: bundle contiene JS transpilado para browsers legacy que ya no requerimos (ES5 polyfills, Promise polyfills, async/await transformation). Y hay tree-shaking opportunities.
+**Fix aterrizado** (parte de PR Fix 2 LCP /explorar, pendiente de CI):
+- `components/Explore/ServiceCard.tsx`: nuevo prop `priority?: boolean` opcional. Cuando `true`, pasa `priority={true}` a `next/Image` → emite `<link rel="preload" as="image">` para el cover.
+- `pages/explorar.tsx`: la primera card de la página 1 (`pagina === 1 && idx === 0`) recibe `priority={true}`. Resto queda `loading="lazy"` por default.
 
-**Acción propuesta** (requiere GO PO):
-- Verificar `browserslist` en `package.json` — actualizar target a "defaults, not IE 11".
-- Analizar bundle con `@next/bundle-analyzer` (dev-only tool).
-- Identificar paquetes con imports completos vs tree-shaking selectivo (ej. `date-fns/*` vs `date-fns`).
-- **Scope estimado**: 0.5 día análisis + 1 día aplicar fixes.
-- **Impacto esperado**: -50 a -200 KB bundle size, +2-5 pts Perf.
-- **Esfuerzo**: Bajo (análisis) + Medio (aplicación).
+**Pendiente** (en Fix 1 sprint): migrar imágenes de hero de `pages/index.tsx` (home) si aplica.
 
-### Fix 5 — `cache-insight` (home) + `total-byte-weight` (home) — **QUICK WIN** si se cambian headers CDN
+**Impacto esperado**: LCP -1 a -2s en `/explorar` por preload temprano del cover de la primera card. Perf +5-10 pts.
+
+**Verificación post-merge**: Lighthouse mobile 3 runs mediana vs baseline 26-11.
+
+### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` (impacto: 3 URLs afectadas) — **APLICADO 2026-11-27 (PR a11y-fix)**
+
+Análisis específico post-parse del JSON raw:
+
+| Issue | URL | Elemento concreto | Fix aplicado |
+|---|---|---|---|
+| `color-contrast` (8 items) | /explorar | `<span class="text-xs text-accent-600">Activo</span>` en ServiceCard | `text-accent-600` → `text-accent-700` |
+| `heading-order` (1 item) | /explorar + /explorar?cat | `<h3>` título servicio en ServiceCard (h1 page → h3 card, salta h2) | `<h3>` → `<h2>` (misma clase visual) |
+| `select-name` (1 item) | /explorar | `<select id="explorar-orden">` con `<label htmlFor>` oculto por `hidden sm:block` → Lighthouse mobile no detecta asociación | `hidden sm:block` → `sr-only sm:not-sr-only` (presente para SR siempre, visible solo desktop) |
+| `heading-order` (1 item) | /proveedor | Footer `<h4>Servicios</h4>` + `<h4>Pawnecta</h4>` (page tiene h1→h2, salta a h4) | `<h4>` → `<h3>` en los 2 headings del footer |
+
+**Fuera de alcance de este PR**:
+- `link-text` (1 item en /proveedor con snippet `?`): sin selector parseable en el JSON. Deuda: grep manual `Ver más`, `Click aquí`, `Leer más` etc. en pages/ + components/ y renombrar a texto descriptivo. Sprint aparte post-merge.
+- `color-contrast` (1 item en /proveedor): botón del CookieBanner. Puede estar resuelto en PR #242 cookie-banner-fix que compactó estilos. Verificar en Lighthouse post-merge #242.
+
+**Impacto esperado** (del audit): A11y +5-7 pts.
+
+**Verificación post-merge**: Lighthouse mobile 3 runs mediana contra `/explorar` y `/proveedor/{id}`. Esperado: `color-contrast`, `heading-order`, `select-name` score 1.0.
+
+### Fix 4 — `legacy-javascript-insight` + `unused-javascript` — **DESCARTADO 2026-11-27**
+
+**Decisión del PO 2026-11-27**: descartado como sprint. No hay oportunidad clara de ganancia sin análisis bundle-analyzer profundo.
+
+**Verificación previa al descarte** (grep sobre el repo 2026-11-27):
+- No existe `.browserslistrc` ni config `browserslist` en `package.json` → Next 15 usa su default, que ya excluye IE 11 y navegadores con < 0.5% share.
+- `date-fns` imports: todos usan named imports (`import { format } from 'date-fns'` → tree-shakeable). Cero wildcards.
+- `import * as Sentry from '@sentry/nextjs'`: patrón diseñado por el SDK Sentry; el bundler lo trata correctamente en server-side y no ensucia el bundle cliente.
+- No se detectaron imports no-tree-shakeable obvios en pages/, components/ ni lib/.
+
+**Motivo**: sin un `@next/bundle-analyzer` que identifique chunks concretos para optimizar, el sprint es exploración sin target. Ganancia esperada (-50 a -200 KB) está en el límite de varianza de muestreo del score Lighthouse. Prioridad baja frente a Fix 1, 2, 3, 5.
+
+**Si se reabre a futuro**: arrancar con `ANALYZE=true npm run build` + `@next/bundle-analyzer` (dev-only) para identificar chunks pesados concretos antes de proponer cambios. No es sprint factible sin ese insumo.
+
+### Fix 5 — `cache-insight` (home) + `total-byte-weight` (home) — **APLICADO 2026-11-27 (PR #244 lh-cache-hdrs)**
 
 **Issue**: `home` scora 50/100 en `cache-insight` (lifetimes cortos) y 50/100 en `total-byte-weight` (payload > threshold recomendado).
 
-**Acción propuesta** (requiere GO PO):
-- Configurar `Cache-Control` headers específicos para assets estáticos vía `next.config.js:headers()`.
-- Verificar que `/public/*` tiene `immutable, max-age=31536000` (1 año — para versioned assets).
-- Comprimir imágenes grandes (home hero puede estar cerca de 500 KB — target 100 KB WebP).
-- **Scope estimado**: 0.5 día.
-- **Impacto esperado**: Perf home +5-8 pts, cache hit ratio CDN mejor.
-- **Esfuerzo**: Bajo.
+**Fix aterrizado** (PR #244, merge pending CI):
+- Nueva regla `headers()` en `next.config.js` para assets estáticos del directorio `/public/*` (png/jpg/jpeg/webp/avif/gif/svg/ico/woff/woff2/ttf/otf/eot).
+- Policy: `public, max-age=3600, stale-while-revalidate=86400` — 1h cache + 24h SWR.
+- NO toca `/_next/static/*` (Next ya pone `immutable, max-age=31536000` automático, content-hashed).
+- Evidencia empírica pre-fix: `/pawnecta_logo_final-trans.png` (~100 KB) venía con `max-age=0, must-revalidate` → re-descarga cada visita.
+
+**Compresión imágenes home hero** queda pendiente como item aparte del sprint Fix 1 (imágenes a `next/Image`).
 
 ---
 

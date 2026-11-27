@@ -941,7 +941,7 @@ export default function ExplorarPage() {
                                             </button>
                                         </div>
                                         {vista === 'lista' && (
-                                            <label htmlFor="explorar-orden" className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                            <label htmlFor="explorar-orden" className="text-sm font-medium text-slate-500 sr-only sm:not-sr-only">Ordenar por:</label>
                                         )}
                                         {vista === 'lista' && (
                                             <select
@@ -974,8 +974,17 @@ export default function ExplorarPage() {
                                             </p>
                                         )}
                                         <div ref={gridRef} className="grid gap-5 grid-cols-1 sm:grid-cols-2 xl:grid-cols-3">
-                                            {services.map((service) => (
-                                                <ServiceCard key={service.servicio_id} service={service} />
+                                            {/* Sprint lh-lcp-explorar (2026-11-27) — AUDIT-LH Fix 2.
+                                                Primera card en viewport = LCP element típico. Pasar
+                                                priority=true solo a la primera card de la página 1 para
+                                                que next/Image emita <link rel="preload" as="image"> en
+                                                el <head>. Resto queda loading="lazy" por default. */}
+                                            {services.map((service, idx) => (
+                                                <ServiceCard
+                                                    key={service.servicio_id}
+                                                    service={service}
+                                                    priority={pagina === 1 && idx === 0}
+                                                />
                                             ))}
                                             {pagina === 1 && services.length > 0 && services.length < 3 && (() => {
                                                 // Cap 2 fillers máximo, solo cuando hay <3
