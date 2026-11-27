@@ -37,8 +37,23 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
   const supabaseAdmin = createClient(supabaseUrl, serviceKey);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.pawnecta.com';
 
+  // Sprint nudge-dry-run (2026-11-27) — modo dryRun=1 corre los 3 SELECTs
+  // idénticos al modo real pero NO llama resend.emails.send ni hace UPDATE
+  // de timestamps. Response devuelve la lista de candidatos enmascarados por
+  // bloque para que el operador vea qué habría enviado sin riesgo real.
+  const isDryRun = req.query.dryRun === '1' || req.query.dryRun === 'true';
+
+  // Masker local — primer char + *** + @dominio.
+  const maskEmailLocal = (email: string | null | undefined): string => {
+    if (!email) return '';
+    return email.replace(/^(.)([^@]*)(@.*)$/, '$1***$3');
+  };
+
   try {
     let sent = 0;
+    const dryRunBloque1: Array<{ nombre: string; email: string; dias_signup: number }> = [];
+    const dryRunBloque2: Array<{ nombre: string; email: string; dias_signup: number }> = [];
+    const dryRunBloque3: Array<{ nombre: string; email: string; nudge_count: number; dias_signup: number }> = [];
     const cutoff48h = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const cutoff7d = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
     // Sprint PROVEEDOR-PERFIL-NUDGE-7D (2026-11-26) — ventana accionable
@@ -85,6 +100,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { data: authUser, error: authErr } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
       logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_service', authErr, { providerId: prov.auth_user_id });
       if (!authUser?.user?.email) continue;
+
+      if (isDryRun) {
+        const diasSignup = Math.floor((Date.now() - new Date(prov.created_at).getTime()) / (24 * 60 * 60 * 1000));
+        dryRunBloque1.push({ nombre: prov.nombre, email: maskEmailLocal(authUser.user.email), dias_signup: diasSignup });
+        continue;
+      }
 
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
@@ -135,6 +156,12 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       const { data: authUser, error: authErr2 } = await supabaseAdmin.auth.admin.getUserById(prov.auth_user_id);
       logSupabaseError('api-cron:recordatorio-onboarding:auth_lookup_photo', authErr2, { providerId: prov.auth_user_id });
       if (!authUser?.user?.email) continue;
+
+      if (isDryRun) {
+        const diasSignup = Math.floor((Date.now() - new Date(prov.created_at).getTime()) / (24 * 60 * 60 * 1000));
+        dryRunBloque2.push({ nombre: prov.nombre, email: maskEmailLocal(authUser.user.email), dias_signup: diasSignup });
+        continue;
+      }
 
       await resend.emails.send({
         from: process.env.EMAIL_FROM || 'onboarding@resend.dev',
@@ -221,6 +248,18 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
       // Subject tone: nudge 1 vs nudge 2 (segundo es más suave).
       const isFirstNudge = (prov.nudge_count || 0) === 0;
+
+      if (isDryRun) {
+        const diasSignup = Math.floor((Date.now() - new Date(prov.created_at).getTime()) / (24 * 60 * 60 * 1000));
+        dryRunBloque3.push({
+          nombre: prov.nombre,
+          email: maskEmailLocal(authUserNudge.user.email),
+          nudge_count: prov.nudge_count || 0,
+          dias_signup: diasSignup,
+        });
+        continue;
+      }
+
       const subject = isFirstNudge
         ? `${prov.nombre}, aún tienes cuenta en Pawnecta — ¿seguimos adelante?`
         : `${prov.nombre}, un último recordatorio desde Pawnecta`;
@@ -258,6 +297,16 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
       sent++;
     }
 
+    if (isDryRun) {
+      return res.status(200).json({
+        success: true,
+        dryRun: true,
+        bloque1_onboarding_48h: dryRunBloque1,
+        bloque2_foto: dryRunBloque2,
+        bloque3_nudge_7d: dryRunBloque3,
+        total_candidatos: dryRunBloque1.length + dryRunBloque2.length + dryRunBloque3.length,
+      });
+    }
     return res.status(200).json({ success: true, sent });
   } catch (err) {
     // Sweep #1 finding [70]: sin `details` en el response.

@@ -941,7 +941,7 @@ export default function ExplorarPage() {
                                             </button>
                                         </div>
                                         {vista === 'lista' && (
-                                            <label htmlFor="explorar-orden" className="text-sm font-medium text-slate-500 hidden sm:block">Ordenar por:</label>
+                                            <label htmlFor="explorar-orden" className="text-sm font-medium text-slate-500 sr-only sm:not-sr-only">Ordenar por:</label>
                                         )}
                                         {vista === 'lista' && (
                                             <select

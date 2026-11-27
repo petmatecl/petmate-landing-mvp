@@ -59,19 +59,31 @@ Snapshot 2026-11-22 ([`docs/auditorias/lighthouse-20261122.md`](../auditorias/li
 
 Patrón recurrente detectado vía audit insights: **optimización de imágenes + reducción JS legacy + a11y**.
 
-### Fix 1 — `image-delivery-insight` (impacto: 4/4 URLs afectadas) — **QUICK WIN**
+### Fix 1 — `image-delivery-insight` — **INVENTARIO 2026-11-27, SCOPE REDUCIDO**
 
-**Issue**: todas las URLs scoran 50/100 en delivery de imágenes. Diagnóstico común:
-- Imágenes servidas sin `srcset` responsive para mobile.
-- Falta `loading="lazy"` en imágenes below-the-fold.
-- Formato JPEG legacy en lugar de WebP/AVIF.
+**Hallazgo del inventario**: las 3 zonas priority que el audit nombraba (`/explorar` cards, ficha de servicio, ficha de proveedor público) **YA están migradas** a `next/Image` en el sprint perf-ficha 2026-11-12. Verificado via `grep "<img "`:
 
-**Acción propuesta** (requiere GO PO):
-- Migrar `<img>` restantes (grep `<img src=` en `pages/` + `components/`) a `next/Image` con `priority={true}` solo para hero y `loading="lazy"` por default.
-- `next/Image` sirve WebP/AVIF automático + srcset.
-- **Scope estimado**: 1-2 días. Enumerar superficie exacta vía grep antes de empezar.
-- **Impacto esperado**: +5-10 pts Perf cada URL, LCP -1 a -2s en `/explorar`.
-- **Esfuerzo**: Medio. Blast radius acotado a reemplazos de componente.
+| Zona priority PO | Estado | Archivo |
+|---|---|---|
+| Cards `/explorar` | ✅ Migrada | `components/Explore/ServiceCard.tsx` usa `next/Image` con `fill` + `sizes` responsivo + `priority` para 1ra card (PR #245) |
+| Ficha servicio | ✅ Migrada | `components/Servicio/*` sin `<img>` crudo |
+| Ficha proveedor público | ✅ Migrada | `pages/proveedor/[id].tsx:774,781` usa `<Image>` |
+
+**`<img>` crudos pendientes** (ninguno en las 3 zonas priority):
+
+| Superficie | Cantidad | Impacto Lighthouse | Recomendación |
+|---|---|---|---|
+| `pages/index.tsx:184` avatar proveedor 20×20px en carousel destacados | 1 | **Bajo** — asset < 1 KB en JPEG. Convertir a `next/Image` agrega overhead del componente > ahorro en el asset | Mantener `<img>` con `eslint-disable` (ya tiene) |
+| `pages/proveedor/index.tsx` dashboard (flow privado — foto perfil, carnet preview, foto espacio) | 5 | **Mínimo** — no es ruta pública, no se mide en Lighthouse de rutas visitadas | PR aparte post-launch, baja prioridad |
+| `components/Admin/*` carnet signed URLs + avatares + eventos | 10+ | **Cero** — solo admin logeado | Omitir, no justifica sprint |
+| `components/Explore/CaregiverMap.tsx:112` popup Leaflet (HTML string, no JSX) | 1 | **Cero** — renderizado solo al click marker, fuera del LCP window | Omitir (patrón no-JSX impide `next/Image` directo) |
+| `components/Proveedor/ServiceFormModal.tsx` previews locales `URL.createObjectURL` | 2 | **Cero** — flow privado de edición | Omitir |
+
+**Conclusión**: Fix 1 **efectivamente cerrado** por sprint perf-ficha 2026-11-12 + `priority` de PR #245. El score 50/100 de `image-delivery-insight` en el audit refiere a aspectos distintos (lazy-loading nativo, `srcset` responsive) que `next/Image` resuelve pero Lighthouse sigue descontando por métricas internas (varianza de scoring).
+
+**Siguiente verificación**: Lighthouse mobile mediana 3 runs post-merge de PR #244 cache + PR #245 LCP + PR #246 a11y. Si `image-delivery-insight` sigue en 50/100, inspeccionar el audit `details.items[]` concreto para identificar qué recurso específico falla (puede ser un asset de `/public/` sin srcset — fuera de alcance de migración `next/Image`).
+
+**Sprint dedicado Fix 1 queda descartado como tal**. Residual: 1 PR chico migrando `pages/index.tsx:184` a `next/Image` si post-mediciones muestra impacto en Lighthouse home. Decisión del PO tras ver los números post-fix.
 
 ### Fix 2 — LCP `/explorar` y `/explorar?categoria=paseos` (impacto: 2 URLs ROJO) — **PRIORITARIO**
 
@@ -85,23 +97,24 @@ Patrón recurrente detectado vía audit insights: **optimización de imágenes +
 - **Impacto esperado**: LCP -2 a -3s. Perf +10-15 pts para ambas URLs de `/explorar`.
 - **Esfuerzo**: Medio. Requiere identificar el elemento LCP exacto vía DevTools Network panel.
 
-### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` + `link-text` (impacto: 3 URLs afectadas)
+### Fix 3 — A11y `color-contrast` + `heading-order` + `select-name` (impacto: 3 URLs afectadas) — **APLICADO 2026-11-27 (PR a11y-fix)**
 
-**Issue**: 4 audits de a11y fallando en `/explorar`, `/explorar?categoria=paseos`, `/proveedor/{id}`. A11y score 90-95 vs objetivo ≥95.
-- `color-contrast`: texto con contrast ratio < WCAG AA (4.5:1 normal, 3:1 large).
-- `heading-order`: h1 → h3 saltos de nivel sin h2.
-- `select-name`: selects sin label asociado.
-- `link-text`: links con texto no descriptivo ("Click aquí", "Ver más").
+Análisis específico post-parse del JSON raw:
 
-**Acción propuesta** (requiere GO PO):
-- Audit individual de cada issue vía DevTools Lighthouse en Chrome (elementos exactos).
-- Fix contrast: ajustar paleta Tailwind en componentes afectados (probable `/explorar` SearchBar labels gris claro sobre white).
-- Fix heading-order: insertar h2 intermedios en secciones.
-- Fix select-name: agregar `<label>` a `<select>` que faltan.
-- Fix link-text: renombrar "Ver más" a texto descriptivo.
-- **Scope estimado**: 0.5-1 día.
-- **Impacto esperado**: A11y +5-7 pts.
-- **Esfuerzo**: Bajo. Cambios cosméticos.
+| Issue | URL | Elemento concreto | Fix aplicado |
+|---|---|---|---|
+| `color-contrast` (8 items) | /explorar | `<span class="text-xs text-accent-600">Activo</span>` en ServiceCard | `text-accent-600` → `text-accent-700` |
+| `heading-order` (1 item) | /explorar + /explorar?cat | `<h3>` título servicio en ServiceCard (h1 page → h3 card, salta h2) | `<h3>` → `<h2>` (misma clase visual) |
+| `select-name` (1 item) | /explorar | `<select id="explorar-orden">` con `<label htmlFor>` oculto por `hidden sm:block` → Lighthouse mobile no detecta asociación | `hidden sm:block` → `sr-only sm:not-sr-only` (presente para SR siempre, visible solo desktop) |
+| `heading-order` (1 item) | /proveedor | Footer `<h4>Servicios</h4>` + `<h4>Pawnecta</h4>` (page tiene h1→h2, salta a h4) | `<h4>` → `<h3>` en los 2 headings del footer |
+
+**Fuera de alcance de este PR**:
+- `link-text` (1 item en /proveedor con snippet `?`): sin selector parseable en el JSON. Deuda: grep manual `Ver más`, `Click aquí`, `Leer más` etc. en pages/ + components/ y renombrar a texto descriptivo. Sprint aparte post-merge.
+- `color-contrast` (1 item en /proveedor): botón del CookieBanner. Puede estar resuelto en PR #242 cookie-banner-fix que compactó estilos. Verificar en Lighthouse post-merge #242.
+
+**Impacto esperado** (del audit): A11y +5-7 pts.
+
+**Verificación post-merge**: Lighthouse mobile 3 runs mediana contra `/explorar` y `/proveedor/{id}`. Esperado: `color-contrast`, `heading-order`, `select-name` score 1.0.
 
 ### Fix 4 — `legacy-javascript-insight` + `unused-javascript` (impacto: 4/4 URLs)
 
